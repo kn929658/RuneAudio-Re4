@@ -349,9 +349,6 @@ svg path.st1 {
 #loader svg {
 	animation: blinkopaque 1.5s linear infinite;
 }
-.page {
-	touch-action: manipulation; /* fix: Unable to preventDefault inside passive event listener */
-}
 .menu {
 	position: absolute;
 	left: 40px;
@@ -587,7 +584,8 @@ svg path.st1 {
 	user-select: none;           /* Non-prefixed version, currently supported by Chrome and Opera */
 }
 .page {
-	height: 100%;
+	min-height: 100%;
+	touch-action: manipulation; /* fix: Unable to preventDefault inside passive event listener */
 }
 #page-playback {
 	padding: 120px 0 60px;
@@ -2329,6 +2327,12 @@ li.active .li2 bl {
 	}
 }
 /* portrait */
+@media( orientation: portrait ) and ( max-height: 768px ) {
+	#page-playback.barshidden {
+		padding: 60px 0 20px;
+	}
+}
+
 @media( orientation: portrait ) and ( max-width: 1200px ) {
 	#playback-row {
 		max-width: 100vw;

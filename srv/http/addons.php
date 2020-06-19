@@ -146,14 +146,14 @@ foreach( $arrayalias as $alias ) {
 	}
 	$description = str_replace( '\\', '', $addon[ 'description' ] );
 	$sourcecode = $addon[ 'sourcecode' ];
-	if ( $sourcecode && $addon[ 'buttonlabel' ] !== 'Link' ) {
+	if ( $sourcecode && $buttonlabel !== 'Link' ) {
 		$detail = '<br><a href="'.$sourcecode.'" target="_blank" class="source">source <i class="fa fa-github"></i></a>';
 	} else {
 		$detail = '';
 	}
 	$blocks .= '
 		<div id="'.$alias.'" class="boxed-group">';
-	$thumbnail = $addon[ 'thumbnail' ] ?: '';
+	$thumbnail = $addon[ 'thumbnail' ] ?? '';
 	if ( $thumbnail ) $blocks .= '
 		<div style="float: left; width: calc( 100% - 110px);">';
 	$blocks .= '

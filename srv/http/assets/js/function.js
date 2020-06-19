@@ -420,7 +420,7 @@ function displaySave( page, thumbbyartist ) {
 		G.display[ this.name ] = $( this ).prop( 'checked' );
 	} );
 	var display = G.display;
-	[ 'color', 'hidecover', 'order', 'updating_db', 'update', 'volumenone' ].forEach( function( el ) {
+	[ 'color', 'order', 'updating_db', 'update', 'volumenone' ].forEach( function( el ) {
 		delete display[ el ];
 	} );
 	G.local = 1;

@@ -50,6 +50,7 @@ echo '{
 	"backonleft": false,
 	"count": true,
 	"fixedcover": true,
+	"hidecover": false,
 	"label": true,
 	"playbackswitch": true,
 	"plclear": true,

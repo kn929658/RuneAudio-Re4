@@ -78,12 +78,7 @@ foreach( $arrayalias as $alias ) {
 	// hide by conditions
 	if ( isset( $addon[ 'hide' ] ) && $addon[ 'hide' ] ) continue;
 	
-	if ( isset( $addon[ 'buttonlabel' ] ) ) {
-		$buttonlabel = $addon[ 'buttonlabel' ];
-	} else {
-		$buttonlabel = '<i class="fa fa-plus-circle"></i>Install';
-	}
-	
+	$buttonlabel = $addon[ 'buttonlabel' ] ?? '<i class="fa fa-plus-circle"></i>Install';
 	if ( isset( $addon[ 'nouninstall' ] ) || ( $versioninstalled && file_exists( "/usr/local/bin/uninstall_$alias.sh" ) ) ) {
 		$installed = ' class="installed"';
 		$check = '<grn>&bull;</grn> ';

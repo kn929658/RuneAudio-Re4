@@ -73,21 +73,18 @@ $updatecount = 0;
 $arrayalias = array_keys( $addons );
 foreach( $arrayalias as $alias ) {
 	$addon = $addons[ $alias ];
+	$version = $addon[ 'version' ] ?? '';
+	$nouninstall = $addon[ 'nouninstall' ] ?? '';
 	$versioninstalled = file_exists( "$diraddons/$alias" ) ? trim( file_get_contents( "$diraddons/$alias" ) ) : 1;
 	$update = 0;
 	// hide by conditions
-	if ( isset( $addon[ 'hide' ] ) && $addon[ 'hide' ] ) continue;
+	$addonhide = $addon[ 'hide' ] ?? '';
+	if ( $addonhide ) continue;
 	
-	if ( isset( $addon[ 'buttonlabel' ] ) ) {
-		$buttonlabel = $addon[ 'buttonlabel' ];
-	} else {
-		$buttonlabel = '<i class="fa fa-plus-circle"></i>Install';
-	}
-	
-	if ( isset( $addon[ 'nouninstall' ] ) || ( $versioninstalled && file_exists( "/usr/local/bin/uninstall_$alias.sh" ) ) ) {
+	$buttonlabel = $addon[ 'buttonlabel' ] ?? '<i class="fa fa-plus-circle"></i>Install';
+	if ( $nouninstall || ( $versioninstalled && file_exists( "/usr/local/bin/uninstall_$alias.sh" ) ) ) {
 		$installed = ' class="installed"';
 		$check = '<grn>&bull;</grn> ';
-		$nouninstall = isset( $addon[ 'nouninstall' ] );
 		if ( $nouninstall ) {
 			$taphold = ' alias="'.$alias.'" style="pointer-events: unset"';
 			$hide = ' hide';
@@ -95,7 +92,7 @@ foreach( $arrayalias as $alias ) {
 			$taphold = '';
 			$hide = '';
 		}
-		if ( !isset( $addon[ 'version' ] ) || $addon[ 'version' ] == $versioninstalled ) {
+		if ( $version == $versioninstalled ) {
 			$icon = $nouninstall ? '<i class="fa fa-folder-refresh"></i>' : '';
 			// !!! mobile browsers: <button>s submit 'formtemp' with 'get' > 'failed', use <a> instead
 			$btnin = '<a class="btn btn-default disabled"'.$taphold.'>'.$icon.$buttonlabel.'</a>';
@@ -106,24 +103,24 @@ foreach( $arrayalias as $alias ) {
 			$check = '<grn class="blink">&bull;</grn> ';
 			$btnin = '<a class="btn btn-primary" alias="'.$alias.'"><i class="fa fa-folder-refresh"></i>Update</a>';
 		}
-		$btnunattr = isset( $addon[ 'rollback' ] ) ?' rollback="'.$addon[ 'rollback' ].'"' : '';
+		$btnunattr = isset( $addon[ 'rollback' ] ) ? ' rollback="'.$addon[ 'rollback' ].'"' : '';
 		$btnun = '<a class="btn btn-primary'.$hide.'" alias="'.$alias.'"'.$btnunattr.'><i class="fa fa-minus-circle"></i>Uninstall</a>';
 	} else {
 		$installed = '';
 		$check = '';
-		$needspace = isset( $addon[ 'needspace' ] ) ? $addon[ 'needspace' ] : 1;
+		$needspace = $addon[ 'needspace' ] ?? 1;
 		if ( $needspace < $MiBavail ) {
 			$attrspace = '';
 		} else {
 			$expandable = $MiBunpart < 1000 ? round( $MiBunpart ).' MB' : number_format( round( $MiBunpart / 1000 ) ).' GB';
 			$attrspace = ' needmb="'.$needspace.'" space="Available: <white>'.round( $MiBavail ).' MB</white><br>Expandable: <white>'.$expandable.'</white>"';
 		}
-		$conflict = isset( $addon[ 'conflict' ] ) ? $addon[ 'conflict' ] : '';
+		$conflict = $addon[ 'conflict' ] ?? '';
 		$conflictaddon = $conflict ? file_exists( "$dirsettings/$conflict" ) : '';
 		$attrconflict = !$conflictaddon ? '' : ' conflict="'.preg_replace( '/ *\**$/', '', $addons[ $conflict ][ 'title' ] ).'"';
 		$attrdepend = '';
-		if ( isset( $addon[ 'depend' ] ) ) {
-			$depend = $addon[ 'depend' ];
+		$depend = $addon[ 'depend' ] ?? '';
+		if ( $depend ) {
 			$dependaddon = file_exists( "$dirsettings/$depend" );
 			if ( !$dependaddon ) $attrdepend = ' depend="'.preg_replace( '/ *\**$/', '', $addons[ $depend ][ 'title' ] ).'"';
 		}
@@ -136,24 +133,24 @@ foreach( $arrayalias as $alias ) {
 	if ( $update ) $title = '<i class="fa fa-folder-refresh"></i>&ensp;'.$title;
 	$list.= '<li alias="'.$alias.'"'.$installed.'>'.$title.'</li>';
 	// addon blocks -------------------------------------------------------------
-	$version = isset( $addon[ 'version' ] ) ? $addon[ 'version' ] : '';
 	$revisionclass = $version ? 'revision' : 'revisionnone';
-	if ( isset( $addon[ 'revision' ] ) ) {
-		$revision = str_replace( '\\', '', $addon[ 'revision' ] ); // remove escaped [ \" ] to [ " ]
+	$addonrevision = $addon[ 'revision' ] ?? '';
+	if ( $addonrevision ) {
+		$revision = str_replace( '\\', '', $addonrevision ); // remove escaped [ \" ] to [ " ]
 		$revision = '<ul class="detailtext" style="display: none;"><li>'.str_replace( '<br>', '</li><li>', $revision ).'</li></ul>';
 	} else {
 		$revision = '';
 	}
 	$description = str_replace( '\\', '', $addon[ 'description' ] );
 	$sourcecode = $addon[ 'sourcecode' ];
-	if ( $sourcecode && $addon[ 'buttonlabel' ] !== 'Link' ) {
+	if ( $sourcecode && $buttonlabel !== 'Link' ) {
 		$detail = '<br><a href="'.$sourcecode.'" target="_blank" class="source">source <i class="fa fa-github"></i></a>';
 	} else {
 		$detail = '';
 	}
 	$blocks .= '
 		<div id="'.$alias.'" class="boxed-group">';
-	$thumbnail = $addon[ 'thumbnail' ] ?: '';
+	$thumbnail = $addon[ 'thumbnail' ] ?? '';
 	if ( $thumbnail ) $blocks .= '
 		<div style="float: left; width: calc( 100% - 110px);">';
 	$blocks .= '

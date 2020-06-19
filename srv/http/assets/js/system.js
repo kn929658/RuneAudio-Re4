@@ -150,7 +150,7 @@ $( '#spotify' ).click( function() {
 		, ( G.spotify ? 'touch ' : 'rm -f ' ) + dirsystem +'/spotify'
 		, curlPage( 'system' )
 	] }, resetlocal );
-	banner( 'Spotify Renderer', G.spotify, 'spotify' );
+	banner( 'Spotify Connect', G.spotify, 'spotify' );
 } );
 $( '#setting-spotify' ).click( function() {
 	$.post( 'commands.php', { bash: "aplay -L | grep -v '^\\s\\|^null' | tr '\\n' ' '" }, function( data ) {

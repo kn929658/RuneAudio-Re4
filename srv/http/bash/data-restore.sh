@@ -207,21 +207,18 @@ else
 dtparam=audio=on
 "
 fi
-# kernel 5 - no headphone
-if [[ $( cat /proc/version | cut -d" " -f3 ) > 5.4 ]]; then
-	hwcode=$( grep Revision /proc/cpuinfo | tail -c 4 | cut -c1-2 )
-	[[ $hwcode =~ ^(09|0c)$ ]] && config=$( sed '/dtparam=audio=/ d' <<<"$config" )
-	# hdmi audio
-	if [[ -e $dirsystem/onboard-hdmi ]]; then
-		hardwarecode=$( grep Revision /proc/cpuinfo | awk '{print $NF}' )
-		[[ ${hardwarecode: -4:1} == 3 ]] && rpi4='-pi4'
-		config+="\
+hwcode=$( grep Revision /proc/cpuinfo | tail -c 4 | cut -c1-2 )
+# rpi 0 - no headphone
+[[ $hwcode =~ ^(09|0c)$ ]] && config=$( sed '/dtparam=audio=/ d' <<<"$config" )
+# hdmi audio
+if [[ -e $dirsystem/onboard-hdmi ]]; then
+	[[ $hwcode == 11 ]] && rpi4='-pi4'
+	config+="\
 dtoverlay=vc4-kms-v3d$rpi4
 "
-		reboot+="\
+	reboot+="\
 Enable HDMI
 "
-	fi
 fi
 
 [[ -n $config ]] && echo -n "$config" >> /boot/config.txt

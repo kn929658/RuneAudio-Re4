@@ -315,12 +315,6 @@ function htmlTracks( $lists, $f, $filemode = '', $string = '' ) { // track list 
 	$each0 = $array[ 0 ];
 	$file0 = $each0->file;
 	$litime = 0;
-	$coverart = htmlspecialchars( exec( '/srv/http/bash/getcover.sh "/mnt/MPD/'.str_replace( '"', '\"', $file0 ).'"' ) );
-	$nocover = '';
-	if ( !$coverart ) {
-		$coverart = '/assets/img/cover.'.( time() ).'.svg';
-		$nocover = ' nocover';
-	}
 	
 	$searchmode = $filemode === 'search';
 	$cue = $filemode === 'cue';
@@ -363,6 +357,12 @@ function htmlTracks( $lists, $f, $filemode = '', $string = '' ) { // track list 
 		$icon = 'artist';
 	}
 	$dir = dirname( $file0 );
+	$coverart = htmlspecialchars( exec( '/srv/http/bash/getcover.sh "/mnt/MPD/'.str_replace( '"', '\"', $file0 ).'"' ) );
+	$nocover = '';
+	if ( !$coverart ) {
+		$coverart = '/assets/img/cover.'.( time() ).'.svg';
+		$nocover = ' nocover';
+	}
 	$coverhtml.= '<li data-mode="file" class="licover">'
 			.'<a class="lipath">'.( $cue ? $file : $dir ).'</a>'
 			.'<div class="licoverimg'.$nocover.'"><img src="'.$coverart.'"></div>'

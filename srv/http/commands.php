@@ -166,7 +166,7 @@ if ( isset( $_POST[ 'backuprestore' ] ) ) {
 	
 } else if ( isset( $_POST[ 'getwifi' ] ) ) {
 	//$profile = file_get_contents( '/etc/netctl/'.$_POST[ 'getwifi' ] );
-	$profile = shell_exec( "cat /etc/netctl/Home2GHz | grep -v '^ESSID\|^Interface\|^Connection' | tr -d '\"' | sed 's/^/\"/ ;s/=/\":\"/; s/\$/\",/'" );
+	$profile = shell_exec( "cat /etc/netctl/Home2GHz | grep '^Address\|^Gateway\|^IP\|Security' | tr -d '\"' | sed 's/^/\"/ ;s/=/\":\"/; s/\$/\",/'" );
 	$profile = rtrim( rtrim( $profile ), ',' ); // \n and ,
 	echo '{'.$profile.'}';
 	

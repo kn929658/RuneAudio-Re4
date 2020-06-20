@@ -164,8 +164,22 @@ if ( isset( $_POST[ 'backuprestore' ] ) ) {
 	$array = json_decode( $output, true );
 	echo json_encode( $array, JSON_NUMERIC_CHECK );
 	
+} else if ( isset( $_POST[ 'getnetctl' ] ) ) {
+	exec( $sudobin.'netctl list', $profiles );
+	if ( count( $profiles ) ) {
+		$data = '';
+		foreach( $profiles as $profile ) {
+			$profile = ltrim( $profile );
+			$data.= $profile."\n";
+			$data.= "------------------------------\n";
+			$data.= file_get_contents( '/etc/netctl/'.$profile )."\n";
+		}
+	} else {
+		$data = '(none)';
+	}
+	echo $data;
+	
 } else if ( isset( $_POST[ 'getwifi' ] ) ) {
-	//$profile = file_get_contents( '/etc/netctl/'.$_POST[ 'getwifi' ] );
 	$profile = shell_exec( "cat /etc/netctl/Home2GHz | grep '^Address\|^Gateway\|^IP\|Security' | tr -d '\"' | sed 's/^/\"/ ;s/=/\":\"/; s/\$/\",/'" );
 	$profile = rtrim( rtrim( $profile ), ',' ); // \n and ,
 	echo '{'.$profile.'}';

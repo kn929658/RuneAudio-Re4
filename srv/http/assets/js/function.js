@@ -384,7 +384,7 @@ function displayPlayback() {
 		.toggleClass( 'coversmall', G.display.coversmall );
 	$( '#coverart' ).css( 'width', G.display.coversmall ? '230px' : '' );
 	var volume = ( G.display.volumenone || !G.display.volume ) ? 0 : 1;
-	$( '#volume-knob' ).toggleClass( 'hide', !volume );
+	$( '#volume-knob' ).toggleClass( 'hide', volume === 0 );
 	var column = ( G.display.time ? 1 : 0 ) + ( G.display.cover ? 1 : 0 ) + volume;
 	var $elements = $( '#time-knob, #coverart-block, #volume-knob, #play-group, #vol-group' );
 	if ( column === 2 ) {

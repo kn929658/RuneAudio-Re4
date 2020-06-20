@@ -5,8 +5,6 @@
 ifconfig $wlan up
 
 connectedssid=$( iwgetid $wlan -r )
-# static ip not listed by iwgetid
-[[ -z $connectedssid ]] && staticip=$( ifconfig | grep -A1 "^$wlan" | grep inet | awk '{print $2}' )
 
 netctllist=$( netctl list | grep -v eth | sed 's/^\s*\**\s*//' )
 if [[ -n $netctllist ]]; then
@@ -14,9 +12,6 @@ if [[ -n $netctllist ]]; then
 	# pre-scan saved profile to force display hidden ssid
 	for name in "${netctllist_ar[@]}"; do
 		grep -q '^Hidden=yes' "/etc/netctl/$name" && iwlist $wlan scan essid "$name" &> /dev/null
-		if [[ -z $connectedssid && -n $staticip ]] && grep -q $staticip "/etc/netctl/$name"; then
-			connectedssid=$( grep '^ESSID' "/etc/netctl/$name" | cut -d'"' -f2 )
-		fi
 	done
 fi
 

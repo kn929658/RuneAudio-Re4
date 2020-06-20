@@ -178,7 +178,7 @@ $( '#add' ).click( function() {
 			}
 			if ( ip ) {
 				data += '\nIP=static'
-					   +'\nAddress='+ ip
+					   +'\nAddress='+ ip +'/24'
 					   +'\nGateway='+ gw;
 			} else {
 				data += '\nIP=dhcp';

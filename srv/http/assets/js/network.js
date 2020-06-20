@@ -42,47 +42,36 @@ $( '#listinterfaces' ).on( 'click', 'li', function() {
 		} );
 	}
 } );
-$( '#listwifi' ).on( 'click', '.fa-info-circle', function() {
-	var $this = $( this ).parent();
-	if ( !$this.data( 'profile' ) ) return
-	
-	var wlan = $this.data( 'wlan' );
-	var ssid = $this.data( 'ssid' );
-	info( {
-		  icon        : 'wifi-3'
-		, title       : 'Saved Wi-Fi'
-		, message     : 'Forget / Connect <wh>'+ ssid +'</wh> ?'
-		, buttonwidth : 1
-		, buttonlabel : '<i class="fa fa-minus-circle"></i> Forget'
-		, buttoncolor : '#bb2828'
-		, button      : function() {
-			local = 1;
-			$.post( 'commands.php', { bash: [
-				  'netctl stop "'+ ssid +'"'
-				, 'systemctl disable netctl-auto@'+ wlan
-				, 'rm "/etc/netctl/'+ ssid +'" "/srv/http/data/system/netctl-'+ ssid +'"'
-				, 'killall wpa_supplicant'
-				, 'ifconfig '+ wlan +' up'
-				, curlPage( 'network' )
-				] }, function() {
-				wlconnected = '';
-				wlanScan();
-				resetlocal();
-			} );
-			banner( 'Wi-Fi', 'Forget ...', 'wifi-3' );
-		}
-		, oklabel     : 'Connect'
-		, ok          : function() {
-			connect( wlan, ssid, 0 );
-		}
-	} );
-} );
 $( '#listwifi' ).on( 'click', 'li', function( e ) {
-	if ( $( e.target ).hasClass( 'fa-info-circle' ) ) return
-	
 	var $this = $( this );
 	var wlan = $this.data( 'wlan' );
 	var ssid = $this.data( 'ssid' );
+	if ( $( e.target ).hasClass( 'fa-minus-circle' ) ) {
+		info( {
+			  icon    : 'wifi-3'
+			, title   : 'Saved Wi-Fi connection'
+			, message : '<wh>'+ ssid +'</wh>'
+			, oklabel : '<i class="fa fa-minus-circle"></i> Forget'
+			, okcolor : '#bb2828'
+			, ok      : function() {
+				clearTimeout( intervalscan );
+				local = 1;
+				$.post( 'commands.php', { bash: [
+					  'netctl stop "'+ ssid +'"'
+					, 'systemctl disable netctl-auto@'+ wlan
+					, 'rm "/etc/netctl/'+ ssid +'" "/srv/http/data/system/netctl-'+ ssid +'"'
+					, curlPage( 'network' )
+					] }, function() {
+					wlconnected = '';
+					wlanScan();
+					resetlocal();
+				} );
+				banner( 'Wi-Fi', 'Forget ...', 'wifi-3' );
+			}
+		} );
+		return
+	}
+	
 	var encrypt = $this.data( 'encrypt' );
 	var wpa = $this.data( 'wpa' );
 	var eth0ip = $( '#listinterfaces li.eth0' ).data( 'ip' );
@@ -123,11 +112,9 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 				} );
 				banner( 'Wi-Fi', 'Forget ...', 'wifi-3' );
 			}
-			, oklabel     : !connected ? 'Connect' : 'Disconnect'
+			, oklabel     : connected ? 'Disconnect' : 'Connect'
 			, ok          : function() {
-				if ( !connected ) {
-					connect( wlan, ssid, 0 );
-				} else {
+				if ( connected ) {
 					clearTimeout( intervalscan );
 					local = 1;
 					$.post( 'commands.php', { bash: [
@@ -141,6 +128,8 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 							resetlocal();
 					} );
 					banner( 'Wi-Fi', 'Disconnect ...', 'wifi-3' );
+				} else {
+					connect( wlan, ssid, 0 );
 				}
 			}
 		} );
@@ -677,7 +666,7 @@ function wlanScan() {
 				html += val.dbm < fair ? '<gr>'+ val.ssid +'</gr>' : val.ssid;
 				html += val.encrypt === 'on' ? ' <i class="fa fa-lock"></i>' : '';
 				html += '<gr>'+ val.dbm +' dBm</gr>';
-				html += val.profile ? '&ensp;<i class="fa fa-info-circle wh"></i>' : '';
+				html += val.profile ? '&ensp;<i class="fa fa-minus-circle wh"></i>' : '';
 			} );
 		} else {
 			html += '<li><i class="fa fa-lock"></i><gr>(no accesspoints found)</gr></li>';

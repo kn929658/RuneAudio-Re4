@@ -416,14 +416,16 @@ function connect( wlan, ssid, data ) {
 	clearTimeout( intervalscan );
 	wlcurrent = wlan;
 	$( '#scanning-wifi' ).removeClass( 'hide' );
-	var cmd = [
+	var cmd = [];
+	if ( data !== 0 ) cmd.push(
 		  'echo -e "'+ data +'" > "/srv/http/data/system/netctl-'+ ssid +'"'
 		, 'cp "/srv/http/data/system/netctl-'+ ssid +'" "/etc/netctl/'+ ssid +'"'
-		, 'netctl stop-all'
+	);
+	cmd.push(
+		  'netctl stop-all'
 		, 'ifconfig '+ wlan +' down'
 		, 'netctl start "'+ ssid +'"'
-	];
-	if ( !data ) cmd.shift();
+	);
 	local = 1;
 	$.post( 'commands.php', { bash: cmd }, function( std ) {
 		if ( std != -1 ) {

@@ -469,6 +469,7 @@ function connect( wlan, ssid, data ) {
 	} );
 }
 function editIP( data ) {
+	var data0 = data;
 	if ( 'context' in data ) {
 		var data = {
 			  ip      : data.data( 'ip' ) || ''
@@ -481,57 +482,59 @@ function editIP( data ) {
 	} else {
 		var textvalue = [];
 	}
+	var eth0 = '[Match]'
+			  +'\nName=eth0'
+			  +'\n[Network]'
+			  +'\nDNSSEC=no';
 	info( {
 		  icon         : 'lan'
-		, title        : 'Edit LAN IP'
+		, title        : 'Static LAN IP'
+		, message      : 'Current: <wh>'+ ( data.dhcp ? 'DHCP' : 'Static' ) +'</wh><br>&nbsp;'
 		, textlabel    : [ 'IP', 'Gateway', 'Primary DNS', 'Secondary DNS' ]
 		, textvalue    : textvalue
 		, textrequired : [ 0 ]
-		, checkbox     : { 'Static IP': 1 }
 		, preshow      : function() {
-			$( '#infoText' ).toggle( !data.dhcp );
-			$( '#infoCheckBox input' ).prop( 'checked', !data.dhcp );
+			if ( data.dhcp ) $( '#infoButton' ).addClass( 'hide' );
+		}
+		, buttonlabel  : '<i class="fa fa-undo"></i>DHCP'
+		, buttonwidth  : 1
+		, button       : function() {
+			eth0 +=  '\nDHCP=yes';
+			$.post( 'commands.php', { bash: [
+				  'curl -s -X POST "http://127.0.0.1/pub?id=ip" -d \'{ "ip": "'+ G.hostname +'.local" }\''
+				, 'echo -e "'+ eth0 +'" > /etc/systemd/network/eth0.network'
+				, 'rm -f /srv/http/data/system/eth0.network'
+				, 'systemctl restart systemd-networkd'
+			] }, nicsStatus );
+			notify( 'LAN IP Address', 'Change ...', 'lan blink', -1 );
 		}
 		, ok           : function() {
 			var data1 = {}
-			var eth0 =     '[Match]'
-							+'\nName=eth0'
-							+'\n[Network]'
-							+'\nDNSSEC=no';
-			var checked = $( '#infoCheckBox input' ).prop( 'checked' );
-			if ( !checked ) {
-				if ( data.dhcp ) return
-				
-				data1.ip = G.hostname +'.local';
-				eth0 +=  '\nDHCP=yes';
-			} else {
-				data1.ip = $( '#infoTextBox' ).val();
-				data1.gateway = $( '#infoTextBox1' ).val();
-				data1.dns0 = $( '#infoTextBox2' ).val();
-				data1.dns1 = $( '#infoTextBox3' ).val();
-				if ( data1.ip === data.ip && data1.gateway === data.gateway && data1.dns0 === data.dns0 && data1.dns1 === data.dns1 ) return
-				
-				eth0 +=  '\nAddress='+ data1.ip +'/24'
-							+'\nGateway='+ data1.gateway
-							+'\nDNS='+ data1.dns0;
-				if ( data1.dns1 ) eth0 += '\nDNS='+ data1.dns1;
-			}
+			data1.ip = $( '#infoTextBox' ).val();
+			data1.gateway = $( '#infoTextBox1' ).val();
+			data1.dns0 = $( '#infoTextBox2' ).val();
+			data1.dns1 = $( '#infoTextBox3' ).val();
+			if ( data1.ip === data.ip && data1.gateway === data.gateway && data1.dns0 === data.dns0 && data1.dns1 === data.dns1 ) return
+			
+			eth0 +=  '\nAddress='+ data1.ip +'/24'
+						+'\nGateway='+ data1.gateway
+						+'\nDNS='+ data1.dns0;
+			if ( data1.dns1 ) eth0 += '\nDNS='+ data1.dns1;
 			$.post( 'commands.php', { bash: 'arp -n | grep -v Address | cut -d" " -f1 | grep -q '+ data1.ip +'$ && echo 1 || echo 0', string: 1 }, function( used ) {
 				if ( used == 1 ) {
 					info( {
 						  icon    : 'lan'
-						, title   : 'Edit LAN IP'
+						, title   : 'Static LAN IP'
 						, message : 'IP <wh>'+ data1.ip +'</wh> already in use.'
 						, ok      : function() {
-							data1.ip = data.ip;
-							editIP( data1 );
+							editIP( data0 );
 						}
 					} );
 				} else {
 					$.post( 'commands.php', { bash: [
 						  'curl -s -X POST "http://127.0.0.1/pub?id=ip" -d \'{ "ip": "'+ data1.ip +'" }\''
 						, 'echo -e "'+ eth0 +'" > /etc/systemd/network/eth0.network'
-						, ( checked ? 'echo -e "'+ eth0 +'" >' : 'rm -f' ) +' /srv/http/data/system/eth0.network'
+						, 'echo -e "'+ eth0 +'" > /srv/http/data/system/eth0.network'
 						, 'systemctl restart systemd-networkd'
 					] }, nicsStatus );
 					notify( 'LAN IP Address', 'Change ...', 'lan blink', -1 );

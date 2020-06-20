@@ -35,19 +35,24 @@ for line in "${line[@]}"; do
 	[[ ${line[3]:0:3} == WPA ]] && wpa=wpa || wpa=
 	if [[ -n $netctllist ]]; then
 		for name in "${netctllist_ar[@]}"; do
-			[[ $ssid == $name ]] && profile=$netctllist_ar || profile=
+			profile=
+			dhcp=
+			[[ $ssid == $name ]] && profile=1
+			grep -q 'IP=dhcp' "/etc/netctl/$name" && dhcp=1
 		done
 	fi
 	if [[ $ssid == $connectedssid ]]; then
 		connected=1
 		gw=$( ip r | grep "default.*$wlan" | awk '{print $3}' )
 		ip=$( ifconfig $wlan | awk '/inet / {print $2}' )
+		dns=$( resolvectl status | sed -n "/$wlan/,/^\n$/ p" | grep -A1 'DNS Servers:' | awk '{print $NF}' )
 	else
 		connected=
 		gw=
 		ip=
+		dns=
 	fi
-	list+=',{"dbm":"'$dbm'","ssid":"'${ssid//\"/\\\"}'","encrypt":"'$encrypt'","wpa":"'$wpa'","wlan":"'$wlan'","profile":"'$profile'","connected":"'$connected'","gateway":"'$gw'","ip":"'$ip'"}'
+	list+=',{"dbm":"'$dbm'","ssid":"'${ssid//\"/\\\"}'","encrypt":"'$encrypt'","wpa":"'$wpa'","wlan":"'$wlan'","profile":"'$profile'","dhcp":"'$dhcp'","connected":"'$connected'","gateway":"'$gw'","ip":"'$ip'","dns":"'$dns'"}'
 done
 
 echo [${list:1}] # 'remove leading ,

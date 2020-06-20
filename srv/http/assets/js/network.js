@@ -54,7 +54,7 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 			, buttonwidth : 1
 			, buttonlabel : '<i class="fa fa-edit-circle"></i> Static'
 			, button      : function() {
-				addWiFi( $this.data( 'ssid' ), $this.data( 'ip' ), $this.data( 'gateway' ), $this.data( 'wpa' ) );
+				addWiFi( $this.data( 'ssid' ) );
 			}
 			, oklabel : '<i class="fa fa-minus-circle"></i> Forget'
 			, okcolor : '#bb2828'

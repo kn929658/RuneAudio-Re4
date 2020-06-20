@@ -490,7 +490,7 @@ function editLAN( data ) {
 	} );
 }
 function editWiFiSet( ssid, data ) {
-	$( '#infoTextBox1' ).val( data.Address.replace( '/24', '' ) );
+	$( '#infoTextBox1' ).val( data.Address );
 	$( '#infoTextBox2' ).val( data.Gateway );
 	$( '#infoTextBox3' ).val( data.dns0 );
 	$( '#infoTextBox4' ).val( data.dns1 );
@@ -506,6 +506,7 @@ function editWiFiSet( ssid, data ) {
 	$( '#infotextlabel a:eq( 0 ), #infoTextBox, #infotextlabel a:eq( 3 ), #infoPasswordBox, #infotextbox .eye, #infoCheckBox, #infoFooter' ).hide();
 }
 function editWiFi( ssid, data ) {
+	var data0 = data;
 	info( {
 		  icon          : 'wifi-3'
 		, title         : ssid ? 'Wi-Fi Static IP' : 'Add Wi-Fi'
@@ -521,6 +522,7 @@ function editWiFi( ssid, data ) {
 				} else {
 					$.post( 'commands.php', { getwifi: ssid }, function( data ) {
 						data.dhcp = data.IP === 'static' ? 'Static IP' : 'DHCP';
+						data.Address = data.Address.replace( '/24', '' );
 						alert(JSON.stringify(data))
 						editWiFiSet( ssid, data );
 					}, 'json' );
@@ -534,8 +536,12 @@ function editWiFi( ssid, data ) {
 			var password = $( '#infoPasswordBox' ).val();
 			var ip = $( '#infoTextBox1' ).val();
 			var gw = $( '#infoTextBox2' ).val();
+			var dns0 = $( '#infoTextBox3' ).val();
+			var dns1 = $( '#infoTextBox4' ).val();
 			var hidden = $( '#infoCheckBox input:eq( 1 )' ).prop( 'checked' );
 			var wpa = $( '#infoCheckBox input:eq( 2 )' ).prop( 'checked' ) ? 'wep' : 'wpa';
+			if ( ip === data0.Address && gw === data0.Gateway && dns0 === data0.dns0 && dns1 === data0.dns1 ) return
+			
 			var data = 'Interface='+ wlan
 					  +'\nConnection=wireless'
 					  +'\nESSID=\\"'+ escapeString( ssid ) +'\\"';
@@ -546,12 +552,15 @@ function editWiFi( ssid, data ) {
 				data += '\nSecurity='+ wpa
 					   +'\nKey=\\"'+ escapeString( password ) +'\\"';
 			}
-			if ( ip ) {
-				data += '\nIP=static'
-					   +'\nAddress='+ ip +'/24'
-					   +'\nGateway='+ gw;
-			} else {
-				data += '\nIP=dhcp';
+			data += '\nIP=static'
+				   +'\nAddress='+ ip +'/24'
+				   +'\nGateway='+ gw;
+			var dns = '';
+			if ( dns0 ) dns = dns0;
+			if ( dns0 && dns1 ) dns += ' ';
+			if ( dns1 ) dns += dns1;
+			if ( dns ) {
+				data += '\nDNS=('+ dns +')';
 			}
 			connect( wlan, ssid, data );
 		}

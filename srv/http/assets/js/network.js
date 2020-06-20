@@ -564,10 +564,9 @@ function getIfconfig() {
 	} );
 }
 function getNetctl() {
-	$.post( 'commands.php', { bash: 'netctl list', string: 1 }, function( status ) {
-		if ( !status ) status = '(none)';
+	$.post( 'commands.php', { getnetctl: 1 }, function( data ) {
 		$( '#codenetctl' )
-			.html( status )
+			.html( data )
 			.removeClass( 'hide' );
 	} );
 }

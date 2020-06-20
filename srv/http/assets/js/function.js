@@ -383,7 +383,7 @@ function displayPlayback() {
 		.toggleClass( 'hide', !G.display.cover )
 		.toggleClass( 'coversmall', G.display.coversmall );
 	$( '#coverart' ).css( 'width', G.display.coversmall ? '230px' : '' );
-	var volume = ( !G.display.volumenone && G.display.volume ) ? 1 : 0;
+	var volume = ( G.display.volumenone || !G.display.volume ) ? 0 : 1;
 	$( '#volume-knob' ).toggleClass( 'hide', !volume );
 	var column = ( G.display.time ? 1 : 0 ) + ( G.display.cover ? 1 : 0 ) + volume;
 	var $elements = $( '#time-knob, #coverart-block, #volume-knob, #play-group, #vol-group' );

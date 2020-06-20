@@ -52,7 +52,7 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 			, title   : 'Saved Wi-Fi connection'
 			, message : '<wh>'+ ssid +'</wh>'
 			, buttonwidth : 1
-			, buttonlabel : '<i class="fa fa-edit-circle"></i> Manual'
+			, buttonlabel : '<i class="fa fa-edit-circle"></i> Static'
 			, button      : function() {
 				addWiFi( $this.data( 'ssid' ), $this.data( 'ip' ), $this.data( 'gateway' ), $this.data( 'wpa' ) );
 			}
@@ -154,62 +154,6 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 $( '#add' ).click( function() {
 	addWiFi();
 } );
-function addWiFi( ssid, ip, gw, wpa ) {
-	info( {
-		  icon          : 'wifi-3'
-		, title         : ssid ? 'Static IP Wi-Fi' : 'Add Wi-Fi'
-		, textlabel     : [ 'SSID', 'IP', 'Gateway' ]
-		, checkbox      : { 'Static IP': 1, 'Hidden SSID': 1, 'WEP': 1 }
-		, passwordlabel : 'Password'
-		, preshow       : function() {
-			if ( !ssid ) {
-				$( '#infotextlabel a:eq( 1 ), #infoTextBox1, #infotextlabel a:eq( 2 ), #infoTextBox2' ).hide();
-			} else {
-				$( '#infoMessage' ).html( 'SSID: <wh>'+ ssid +'</wh><br>&nbsp;' ).removeClass( 'hide' );
-				$( '#infoTextBox' ).val( ssid );
-				$( '#infoTextBox1' ).val( ip );
-				$( '#infoTextBox2' ).val( gw );
-				$( '#infoCheckBox input:eq( 0 )' ).prop( 'checked', 1 )
-				$( '#infoCheckBox input:eq( 2 )' ).prop( 'checked', wpa !== 'wpa' )
-				$( '#infotextlabel a:eq( 0 ), #infoTextBox, #infotextlabel a:eq( 3 ), #infoPasswordBox, #infotextbox .eye, #infoCheckBox, #infoFooter' ).hide();
-				$.post( 'commands.php', { bash: 'grep "^Key" "/etc/netctl/'+ ssid +'"' }, function( data ) {
-					$( '#infoPasswordBox' ).val( data[ 0 ].replace( /Key=|"/g, '' ) );
-				}, 'json' );
-			}
-		}
-		, footer        : '<br><px50/><code>"</code> double quotes not allowed'
-		, ok            : function() {
-			var ssid = $( '#infoTextBox' ).val();
-			var wlan = $( '#listwifi li:eq( 0 )' ).data( 'wlan' );
-			var password = $( '#infoPasswordBox' ).val();
-			var ip = $( '#infoTextBox1' ).val();
-			var gw = $( '#infoTextBox2' ).val();
-			var hidden = $( '#infoCheckBox input:eq( 1 )' ).prop( 'checked' );
-			var wpa = $( '#infoCheckBox input:eq( 2 )' ).prop( 'checked' ) ? 'wep' : 'wpa';
-			var data = 'Interface='+ wlan
-					  +'\nConnection=wireless'
-					  +'\nESSID=\\"'+ escapeString( ssid ) +'\\"';
-			if ( hidden ) {
-				data += '\nHidden=yes';
-			}
-			if ( password ) {
-				data += '\nSecurity='+ wpa
-					   +'\nKey=\\"'+ escapeString( password ) +'\\"';
-			}
-			if ( ip ) {
-				data += '\nIP=static'
-					   +'\nAddress='+ ip +'/24'
-					   +'\nGateway='+ gw;
-			} else {
-				data += '\nIP=dhcp';
-			}
-			connect( wlan, ssid, data );
-		}
-	} );
-	$( '#infoCheckBox' ).on( 'click', 'input:eq( 0 )', function() {
-		$( '#infotextlabel a:eq( 1 ), #infoTextBox1, #infotextlabel a:eq( 2 ), #infoTextBox2' ).toggle( $( this ).prop( 'checked' ) );
-	} );
-}
 $( '#listbt' ).on( 'click', 'li', function( e ) {
 	$this = $( this );
 	var mac = $this.data( 'mac' );
@@ -383,6 +327,71 @@ $( '#netctl' ).click( function() {
 	$( '#codenetctl' ).hasClass( 'hide' ) ? getNetctl() : $( '#codenetctl' ).addClass( 'hide' );
 } );
 
+function addWiFi( ssid ) {
+	info( {
+		  icon          : 'wifi-3'
+		, title         : ssid ? 'Static IP Wi-Fi' : 'Add Wi-Fi'
+		, textlabel     : [ 'SSID', 'IP', 'Gateway' ]
+		, checkbox      : { 'Static IP': 1, 'Hidden SSID': 1, 'WEP': 1 }
+		, passwordlabel : 'Password'
+		, preshow       : function() {
+			if ( !ssid ) {
+				$( '#infotextlabel a:eq( 1 ), #infoTextBox1, #infotextlabel a:eq( 2 ), #infoTextBox2' ).hide();
+			} else {
+				$.post( 'commands.php', { getwifi: ssid }, function( data ) {
+					if ( data.IP === 'static' ) {
+						var dhcp = 'Static IP';
+						$( '#infoTextBox1' ).val( data.Address.replace( '/24', '' ) );
+						$( '#infoTextBox2' ).val( data.Gateway );
+						$( '#infoCheckBox input:eq( 0 )' ).prop( 'checked', 1 );
+						$( '#infoCheckBox input:eq( 2 )' ).prop( 'checked', data.Security === 'wep' );
+					} else {
+						var dhcp = 'DHCP';
+					}
+					$( '#infoMessage' )
+						.html(
+							 'SSID: <wh>'+ ssid +'</wh>'
+							+'<br>Current: <wh>'+ dhcp +'</wh>' )
+						.removeClass( 'hide' );
+					$( '#infoTextBox' ).val( ssid );
+					$( '#infoPasswordBox' ).val( data.Key );
+					$( '#infotextlabel a:eq( 0 ), #infoTextBox, #infotextlabel a:eq( 3 ), #infoPasswordBox, #infotextbox .eye, #infoCheckBox, #infoFooter' ).hide();
+				}, 'json' );
+			}
+		}
+		, footer        : '<br><px50/><code>"</code> double quotes not allowed'
+		, ok            : function() {
+			var ssid = $( '#infoTextBox' ).val();
+			var wlan = $( '#listwifi li:eq( 0 )' ).data( 'wlan' );
+			var password = $( '#infoPasswordBox' ).val();
+			var ip = $( '#infoTextBox1' ).val();
+			var gw = $( '#infoTextBox2' ).val();
+			var hidden = $( '#infoCheckBox input:eq( 1 )' ).prop( 'checked' );
+			var wpa = $( '#infoCheckBox input:eq( 2 )' ).prop( 'checked' ) ? 'wep' : 'wpa';
+			var data = 'Interface='+ wlan
+					  +'\nConnection=wireless'
+					  +'\nESSID=\\"'+ escapeString( ssid ) +'\\"';
+			if ( hidden ) {
+				data += '\nHidden=yes';
+			}
+			if ( password ) {
+				data += '\nSecurity='+ wpa
+					   +'\nKey=\\"'+ escapeString( password ) +'\\"';
+			}
+			if ( ip ) {
+				data += '\nIP=static'
+					   +'\nAddress='+ ip +'/24'
+					   +'\nGateway='+ gw;
+			} else {
+				data += '\nIP=dhcp';
+			}
+			connect( wlan, ssid, data );
+		}
+	} );
+	$( '#infoCheckBox' ).on( 'click', 'input:eq( 0 )', function() {
+		$( '#infotextlabel a:eq( 1 ), #infoTextBox1, #infotextlabel a:eq( 2 ), #infoTextBox2' ).toggle( $( this ).prop( 'checked' ) );
+	} );
+}
 function btRender( data ) {
 	var html = '';
 	data.forEach( function( list ) {

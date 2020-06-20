@@ -46,7 +46,7 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 	var $this = $( this );
 	var wlan = $this.data( 'wlan' );
 	var ssid = $this.data( 'ssid' );
-	if ( $( e.target ).hasClass( 'fa-info-circle' ) ) {
+	if ( $( e.target ).hasClass( 'fa-edit-circle' ) ) {
 		info( {
 			  icon    : 'wifi-3'
 			, title   : 'Saved Wi-Fi connection'
@@ -159,7 +159,7 @@ $( '#listbt' ).on( 'click', 'li', function( e ) {
 	var mac = $this.data( 'mac' );
 	var name = '<wh>'+ $this.find( '.liname' ).text() +'</wh>';
 	var connected = $this.data( 'connected' ) === 'yes';
-	if ( $( e.target ).hasClass( 'fa-info-circle' ) ) {
+	if ( $( e.target ).hasClass( 'fa-edit-circle' ) ) {
 		var jsoninfo = {
 			  icon        : 'bluetooth'
 			, title       : 'Bluetooth'
@@ -200,7 +200,7 @@ $( '#listbt' ).on( 'click', 'li', function( e ) {
 			}
 		} );
 	} else {
-		if ( $this.find( 'fa-info-circle' ).length ) {
+		if ( $this.find( 'fa-edit-circle' ).length ) {
 			$.post( 'commands.php', { bash: 'bluetoothctl connect '+ mac }, btScan );
 		} else {
 			$.post( 'commands.php', { bash: [
@@ -398,7 +398,7 @@ function btRender( data ) {
 		html += '<li data-mac="'+ list.mac +'" data-connected="'+ list.connected +'" data-saved="'+ list.saved +'"><i class="fa fa-bluetooth"></i>'
 				+ ( list.connected === 'yes' ? '<grn>&bull;&ensp;</grn>' : '' )
 				+'<a class="liname wh">'+ list.name +'</a>';
-		html += list.saved ? '&ensp;<i class="fa fa-info-circle wh"></i>' : '';
+		html += list.saved ? '&ensp;<i class="fa fa-edit-circle wh"></i>' : '';
 		html += '</li>';
 	} );
 	$( '#listbt' ).html( html ).promise().done( function() {
@@ -696,7 +696,7 @@ function wlanScan() {
 				html += val.dbm < fair ? '<gr>'+ val.ssid +'</gr>' : val.ssid;
 				html += val.encrypt === 'on' ? ' <i class="fa fa-lock"></i>' : '';
 				html += '<gr>'+ val.dbm +' dBm</gr>';
-				html += val.profile ? '&ensp;<i class="fa fa-info-circle wh"></i>' : '';
+				html += val.profile ? '&ensp;<i class="fa fa-edit-circle wh"></i>' : '';
 			} );
 		} else {
 			html += '<li><i class="fa fa-lock"></i><gr>(no accesspoints found)</gr></li>';

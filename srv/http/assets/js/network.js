@@ -46,11 +46,16 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 	var $this = $( this );
 	var wlan = $this.data( 'wlan' );
 	var ssid = $this.data( 'ssid' );
-	if ( $( e.target ).hasClass( 'fa-minus-circle' ) ) {
+	if ( $( e.target ).hasClass( 'fa-info-circle' ) ) {
 		info( {
 			  icon    : 'wifi-3'
 			, title   : 'Saved Wi-Fi connection'
 			, message : '<wh>'+ ssid +'</wh>'
+			, buttonwidth : 1
+			, buttonlabel : '<i class="fa fa-edit-circle"></i> Manual'
+			, button      : function() {
+				addWiFi( $this.data( 'ssid' ), $this.data( 'ip' ), $this.data( 'gateway' ), $this.data( 'wpa' ) );
+			}
 			, oklabel : '<i class="fa fa-minus-circle"></i> Forget'
 			, okcolor : '#bb2828'
 			, ok      : function() {
@@ -147,15 +152,30 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 	}
 } );
 $( '#add' ).click( function() {
-	$this = $( this );
+	addWiFi();
+} );
+function addWiFi( ssid, ip, gw, wpa ) {
 	info( {
 		  icon          : 'wifi-3'
-		, title         : 'Add Wi-Fi'
+		, title         : ssid ? 'Static IP Wi-Fi' : 'Add Wi-Fi'
 		, textlabel     : [ 'SSID', 'IP', 'Gateway' ]
 		, checkbox      : { 'Static IP': 1, 'Hidden SSID': 1, 'WEP': 1 }
 		, passwordlabel : 'Password'
 		, preshow       : function() {
-			$( '#infotextlabel a:eq( 1 ), #infoTextBox1, #infotextlabel a:eq( 2 ), #infoTextBox2' ).hide();
+			if ( !ssid ) {
+				$( '#infotextlabel a:eq( 1 ), #infoTextBox1, #infotextlabel a:eq( 2 ), #infoTextBox2' ).hide();
+			} else {
+				$( '#infoMessage' ).html( 'SSID: <wh>'+ ssid +'</wh><br>&nbsp;' ).removeClass( 'hide' );
+				$( '#infoTextBox' ).val( ssid );
+				$( '#infoTextBox1' ).val( ip );
+				$( '#infoTextBox2' ).val( gw );
+				$( '#infoCheckBox input:eq( 0 )' ).prop( 'checked', 1 )
+				$( '#infoCheckBox input:eq( 2 )' ).prop( 'checked', wpa !== 'wpa' )
+				$( '#infotextlabel a:eq( 0 ), #infoTextBox, #infotextlabel a:eq( 3 ), #infoPasswordBox, #infotextbox .eye, #infoCheckBox, #infoFooter' ).hide();
+				$.post( 'commands.php', { bash: 'grep "^Key" "/etc/netctl/'+ ssid +'"' }, function( data ) {
+					$( '#infoPasswordBox' ).val( data[ 0 ].replace( /Key=|"/g, '' ) );
+				}, 'json' );
+			}
 		}
 		, footer        : '<br><px50/><code>"</code> double quotes not allowed'
 		, ok            : function() {
@@ -189,7 +209,7 @@ $( '#add' ).click( function() {
 	$( '#infoCheckBox' ).on( 'click', 'input:eq( 0 )', function() {
 		$( '#infotextlabel a:eq( 1 ), #infoTextBox1, #infotextlabel a:eq( 2 ), #infoTextBox2' ).toggle( $( this ).prop( 'checked' ) );
 	} );
-} );
+}
 $( '#listbt' ).on( 'click', 'li', function( e ) {
 	$this = $( this );
 	var mac = $this.data( 'mac' );
@@ -666,7 +686,7 @@ function wlanScan() {
 				html += val.dbm < fair ? '<gr>'+ val.ssid +'</gr>' : val.ssid;
 				html += val.encrypt === 'on' ? ' <i class="fa fa-lock"></i>' : '';
 				html += '<gr>'+ val.dbm +' dBm</gr>';
-				html += val.profile ? '&ensp;<i class="fa fa-minus-circle wh"></i>' : '';
+				html += val.profile ? '&ensp;<i class="fa fa-info-circle wh"></i>' : '';
 			} );
 		} else {
 			html += '<li><i class="fa fa-lock"></i><gr>(no accesspoints found)</gr></li>';

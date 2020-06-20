@@ -169,7 +169,7 @@ if ( isset( $_POST[ 'backuprestore' ] ) ) {
 	if ( count( $profiles ) ) {
 		$data = '';
 		foreach( $profiles as $profile ) {
-			$profile = ltrim( $profile );
+			$profile = preg_replace( '/\**\s*/', '', $profile );
 			$data.= $profile."\n";
 			$data.= "------------------------------\n";
 			$data.= file_get_contents( '/etc/netctl/'.$profile )."\n";

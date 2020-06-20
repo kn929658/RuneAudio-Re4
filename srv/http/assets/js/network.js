@@ -489,26 +489,10 @@ function editLAN( data ) {
 		}
 	} );
 }
-function editWiFiSet( ssid, data ) {
-	$( '#infoTextBox1' ).val( data.Address );
-	$( '#infoTextBox2' ).val( data.Gateway );
-	$( '#infoTextBox3' ).val( data.dns0 );
-	$( '#infoTextBox4' ).val( data.dns1 );
-	$( '#infoCheckBox input:eq( 0 )' ).prop( 'checked', 1 );
-	$( '#infoCheckBox input:eq( 2 )' ).prop( 'checked', data.Security === 'wep' );
-	$( '#infoMessage' )
-		.html(
-			 'SSID: <wh>'+ ssid +'</wh>'
-			+'<br>Current: <wh>'+ data.dhcp +'</wh><br>&nbsp;' )
-		.removeClass( 'hide' );
-	$( '#infoTextBox' ).val( ssid );
-	$( '#infoPasswordBox' ).val( data.Key );
-	$( '#infotextlabel a:eq( 0 ), #infoTextBox, #infotextlabel a:eq( 3 ), #infoPasswordBox, #infotextbox .eye, #infoCheckBox, #infoFooter' ).hide();
-}
 function editWiFi( ssid, data ) {
 	var data0 = data;
 	info( {
-		  icon          : 'wifi-3'
+		  icon          : 'edit-circle'
 		, title         : ssid ? 'Wi-Fi Static IP' : 'Add Wi-Fi'
 		, textlabel     : [ 'SSID', 'IP', 'Gateway', 'Primary DNS', 'Secondary DNS' ]
 		, checkbox      : { 'Static IP': 1, 'Hidden SSID': 1, 'WEP': 1 }
@@ -568,6 +552,22 @@ function editWiFi( ssid, data ) {
 	$( '#infoCheckBox' ).on( 'click', 'input:eq( 0 )', function() {
 		$( '#infotextlabel a:eq( 1 ), #infoTextBox1, #infotextlabel a:eq( 2 ), #infoTextBox2' ).toggle( $( this ).prop( 'checked' ) );
 	} );
+}
+function editWiFiSet( ssid, data ) {
+	$( '#infoMessage' )
+		.html(
+			 'SSID: <wh>'+ ssid +'</wh>'
+			+'<br>Current: <wh>'+ data.dhcp +'</wh><br>&nbsp;' )
+		.removeClass( 'hide' );
+	$( '#infoTextBox1' ).val( data.Address );
+	$( '#infoTextBox2' ).val( data.Gateway );
+	$( '#infoTextBox3' ).val( data.dns0 );
+	$( '#infoTextBox4' ).val( data.dns1 );
+	$( '#infoPasswordBox' ).val( data.Key );
+	$( '#infoCheckBox input:eq( 0 )' ).prop( 'checked', 1 );
+	$( '#infoCheckBox input:eq( 2 )' ).prop( 'checked', data.Security === 'wep' );
+	$( '#infoTextBox' ).val( ssid );
+	$( '#infotextlabel a:eq( 0 ), #infoTextBox, #infotextlabel a:eq( 3 ), #infoPasswordBox, #infotextbox .eye, #infoCheckBox, #infoFooter' ).hide();
 }
 function escape_string( string ) {
 	var to_escape = [ '\\', ';', ',', ':', '"' ];

@@ -164,6 +164,12 @@ if ( isset( $_POST[ 'backuprestore' ] ) ) {
 	$array = json_decode( $output, true );
 	echo json_encode( $array, JSON_NUMERIC_CHECK );
 	
+} else if ( isset( $_POST[ 'getwifi' ] ) ) {
+	//$profile = file_get_contents( '/etc/netctl/'.$_POST[ 'getwifi' ] );
+	$profile = shell_exec( "cat /etc/netctl/Home2GHz | grep -v '^ESSID\|^Interface\|^Connection' | tr -d '\"' | sed 's/^/\"/ ;s/=/\":\"/; s/\$/\",/'" );
+	$profile = rtrim( rtrim( $profile ), ',' ); // \n and ,
+	echo '{'.$profile.'}';
+	
 } else if ( isset( $_POST[ 'imagefile' ] ) ) {
 	$imagefile = $_POST[ 'imagefile' ];
 	if ( isset( $_POST[ 'base64bookmark' ] ) ) {

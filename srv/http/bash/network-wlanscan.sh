@@ -40,9 +40,8 @@ for line in "${line[@]}"; do
 	fi
 	if [[ $ssid == $connectedssid ]]; then
 		connected=1
-		gw_ip=( $( ip r | grep "default.*$wlan" | awk '{print $3" "$9}' ) )
-		gw=${gw_ip[0]}
-		ip=${gw_ip[1]}
+		gw=$( ip r | grep "default.*$wlan" | awk '{print $3}' )
+		ip=$( ifconfig $wlan | awk '/inet / {print $2}' )
 	else
 		connected=
 		gw=

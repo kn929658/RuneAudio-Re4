@@ -206,7 +206,7 @@ foreach( $i2slist as $name => $sysname ) {
 <div class="col-l">Name</div>
 <div class="col-r">
 	<input type="text" id="hostname" readonly style="cursor: pointer">
-	<span class="help-block hide">Name for Bluetooth, File sharing, Renderers, RPi access point, system and URL by name.</span>
+	<span class="help-block hide">Name for Bluetooth, Renderers, RPi access point and system.</span>
 </div>
 <div class="col-l">Timezone</div>
 <div class="col-r">

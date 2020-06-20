@@ -173,13 +173,12 @@ $( '#add' ).click( function() {
 			var ssid = $( '#infoTextBox' ).val();
 			var wlan = $( '#listwifi li:eq( 0 )' ).data( 'wlan' );
 			var password = $( '#infoPasswordBox' ).val();
-			var ip = $( '#infoTextBox2' ).val();
-			var gw = $( '#infoTextBox3' ).val();
+			var ip = $( '#infoTextBox1' ).val();
+			var gw = $( '#infoTextBox2' ).val();
 			var hidden = $( '#infoCheckBox input:eq( 1 )' ).prop( 'checked' );
 			var wpa = $( '#infoCheckBox input:eq( 2 )' ).prop( 'checked' ) ? 'wep' : 'wpa';
 			var data = 'Interface='+ wlan
 					  +'\nConnection=wireless'
-					  +'\nIP=dhcp'
 					  +'\nESSID=\\"'+ escapeString( ssid ) +'\\"';
 			if ( hidden ) {
 				data += '\nHidden=yes';
@@ -189,8 +188,11 @@ $( '#add' ).click( function() {
 					   +'\nKey=\\"'+ escapeString( password ) +'\\"';
 			}
 			if ( ip ) {
-				data += '\nAddress='+ ip
+				data += '\nIP=static'
+					   +'\nAddress='+ ip
 					   +'\nGateway='+ gw;
+			} else {
+				data += '\nIP=dhcp';
 			}
 			connect( wlan, ssid, data );
 		}
@@ -601,11 +603,13 @@ function nicsStatus() {
 			if ( val.interface === 'eth0' ) {
 				html += val.ip ? '&ensp;<grn>&bull;</grn>&ensp;'+ val.ip : '';
 				html += val.gateway ? '<gr>&ensp;&raquo;&ensp;'+ val.gateway +'&ensp;</gr>' : '';
-			} else if ( val.gateway ) {
-				wlconnected = val.interface;
-				html += '&ensp;<grn>&bull;</grn>&ensp;'+ val.ip +'<gr>&ensp;&raquo;&ensp;'+ val.gateway +'&ensp;&bull;&ensp;</gr>'+ val.ssid;
-			} else if ( accesspoint && G.hostapd && val.ip === G.hostapdip ) {
-				html += '&ensp;<grn>&bull;</grn>&ensp;<gr>RPi access point&ensp;&raquo;&ensp;</gr>'+ G.hostapdip
+			} else if ( val.ip ) {
+				if ( accesspoint && G.hostapd && val.ip === G.hostapdip ) {
+					html += '&ensp;<grn>&bull;</grn>&ensp;<gr>RPi access point&ensp;&raquo;&ensp;</gr>'+ G.hostapdip
+				} else {
+					wlconnected = val.interface;
+					html += '&ensp;<grn>&bull;</grn>&ensp;'+ val.ip +'<gr>&ensp;&raquo;&ensp;'+ val.gateway +'&ensp;&bull;&ensp;</gr>'+ val.ssid;
+				}
 			} else {
 				html += '&emsp;<i class="fa fa-search"></i><gr>Scan</gr>';
 			}

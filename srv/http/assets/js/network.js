@@ -366,7 +366,7 @@ function btStatus() {
 		btScan();
 	}, 'json' );
 }
-function connect( wlan, ssid, data ) {
+function connect( wlan, ssid, data, newip ) {
 	clearTimeout( intervalscan );
 	wlcurrent = wlan;
 	$( '#scanning-wifi' ).removeClass( 'hide' );
@@ -384,10 +384,13 @@ function connect( wlan, ssid, data ) {
 	$.post( 'commands.php', { bash: cmd }, function( std ) {
 		if ( std != -1 ) {
 			wlconnected = wlan;
-			$.post( 'commands.php', { bash: [
+			var cmd = [];
+			if ( newip ) cmd.push( 'curl -s -X POST "http://127.0.0.1/pub?id=ip" -d \'{ "ip": "'+ newip +'" }\'' );
+			cmd.push(
 				  'systemctl enable netctl-auto@'+ wlan
 				, curlPage( 'network' )
-			] }, function() {
+			);
+			$.post( 'commands.php', { bash: cmd }, function() {
 				wlanScan();
 				resetlocal();
 				$( 'li.'+ wlan +' .fa-search')
@@ -547,7 +550,7 @@ function editWiFi( ssid, data ) {
 				if ( dns1 ) dns += dns1;
 				data += '\nDNS=('+ dns +')';
 			}
-			connect( wlan, ssid, data );
+			connect( wlan, ssid, data, newip );
 		}
 	} );
 	$( '#infoCheckBox' ).on( 'click', 'input:eq( 0 )', function() {

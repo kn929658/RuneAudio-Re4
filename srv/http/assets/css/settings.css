@@ -84,6 +84,7 @@
 .fa-wifi-1:before { content: "\f572" }
 .fa-wifi-2:before { content: "\f571" }
 .fa-wifi-3:before { content: "\f570" }
+#infoMessage .fa-wifi-3:before { font-size: 20px }
 svg {
 	-webkit-filter: drop-shadow( 1px 1px 1px #000000 );
 	filter: drop-shadow( 1px 1px 1px #000000 );

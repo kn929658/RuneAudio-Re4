@@ -54,7 +54,7 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 		info( {
 			  icon    : 'edit-circle'
 			, title   : 'Saved Wi-Fi connection'
-			, message : '<wh>'+ ssid +'</wh>'
+			, message : '<i class="fa fa-wifi-3"></i>&ensp;<wh>'+ ssid +'</wh>'
 			, buttonwidth : 1
 			, buttonlabel : '<i class="fa fa-edit-circle"></i> Static'
 			, button      : function() {
@@ -435,7 +435,7 @@ function editLAN( data ) {
 		  icon         : 'edit-circle'
 		, title        : 'LAN Static IP'
 		, message      : 'Current: <wh>'+ ( data.dhcp ? 'DHCP' : 'Static' ) +'</wh><br>&nbsp;'
-		, textlabel    : [ 'IP', 'Gateway', 'Primary DNS', 'Secondary DNS' ]
+		, textlabel    : [ 'IP', 'Gateway', 'DNS 1', 'DNS 2' ]
 		, textvalue    : textvalue
 		, textrequired : [ 0 ]
 		, preshow      : function() {
@@ -469,7 +469,7 @@ function editLAN( data ) {
 				if ( used == 1 ) {
 					info( {
 						  icon    : 'lan'
-						, title   : 'Static LAN IP'
+						, title   : 'LAN Static IP'
 						, message : 'IP <wh>'+ data1.ip +'</wh> already in use.'
 						, ok      : function() {
 							editLAN( data0 );
@@ -494,7 +494,7 @@ function editWiFi( ssid, data ) {
 	info( {
 		  icon          : 'edit-circle'
 		, title         : ssid ? 'Wi-Fi Static IP' : 'Add Wi-Fi'
-		, textlabel     : [ 'SSID', 'IP', 'Gateway', 'Primary DNS', 'Secondary DNS' ]
+		, textlabel     : [ 'SSID', 'IP', 'Gateway', 'DNS 1', 'DNS 2' ]
 		, checkbox      : { 'Static IP': 1, 'Hidden SSID': 1, 'WEP': 1 }
 		, passwordlabel : 'Password'
 		, preshow       : function() {
@@ -507,7 +507,6 @@ function editWiFi( ssid, data ) {
 					$.post( 'commands.php', { getwifi: ssid }, function( data ) {
 						data.dhcp = data.IP === 'static' ? 'Static IP' : 'DHCP';
 						data.Address = data.Address.replace( '/24', '' );
-						alert(JSON.stringify(data))
 						editWiFiSet( ssid, data );
 					}, 'json' );
 				}
@@ -556,7 +555,7 @@ function editWiFi( ssid, data ) {
 function editWiFiSet( ssid, data ) {
 	$( '#infoMessage' )
 		.html(
-			 'SSID: <wh>'+ ssid +'</wh>'
+			 '<i class="fa fa-wifi-3"></i>&ensp;<wh>'+ ssid +'</wh>'
 			+'<br>Current: <wh>'+ data.dhcp +'</wh><br>&nbsp;' )
 		.removeClass( 'hide' );
 	$( '#infoTextBox1' ).val( data.Address );
@@ -567,7 +566,7 @@ function editWiFiSet( ssid, data ) {
 	$( '#infoCheckBox input:eq( 0 )' ).prop( 'checked', 1 );
 	$( '#infoCheckBox input:eq( 2 )' ).prop( 'checked', data.Security === 'wep' );
 	$( '#infoTextBox' ).val( ssid );
-	$( '#infotextlabel a:eq( 0 ), #infoTextBox, #infotextlabel a:eq( 3 ), #infoPasswordBox, #infotextbox .eye, #infoCheckBox, #infoFooter' ).hide();
+	$( '#infotextlabel a:eq( 0 ), #infoTextBox, #infotextlabel a:eq( 5 ), #infoPasswordBox, #infotextbox .eye, #infoCheckBox, #infoFooter' ).hide();
 }
 function escape_string( string ) {
 	var to_escape = [ '\\', ';', ',', ':', '"' ];

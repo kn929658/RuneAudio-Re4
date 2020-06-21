@@ -47,14 +47,12 @@ for line in "${line[@]}"; do
 		connected=1
 		gw=$( ip r | grep "default.*$wlan" | awk '{print $3}' )
 		ip=$( ifconfig $wlan | awk '/inet / {print $2}' )
-		dns=$( resolvectl status | sed -n "/$wlan/,/^\n$/ p" | grep -A1 'DNS Servers:' | awk '{print $NF}' )
 	else
 		connected=
 		gw=
 		ip=
-		dns=
 	fi
-	list+=',{"dbm":"'$dbm'","ssid":"'${ssid//\"/\\\"}'","encrypt":"'$encrypt'","wpa":"'$wpa'","wlan":"'$wlan'","profile":"'$profile'","dhcp":"'$dhcp'","connected":"'$connected'","gateway":"'$gw'","ip":"'$ip'","dns":"'$dns'","password":"'$password'"}'
+	list+=',{"dbm":"'$dbm'","ssid":"'${ssid//\"/\\\"}'","encrypt":"'$encrypt'","wpa":"'$wpa'","wlan":"'$wlan'","profile":"'$profile'","dhcp":"'$dhcp'","connected":"'$connected'","gateway":"'$gw'","ip":"'$ip'","password":"'$password'"}'
 done
 
 echo [${list:1}] # 'remove leading ,

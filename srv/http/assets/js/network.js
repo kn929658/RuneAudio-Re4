@@ -393,7 +393,7 @@ function connect( wlan, ssid, data, newip ) {
 				cmd.push( curlPage( 'network' ) );
 			}
 			$.post( 'commands.php', { bash: cmd }, function() {
-				wlanScan();
+				wlanScan( ssid ); // fix - scan takes sometimes to get connected profile
 				resetlocal();
 				$( 'li.'+ wlan +' .fa-search')
 					.removeClass( 'fa-search' )
@@ -715,7 +715,7 @@ function renderQR() {
 	$( '#qrwebuiap' ).qrcode( qroptions );
 	$( '#boxqr' ).removeClass( 'hide' );
 }
-function wlanScan() {
+function wlanScan( ssid ) {
 	clearTimeout( intervalscan );
 	$( '#scanning-wifi' ).removeClass( 'hide' );
 	$.post( 'commands.php', { getjson: '/srv/http/bash/network-wlanscan.sh' }, function( list ) {
@@ -724,6 +724,7 @@ function wlanScan() {
 		var html = '';
 		if ( list.length ) {
 			$.each( list, function( i, val ) {
+				var profile = val.profile || val.ssid === ssid;
 				html += '<li data-db="'+ val.dbm +'" data-ssid="'+ val.ssid +'" data-encrypt="'+ val.encrypt +'" data-wpa="'+ val.wpa +'" data-wlan="'+ val.wlan +'"';
 				html += val.connected  ? ' data-connected="1"' : '';
 				html += val.gateway ? ' data-gateway="'+ val.gateway +'"' : '';
@@ -731,13 +732,13 @@ function wlanScan() {
 				html += val.dns ? ' data-dns="'+ val.dns +'"' : '';
 				html += val.dhcp ? ' data-dhcp="'+ val.dhcp +'"' : '';
 				html += val.password ? ' data-password="'+ val.password +'"' : '';
-				html += val.profile ? ' data-profile="'+ val.profile +'"' : '';
+				html += profile ? ' data-profile="'+ profile +'"' : '';
 				html += '><i class="fa fa-wifi-'+ ( val.dbm > good ? 3 : ( val.dbm < fair ? 1 : 2 ) ) +'"></i>';
 				html += val.connected ? '<grn>&bull;</grn>&ensp;' : '';
 				html += val.dbm < fair ? '<gr>'+ val.ssid +'</gr>' : val.ssid;
 				html += val.encrypt === 'on' ? ' <i class="fa fa-lock"></i>' : '';
 				html += '<gr>'+ val.dbm +' dBm</gr>';
-				html += val.profile ? '&ensp;<i class="fa fa-edit-circle wh"></i>' : '';
+				html += profile ? '&ensp;<i class="fa fa-edit-circle wh"></i>' : '';
 			} );
 		} else {
 			html += '<li><i class="fa fa-lock"></i><gr>(no accesspoints found)</gr></li>';

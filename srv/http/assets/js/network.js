@@ -13,7 +13,7 @@ $( '.back' ).click( function() {
 	$( '#divwifi, #divbluetooth' ).addClass( 'hide' );
 	$( '#listwifi, #listbt' ).empty();
 	nicsStatus();
-	if ( $( '.bt' ).length ) $.post( 'commands.php', { bash: 'bluetoothctl scan off' } );
+	if ( 'bluetooth' in G ) $.post( 'commands.php', { bash: 'bluetoothctl scan off' } );
 } );
 $( '#listinterfaces' ).on( 'click', 'li', function() {
 	var $this = $( this );

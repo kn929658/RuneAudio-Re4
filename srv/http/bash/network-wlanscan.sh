@@ -4,9 +4,15 @@
 
 ifconfig $wlan up
 
-connectedssid=$( iwgetid $wlan -r )
+listProfile() {
+	netctllist=$( netctl list | grep -v eth | sed 's/^\s*\**\s*//' )
+	if grep -q '^+' <<<"$netctllist"; then # leading '+' = connecting
+		sleep 2
+		listProfile
+	fi
+}
+listProfile
 
-netctllist=$( netctl list | grep -v eth | sed 's/^\s*\**\s*//' )
 if [[ -n $netctllist ]]; then
 	readarray -t netctllist_ar <<<"$netctllist"
 	# pre-scan saved profile to force display hidden ssid
@@ -15,6 +21,7 @@ if [[ -n $netctllist ]]; then
 	done
 fi
 
+connectedssid=$( iwgetid $wlan -r )
 
 iwlistscan=$( iwlist $wlan scan | \
 	grep '^\s*Qu\|^\s*En\|^\s*ES\|WPA' | \

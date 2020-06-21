@@ -462,9 +462,11 @@ function editLAN( data ) {
 			if ( data1.ip === data.ip && data1.gateway === data.gateway && data1.dns0 === data.dns0 && data1.dns1 === data.dns1 ) return
 			
 			eth0 +=  '\nAddress='+ data1.ip +'/24'
-						+'\nGateway='+ data1.gateway
-						+'\nDNS='+ data1.dns0;
-			if ( data1.dns1 ) eth0 += '\nDNS='+ data1.dns1;
+					+'\nGateway='+ data1.gateway;
+			if ( data1.dns0 !== data.dns0 || data1.dns1 !== data.dns1 ) {
+				if ( data1.dns0 ) eth0 += '\nDNS='+ data1.dns0;
+				if ( data1.dns1 ) eth0 += '\nDNS='+ data1.dns1;
+			}
 			$.post( 'commands.php', { bash: 'arp -n | grep -v Address | cut -d" " -f1 | grep -q '+ data1.ip +'$ && echo 1 || echo 0', string: 1 }, function( used ) {
 				if ( used == 1 ) {
 					info( {
@@ -538,11 +540,11 @@ function editWiFi( ssid, data ) {
 			data += '\nIP=static'
 				   +'\nAddress='+ ip +'/24'
 				   +'\nGateway='+ gw;
-			var dns = '';
-			if ( dns0 ) dns = dns0;
-			if ( dns0 && dns1 ) dns += ' ';
-			if ( dns1 ) dns += dns1;
-			if ( dns ) {
+			if ( dns0 !== data0.dns0 || dns1 !== data0.dns1 ) {
+				var dns = '';
+				if ( dns0 ) dns = dns0;
+				if ( dns0 && dns1 ) dns += ' ';
+				if ( dns1 ) dns += dns1;
 				data += '\nDNS=('+ dns +')';
 			}
 			connect( wlan, ssid, data );

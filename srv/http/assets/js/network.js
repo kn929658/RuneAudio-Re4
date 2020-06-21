@@ -4,15 +4,16 @@ var dirsystem = '/srv/http/data/system';
 var wlcurrent = '';
 var wlconnected = '';
 var accesspoint = $( '#accesspoint' ).length;
+intervalscan = null;
 
 $( '.back' ).click( function() {
 	wlcurrent = '';
 	clearTimeout( intervalscan );
-	$.post( 'commands.php', { bash: 'bluetoothctl scan off' } );
 	$( '#divinterface, #divwebui, #divaccesspoint' ).removeClass( 'hide' );
 	$( '#divwifi, #divbluetooth' ).addClass( 'hide' );
 	$( '#listwifi, #listbt' ).empty();
 	nicsStatus();
+	if ( $( '.bt' ).length ) $.post( 'commands.php', { bash: 'bluetoothctl scan off' } );
 } );
 $( '#listinterfaces' ).on( 'click', 'li', function() {
 	var $this = $( this );

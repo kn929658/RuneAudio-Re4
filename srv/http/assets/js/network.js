@@ -59,14 +59,11 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 			, buttonlabel : '<i class="fa fa-edit-circle"></i> Static'
 			, button      : function() {
 				if ( connected ) {
-					var dns = $this.data( 'dns' ).split( ' ' );
 					var data = {
 						  Address  : ip
 						, Gateway  : gw
 						, Security : wpa
 						, Key      : $this.data( 'password' )
-						, dns0     : dns[ 0 ]
-						, dns1     : dns[ 1 ]
 						, dhcp     : $this.data( 'dhcp' ) == 1 ? 'DHCP' : 'Static IP'
 					}
 					editWiFi( ssid, data );
@@ -150,7 +147,7 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 			}
 		} );
 	} else if ( $this.data( 'profile' ) ) { // saved wi-fi
-		connect( wlan, ssid, 0 );
+		connect( wlan, ssid, false );
 	} else if ( encrypt === 'on' ) { // new wi-fi
 		newWiFi( $this );
 	} else { // no password
@@ -367,30 +364,35 @@ function btStatus() {
 		btScan();
 	}, 'json' );
 }
-function connect( wlan, ssid, data, newip ) {
+function connect( wlan, ssid, data, ip ) { // ip - static
 	clearTimeout( intervalscan );
 	wlcurrent = wlan;
 	$( '#scanning-wifi' ).removeClass( 'hide' );
-	var cmd = [];
-	if ( data !== 0 ) cmd.push(
+	var cmd = [
+		  'netctl stop-all'
+		, 'ifconfig '+ wlan +' down'
+	];
+	if ( data ) cmd.push(
 		  'echo -e "'+ data +'" > "/srv/http/data/system/netctl-'+ ssid +'"'
 		, 'cp "/srv/http/data/system/netctl-'+ ssid +'" "/etc/netctl/'+ ssid +'"'
 	);
-	cmd.push(
-		  'netctl stop-all'
-		, 'ifconfig '+ wlan +' down'
-		, 'netctl start "'+ ssid +'"'
+	if ( ip ) cmd.push( 
+		  'curl -s -X POST "http://127.0.0.1/pub?id=ip" -d \'{ "ip": "'+ ip +'" }\''
+		, 'echo -e "'+ data +'" > "/etc/netctl/'+ ssid +'"'
 	);
+	cmd.push( 'netctl start "'+ ssid +'"' );
 	banner( 'Wi-Fi', 'Connect ...', 'wifi-3' );
 	local = 1;
 	$.post( 'commands.php', { bash: cmd }, function( std ) {
 		if ( std != -1 ) {
 			wlconnected = wlan;
-			var cmd = [ 'systemctl enable netctl-auto@'+ wlan ];
-			if ( newip ) {
-				cmd.push( 'curl -s -X POST "http://127.0.0.1/pub?id=ip" -d \'{ "ip": "'+ newip +'" }\'' );
+			if ( ip ) {
+				var cmd = [ 'curl -s -X POST "http://127.0.0.1/pub?id=ip" -d \'{ "ip": "'+ ip +'" }\'' ];
 			} else {
-				cmd.push( curlPage( 'network' ) );
+				var cmd = [ 
+					  'systemctl enable netctl-auto@'+ wlan
+					, curlPage( 'network' )
+				];
 			}
 			$.post( 'commands.php', { bash: cmd }, function() {
 				wlanScan( ssid ); // fix - scan takes sometimes to get connected profile
@@ -417,17 +419,31 @@ function connect( wlan, ssid, data, newip ) {
 		}
 	} );
 }
+function editCheckIP( data ) {
+	$.post( 'commands.php', { bash: 'arp -n | grep -v Address | cut -d" " -f1 | grep -q '+ data.ip +'$ && echo 1 || echo 0', string: 1 }, function( used ) {
+		if ( used == 1 ) {
+			info( {
+				  icon    : 'lan'
+				, title   : 'Duplicate IP'
+				, message : 'IP <wh>'+ data1.ip +'</wh> already in use.'
+				, ok      : function() {
+					editLAN( data );
+				}
+			} );
+		} else {
+			
+		}
+	} );
+}
 function editLAN( data ) {
 	var data0 = data;
 	if ( 'context' in data ) {
 		var data = {
 			  ip      : data.data( 'ip' ) || ''
 			, gateway : data.data( 'gateway' ) || ''
-			, dns0    : data.data( 'dns0' ) || ''
-			, dns1    : data.data( 'dns1' ) || ''
 			, dhcp    : data.data( 'dhcp' ) || ''
 		}
-		var textvalue = [ data.ip, data.gateway, data.dns0, data.dns1 ];
+		var textvalue = [ data.ip, data.gateway ];
 	} else {
 		var textvalue = [];
 	}
@@ -439,7 +455,7 @@ function editLAN( data ) {
 		  icon         : 'edit-circle'
 		, title        : 'LAN IP'
 		, message      : 'Current: <wh>'+ ( data.dhcp ? 'DHCP' : 'Static' ) +'</wh><br>&nbsp;'
-		, textlabel    : [ 'IP', 'Gateway', 'DNS 1', 'DNS 2' ]
+		, textlabel    : [ 'IP', 'Gateway' ]
 		, textvalue    : textvalue
 		, textrequired : [ 0 ]
 		, preshow      : function() {
@@ -453,6 +469,7 @@ function editLAN( data ) {
 				  'curl -s -X POST "http://127.0.0.1/pub?id=ip" -d \'{ "ip": "'+ G.hostname +'.local" }\''
 				, 'echo -e "'+ eth0 +'" > /etc/systemd/network/eth0.network'
 				, 'rm -f /srv/http/data/system/eth0.network'
+				, 'ln -sf /run/systemd/resolve/resolv.conf /etc/resolv.conf'
 				, 'systemctl restart systemd-networkd'
 			] }, nicsStatus );
 			notify( 'LAN IP Address', 'Change ...', 'lan blink', -1 );
@@ -461,21 +478,15 @@ function editLAN( data ) {
 			var data1 = {}
 			data1.ip = $( '#infoTextBox' ).val();
 			data1.gateway = $( '#infoTextBox1' ).val();
-			data1.dns0 = $( '#infoTextBox2' ).val();
-			data1.dns1 = $( '#infoTextBox3' ).val();
-			if ( data1.ip === data.ip && data1.gateway === data.gateway && data1.dns0 === data.dns0 && data1.dns1 === data.dns1 ) return
+			if ( data1.ip === data.ip && data1.gateway === data.gateway ) return
 			
 			eth0 +=  '\nAddress='+ data1.ip +'/24'
 					+'\nGateway='+ data1.gateway;
-			if ( data1.dns0 !== data.dns0 || data1.dns1 !== data.dns1 ) {
-				if ( data1.dns0 ) eth0 += '\nDNS='+ data1.dns0;
-				if ( data1.dns1 ) eth0 += '\nDNS='+ data1.dns1;
-			}
 			$.post( 'commands.php', { bash: 'arp -n | grep -v Address | cut -d" " -f1 | grep -q '+ data1.ip +'$ && echo 1 || echo 0', string: 1 }, function( used ) {
 				if ( used == 1 ) {
 					info( {
-						  icon    : 'lan'
-						, title   : 'LAN IP'
+						  icon    : 'edit-circle'
+						, title   : 'Duplicate IP'
 						, message : 'IP <wh>'+ data1.ip +'</wh> already in use.'
 						, ok      : function() {
 							editLAN( data0 );
@@ -500,7 +511,7 @@ function editWiFi( ssid, data ) {
 	info( {
 		  icon          : 'edit-circle'
 		, title         : ssid ? 'Wi-Fi IP' : 'Add Wi-Fi'
-		, textlabel     : [ 'SSID', 'IP', 'Gateway', 'DNS 1', 'DNS 2' ]
+		, textlabel     : [ 'SSID', 'IP', 'Gateway' ]
 		, checkbox      : { 'Static IP': 1, 'Hidden SSID': 1, 'WEP': 1 }
 		, passwordlabel : 'Password'
 		, preshow       : function() {
@@ -513,11 +524,6 @@ function editWiFi( ssid, data ) {
 					$.post( 'commands.php', { getwifi: ssid }, function( data ) {
 						data.dhcp = data.IP === 'static' ? 'Static IP' : 'DHCP';
 						data.Address = 'Address' in data ? data.Address.replace( '/24', '' ) : '';
-						if ( 'DNS' in data ) {
-							var dns = data.dns.slice( 1, -1 ).split( ' ' );
-							data.dns0 = dns[ 0 ];
-							data.dns1 = dns[ 1 ];
-						}
 						editWiFiSet( ssid, data );
 					}, 'json' );
 				}
@@ -530,11 +536,9 @@ function editWiFi( ssid, data ) {
 			var password = $( '#infoPasswordBox' ).val();
 			var ip = $( '#infoTextBox1' ).val();
 			var gw = $( '#infoTextBox2' ).val();
-			var dns0 = $( '#infoTextBox3' ).val();
-			var dns1 = $( '#infoTextBox4' ).val();
 			var hidden = $( '#infoCheckBox input:eq( 1 )' ).prop( 'checked' );
 			var wpa = $( '#infoCheckBox input:eq( 2 )' ).prop( 'checked' ) ? 'wep' : 'wpa';
-			if ( ip === data0.Address && gw === data0.Gateway && dns0 === data0.dns0 && dns1 === data0.dns1 ) return
+			if ( ip === data0.Address && gw === data0.Gateway ) return
 			
 			var data = 'Interface='+ wlan
 					  +'\nConnection=wireless'
@@ -549,14 +553,20 @@ function editWiFi( ssid, data ) {
 			data += '\nIP=static'
 				   +'\nAddress='+ ip +'/24'
 				   +'\nGateway='+ gw;
-			if ( dns0 !== data0.dns0 || dns1 !== data0.dns1 ) {
-				var dns = '';
-				if ( dns0 ) dns = dns0;
-				if ( dns0 && dns1 ) dns += ' ';
-				if ( dns1 ) dns += dns1;
-				data += '\nDNS=('+ dns +')';
-			}
-			connect( wlan, ssid, data, ip );
+			$.post( 'commands.php', { bash: 'arp -n | grep -v Address | cut -d" " -f1 | grep -q '+ data.ip +'$ && echo 1 || echo 0', string: 1 }, function( used ) {
+				if ( used == 1 ) {
+					info( {
+						  icon    : 'edit-circle'
+						, title   : 'Duplicate IP'
+						, message : 'IP <wh>'+ data1.ip +'</wh> already in use.'
+						, ok      : function() {
+							editWiFi( ssid, data0 );
+						}
+					} );
+				} else {
+					connect( wlan, ssid, data, ip );
+				}
+			} );
 		}
 	} );
 	$( '#infoCheckBox' ).on( 'click', 'input:eq( 0 )', function() {
@@ -570,16 +580,14 @@ function editWiFiSet( ssid, data ) {
 	);
 	$( '#infoTextBox1' ).val( data.Address );
 	$( '#infoTextBox2' ).val( data.Gateway );
-	$( '#infoTextBox3' ).val( data.dns0 );
-	$( '#infoTextBox4' ).val( data.dns1 );
 	$( '#infoPasswordBox' ).val( data.Key );
 	$( '#infoCheckBox input:eq( 0 )' ).prop( 'checked', 1 );
 	$( '#infoCheckBox input:eq( 2 )' ).prop( 'checked', data.Security === 'wep' );
 	$( '#infoTextBox' ).val( ssid );
-	$( '#infotextlabel a:eq( 0 ), #infoTextBox, #infotextlabel a:eq( 5 ), #infoPasswordBox, #infotextbox .eye, #infoCheckBox' ).hide();
+	$( '#infotextlabel a:eq( 0 ), #infoTextBox, #infotextlabel a:eq( 3 ), #infoPasswordBox, #infotextbox .eye, #infoCheckBox' ).hide();
 	if ( !data.Address ) $( '#infoFooter' ).html( '<br>*Connect to get DHCP data' );
 }
-function escape_string( string ) {
+function escapeString( string ) {
 	var to_escape = [ '\\', ';', ',', ':', '"' ];
 	var hex_only = /^[0-9a-f]+$/i;
 	var output = "";
@@ -653,8 +661,6 @@ function nicsStatus() {
 			html += val.ip ? ' data-ip="'+ val.ip +'"' : '';
 			html += val.gateway ? ' data-gateway="'+ val.gateway +'"' : '';
 			html += val.dhcp ? ' data-dhcp="1"' : '';
-			html += val.dns0 ? ' data-dns0="'+ val.dns0 +'"' : '';
-			html += val.dns1 ? ' data-dns1="'+ val.dns1 +'"' : '';
 			html += '><i class="fa fa-';
 			html += val.interface === 'eth0' ? 'lan"></i>LAN' : 'wifi-3"></i>Wi-Fi';
 			if ( val.interface === 'eth0' ) {
@@ -709,7 +715,7 @@ function renderQR() {
 	if ( !accesspoint || !G.hostapd ) return
 	
 	$( '#qraccesspoint, #qrwebuiap' ).empty();
-	qroptions.text = 'WIFI:S:'+ escape_string( G.ssid ) +';T:WPA;P:'+ escape_string( G.passphrase ) +';';
+	qroptions.text = 'WIFI:S:'+ escapeString( G.ssid ) +';T:WPA;P:'+ escapeString( G.passphrase ) +';';
 	$( '#qraccesspoint' ).qrcode( qroptions );
 	qroptions.text = 'http://'+ G.hostapdip;
 	$( '#qrwebuiap' ).qrcode( qroptions );
@@ -729,7 +735,6 @@ function wlanScan( ssid ) {
 				html += val.connected  ? ' data-connected="1"' : '';
 				html += val.gateway ? ' data-gateway="'+ val.gateway +'"' : '';
 				html += val.ip ? ' data-ip="'+ val.ip +'"' : '';
-				html += val.dns ? ' data-dns="'+ val.dns +'"' : '';
 				html += val.dhcp ? ' data-dhcp="'+ val.dhcp +'"' : '';
 				html += val.password ? ' data-password="'+ val.password +'"' : '';
 				html += profile ? ' data-profile="'+ profile +'"' : '';

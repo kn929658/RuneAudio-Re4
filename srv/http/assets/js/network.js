@@ -579,7 +579,11 @@ function editWiFiSet( ssid, data ) {
 	$( '#infoCheckBox input:eq( 2 )' ).prop( 'checked', data.Security === 'wep' );
 	$( '#infoTextBox' ).val( ssid );
 	$( '#infotextlabel a:eq( 0 ), #infoTextBox, #infotextlabel a:eq( 3 ), #infoPasswordBox, #infotextbox .eye, #infoCheckBox' ).hide();
-	if ( !data.Address ) $( '#infoFooter' ).html( '<br>*Connect to get DHCP data' );
+	if ( data.Address ) {
+		$( '#infoFooter' ).hide();
+	} else {
+		$( '#infoFooter' ).html( '<br>*Connect to get DHCP IPs' );
+	}
 }
 function escapeString( string ) {
 	var to_escape = [ '\\', ';', ',', ':', '"' ];

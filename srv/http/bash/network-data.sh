@@ -28,9 +28,8 @@ for line in "${lines[@]}"; do
 	ipr=$( ip r | grep "default.*$interface" )
 	gateway=( $( echo "$ipr" | sed 's/.*via \(.*\) dev.*/\1/' ) )
 	dhcp=$( [[ $ipr == *"dhcp src $ip "* ]] && echo true || echo false )
-	dns=( $( resolvectl status | sed -n "/$interface/,/^\n$/ p" | grep -A1 'DNS Servers:' | awk '{print $NF}' ) )
 	[[ $inftype == wlan && -n $ip && $ip != $hostapdip ]] && ssid=$( iwgetid $interface -r ) || ssid=
-	data+='{"dhcp":'$dhcp',"mac":"'$mac'","dns0":"'${dns[0]}'","dns1":"'${dns[1]}'","gateway":"'$gateway'","interface":"'$interface'","ip":"'$ip'","ssid":"'$ssid'"},'
+	data+='{"dhcp":'$dhcp',"mac":"'$mac'","gateway":"'$gateway'","interface":"'$interface'","ip":"'$ip'","ssid":"'$ssid'"},'
 done
 
 # bluetooth

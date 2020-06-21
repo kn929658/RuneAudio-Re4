@@ -180,10 +180,9 @@ if ( isset( $_POST[ 'backuprestore' ] ) ) {
 	echo $data;
 	
 } else if ( isset( $_POST[ 'getwifi' ] ) ) {
-	$profile = shell_exec( "cat '/etc/netctl/".$_POST[ 'getwifi' ]."' | grep '^Address\|^Gateway\|^IP\|Security' | tr -d '\"' | sed 's/^/\"/ ;s/=/\":\"/; s/\$/\",/'" );
-	exec( 'resolvectl status | sed -n "/wlan0/,/^\n\$/ p" | grep -A1 "DNS Servers:" | awk "{print \$NF}"', $dns );
-	$dns= '"dns0":"'.$dns[ 0 ].'", "dns1":"'.$dns[ 1 ].'"';
-	echo '{'.$profile.$dns.'}';
+	$profile = shell_exec( "grep '^Address\|^DNS\|^Gateway\|^IP\|^Key\|^Security' '/etc/netctl/".$_POST[ 'getwifi' ]."' | tr -d '\"' | sed 's/^/\"/ ;s/=/\":\"/; s/\$/\",/'" );
+	$profile = rtrim( rtrim( $profile ), ',' );
+	echo '{'.$profile.'}';
 	
 } else if ( isset( $_POST[ 'imagefile' ] ) ) {
 	$imagefile = $_POST[ 'imagefile' ];

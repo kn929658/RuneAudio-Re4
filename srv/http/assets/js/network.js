@@ -384,12 +384,12 @@ function connect( wlan, ssid, data, newip ) {
 	$.post( 'commands.php', { bash: cmd }, function( std ) {
 		if ( std != -1 ) {
 			wlconnected = wlan;
-			var cmd = [];
-			if ( newip ) cmd.push( 'curl -s -X POST "http://127.0.0.1/pub?id=ip" -d \'{ "ip": "'+ newip +'" }\'' );
-			cmd.push(
-				  'systemctl enable netctl-auto@'+ wlan
-				, curlPage( 'network' )
-			);
+			var cmd = [ 'systemctl enable netctl-auto@'+ wlan ];
+			if ( newip ) {
+				cmd.push( 'curl -s -X POST "http://127.0.0.1/pub?id=ip" -d \'{ "ip": "'+ newip +'" }\'' );
+			} else {
+				cmd.push( curlPage( 'network' ) );
+			}
 			$.post( 'commands.php', { bash: cmd }, function() {
 				wlanScan();
 				resetlocal();

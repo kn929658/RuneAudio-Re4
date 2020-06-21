@@ -93,7 +93,7 @@ var containerhtml = heredoc( function() { /*
 </div>
 */ } );
 infocontenthtml = heredoc( function() { /*
-			<p id="infoMessage" class="infocontent message"></p>
+			<p id="infoMessage" class="message"></p>
 			<div id="infoText" class="infocontent hide">
 				<div id="infotextlabel"></div>
 				<div id="infotextbox"></div>
@@ -103,7 +103,7 @@ infocontenthtml = heredoc( function() { /*
 			<div id="infoSelect" class="infocontent">
 				<a id="infoSelectLabel" class="infolabel"></a><select class="infohtml" id="infoSelectBox"></select>
 			</div>
-			<p id="infoFooter" class="infocontent message"></p>
+			<p id="infoFooter" class="message"></p>
 */ } );
 
 $( 'body' ).prepend( containerhtml );
@@ -158,7 +158,7 @@ function info( O ) {
 		$( '#infoTitle' ).text( 'Info' );
 		$( '#infoX' ).addClass( 'hide' );
 		$( '#infoMessage' ).html( O );
-		$( '#infoMessage, #infoOk' ).removeClass( 'hide' );
+		$( '#infoOk' ).removeClass( 'hide' );
 		$( '#infoOverlay' ).removeClass( 'hide' );
 		$( '#infoOk' ).html( 'OK' ).click( infoReset );
 		alignVertical();
@@ -237,15 +237,13 @@ function info( O ) {
 		if ( message ) {
 			$( '#infoMessage' )
 				.html( message )
-				.css( 'text-align', 'messagealign' in O ? O.messagealign : 'center' )
-				.removeClass( 'hide' );
+				.css( 'text-align', 'messagealign' in O ? O.messagealign : 'center' );
 		}
 		var footer = 'footer' in O ? O.footer : '';
 		if ( footer ) {
 			$( '#infoFooter' )
 				.html( footer )
-				.css( 'text-align', 'messagealign' in O ? O.messagealign : 'center' )
-				.removeClass( 'hide' );
+				.css( 'text-align', 'messagealign' in O ? O.messagealign : 'center' );
 		}
 		// inputs
 		if ( 'textlabel' in O || 'textvalue' in O ) {

@@ -64,6 +64,7 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 						  Address  : ip
 						, Gateway  : gw
 						, Security : wpa
+						, Key      : $this.data( 'password' )
 						, dns0     : dns[ 0 ]
 						, dns1     : dns[ 1 ]
 						, dhcp     : $this.data( 'dhcp' ) == 1 ? 'DHCP' : 'Static IP'
@@ -380,6 +381,7 @@ function connect( wlan, ssid, data, newip ) {
 		, 'ifconfig '+ wlan +' down'
 		, 'netctl start "'+ ssid +'"'
 	);
+	banner( 'Wi-Fi', 'Connect ...', 'wifi-3' );
 	local = 1;
 	$.post( 'commands.php', { bash: cmd }, function( std ) {
 		if ( std != -1 ) {
@@ -403,7 +405,6 @@ function connect( wlan, ssid, data, newip ) {
 					if ( !backdelay ) clearTimeout( delayint );
 				}, 1000 );
 			} );
-			banner( 'Wi-Fi', 'Connect ...', 'wifi-3' );
 		} else {
 			$( '#scanning-wifi' ).addClass( 'hide' );
 			wlconnected =  '';
@@ -436,7 +437,7 @@ function editLAN( data ) {
 			  +'\nDNSSEC=no';
 	info( {
 		  icon         : 'edit-circle'
-		, title        : 'LAN Static IP'
+		, title        : 'LAN IP'
 		, message      : 'Current: <wh>'+ ( data.dhcp ? 'DHCP' : 'Static' ) +'</wh><br>&nbsp;'
 		, textlabel    : [ 'IP', 'Gateway', 'DNS 1', 'DNS 2' ]
 		, textvalue    : textvalue
@@ -474,7 +475,7 @@ function editLAN( data ) {
 				if ( used == 1 ) {
 					info( {
 						  icon    : 'lan'
-						, title   : 'LAN Static IP'
+						, title   : 'LAN IP'
 						, message : 'IP <wh>'+ data1.ip +'</wh> already in use.'
 						, ok      : function() {
 							editLAN( data0 );
@@ -498,7 +499,7 @@ function editWiFi( ssid, data ) {
 	var data0 = data;
 	info( {
 		  icon          : 'edit-circle'
-		, title         : ssid ? 'Wi-Fi Static IP' : 'Add Wi-Fi'
+		, title         : ssid ? 'Wi-Fi IP' : 'Add Wi-Fi'
 		, textlabel     : [ 'SSID', 'IP', 'Gateway', 'DNS 1', 'DNS 2' ]
 		, checkbox      : { 'Static IP': 1, 'Hidden SSID': 1, 'WEP': 1 }
 		, passwordlabel : 'Password'
@@ -511,7 +512,12 @@ function editWiFi( ssid, data ) {
 				} else {
 					$.post( 'commands.php', { getwifi: ssid }, function( data ) {
 						data.dhcp = data.IP === 'static' ? 'Static IP' : 'DHCP';
-						data.Address = data.Address.replace( '/24', '' );
+						data.Address = 'Address' in data ? data.Address.replace( '/24', '' ) : '';
+						if ( 'DNS' in data ) {
+							var dns = data.dns.slice( 1, -1 ).split( ' ' );
+							data.dns0 = dns[ 0 ];
+							data.dns1 = dns[ 1 ];
+						}
 						editWiFiSet( ssid, data );
 					}, 'json' );
 				}
@@ -550,7 +556,7 @@ function editWiFi( ssid, data ) {
 				if ( dns1 ) dns += dns1;
 				data += '\nDNS=('+ dns +')';
 			}
-			connect( wlan, ssid, data, newip );
+			connect( wlan, ssid, data, ip );
 		}
 	} );
 	$( '#infoCheckBox' ).on( 'click', 'input:eq( 0 )', function() {
@@ -558,11 +564,10 @@ function editWiFi( ssid, data ) {
 	} );
 }
 function editWiFiSet( ssid, data ) {
-	$( '#infoMessage' )
-		.html(
-			 '<i class="fa fa-wifi-3"></i>&ensp;<wh>'+ ssid +'</wh>'
-			+'<br>Current: <wh>'+ data.dhcp +'</wh><br>&nbsp;' )
-		.removeClass( 'hide' );
+	$( '#infoMessage' ).html(
+		 '<i class="fa fa-wifi-3"></i>&ensp;<wh>'+ ssid +'</wh>'
+		+'<br>Current: <wh>'+ data.dhcp +'</wh><br>&nbsp;'
+	);
 	$( '#infoTextBox1' ).val( data.Address );
 	$( '#infoTextBox2' ).val( data.Gateway );
 	$( '#infoTextBox3' ).val( data.dns0 );
@@ -571,7 +576,8 @@ function editWiFiSet( ssid, data ) {
 	$( '#infoCheckBox input:eq( 0 )' ).prop( 'checked', 1 );
 	$( '#infoCheckBox input:eq( 2 )' ).prop( 'checked', data.Security === 'wep' );
 	$( '#infoTextBox' ).val( ssid );
-	$( '#infotextlabel a:eq( 0 ), #infoTextBox, #infotextlabel a:eq( 5 ), #infoPasswordBox, #infotextbox .eye, #infoCheckBox, #infoFooter' ).hide();
+	$( '#infotextlabel a:eq( 0 ), #infoTextBox, #infotextlabel a:eq( 5 ), #infoPasswordBox, #infotextbox .eye, #infoCheckBox' ).hide();
+	if ( !data.Address ) $( '#infoFooter' ).html( '<br>*Connect to get DHCP data' );
 }
 function escape_string( string ) {
 	var to_escape = [ '\\', ';', ',', ':', '"' ];
@@ -724,6 +730,7 @@ function wlanScan() {
 				html += val.ip ? ' data-ip="'+ val.ip +'"' : '';
 				html += val.dns ? ' data-dns="'+ val.dns +'"' : '';
 				html += val.dhcp ? ' data-dhcp="'+ val.dhcp +'"' : '';
+				html += val.password ? ' data-password="'+ val.password +'"' : '';
 				html += val.profile ? ' data-profile="'+ val.profile +'"' : '';
 				html += '><i class="fa fa-wifi-'+ ( val.dbm > good ? 3 : ( val.dbm < fair ? 1 : 2 ) ) +'"></i>';
 				html += val.connected ? '<grn>&bull;</grn>&ensp;' : '';

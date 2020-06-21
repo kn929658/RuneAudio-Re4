@@ -6,7 +6,11 @@ ifconfig $wlan up
 
 listProfile() {
 	netctllist=$( netctl list | grep -v eth | sed 's/^\s*\**\s*//' )
+	i=0
 	if grep -q '^+' <<<"$netctllist"; then # leading '+' = connecting
+		(( i++ ))
+		(( i == 15 )) && echo -1 && exit
+		
 		sleep 2
 		listProfile
 	fi

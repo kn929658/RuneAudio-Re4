@@ -181,8 +181,7 @@ if ( isset( $_POST[ 'backuprestore' ] ) ) {
 	
 } else if ( isset( $_POST[ 'getwifi' ] ) ) {
 	$profile = shell_exec( "grep '^Address\|^DNS\|^Gateway\|^IP\|^Key\|^Security' '/etc/netctl/".$_POST[ 'getwifi' ]."' | tr -d '\"' | sed 's/^/\"/ ;s/=/\":\"/; s/\$/\",/'" );
-	$profile = rtrim( rtrim( $profile ), ',' );
-	echo '{'.$profile.'}';
+	echo '{'.substr( $profile, 0, -2 ).'}';
 	
 } else if ( isset( $_POST[ 'imagefile' ] ) ) {
 	$imagefile = $_POST[ 'imagefile' ];

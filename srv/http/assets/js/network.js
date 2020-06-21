@@ -4,7 +4,6 @@ var dirsystem = '/srv/http/data/system';
 var wlcurrent = '';
 var wlconnected = '';
 var accesspoint = $( '#accesspoint' ).length;
-var backdelay = 0;
 
 $( '.back' ).click( function() {
 	wlcurrent = '';
@@ -13,7 +12,7 @@ $( '.back' ).click( function() {
 	$( '#divinterface, #divwebui, #divaccesspoint' ).removeClass( 'hide' );
 	$( '#divwifi, #divbluetooth' ).addClass( 'hide' );
 	$( '#listwifi, #listbt' ).empty();
-	setTimeout( nicsStatus, backdelay );
+	nicsStatus();
 } );
 $( '#listinterfaces' ).on( 'click', 'li', function() {
 	var $this = $( this );
@@ -395,17 +394,12 @@ function connect( wlan, ssid, data, ip ) { // ip - static
 				];
 			}
 			$.post( 'commands.php', { bash: cmd }, function() {
+				//resetlocal();
 				wlanScan( ssid ); // fix - scan takes sometimes to get connected profile
-				resetlocal();
 				$( 'li.'+ wlan +' .fa-search')
 					.removeClass( 'fa-search' )
 					.addClass( 'fa-refresh blink' )
 					.next().remove();
-				backdelay = 6000;
-				var delayint = setInterval( function() {
-					backdelay -= 1000;
-					if ( !backdelay ) clearTimeout( delayint );
-				}, 1000 );
 			} );
 		} else {
 			$( '#scanning-wifi' ).addClass( 'hide' );
@@ -749,7 +743,7 @@ function wlanScan( ssid ) {
 			html += '<li><i class="fa fa-lock"></i><gr>(no accesspoints found)</gr></li>';
 		}
 		$( '#listwifi' ).html( html +'</li>' ).promise().done( function() {
-			bannerHide();
+			resetlocal();
 			$( '#scanning-wifi' ).addClass( 'hide' );
 		} );
 		intervalscan = setTimeout( wlanScan, 12000 );

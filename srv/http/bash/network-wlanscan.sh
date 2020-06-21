@@ -37,8 +37,10 @@ for line in "${line[@]}"; do
 		for name in "${netctllist_ar[@]}"; do
 			profile=
 			dhcp=
+			password=
 			[[ $ssid == $name ]] && profile=1
 			grep -q 'IP=dhcp' "/etc/netctl/$name" && dhcp=1
+			password=$( grep '^Key' "/etc/netctl/$name" | cut -d'"' -f2 )
 		done
 	fi
 	if [[ $ssid == $connectedssid ]]; then
@@ -52,7 +54,7 @@ for line in "${line[@]}"; do
 		ip=
 		dns=
 	fi
-	list+=',{"dbm":"'$dbm'","ssid":"'${ssid//\"/\\\"}'","encrypt":"'$encrypt'","wpa":"'$wpa'","wlan":"'$wlan'","profile":"'$profile'","dhcp":"'$dhcp'","connected":"'$connected'","gateway":"'$gw'","ip":"'$ip'","dns":"'$dns'"}'
+	list+=',{"dbm":"'$dbm'","ssid":"'${ssid//\"/\\\"}'","encrypt":"'$encrypt'","wpa":"'$wpa'","wlan":"'$wlan'","profile":"'$profile'","dhcp":"'$dhcp'","connected":"'$connected'","gateway":"'$gw'","ip":"'$ip'","dns":"'$dns'","password":"'$password'"}'
 done
 
 echo [${list:1}] # 'remove leading ,

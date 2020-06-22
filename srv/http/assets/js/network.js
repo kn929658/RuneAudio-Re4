@@ -85,7 +85,7 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 					wlanScan();
 					resetlocal();
 				} );
-				banner( 'Wi-Fi', 'Forget ...', 'wifi-3' );
+				banner( ssid, 'Forget ...', 'wifi-3' );
 			}
 		} );
 		return
@@ -126,7 +126,7 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 					wlanScan();
 					resetlocal();
 				} );
-				banner( 'Wi-Fi', 'Forget ...', 'wifi-3' );
+				banner( ssid, 'Forget ...', 'wifi-3' );
 			}
 			, oklabel     : 'Disconnect'
 			, ok          : function() {
@@ -142,7 +142,7 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 						wlanScan();
 						resetlocal();
 				} );
-				banner( 'Wi-Fi', 'Disconnect ...', 'wifi-3' );
+				banner( ssid, 'Disconnect ...', 'wifi-3' );
 			}
 		} );
 	} else if ( $this.data( 'profile' ) ) { // saved wi-fi
@@ -380,7 +380,7 @@ function connect( wlan, ssid, data, ip ) { // ip - static
 	);
 	cmd.push( 'netctl start "'+ ssid +'"' );
 	local = 1;
-	banner( 'Wi-Fi', 'Connect ...', 'wifi-3' );
+	banner( ssid, 'Connect ...', 'wifi-3' );
 	$.post( 'commands.php', { bash: cmd }, function( std ) {
 		if ( std != -1 ) {
 			if ( ip ) {
@@ -594,7 +594,7 @@ function editWiFiSet( ssid, data, wlan ) {
 	if ( data.dhcp === 'Static IP' ) {
 		$( '#infoOk' ).before( '<a id="infoButton" class="infobtn extrabtn infobtn-default"><i class="fa fa-undo"></i>DHCP</a>' );
 		$( '#infoButton' ).click( function() {
-			banner( 'Wi-Fi', 'DHCP ...', 'wifi-3' );
+			banner( ssid, 'DHCP ...', 'wifi-3' );
 			$.post( 'commands.php', { bash: [
 				  'netctl stop "'+ ssid +'"'
 				, "sed -i "

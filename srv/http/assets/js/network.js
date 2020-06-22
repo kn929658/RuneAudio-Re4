@@ -56,7 +56,7 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 			, title   : 'Saved Wi-Fi connection'
 			, message : '<i class="fa fa-wifi-3"></i>&ensp;<wh>'+ ssid +'</wh>'
 			, buttonwidth : 1
-			, buttonlabel : '<i class="fa fa-edit-circle"></i> Static'
+			, buttonlabel : '<i class="fa fa-edit-circle"></i> IP'
 			, button      : function() {
 				if ( connected ) {
 					var data = {
@@ -387,13 +387,14 @@ function connect( wlan, ssid, data, ip ) { // ip - static
 		if ( std != -1 ) {
 			wlconnected = wlan;
 			if ( ip ) {
-				var cmd = [ 'curl -s -X POST "http://127.0.0.1/pub?id=ip" -d \'{ "ip": "'+ ip +'" }\'' ];
+				var cmd = [ 'curl -s -X POST "http://127.0.0.1/pub?id=ip" -d \'{ "ip": "'+ ip +'", "delay": 5000 }\'' ];
 			} else {
 				var cmd = [ 
 					  'systemctl enable netctl-auto@'+ wlan
 					, curlPage( 'network' )
 				];
 			}
+	console.log(cmd);
 			$.post( 'commands.php', { bash: cmd }, function() {
 				//resetlocal();
 				wlanScan( ssid ); // fix - scan takes sometimes to get connected profile
@@ -503,6 +504,7 @@ function editLAN( data ) {
 }
 function editWiFi( ssid, data ) {
 	var data0 = data;
+	var wlan = $( '#listwifi li:eq( 0 )' ).data( 'wlan' );
 	info( {
 		  icon          : 'edit-circle'
 		, title         : ssid ? 'Wi-Fi IP' : 'Add Wi-Fi'
@@ -514,20 +516,18 @@ function editWiFi( ssid, data ) {
 				$( '#infotextlabel a:eq( 1 ), #infoTextBox1, #infotextlabel a:eq( 2 ), #infoTextBox2' ).hide();
 			} else {
 				if ( data ) {
-					editWiFiSet( ssid, data );
+					editWiFiSet( ssid, data, wlan );
 				} else {
 					$.post( 'commands.php', { getwifi: ssid }, function( data ) {
 						data.dhcp = data.IP === 'static' ? 'Static IP' : 'DHCP';
 						data.Address = 'Address' in data ? data.Address.replace( '/24', '' ) : '';
-						editWiFiSet( ssid, data );
+						editWiFiSet( ssid, data, wlan );
 					}, 'json' );
 				}
 			}
 		}
 		, footer        : '<br><px50/><code>"</code> double quotes not allowed'
 		, ok            : function() {
-			var ssid = $( '#infoTextBox' ).val();
-			var wlan = $( '#listwifi li:eq( 0 )' ).data( 'wlan' );
 			var password = $( '#infoPasswordBox' ).val();
 			var ip = $( '#infoTextBox1' ).val();
 			var gw = $( '#infoTextBox2' ).val();
@@ -548,7 +548,7 @@ function editWiFi( ssid, data ) {
 			data += '\nIP=static'
 				   +'\nAddress='+ ip +'/24'
 				   +'\nGateway='+ gw;
-			$.post( 'commands.php', { bash: 'arp -n | grep -v Address | cut -d" " -f1 | grep -q '+ data.ip +'$ && echo 1 || echo 0', string: 1 }, function( used ) {
+			$.post( 'commands.php', { bash: 'arp -n | grep -v Address | cut -d" " -f1 | grep -q '+ ip +'$ && echo 1 || echo 0', string: 1 }, function( used ) {
 				if ( used == 1 ) {
 					info( {
 						  icon    : 'edit-circle'
@@ -568,7 +568,7 @@ function editWiFi( ssid, data ) {
 		$( '#infotextlabel a:eq( 1 ), #infoTextBox1, #infotextlabel a:eq( 2 ), #infoTextBox2' ).toggle( $( this ).prop( 'checked' ) );
 	} );
 }
-function editWiFiSet( ssid, data ) {
+function editWiFiSet( ssid, data, wlan ) {
 	$( '#infoMessage' ).html(
 		 '<i class="fa fa-wifi-3"></i>&ensp;<wh>'+ ssid +'</wh>'
 		+'<br>Current: <wh>'+ data.dhcp +'</wh><br>&nbsp;'
@@ -584,6 +584,21 @@ function editWiFiSet( ssid, data ) {
 		$( '#infoFooter' ).hide();
 	} else {
 		$( '#infoFooter' ).html( '<br>*Connect to get DHCP IPs' );
+	}
+	if ( data.dhcp === 'Static IP' ) {
+		$( '#infoOk' ).before( '<a id="infoButton" class="infobtn extrabtn infobtn-default"><i class="fa fa-undo"></i>DHCP</a>' );
+		$( '#infoButton' ).click( function() {
+			$.post( 'commands.php', { bash: [
+				  'curl -s -X POST "http://127.0.0.1/pub?id=ip" -d \'{ "ip": "'+ G.hostname +'.local", "delay": 6000 }\''
+				, 'netctl stop "'+ ssid +'"'
+				, "sed -i "
+					+" -e '/^Address\\|^Gateway/ d'"
+					+" -e 's/^IP.*/IP=dhcp/' '/srv/http/data/system/netctl-"+ ssid +"'"
+				, "cp '/srv/http/data/system/netctl-"+ ssid +"' '/etc/netctl/"+ ssid +"'"
+				, 'netctl start "'+ ssid +'"'
+			] } );
+			banner( 'Wi-Fi', 'DHCP ...', 'wifi-3' );
+		} );
 	}
 }
 function escapeString( string ) {
@@ -723,7 +738,7 @@ function renderQR() {
 function wlanScan( ssid ) {
 	clearTimeout( intervalscan );
 	$( '#scanning-wifi' ).removeClass( 'hide' );
-	$.post( 'commands.php', { getjson: '/srv/http/bash/network-wlanscan.sh' }, function( list ) {
+	$.post( 'commands.php', { getjson: '/srv/http/bash/network-wlanscan.sh', nonumeric: 1 }, function( list ) {
 		var good = -60;
 		var fair = -67;
 		var html = '';

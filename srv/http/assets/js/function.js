@@ -383,8 +383,8 @@ function displayPlayback() {
 		.toggleClass( 'hide', !G.display.cover )
 		.toggleClass( 'coversmall', G.display.coversmall );
 	$( '#coverart' ).css( 'width', G.display.coversmall ? '230px' : '' );
-	var volume = ( !G.display.volumenone && G.display.volume ) ? 1 : 0;
-	$( '#volume-knob' ).toggleClass( 'hide', !volume );
+	var volume = ( G.display.volumenone || !G.display.volume ) ? 0 : 1;
+	$( '#volume-knob' ).toggleClass( 'hide', volume === 0 );
 	var column = ( G.display.time ? 1 : 0 ) + ( G.display.cover ? 1 : 0 ) + volume;
 	var $elements = $( '#time-knob, #coverart-block, #volume-knob, #play-group, #vol-group' );
 	if ( column === 2 ) {
@@ -420,7 +420,7 @@ function displaySave( page, thumbbyartist ) {
 		G.display[ this.name ] = $( this ).prop( 'checked' );
 	} );
 	var display = G.display;
-	[ 'color', 'hidecover', 'order', 'updating_db', 'update', 'volumenone' ].forEach( function( el ) {
+	[ 'color', 'order', 'updating_db', 'update', 'volumenone' ].forEach( function( el ) {
 		delete display[ el ];
 	} );
 	G.local = 1;

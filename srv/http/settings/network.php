@@ -33,7 +33,7 @@
 	<span class="help-block hide">Access points with less than -66dBm should not be used.</span>
 	
 	<heading id="netctl" class="status">Saved Profiles<i class="fa fa-code"></i></heading>
-	<span class="help-block hide"><code>netctl list</code></span>
+	<span class="help-block hide"><code>cat /etc/netctl/SSID</code></span>
 	<pre id="codenetctl" class="hide"></pre>
 </div>
 

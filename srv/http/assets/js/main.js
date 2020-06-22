@@ -199,10 +199,8 @@ $( '#displaylibrary' ).click( function( e ) {
 						$( '#lib-list p' ).toggleClass( 'fixedcover', G.display.fixedcover );
 						if ( G.display.hidecover ) {
 							$( '.licover' ).addClass( 'hide' );
-							$( '#lib-list li:eq( 1 )' ).removeClass( 'track1' );
 						} else {
 							$( '.licover' ).removeClass( 'hide' );
-							$( '#lib-list li:eq( 1 )' ).addClass( 'track1' );
 						}
 					} else {
 						renderLibrary();

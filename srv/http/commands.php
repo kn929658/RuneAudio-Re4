@@ -162,7 +162,30 @@ if ( isset( $_POST[ 'backuprestore' ] ) ) {
 	$script = $_POST[ 'getjson' ];
 	$output = exec( $sudo.$script );
 	$array = json_decode( $output, true );
-	echo json_encode( $array, JSON_NUMERIC_CHECK );
+	if ( isset( $_POST[ 'nonumeric' ] ) ) {
+		echo json_encode( $array );
+	} else {
+		echo json_encode( $array, JSON_NUMERIC_CHECK );
+	}
+	
+} else if ( isset( $_POST[ 'getnetctl' ] ) ) {
+	exec( $sudobin.'netctl list', $profiles );
+	if ( count( $profiles ) ) {
+		$data = '';
+		foreach( $profiles as $profile ) {
+			$profile = preg_replace( '/\**\s*/', '', $profile );
+			$data.= $profile."\n";
+			$data.= "------------------------------\n";
+			$data.= file_get_contents( '/etc/netctl/'.$profile )."\n";
+		}
+	} else {
+		$data = '(none)';
+	}
+	echo $data;
+	
+} else if ( isset( $_POST[ 'getwifi' ] ) ) {
+	$profile = shell_exec( "grep '^Address\|^Gateway\|^IP\|^Key\|^Security' '/etc/netctl/".$_POST[ 'getwifi' ]."' | tr -d '\"' | sed 's/^/\"/ ;s/=/\":\"/; s/\$/\",/'" );
+	echo '{'.substr( $profile, 0, -2 ).'}';
 	
 } else if ( isset( $_POST[ 'imagefile' ] ) ) {
 	$imagefile = $_POST[ 'imagefile' ];

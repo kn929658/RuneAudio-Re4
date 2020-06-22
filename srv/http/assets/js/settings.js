@@ -69,7 +69,7 @@ onVisibilityChange( function( visible ) {
 	}
 } );
 var pushstream = new PushStream( { modes: 'websocket' } );
-var streams = [ 'ip', 'refresh', 'reload', 'restore', ];
+var streams = [ 'refresh', 'reload', 'restore', ];
 streams.forEach( function( stream ) {
 	pushstream.addChannel( stream );
 } );
@@ -94,11 +94,6 @@ pushstream.onmessage = function( data, id, channel ) {
 		case 'reload':  psReload();        break;
 		case 'restore': psRestore( data ); break;
 	}
-}
-function psIp( data ) {
-	setTimeout( function() {
-		location.href = 'http://'+ data.ip +'/index-settings.php?p=network';
-	}, 2000 );
 }
 function psRefresh( data ) {
 	if ( data.page === page ) refreshData();

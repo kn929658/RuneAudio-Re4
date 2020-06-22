@@ -162,7 +162,11 @@ if ( isset( $_POST[ 'backuprestore' ] ) ) {
 	$script = $_POST[ 'getjson' ];
 	$output = exec( $sudo.$script );
 	$array = json_decode( $output, true );
-	echo json_encode( $array, JSON_NUMERIC_CHECK );
+	if ( isset( $_POST[ 'nonumeric' ] ) ) {
+		echo json_encode( $array );
+	} else {
+		echo json_encode( $array, JSON_NUMERIC_CHECK );
+	}
 	
 } else if ( isset( $_POST[ 'getnetctl' ] ) ) {
 	exec( $sudobin.'netctl list', $profiles );

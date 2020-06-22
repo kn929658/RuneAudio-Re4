@@ -211,7 +211,7 @@ function info( O ) {
 			var iL = button.length;
 			for ( i = 0; i < iL; i++ ) {
 				var iid = i || '';
-				$( '#infoOk' ).before(  '<a id="infoButton'+ iid +'" class="infobtn extrabtn infobtn-default">'+ buttonlabel[ i ] +'</a>' );
+				$( '#infoOk' ).before( '<a id="infoButton'+ iid +'" class="infobtn extrabtn infobtn-default">'+ buttonlabel[ i ] +'</a>' );
 				$( '#infoButton'+ iid )
 									.css( 'background-color', buttoncolor[ i ] || '' )
 									.click( button[ i ] );

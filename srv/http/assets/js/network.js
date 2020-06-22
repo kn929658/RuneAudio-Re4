@@ -4,7 +4,6 @@ var dirsystem = '/srv/http/data/system';
 var wlcurrent = '';
 var wlconnected = '';
 var accesspoint = $( '#accesspoint' ).length;
-intervalscan = null;
 
 $( '.back' ).click( function() {
 	wlcurrent = '';

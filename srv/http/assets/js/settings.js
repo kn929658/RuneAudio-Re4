@@ -98,7 +98,7 @@ pushstream.onmessage = function( data, id, channel ) {
 function psIp( data ) {
 	setTimeout( function() {
 		location.href = 'http://'+ data.ip +'/index-settings.php?p=network';
-	}, 2000 );
+	}, data.delay || 2000 );
 }
 function psRefresh( data ) {
 	if ( data.page === page ) refreshData();

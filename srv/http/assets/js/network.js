@@ -217,9 +217,17 @@ $( '#listbt' ).on( 'click', 'li', function( e ) {
 				, 'bluetoothctl connect '+ mac
 			] }, function( data ) {
 				btScan();
-				notify( 'Bluetooth', ( data != -1 ? name +' paired' : 'Pair failed' ), 'bluetooth' );
+				if ( data != -1 ) {
+					notify( 'Bluetooth', name +' paired', 'bluetooth' );
+				} else {
+					info( {
+						  icon      : 'bluetooth'
+						, title     : 'Bluetooth'
+						, message   : 'Pair '+ name +' failed'
+					} );
+				}
 			} );
-			banner( 'Bluetooth', 'Pair ...', 'bluetooth', -1 );
+			banner( 'Bluetooth', 'Pair ...', 'bluetooth' );
 		}
 	}
 } );
@@ -375,32 +383,31 @@ function connect( wlan, ssid, data, ip ) { // ip - static
 		  'echo -e "'+ data +'" > "/srv/http/data/system/netctl-'+ ssid +'"'
 		, 'cp "/srv/http/data/system/netctl-'+ ssid +'" "/etc/netctl/'+ ssid +'"'
 	);
-	if ( ip ) cmd.push( 
-		  'echo -e "'+ data +'" > "/etc/netctl/'+ ssid +'"'
-	);
+	if ( ip ) {
+		cmd.push( 'echo -e "'+ data +'" > "/etc/netctl/'+ ssid +'"' );
+		$( '#loader' ).removeClass( 'hide' );
+		banner( ssid, 'Static IP ...', 'wifi-3' );
+		setTimeout( function() {
+			location.href = 'http://'+ ip +'/index-settings.php?p=network';
+		}, 10000 );
+	} else {
+		banner( ssid, 'Connect ...', 'wifi-3' );
+	}
 	cmd.push( 'netctl start "'+ ssid +'"' );
 	local = 1;
-	banner( ssid, 'Connect ...', 'wifi-3' );
 	$.post( 'commands.php', { bash: cmd }, function( std ) {
 		if ( std != -1 ) {
-			if ( ip ) {
-				$( '#loader' ).removeClass( 'hide' );
-				setTimeout( function() {
-					location.href = 'http://'+ ip +'/index-settings.php?p=network';
-				}, 10000 );
-			} else {
-				wlconnected = wlan;
-				$.post( 'commands.php', { bash: [ 
-					  'systemctl enable netctl-auto@'+ wlan
-					, curlPage( 'network' )
-				] }, function() {
-					wlanScan( ssid ); // fix - scan takes sometimes to get connected profile
-					$( 'li.'+ wlan +' .fa-search')
-						.removeClass( 'fa-search' )
-						.addClass( 'fa-refresh blink' )
-						.next().remove();
-				} );
-			}
+			wlconnected = wlan;
+			$.post( 'commands.php', { bash: [ 
+				  'systemctl enable netctl-auto@'+ wlan
+				, curlPage( 'network' )
+			] }, function() {
+				wlanScan( ssid ); // fix - scan takes sometimes to get connected profile
+				$( 'li.'+ wlan +' .fa-search')
+					.removeClass( 'fa-search' )
+					.addClass( 'fa-refresh blink' )
+					.next().remove();
+			} );
 		} else {
 			$( '#scanning-wifi' ).addClass( 'hide' );
 			wlconnected =  '';
@@ -459,18 +466,16 @@ function editLAN( data ) {
 		, buttonwidth  : 1
 		, button       : function() {
 			eth0 +=  '\nDHCP=yes';
-			notify( 'LAN IP Address', 'Change ...', 'lan blink', -1 );
+			banner( 'LAN IP Address', 'DHCP ...', 'lan' );
+			$( '#loader' ).removeClass( 'hide' );
+			setTimeout( function() {
+				location.href = 'http://'+ G.hostname +'.local/index-settings.php?p=network';
+			}, 2000 );
 			$.post( 'commands.php', { bash: [
 				  'echo -e "'+ eth0 +'" > /etc/systemd/network/eth0.network'
 				, 'rm -f /srv/http/data/system/eth0.network'
-				, 'ln -sf /run/systemd/resolve/resolv.conf /etc/resolv.conf'
 				, 'systemctl restart systemd-networkd'
-			] }, function() {
-				$( '#loader' ).removeClass( 'hide' );
-				setTimeout( function() {
-					location.href = 'http://'+ G.hostname +'.local/index-settings.php?p=network';
-				}, 2000 );
-			} );
+			] } );
 		}
 		, ok           : function() {
 			var data1 = {}
@@ -491,17 +496,16 @@ function editLAN( data ) {
 						}
 					} );
 				} else {
-					notify( 'LAN IP Address', 'Change ...', 'lan blink', -1 );
+					banner( 'LAN IP Address', 'Static IP ...', 'lan' );
+					$( '#loader' ).removeClass( 'hide' );
+					setTimeout( function() {
+						location.href = 'http://'+ data1.ip +'/index-settings.php?p=network';
+					}, 2000 );
 					$.post( 'commands.php', { bash: [
 						  'echo -e "'+ eth0 +'" > /etc/systemd/network/eth0.network'
 						, 'echo -e "'+ eth0 +'" > /srv/http/data/system/eth0.network'
 						, 'systemctl restart systemd-networkd'
-					] }, function() {
-						$( '#loader' ).removeClass( 'hide' );
-						setTimeout( function() {
-							location.href = 'http://'+ data1.ip +'/index-settings.php?p=network';
-						}, 2000 );
-					} );
+					] } );
 				}
 			} );
 			
@@ -594,7 +598,12 @@ function editWiFiSet( ssid, data, wlan ) {
 	if ( data.dhcp === 'Static IP' ) {
 		$( '#infoOk' ).before( '<a id="infoButton" class="infobtn extrabtn infobtn-default"><i class="fa fa-undo"></i>DHCP</a>' );
 		$( '#infoButton' ).click( function() {
+			$( '#infoX' ).click();
+			$( '#loader' ).removeClass( 'hide' );
 			banner( ssid, 'DHCP ...', 'wifi-3' );
+			setTimeout( function() {
+				location.href = 'http://'+ G.hostname +'.local/index-settings.php?p=network';
+			}, 10000 );
 			$.post( 'commands.php', { bash: [
 				  'netctl stop "'+ ssid +'"'
 				, "sed -i "
@@ -602,12 +611,7 @@ function editWiFiSet( ssid, data, wlan ) {
 					+" -e 's/^IP.*/IP=dhcp/' '/srv/http/data/system/netctl-"+ ssid +"'"
 				, "cp '/srv/http/data/system/netctl-"+ ssid +"' '/etc/netctl/"+ ssid +"'"
 				, 'netctl start "'+ ssid +'"'
-			] }, function() {
-				$( '#loader' ).removeClass( 'hide' );
-				setTimeout( function() {
-					location.href = 'http://'+ G.hostname +'.local/index-settings.php?p=network';
-				}, 10000 );
-			} );
+			] } );
 		} );
 	}
 }

@@ -26,6 +26,7 @@ if [[ -e /boot/wifi ]]; then
 	sed -i 's/\r//' /boot/wifi
 	cp /boot/wifi "$dirsystem/netctl-$ssid"
 	mv /boot/wifi "/etc/netctl/$ssid"
+	chown http:http "$dirsystem/netctl-$ssid" "/etc/netctl/$ssid"
 	netctl start "$ssid"
 	systemctl enable netctl-auto@wlan0
 fi

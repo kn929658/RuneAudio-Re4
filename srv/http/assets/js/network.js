@@ -35,6 +35,8 @@ $( '#listinterfaces' ).on( 'click', 'li', function() {
 			btStatus();
 		}
 	} else {
+		if ( !$this.find( 'grn' ).length ) return
+		
 		editLAN( $this );
 		$( '#infoCheckBox' ).on( 'click', 'input', function() {
 			$( '#infoText' ).toggle( $( this ).prop( 'checked' ) );
@@ -49,11 +51,14 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 	var ip = $this.data( 'ip' );
 	var gw = $this.data( 'gateway' );
 	var wpa = $this.data( 'wpa' );
+	var dhcp = $this.data( 'dhcp' ) == 1 ? 'DHCP' : 'Static IP'
 	if ( $( e.target ).hasClass( 'fa-edit-circle' ) ) {
 		info( {
-			  icon    : 'edit-circle'
-			, title   : 'Saved Wi-Fi connection'
-			, message : '<i class="fa fa-wifi-3"></i>&ensp;<wh>'+ ssid +'</wh>'
+			  icon        : 'edit-circle'
+			, title       : 'Saved Wi-Fi connection'
+			, message     :  '<i class="fa fa-wifi-3"></i>&ensp;<wh>'+ ssid +'</wh>'
+							+'<br>Current: <wh>'+ dhcp +'</wh>'
+							+'<br>IP: <wh>'+ ip +'</wh>'
 			, buttonwidth : 1
 			, buttonlabel : '<i class="fa fa-edit-circle"></i> IP'
 			, button      : function() {
@@ -63,16 +68,16 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 						, Gateway  : gw
 						, Security : wpa
 						, Key      : $this.data( 'password' )
-						, dhcp     : $this.data( 'dhcp' ) == 1 ? 'DHCP' : 'Static IP'
+						, dhcp     : dhcp
 					}
 					editWiFi( ssid, data );
 				} else {
 					editWiFi( ssid, 0 );
 				}
 			}
-			, oklabel : '<i class="fa fa-minus-circle"></i> Forget'
-			, okcolor : '#bb2828'
-			, ok      : function() {
+			, oklabel     : '<i class="fa fa-minus-circle"></i> Forget'
+			, okcolor     : '#bb2828'
+			, ok          : function() {
 				clearTimeout( intervalscan );
 				local = 1;
 				$.post( 'commands.php', { bash: [
@@ -387,9 +392,7 @@ function connect( wlan, ssid, data, ip ) { // ip - static
 		cmd.push( 'echo -e "'+ data +'" > "/etc/netctl/'+ ssid +'"' );
 		$( '#loader' ).removeClass( 'hide' );
 		banner( ssid, 'Static IP ...', 'wifi-3' );
-		setTimeout( function() {
-			location.href = 'http://'+ ip +'/index-settings.php?p=network';
-		}, 10000 );
+		location.href = 'http://'+ ip +'/index-settings.php?p=network';
 	} else {
 		banner( ssid, 'Connect ...', 'wifi-3' );
 	}
@@ -455,7 +458,7 @@ function editLAN( data ) {
 	info( {
 		  icon         : 'edit-circle'
 		, title        : 'LAN IP'
-		, message      : 'Current: <wh>'+ ( data.dhcp ? 'DHCP' : 'Static' ) +'</wh><br>&nbsp;'
+		, message      : 'Current: <wh>'+ ( data.dhcp ? 'DHCP' : 'Static IP' ) +'</wh><br>&nbsp;'
 		, textlabel    : [ 'IP', 'Gateway' ]
 		, textvalue    : textvalue
 		, textrequired : [ 0 ]
@@ -468,9 +471,7 @@ function editLAN( data ) {
 			eth0 +=  '\nDHCP=yes';
 			banner( 'LAN IP Address', 'DHCP ...', 'lan' );
 			$( '#loader' ).removeClass( 'hide' );
-			setTimeout( function() {
-				location.href = 'http://'+ G.hostname +'.local/index-settings.php?p=network';
-			}, 2000 );
+			location.href = 'http://'+ G.hostname +'.local/index-settings.php?p=network';
 			$.post( 'commands.php', { bash: [
 				  'echo -e "'+ eth0 +'" > /etc/systemd/network/eth0.network'
 				, 'rm -f /srv/http/data/system/eth0.network'
@@ -498,9 +499,7 @@ function editLAN( data ) {
 				} else {
 					banner( 'LAN IP Address', 'Static IP ...', 'lan' );
 					$( '#loader' ).removeClass( 'hide' );
-					setTimeout( function() {
-						location.href = 'http://'+ data1.ip +'/index-settings.php?p=network';
-					}, 2000 );
+					location.href = 'http://'+ data1.ip +'/index-settings.php?p=network';
 					$.post( 'commands.php', { bash: [
 						  'echo -e "'+ eth0 +'" > /etc/systemd/network/eth0.network'
 						, 'echo -e "'+ eth0 +'" > /srv/http/data/system/eth0.network'
@@ -601,9 +600,7 @@ function editWiFiSet( ssid, data, wlan ) {
 			$( '#infoX' ).click();
 			$( '#loader' ).removeClass( 'hide' );
 			banner( ssid, 'DHCP ...', 'wifi-3' );
-			setTimeout( function() {
-				location.href = 'http://'+ G.hostname +'.local/index-settings.php?p=network';
-			}, 10000 );
+			location.href = 'http://'+ G.hostname +'.local/index-settings.php?p=network';
 			$.post( 'commands.php', { bash: [
 				  'netctl stop "'+ ssid +'"'
 				, "sed -i "

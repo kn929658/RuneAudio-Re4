@@ -49,11 +49,14 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 	var ip = $this.data( 'ip' );
 	var gw = $this.data( 'gateway' );
 	var wpa = $this.data( 'wpa' );
+	var dhcp = $this.data( 'dhcp' ) == 1 ? 'DHCP' : 'Static IP'
 	if ( $( e.target ).hasClass( 'fa-edit-circle' ) ) {
 		info( {
-			  icon    : 'edit-circle'
-			, title   : 'Saved Wi-Fi connection'
-			, message : '<i class="fa fa-wifi-3"></i>&ensp;<wh>'+ ssid +'</wh>'
+			  icon        : 'edit-circle'
+			, title       : 'Saved Wi-Fi connection'
+			, message     :  '<i class="fa fa-wifi-3"></i>&ensp;<wh>'+ ssid +'</wh>'
+							+'<br>Current: <wh>'+ dhcp +'</wh>'
+							+'<br>IP: <wh>'+ ip +'</wh>'
 			, buttonwidth : 1
 			, buttonlabel : '<i class="fa fa-edit-circle"></i> IP'
 			, button      : function() {
@@ -63,16 +66,16 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 						, Gateway  : gw
 						, Security : wpa
 						, Key      : $this.data( 'password' )
-						, dhcp     : $this.data( 'dhcp' ) == 1 ? 'DHCP' : 'Static IP'
+						, dhcp     : dhcp
 					}
 					editWiFi( ssid, data );
 				} else {
 					editWiFi( ssid, 0 );
 				}
 			}
-			, oklabel : '<i class="fa fa-minus-circle"></i> Forget'
-			, okcolor : '#bb2828'
-			, ok      : function() {
+			, oklabel     : '<i class="fa fa-minus-circle"></i> Forget'
+			, okcolor     : '#bb2828'
+			, ok          : function() {
 				clearTimeout( intervalscan );
 				local = 1;
 				$.post( 'commands.php', { bash: [
@@ -389,7 +392,7 @@ function connect( wlan, ssid, data, ip ) { // ip - static
 		banner( ssid, 'Static IP ...', 'wifi-3' );
 		setTimeout( function() {
 			location.href = 'http://'+ ip +'/index-settings.php?p=network';
-		}, 10000 );
+		}, 12000 );
 	} else {
 		banner( ssid, 'Connect ...', 'wifi-3' );
 	}
@@ -455,7 +458,7 @@ function editLAN( data ) {
 	info( {
 		  icon         : 'edit-circle'
 		, title        : 'LAN IP'
-		, message      : 'Current: <wh>'+ ( data.dhcp ? 'DHCP' : 'Static' ) +'</wh><br>&nbsp;'
+		, message      : 'Current: <wh>'+ ( data.dhcp ? 'DHCP' : 'Static IP' ) +'</wh><br>&nbsp;'
 		, textlabel    : [ 'IP', 'Gateway' ]
 		, textvalue    : textvalue
 		, textrequired : [ 0 ]

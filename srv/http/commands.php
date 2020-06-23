@@ -176,7 +176,7 @@ if ( isset( $_POST[ 'backuprestore' ] ) ) {
 			$profile = preg_replace( '/\**\s*/', '', $profile );
 			$data.= $profile."\n";
 			$data.= "------------------------------\n";
-			$data.= file_get_contents( '/etc/netctl/'.$profile )."\n";
+			$data.= shell_exec( "cat /etc/netctl/Home2GHz | sed 's/Key=.*/Key=\"*********\"/'" );
 		}
 	} else {
 		$data = '(none)';

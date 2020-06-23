@@ -52,12 +52,16 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 	var gw = $this.data( 'gateway' );
 	var wpa = $this.data( 'wpa' );
 	var dhcp = $this.data( 'dhcp' ) == 1 ? 'DHCP' : 'Static IP'
-	if ( $( e.target ).hasClass( 'fa-edit-circle' ) ) {
+	if ( $( e.target ).hasClass( 'icon' ) ) {
+		if ( !connected || !$this.data( 'profile' ) ) {
+			newWiFi( $this );
+			return
+		}
+		
 		info( {
-			  icon        : 'edit-circle'
-			, title       : 'Saved Wi-Fi connection'
-			, message     :  '<i class="fa fa-wifi-3"></i>&ensp;<wh>'+ ssid +'</wh>'
-							+'<br>Current: <wh>'+ dhcp +'</wh>'
+			  icon        : 'wifi-3'
+			, title       : ssid
+			, message     :  'Current: <wh>'+ dhcp +'</wh>'
 							+'<br>IP: <wh>'+ ip +'</wh>'
 			, buttonwidth : 1
 			, buttonlabel : '<i class="fa fa-edit-circle"></i> IP'
@@ -115,26 +119,9 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 					+ ip +'<br>'
 					+ gw
 				+'</div>'
-			, buttonwidth : 1
-			, buttonlabel : '<i class="fa fa-minus-circle"></i> Forget'
-			, buttoncolor : '#bb2828'
-			, button      : function() {
-				clearTimeout( intervalscan );
-				local = 1;
-				$.post( 'commands.php', { bash: [
-					  'netctl stop "'+ ssid +'"'
-					, 'systemctl disable netctl-auto@'+ wlan
-					, 'rm "/etc/netctl/'+ ssid +'" "/srv/http/data/system/netctl-'+ ssid +'"'
-					, curlPage( 'network' )
-					] }, function() {
-					wlconnected = '';
-					wlanScan();
-					resetlocal();
-				} );
-				banner( ssid, 'Forget ...', 'wifi-3' );
-			}
-			, oklabel     : 'Disconnect'
-			, ok          : function() {
+			, oklabel : 'Disconnect'
+			, okcolor : '#de810e'
+			, ok      : function() {
 				clearTimeout( intervalscan );
 				local = 1;
 				$.post( 'commands.php', { bash: [
@@ -489,7 +476,7 @@ function editLAN( data ) {
 			$.post( 'commands.php', { bash: 'arp -n | grep -v Address | cut -d" " -f1 | grep -q '+ data1.ip +'$ && echo 1 || echo 0', string: 1 }, function( used ) {
 				if ( used == 1 ) {
 					info( {
-						  icon    : 'edit-circle'
+						  icon    : 'lan'
 						, title   : 'Duplicate IP'
 						, message : 'IP <wh>'+ data1.ip +'</wh> already in use.'
 						, ok      : function() {
@@ -515,7 +502,7 @@ function editWiFi( ssid, data ) {
 	var data0 = data;
 	var wlan = $( '#listwifi li:eq( 0 )' ).data( 'wlan' );
 	info( {
-		  icon          : 'edit-circle'
+		  icon          : ssid ? 'edit-circle' : 'wifi-3'
 		, title         : ssid ? 'Wi-Fi IP' : 'Add Wi-Fi'
 		, textlabel     : [ 'SSID', 'IP', 'Gateway' ]
 		, checkbox      : { 'Static IP': 1, 'Hidden SSID': 1, 'WEP': 1 }
@@ -560,7 +547,7 @@ function editWiFi( ssid, data ) {
 			$.post( 'commands.php', { bash: 'arp -n | grep -v Address | cut -d" " -f1 | grep -q '+ ip +'$ && echo 1 || echo 0', string: 1 }, function( used ) {
 				if ( used == 1 ) {
 					info( {
-						  icon    : 'edit-circle'
+						  icon    : 'wifi-3'
 						, title   : 'Duplicate IP'
 						, message : 'IP <wh>'+ data1.ip +'</wh> already in use.'
 						, ok      : function() {
@@ -647,10 +634,9 @@ function newWiFi( $this ) {
 	var wpa = $this.data( 'wpa' );
 	info( {
 		  icon          : 'wifi-3'
-		, title         : 'Wi-Fi'
-		, message       : 'Connect: <wh>'+ ssid +'</wh>'
+		, title         : ssid
 		, passwordlabel : 'Password'
-		, footer        : '<br><px50/><code>"</code> double quotes not allowed'
+		, footer        : '<br><px70/><code>"</code> double quotes not allowed'
 		, ok            : function() {
 			var data = 'Interface='+ wlan
 					  +'\nConnection=wireless'
@@ -763,12 +749,12 @@ function wlanScan( ssid ) {
 				html += val.dhcp ? ' data-dhcp="'+ val.dhcp +'"' : '';
 				html += val.password ? ' data-password="'+ val.password +'"' : '';
 				html += profile ? ' data-profile="'+ profile +'"' : '';
-				html += '><i class="fa fa-wifi-'+ ( val.dbm > good ? 3 : ( val.dbm < fair ? 1 : 2 ) ) +'"></i>';
+				html += '><i class="icon fa fa-wifi-'+ ( val.dbm > good ? 3 : ( val.dbm < fair ? 1 : 2 ) ) +'"></i>';
 				html += val.connected ? '<grn>&bull;</grn>&ensp;' : '';
 				html += val.dbm < fair ? '<gr>'+ val.ssid +'</gr>' : val.ssid;
 				html += val.encrypt === 'on' ? ' <i class="fa fa-lock"></i>' : '';
 				html += '<gr>'+ val.dbm +' dBm</gr>';
-				html += profile ? '&ensp;<i class="fa fa-edit-circle wh"></i>' : '';
+				html += profile && !val.connected ? '&ensp;<i class="icon fa fa-save"></i>' : '';
 			} );
 		} else {
 			html += '<li><i class="fa fa-lock"></i><gr>(no accesspoints found)</gr></li>';

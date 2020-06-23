@@ -471,9 +471,7 @@ function editLAN( data ) {
 			eth0 +=  '\nDHCP=yes';
 			banner( 'LAN IP Address', 'DHCP ...', 'lan' );
 			$( '#loader' ).removeClass( 'hide' );
-			setTimeout( function() {
-				location.href = 'http://'+ G.hostname +'.local/index-settings.php?p=network';
-			}, 2000 );
+			location.href = 'http://'+ G.hostname +'.local/index-settings.php?p=network';
 			$.post( 'commands.php', { bash: [
 				  'echo -e "'+ eth0 +'" > /etc/systemd/network/eth0.network'
 				, 'rm -f /srv/http/data/system/eth0.network'
@@ -501,9 +499,7 @@ function editLAN( data ) {
 				} else {
 					banner( 'LAN IP Address', 'Static IP ...', 'lan' );
 					$( '#loader' ).removeClass( 'hide' );
-					setTimeout( function() {
-						location.href = 'http://'+ data1.ip +'/index-settings.php?p=network';
-					}, 2000 );
+					location.href = 'http://'+ data1.ip +'/index-settings.php?p=network';
 					$.post( 'commands.php', { bash: [
 						  'echo -e "'+ eth0 +'" > /etc/systemd/network/eth0.network'
 						, 'echo -e "'+ eth0 +'" > /srv/http/data/system/eth0.network'

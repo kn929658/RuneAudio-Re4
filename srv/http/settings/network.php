@@ -3,9 +3,11 @@
 	<ul id="listinterfaces" class="entries"></ul>
 	<span class="help-block hide">
 		<wh>LAN</wh>: Use wired LAN if possible for better performance.
+	<?php if ( file_exists( '/usr/bin/bluetoothctl' ) ) { ?>
 		<br><wh>Bluetooth</wh>: (Experimental feature)
 		<br>- For audio devices only.
 		<br>- Once connected, power on/off bluetooth device will connect/disconnect automatically.
+	<?php } ?>
 		<br><br></span>
 
 	<div id="divwebui" class="hide">

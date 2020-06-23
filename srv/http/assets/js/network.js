@@ -637,6 +637,7 @@ function newWiFi( $this ) {
 		, title         : ssid
 		, passwordlabel : 'Password'
 		, footer        : '<br><px70/><code>"</code> double quotes not allowed'
+		, oklabel       : 'Connect'
 		, ok            : function() {
 			var data = 'Interface='+ wlan
 					  +'\nConnection=wireless'

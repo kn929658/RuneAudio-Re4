@@ -392,9 +392,7 @@ function connect( wlan, ssid, data, ip ) { // ip - static
 		cmd.push( 'echo -e "'+ data +'" > "/etc/netctl/'+ ssid +'"' );
 		$( '#loader' ).removeClass( 'hide' );
 		banner( ssid, 'Static IP ...', 'wifi-3' );
-		setTimeout( function() {
-			location.href = 'http://'+ ip +'/index-settings.php?p=network';
-		}, 12000 );
+		location.href = 'http://'+ ip +'/index-settings.php?p=network';
 	} else {
 		banner( ssid, 'Connect ...', 'wifi-3' );
 	}
@@ -606,9 +604,7 @@ function editWiFiSet( ssid, data, wlan ) {
 			$( '#infoX' ).click();
 			$( '#loader' ).removeClass( 'hide' );
 			banner( ssid, 'DHCP ...', 'wifi-3' );
-			setTimeout( function() {
-				location.href = 'http://'+ G.hostname +'.local/index-settings.php?p=network';
-			}, 10000 );
+			location.href = 'http://'+ G.hostname +'.local/index-settings.php?p=network';
 			$.post( 'commands.php', { bash: [
 				  'netctl stop "'+ ssid +'"'
 				, "sed -i "

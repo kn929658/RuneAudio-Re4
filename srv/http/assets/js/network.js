@@ -35,6 +35,8 @@ $( '#listinterfaces' ).on( 'click', 'li', function() {
 			btStatus();
 		}
 	} else {
+		if ( !$this.find( 'grn' ).length ) return
+		
 		editLAN( $this );
 		$( '#infoCheckBox' ).on( 'click', 'input', function() {
 			$( '#infoText' ).toggle( $( this ).prop( 'checked' ) );

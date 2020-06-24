@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # config.txt
+hwcode=$( grep Revision /proc/cpuinfo | tail -c 4 | cut -c1-2 )
 if (( $# == 0 )); then
-	hwcode=$( grep Revision /proc/cpuinfo | tail -c 4 | cut -c1-2 )
 	[[ $hwcode == 09 || $hwcode == 0c ]] && rpi=0
 	[[ $hwcode == 11 ]] && rpi=4
 	config="\
@@ -83,8 +83,16 @@ echo '[
 hostnamectl set-hostname runeaudio
 sed -i 's/#NTP=.*/NTP=pool.ntp.org/' /etc/systemd/timesyncd.conf
 timedatectl set-timezone UTC
-echo 'On-board - Headphone' > $dirsystem/audio-output
-echo bcm2835 ALSA_1 > $dirsystem/audio-aplayname
+# on-board audio
+file=$dirsystem/audio-aplayname
+file1=$dirsystem/audio-output
+if [[ $hwcode =~ ^(09|0c)$ ]]; then
+	echo 'vc4-hdmi' > $file
+	echo 'On-board - HDMI' > $file1
+else
+	echo 'bcm2835 Headphones' > $file
+	echo 'On-board - Headphone' > $file1
+fi
 echo 1 | tee $dirsystem/{localbrowser,onboard-audio,onboard-wlan} > /dev/null
 # kernel 5 - no headphone
 if [[ $( cat /proc/version | cut -d" " -f3 ) > 5.4 ]]; then

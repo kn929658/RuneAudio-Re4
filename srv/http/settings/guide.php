@@ -21,6 +21,7 @@ include 'logosvg.php';
 			font-style : normal;
 		}
 	</style>
+	<link rel="stylesheet" href="/assets/css/colors.<?=$time?>.css">
 	<link rel="stylesheet" href="/assets/css/settings.<?=$time?>.css">
 	<link rel="icon" type="image/png" href="/img/favicon-192x192.<?=$time?>.png" sizes="192x192">
 </head>

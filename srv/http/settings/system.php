@@ -1,7 +1,7 @@
 <?php
 $hwcode = exec( "/usr/bin/sudo /usr/bin/cat /proc/cpuinfo | grep Revision | rev | cut -c2,3 | rev" );
 $rpiwireless = in_array( $hwcode, [ '0c', '08', '0e', '0d', '11' ] ); // rpi zero w, rpi3, rpi4
-$timezone = exec( "timedatectl | awk '/zone/ {print $3}'" );
+$timezone = exec( "timedatectl | grep zone: | awk '{print $3}'" );
 date_default_timezone_set( $timezone );
 $timezonelist = timezone_identifiers_list();
 $selecttimezone = '<select id="timezone">';

@@ -52,7 +52,7 @@ fi
 
 /srv/http/bash/mpd-conf.sh # mpd start by this script
 
-mountpoints=$( awk '/\/mnt\/MPD\/NAS\// {print $2}' /etc/fstab )
+mountpoints=$( grep /mnt/MPD/NAS /etc/fstab | awk '{print $2}' )
 if [[ -n "$mountpoints" ]]; then
 	ip=$( grep '/mnt/MPD/NAS' /etc/fstab | tail -1 | cut -d' ' -f1 | sed 's|^//||; s|:*/.*$||' )
 	sleep 10 # wait for network interfaces

@@ -172,6 +172,7 @@ $( '#displaylibrary' ).click( function( e ) {
 							disableCheckbox( 'fixedcover', true );
 						}
 					} );
+					$( 'input[name=fixedcover]' ).prop( 'disabled', G.display.hidecover );
 				} else {
 					$( 'input[name=coverart]' ).change( function() {
 						if ( $( this ).prop( 'checked' ) ) {

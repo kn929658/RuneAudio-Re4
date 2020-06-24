@@ -40,7 +40,7 @@ if systemctl -q is-active bluetooth; then
 		for device in "${devices[@]}"; do
 			mac=$( cut -d' ' -f2 <<<"$device" )
 			name=$( cut -d' ' -f3- <<<"$device" )
-			connected=$( bluetoothctl info $mac | grep '^\s*Connected:' | awk '{print $NF}' )
+			connected=$( bluetoothctl info $mac | awk '/^\s*Connected:/ {print $NF}' )
 			btlist+=',{"name":"'${name//\"/\\\"}'","mac":"'$mac'","connected":"'$connected'"}'
 		done
 		btlist=[${btlist:1}]

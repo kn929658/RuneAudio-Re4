@@ -53,7 +53,7 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 	var wpa = $this.data( 'wpa' );
 	var dhcp = $this.data( 'dhcp' ) == 1 ? 'DHCP' : 'Static IP'
 	if ( $( e.target ).hasClass( 'icon' ) ) {
-		if ( !connected || !$this.data( 'profile' ) ) {
+		if ( !connected && !$this.data( 'profile' ) ) {
 			newWiFi( $this );
 			return
 		}

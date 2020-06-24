@@ -32,7 +32,7 @@ iwlistscan=$( iwlist $wlan scan | \
 	sed 's/^\s*//; s/Quality.*level\| dBm *\|En.*:\|ES.*://g; s/IE: .*\/\(.*\) .* .*/\1/' | \
 	tr '\n' ' ' | \
 	sed 's/=/\n/g' |
-	sort )
+	sort -V )
 iwlistscan=${iwlistscan:1} # remove leading \n
 readarray -t line <<<"$iwlistscan"
 for line in "${line[@]}"; do

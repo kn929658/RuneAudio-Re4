@@ -178,7 +178,7 @@ $( '#displaylibrary' ).click( function( e ) {
 						if ( $( this ).prop( 'checked' ) ) {
 							disableCheckbox( 'thumbbyartist', true );
 						} else {
-							disableCheckbox( 'thumbbyartist', false );
+							disableCheckbox( 'thumbbyartist', false, false );
 						}
 					} );
 				}

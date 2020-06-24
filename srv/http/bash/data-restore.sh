@@ -207,19 +207,6 @@ else
 dtparam=audio=on
 "
 fi
-hwcode=$( grep Revision /proc/cpuinfo | tail -c 4 | cut -c1-2 )
-# rpi 0 - no headphone
-[[ $hwcode =~ ^(09|0c)$ ]] && config=$( sed '/dtparam=audio=/ d' <<<"$config" )
-# hdmi audio
-if [[ -e $dirsystem/onboard-hdmi ]]; then
-	[[ $hwcode == 11 ]] && rpi4='-pi4'
-	config+="\
-dtoverlay=vc4-kms-v3d$rpi4
-"
-	reboot+="\
-Enable HDMI
-"
-fi
 
 [[ -n $config ]] && echo -n "$config" >> /boot/config.txt
 

@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # config.txt
+hwcode=$( grep Revision /proc/cpuinfo | tail -c 4 | cut -c1-2 )
 if (( $# == 0 )); then
-	hwcode=$( grep Revision /proc/cpuinfo | tail -c 4 | cut -c1-2 )
 	[[ $hwcode == 09 || $hwcode == 0c ]] && rpi=0
 	[[ $hwcode == 11 ]] && rpi=4
 	config="\
@@ -15,13 +15,8 @@ max_usb_current=1
 disable_splash=1
 disable_overscan=1
 dtparam=audio=on
-dtoverlay=vc4-kms-v3d
 "
-	if [[ $rpi == 0 ]]; then
-		config=$( sed '/dtparam=audio=on/ d' <<<"$config" )
-	else
-		config=$( sed '/over_voltage\|hdmi_drive\|dtoverlay=vc4-kms-v3d/ d' <<<"$config" )
-	fi
+	[[ $rpi != 0 ]] && config=$( sed '/over_voltage\|hdmi_drive/ d' <<<"$config" )
 	[[ $rpi == 4 ]] && config=$( sed '/force_turbo/ d' <<<"$config" )
 
 	echo -n "$config" > /boot/config.txt
@@ -83,16 +78,10 @@ echo '[
 hostnamectl set-hostname runeaudio
 sed -i 's/#NTP=.*/NTP=pool.ntp.org/' /etc/systemd/timesyncd.conf
 timedatectl set-timezone UTC
+# on-board audio
+echo 'bcm2835 Headphones' > $dirsystem/audio-aplayname
 echo 'On-board - Headphone' > $dirsystem/audio-output
-echo bcm2835 ALSA_1 > $dirsystem/audio-aplayname
 echo 1 | tee $dirsystem/{localbrowser,onboard-audio,onboard-wlan} > /dev/null
-# kernel 5 - no headphone
-if [[ $( cat /proc/version | cut -d" " -f3 ) > 5.4 ]]; then
-	if [[ $hwcode =~ ^(09|0c)$ ]]; then
-		rm $dirsystem/onboard-audio
-		echo 1 > $dirsystem/onboard-hdmi
-	fi
-fi
 # nowireless
 [[ $hwcode =~ ^(00|01|02|03|04|09)$ ]] && rm $dirsystem/onboard-wlan
 echo RuneAudio | tee $dirsystem/{hostname,soundprofile} > /dev/null

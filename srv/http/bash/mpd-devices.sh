@@ -28,9 +28,8 @@ for line in "${lines[@]}"; do
 	# aplay -l: snd_rpi_xxx_yyy > xxx-yyy
 	[[ ${aplayname:0:7} == snd_rpi ]] && aplayname=$( echo $aplayname | sed 's/^snd_rpi_//; s/_/-/g' )
 	case "$aplayname" in
+		'bcm2835 HDMI 1' )     name='On-board - HDMI';;
 		'bcm2835 Headphones' ) name='On-board - Headphone';;
-		'vc4-hdmi' )           name='On-board - HDMI';;
-		'vc4-hdmi1' )          name='On-board - HDMI 2';;
 		'rpi-cirrus-wm5102' )  name=${wm5102[$device]};;
 		* )                    (( $device == 0 )) && name=$aplayname || name="$aplayname $device";;
 	esac

@@ -56,7 +56,6 @@ data='
 	, "mpdstats"        : '$mpdstats'
 	, "ntp"             : "'$( grep '^NTP' /etc/systemd/timesyncd.conf | cut -d= -f2 )'"
 	, "onboardaudio"    : '$( grep -q 'dtparam=audio=on' /boot/config.txt && echo true || echo false )'
-	, "onboardhdmi"     : '$( grep -q 'dtoverlay=vc4-kms-v3d' /boot/config.txt && echo true || echo false )'
 	, "passworddefault" : '$( grep -q '$2a$12$rNJSBU0FOJM/jP98tA.J7uzFWAnpbXFYx5q1pmNhPnXnUu3L1Zz6W' $dirsystem/password && echo true || echo false )'
 	, "reboot"          : "'$( cat /srv/http/data/tmp/reboot 2> /dev/null )'"
 	, "snapcast"        : '$( systemctl -q is-active snapserver && echo true || echo false )'
@@ -89,18 +88,7 @@ data='
 [[ -e /usr/bin/spotifyd  ]] && data+='
 	, "spotify"         : '$( systemctl -q is-active spotifyd && echo true || echo false )'
 	, "spotifydevice"   : "'$( grep 'device =' /etc/spotifyd.conf | awk '{print $NF}' )'"'
-[[ -e /usr/bin/upmpdcli  ]] && upnpconf=$( cat /etc/upmpdcli.conf ) && data+='
-	, "gmusicpass"      : "'$( grep '^gmusicpass'    <<< "$upnpconf" | cut -d' ' -f3- )'"
-	, "gmusicquality"   : "'$( grep '^gmusicquality' <<< "$upnpconf" | cut -d' ' -f3- )'"
-	, "gmusicuser"      : "'$( grep '^gmusicuser'    <<< "$upnpconf" | cut -d' ' -f3- )'"
-	, "qobuzquality"    : "'$( grep '^qobuzformatid' <<< "$upnpconf" | cut -d' ' -f3- )'"
-	, "qobuzpass"       : "'$( grep '^qobuzpass'     <<< "$upnpconf" | cut -d' ' -f3- )'"
-	, "qobuzuser"       : "'$( grep '^qobuzuser'     <<< "$upnpconf" | cut -d' ' -f3- )'"
-	, "spotifypass"     : "'$( grep '^spotifypass'   <<< "$upnpconf" | cut -d' ' -f3- )'"
-	, "spotifyuser"     : "'$( grep '^spotifyuser'   <<< "$upnpconf" | cut -d' ' -f3- )'"
-	, "tidalpass"       : "'$( grep '^tidalpass'     <<< "$upnpconf" | cut -d' ' -f3- )'"
-	, "tidalquality"    : "'$( grep '^tidalquality'  <<< "$upnpconf" | cut -d' ' -f3- )'"
-	, "tidaluser"       : "'$( grep '^tidaluser'     <<< "$upnpconf" | cut -d' ' -f3- )'"
+[[ -e /usr/bin/upmpdcli  ]] && data+='
 	, "upnp"            : '$( systemctl -q is-active upmpdcli && echo true || echo false )
 # features
 [[ -e /usr/bin/smbd  ]] && data+='

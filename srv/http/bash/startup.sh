@@ -23,7 +23,7 @@ rm -rf /srv/http/data/tmp/*
 
 if [[ -e /boot/wifi ]]; then
 	ssid=$( grep '^ESSID' /boot/wifi | cut -d'"' -f2 )
-	sed -i 's/\r//' /boot/wifi
+	sed -i -e '/^#\|^$/ d' -e 's/\r//' /boot/wifi
 	cp /boot/wifi "$dirsystem/netctl-$ssid"
 	mv /boot/wifi "/etc/netctl/$ssid"
 	chown http:http "$dirsystem/netctl-$ssid" "/etc/netctl/$ssid"

@@ -169,21 +169,13 @@ foreach( $i2slist as $name => $sysname ) {
 </div>
 
 <heading>On-board Devices</heading>
-	<?php if ( $hwcode !== '09' && $hwcode !== '0c' ) { ?>
 <div id="divonboardaudio">
-	<div class="col-l">Headphone</div>
+	<div class="col-l">Audio</div>
 	<div class="col-r">
 		<input id="onboardaudio" type="checkbox">
 		<div class="switchlabel" for="onboardaudio"></div>
 		<span class="help-block hide">Should be disabled if use other devices as audio output.</span>
 	</div>
-</div>
-	<?php } ?>
-<div class="col-l">HDMI</div>
-<div class="col-r">
-	<input id="onboardhdmi" type="checkbox">
-	<div class="switchlabel" for="onboardhdmi"></div>
-	<span class="help-block hide">Should be disabled if not used.</span>
 </div>
 	<?php if ( $rpiwireless ) {
 			if ( file_exists( '/usr/bin/bluetoothctl' ) ) { ?>

@@ -629,23 +629,6 @@ $( '#onboardaudio' ).click( function( e ) {
 		] }, resetlocal );
 	}
 } );
-$( '#onboardhdmi' ).click( function( e ) {
-	var onboardhdmi = $( this ).prop( 'checked' );
-	G.onboardhdmi = onboardhdmi;
-	rebootText( onboardhdmi ? 'Enable' : 'Disable', 'HDMI' );
-	var rpi4 = G.soc === 'BCM2711' ? '-pi4' : '';
-	var sed = onboardhdmi
-				? "sed -i '/dtparam=audio=/ a\\dtoverlay=vc4-kms-v3d"+ rpi4 +"' /boot/config.txt"
-				: "sed -i '/dtoverlay=vc4-kms-v3d/ d' /boot/config.txt";
-	local = 1;
-	$.post( 'commands.php', { bash: [
-		  sed
-		, ( onboardhdmi ? 'touch ' : 'rm -f ' ) + dirsystem +'/onboard-hdmi'
-		, "sed -i '/HDMI/ d' "+ filereboot
-		, "echo -e '"+ G.reboot.join( '\n' ) +"' > "+ filereboot
-		, curlPage( 'system' )
-	] }, resetlocal );
-} );
 $( '#bluetooth' ).click( function( e ) {
 	bluetooth = $( this ).prop( 'checked' );
 	local = 1;
@@ -737,26 +720,13 @@ $( '#i2smodule' ).on( 'change', function( e ) {
 			G.audioaplayname = 'bcm2835 Headphones';
 		} else {
 			G.audiooutput = 'On-board - HDMI';
-			G.audioaplayname = 'vc4-hdmi';
+			G.audioaplayname = 'bcm2835 HDMI 1';
 		}
 		G.onboardaudio = true;
 		$( '#onboardaudio' ).prop( 'checked', 1 );
 		$( '#divi2smodulesw' ).removeClass( 'hide' );
 		$( '#divi2smodule' ).addClass( 'hide' );
 		rebootText( 'Disable', 'I&#178;S Module' );
-		var cmd = [
-			  "sed -i '/dtparam=\\|dtoverlay=\\|^$/ d' /boot/config.txt"
-			, "sed -i '$ a\\"
-				+ ( G.bluetoothon ? "dtoverlay=bcmbt\\n" : '' )
-				+ ( notrpi0 ? "dtparam=audio=on" : 'dtoverlay=vc4-kms-v3d' )
-				+"' /boot/config.txt"
-			, "echo "+ G.audiooutput +" > "+ dirsystem +"/audio-output"
-			, "echo "+ G.audioaplayname +" > "+ dirsystem +"/audio-aplayname"
-			, "touch "+ dirsystem +"/onboard-audio"
-			, "sed -i '/I&#178;S Module/ d' "+ filereboot
-			, "echo -e '"+ G.reboot.join( '\n' ) +"' > "+ filereboot
-			, curlPage( 'system' )
-		];
 		$.post( 'commands.php', { bash: [
 			  "sed -i '/dtparam=\\|dtoverlay=\\|^$/ d' /boot/config.txt"
 			, "sed -i '$ a\\"

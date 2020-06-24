@@ -15,13 +15,8 @@ max_usb_current=1
 disable_splash=1
 disable_overscan=1
 dtparam=audio=on
-dtoverlay=vc4-kms-v3d
 "
-	if [[ $rpi == 0 ]]; then
-		config=$( sed '/dtparam=audio=on/ d' <<<"$config" )
-	else
-		config=$( sed '/over_voltage\|hdmi_drive\|dtoverlay=vc4-kms-v3d/ d' <<<"$config" )
-	fi
+	[[ $rpi != 0 ]] && config=$( sed '/over_voltage\|hdmi_drive/ d' <<<"$config" )
 	[[ $rpi == 4 ]] && config=$( sed '/force_turbo/ d' <<<"$config" )
 
 	echo -n "$config" > /boot/config.txt
@@ -87,20 +82,13 @@ timedatectl set-timezone UTC
 file=$dirsystem/audio-aplayname
 file1=$dirsystem/audio-output
 if [[ $hwcode =~ ^(09|0c)$ ]]; then
-	echo 'vc4-hdmi' > $file
+	echo 'bcm2835 HDMI 1' > $file
 	echo 'On-board - HDMI' > $file1
 else
 	echo 'bcm2835 Headphones' > $file
 	echo 'On-board - Headphone' > $file1
 fi
 echo 1 | tee $dirsystem/{localbrowser,onboard-audio,onboard-wlan} > /dev/null
-# kernel 5 - no headphone
-if [[ $( cat /proc/version | cut -d" " -f3 ) > 5.4 ]]; then
-	if [[ $hwcode =~ ^(09|0c)$ ]]; then
-		rm $dirsystem/onboard-audio
-		echo 1 > $dirsystem/onboard-hdmi
-	fi
-fi
 # nowireless
 [[ $hwcode =~ ^(00|01|02|03|04|09)$ ]] && rm $dirsystem/onboard-wlan
 echo RuneAudio | tee $dirsystem/{hostname,soundprofile} > /dev/null

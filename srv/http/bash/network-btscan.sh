@@ -21,7 +21,7 @@ for line in "${lines[@]}"; do
 	dash=${name//[^-]}
 	(( ${#dash} == 5 )) && continue
 	mac=${line/ *}
-	connected=$( bluetoothctl info $mac | awk '/^\s*Connected:/ {print $NF}' )
+	connected=$( bluetoothctl info $mac | grep '^\s*Connected:' | awk '{print $NF}' )
 	saved=$( bluetoothctl paired-devices | grep -q $mac && echo true || echo false )
 	data+='{"name":"'${name//\"/\\\"}'","mac":"'$mac'","connected":"'$connected'","saved":'$saved'}\n'
 done

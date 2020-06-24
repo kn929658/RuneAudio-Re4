@@ -3,7 +3,7 @@
 # for interval refresh
 (( $# > 0 )) && echo -e "{$data}" && exit
 
-hardwarecode=$( awk '/Revision/ {print $NF}' /proc/cpuinfo )
+hardwarecode=$( grep Revision /proc/cpuinfo | awk '{print $NF}' )
 code=${hardwarecode: -3:2}
 case $code in
 	0c | 08 | 0e | 0d | 11 ) rpiwireless=1;;
@@ -70,7 +70,7 @@ data='
 	, "sysswap"         : '$( sysctl vm.swappiness | cut -d" " -f3 )'
 	, "syslatency"      : '$( sysctl kernel.sched_latency_ns | cut -d" " -f3 )'
 	, "time"            : "'$( date +'%T %F' )'"
-	, "timezone"        : "'$( timedatectl | awk '/zone:/ {print $3}' )'"
+	, "timezone"        : "'$( timedatectl | grep zone: | awk '{print $3}' )'"
 	, "uptime"          : "'$( uptime -p | tr -d 's,' | sed 's/up //; s/ day/d/; s/ hour/h/; s/ minute/m/' )'"
 	, "uptimesince"     : "'$( uptime -s | cut -d: -f1-2 )'"
 	, "version"         : "'$version'"
@@ -87,7 +87,7 @@ data='
 	, "airplay"         : '$( systemctl -q is-active shairport-sync && echo true || echo false )
 [[ -e /usr/bin/spotifyd  ]] && data+='
 	, "spotify"         : '$( systemctl -q is-active spotifyd && echo true || echo false )'
-	, "spotifydevice"   : "'$( awk '/device =/ {print $NF}' /etc/spotifyd.conf )'"'
+	, "spotifydevice"   : "'$( grep 'device =' /etc/spotifyd.conf | awk '{print $NF}' )'"'
 [[ -e /usr/bin/upmpdcli  ]] && data+='
 	, "upnp"            : '$( systemctl -q is-active upmpdcli && echo true || echo false )
 # features

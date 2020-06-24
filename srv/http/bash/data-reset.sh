@@ -79,15 +79,8 @@ hostnamectl set-hostname runeaudio
 sed -i 's/#NTP=.*/NTP=pool.ntp.org/' /etc/systemd/timesyncd.conf
 timedatectl set-timezone UTC
 # on-board audio
-file=$dirsystem/audio-aplayname
-file1=$dirsystem/audio-output
-if [[ $hwcode =~ ^(09|0c)$ ]]; then
-	echo 'bcm2835 HDMI 1' > $file
-	echo 'On-board - HDMI' > $file1
-else
-	echo 'bcm2835 Headphones' > $file
-	echo 'On-board - Headphone' > $file1
-fi
+echo 'bcm2835 Headphones' > $dirsystem/audio-aplayname
+echo 'On-board - Headphone' > $dirsystem/audio-output
 echo 1 | tee $dirsystem/{localbrowser,onboard-audio,onboard-wlan} > /dev/null
 # nowireless
 [[ $hwcode =~ ^(00|01|02|03|04|09)$ ]] && rm $dirsystem/onboard-wlan

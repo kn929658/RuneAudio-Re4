@@ -88,18 +88,7 @@ data='
 [[ -e /usr/bin/spotifyd  ]] && data+='
 	, "spotify"         : '$( systemctl -q is-active spotifyd && echo true || echo false )'
 	, "spotifydevice"   : "'$( grep 'device =' /etc/spotifyd.conf | awk '{print $NF}' )'"'
-[[ -e /usr/bin/upmpdcli  ]] && upnpconf=$( cat /etc/upmpdcli.conf ) && data+='
-	, "gmusicpass"      : "'$( grep '^gmusicpass'    <<< "$upnpconf" | cut -d' ' -f3- )'"
-	, "gmusicquality"   : "'$( grep '^gmusicquality' <<< "$upnpconf" | cut -d' ' -f3- )'"
-	, "gmusicuser"      : "'$( grep '^gmusicuser'    <<< "$upnpconf" | cut -d' ' -f3- )'"
-	, "qobuzquality"    : "'$( grep '^qobuzformatid' <<< "$upnpconf" | cut -d' ' -f3- )'"
-	, "qobuzpass"       : "'$( grep '^qobuzpass'     <<< "$upnpconf" | cut -d' ' -f3- )'"
-	, "qobuzuser"       : "'$( grep '^qobuzuser'     <<< "$upnpconf" | cut -d' ' -f3- )'"
-	, "spotifypass"     : "'$( grep '^spotifypass'   <<< "$upnpconf" | cut -d' ' -f3- )'"
-	, "spotifyuser"     : "'$( grep '^spotifyuser'   <<< "$upnpconf" | cut -d' ' -f3- )'"
-	, "tidalpass"       : "'$( grep '^tidalpass'     <<< "$upnpconf" | cut -d' ' -f3- )'"
-	, "tidalquality"    : "'$( grep '^tidalquality'  <<< "$upnpconf" | cut -d' ' -f3- )'"
-	, "tidaluser"       : "'$( grep '^tidaluser'     <<< "$upnpconf" | cut -d' ' -f3- )'"
+[[ -e /usr/bin/upmpdcli  ]] && data+='
 	, "upnp"            : '$( systemctl -q is-active upmpdcli && echo true || echo false )
 # features
 [[ -e /usr/bin/smbd  ]] && data+='

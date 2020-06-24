@@ -56,7 +56,6 @@ data='
 	, "mpdstats"        : '$mpdstats'
 	, "ntp"             : "'$( grep '^NTP' /etc/systemd/timesyncd.conf | cut -d= -f2 )'"
 	, "onboardaudio"    : '$( grep -q 'dtparam=audio=on' /boot/config.txt && echo true || echo false )'
-	, "onboardhdmi"     : '$( grep -q 'dtoverlay=vc4-kms-v3d' /boot/config.txt && echo true || echo false )'
 	, "passworddefault" : '$( grep -q '$2a$12$rNJSBU0FOJM/jP98tA.J7uzFWAnpbXFYx5q1pmNhPnXnUu3L1Zz6W' $dirsystem/password && echo true || echo false )'
 	, "reboot"          : "'$( cat /srv/http/data/tmp/reboot 2> /dev/null )'"
 	, "snapcast"        : '$( systemctl -q is-active snapserver && echo true || echo false )'

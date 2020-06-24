@@ -30,8 +30,6 @@ for line in "${lines[@]}"; do
 	case "$aplayname" in
 		'bcm2835 Headphones' ) name='On-board - Headphone';;
 		'bcm2835 HDMI 1' )     name='On-board - HDMI';;
-		'vc4-hdmi' )           name='On-board - HDMI';;
-		'vc4-hdmi1' )          name='On-board - HDMI 2';;
 		'rpi-cirrus-wm5102' )  name=${wm5102[$device]};;
 		* )                    (( $device == 0 )) && name=$aplayname || name="$aplayname $device";;
 	esac

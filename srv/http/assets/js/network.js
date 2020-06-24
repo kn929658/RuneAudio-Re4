@@ -525,27 +525,30 @@ function editWiFi( ssid, data ) {
 		, footer        : '<br><px50/><code>"</code> double quotes not allowed'
 		, ok            : function() {
 			var ssidadd = $( '#infoTextBox' ).val();
-			var password = $( '#infoPasswordBox' ).val();
 			var ip = $( '#infoTextBox1' ).val();
 			var gw = $( '#infoTextBox2' ).val();
+			var password = $( '#infoPasswordBox' ).val();
+			var static = $( '#infoCheckBox input:eq( 0 )' ).prop( 'checked' );
 			var hidden = $( '#infoCheckBox input:eq( 1 )' ).prop( 'checked' );
-			var wpa = $( '#infoCheckBox input:eq( 2 )' ).prop( 'checked' ) ? 'wep' : 'wpa';
+			var security = $( '#infoCheckBox input:eq( 2 )' ).prop( 'checked' );
 			if ( data0 && ip === data0.Address && gw === data0.Gateway ) return
 			
-			var data = 'Interface='+ wlan
-					  +'\nConnection=wireless'
-					  +'\nESSID=\\"'+ escapeString( ssid || ssidadd ) +'\\"';
-			if ( hidden ) {
-				data += '\nHidden=yes';
-			}
+			var data =   'Interface='+ wlan
+						+'\nConnection=wireless'
+						+'\nESSID=\\"'+ escapeString( ssid || ssidadd ) +'\\"'
+						+'\nIP='+ ( static ? 'static' : 'dhcp' );
 			if ( password ) {
-				data += '\nSecurity='+ wpa
-					   +'\nKey=\\"'+ escapeString( password ) +'\\"';
+				data +=  '\nSecurity='+ ( security ?  'wep' : 'wpa' )
+						+'\nKey=\\"'+ escapeString( password ) +'\\"';
+			}
+			if ( hidden ) {
+				data +=  '\nHidden=yes';
+			}
+			if ( static ) {
+				data +=  '\nAddress='+ ip +'/24'
+						+'\nGateway='+ gw;
 			}
 			if ( ssid ) {
-				data += '\nIP=static'
-					   +'\nAddress='+ ip +'/24'
-					   +'\nGateway='+ gw;
 				$.post( 'commands.php', { bash: 'arp -n | grep -v Address | cut -d" " -f1 | grep -q '+ ip +'$ && echo 1 || echo 0', string: 1 }, function( used ) {
 					if ( used == 1 ) {
 						info( {
@@ -561,7 +564,6 @@ function editWiFi( ssid, data ) {
 					}
 				} );
 			} else {
-				data += '\nIP=dhcp';
 				connect( wlan, ssidadd, data );
 			}
 		}

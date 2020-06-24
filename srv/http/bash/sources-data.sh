@@ -22,7 +22,7 @@ sources=$( fdisk -lo device | grep ^/dev/sd )
 if [[ -n $sources ]]; then
 	for source in $sources; do
 		if ! df --output=source | grep -q $source; then
-			label=$( udevil info $source | grep '^  label' | awk '{print $NF}' )
+			label=$( udevil info $source | awk '/^  label/ {print $NF}' )
 			mountpoint="/mnt/MPD/USB/$label"
 			data+='{"icon":"usbdrive","mountpoint":"'${mountpoint//\"/\\\"}'","mounted":false,"source":"'$source'"},'
 		fi
@@ -30,7 +30,7 @@ if [[ -n $sources ]]; then
 fi
 
 # not mounted remote shares
-targets=$( grep '/mnt/MPD/NAS/' /etc/fstab | awk '{print $2}' )
+targets=$( awk '/\/mnt\/MPD\/NAS\// {print $2}' /etc/fstab )
 if [[ -n $targets ]]; then
 	for target in $targets; do
 		mountpoint=${target//\\040/ }  # \040 > space

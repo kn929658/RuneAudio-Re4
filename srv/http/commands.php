@@ -175,7 +175,7 @@ if ( isset( $_POST[ 'backuprestore' ] ) ) {
 		foreach( $profiles as $profile ) {
 			$profile = preg_replace( '/\**\s*/', '', $profile );
 			$data.= $profile."\n";
-			$data.= "------------------------------";
+			$data.= "------------------------------\n";
 			$data.= shell_exec( "cat /etc/netctl/Home2GHz | sed -e '/^#.*/ d' -e 's/Key=.*/Key=\"*********\"/'" )."\n";
 		}
 	} else {

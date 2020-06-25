@@ -540,6 +540,8 @@ function editWiFi( ssid, data ) {
 			if ( password ) {
 				data +=  '\nSecurity='+ ( security ?  'wep' : 'wpa' )
 						+'\nKey=\\"'+ escapeString( password ) +'\\"';
+			} else {
+				data +=  '\nSecurity=none'
 			}
 			if ( hidden ) {
 				data +=  '\nHidden=yes';
@@ -645,6 +647,7 @@ function newWiFi( $this ) {
 		, title         : ssid
 		, passwordlabel : 'Password'
 		, footer        : '<br><px70/><code>"</code> double quotes not allowed'
+		, oklabel       : 'Connect'
 		, ok            : function() {
 			var data = 'Interface='+ wlan
 					  +'\nConnection=wireless'

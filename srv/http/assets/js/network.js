@@ -500,7 +500,7 @@ function editLAN( data ) {
 }
 function editWiFi( ssid, data ) {
 	var data0 = data;
-	var wlan = $( '#listwifi li:eq( 0 )' ).data( 'wlan' );
+	var wlan = $( '#listwifi li:eq( 0 )' ).data( 'wlan' ) || 'wlan0';
 	info( {
 		  icon          : ssid ? 'edit-circle' : 'wifi-3'
 		, title         : ssid ? 'Wi-Fi IP' : 'Add Wi-Fi'

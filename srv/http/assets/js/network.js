@@ -16,10 +16,9 @@ $( '.back' ).click( function() {
 } );
 $( '#listinterfaces' ).on( 'click', 'li', function() {
 	var $this = $( this );
-	var inf = $this.prop( 'class' );
-	wlcurrent = inf;
-	if ( inf !== 'eth0' ) {
-		if ( inf !== 'bt' ) {
+	wlcurrent = $this.prop( 'class' );
+	if ( wlcurrent !== 'eth0' ) {
+		if ( wlcurrent !== 'bt' ) {
 			if ( G.hostapd && wlcurrent === 'wlan0' ) {
 				info( {
 					  icon    : 'wifi-3'
@@ -138,7 +137,7 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 			}
 		} );
 	} else if ( $this.data( 'profile' ) ) { // saved wi-fi
-		connect( wlan, ssid, false );
+		connect( ssid, false );
 	} else if ( encrypt === 'on' ) { // new wi-fi
 		newWiFi( $this );
 	} else { // no password
@@ -147,7 +146,7 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 				  +'\nIP=dhcp'
 				  +'\nESSID="'+ ssid +'"'
 				  +'\nSecurity=none';
-		connect( wlan, ssid, data );
+		connect( ssid, data );
 	}
 } );
 $( '#add' ).click( function() {
@@ -363,13 +362,12 @@ function btStatus() {
 		btScan();
 	}, 'json' );
 }
-function connect( wlan, ssid, data, ip ) { // ip - static
+function connect( ssid, data, ip ) { // ip - static
 	clearTimeout( intervalscan );
-	wlcurrent = wlan;
 	$( '#scanning-wifi' ).removeClass( 'hide' );
 	var cmd = [
 		  'netctl stop-all'
-		, 'ifconfig '+ wlan +' down'
+		, 'ifconfig '+ wlcurrent +' down'
 	];
 	if ( data ) cmd.push(
 		  'echo -e "'+ data +'" > "/srv/http/data/system/netctl-'+ ssid +'"'
@@ -387,13 +385,13 @@ function connect( wlan, ssid, data, ip ) { // ip - static
 	local = 1;
 	$.post( 'commands.php', { bash: cmd }, function( std ) {
 		if ( std != -1 ) {
-			wlconnected = wlan;
+			wlconnected = wlcurrent;
 			$.post( 'commands.php', { bash: [ 
-				  'systemctl enable netctl-auto@'+ wlan
+				  'systemctl enable netctl-auto@'+ wlcurrent
 				, curlPage( 'network' )
 			] }, function() {
 				wlanScan( ssid ); // fix - scan takes sometimes to get connected profile
-				$( 'li.'+ wlan +' .fa-search')
+				$( 'li.'+ wlcurrent +' .fa-search')
 					.removeClass( 'fa-search' )
 					.addClass( 'fa-refresh blink' )
 					.next().remove();
@@ -500,7 +498,6 @@ function editLAN( data ) {
 }
 function editWiFi( ssid, data ) {
 	var data0 = data;
-	var wlan = $( '#listwifi li:eq( 0 )' ).data( 'wlan' ) || 'wlan0';
 	info( {
 		  icon          : ssid ? 'edit-circle' : 'wifi-3'
 		, title         : ssid ? 'Wi-Fi IP' : 'Add Wi-Fi'
@@ -512,12 +509,12 @@ function editWiFi( ssid, data ) {
 				$( '#infotextlabel a:eq( 1 ), #infoTextBox1, #infotextlabel a:eq( 2 ), #infoTextBox2' ).hide();
 			} else {
 				if ( data ) {
-					editWiFiSet( ssid, data, wlan );
+					editWiFiSet( ssid, data );
 				} else {
 					$.post( 'commands.php', { getwifi: ssid }, function( data ) {
 						data.dhcp = data.IP === 'static' ? 'Static IP' : 'DHCP';
 						data.Address = 'Address' in data ? data.Address.replace( '/24', '' ) : '';
-						editWiFiSet( ssid, data, wlan );
+						editWiFiSet( ssid, data );
 					}, 'json' );
 				}
 			}
@@ -533,7 +530,7 @@ function editWiFi( ssid, data ) {
 			var security = $( '#infoCheckBox input:eq( 2 )' ).prop( 'checked' );
 			if ( data0 && ip === data0.Address && gw === data0.Gateway ) return
 			
-			var data =   'Interface='+ wlan
+			var data =   'Interface='+ wlcurrent
 						+'\nConnection=wireless'
 						+'\nESSID=\\"'+ escapeString( ssid || ssidadd ) +'\\"'
 						+'\nIP='+ ( static ? 'static' : 'dhcp' );
@@ -562,11 +559,11 @@ function editWiFi( ssid, data ) {
 							}
 						} );
 					} else {
-						connect( wlan, ssid, data, ip );
+						connect( ssid, data, ip );
 					}
 				} );
 			} else {
-				connect( wlan, ssidadd, data );
+				connect( ssidadd, data );
 			}
 		}
 	} );
@@ -574,7 +571,7 @@ function editWiFi( ssid, data ) {
 		$( '#infotextlabel a:eq( 1 ), #infoTextBox1, #infotextlabel a:eq( 2 ), #infoTextBox2' ).toggle( $( this ).prop( 'checked' ) );
 	} );
 }
-function editWiFiSet( ssid, data, wlan ) {
+function editWiFiSet( ssid, data ) {
 	$( '#infoMessage' ).html(
 		 '<i class="fa fa-wifi-3"></i>&ensp;<wh>'+ ssid +'</wh>'
 		+'<br>Current: <wh>'+ data.dhcp +'</wh><br>&nbsp;'
@@ -655,7 +652,7 @@ function newWiFi( $this ) {
 					  +'\nESSID=\\"'+ escapeString( ssid ) +'\\"'
 					  +'\nSecurity='+ ( wpa || 'wep' )
 					  +'\nKey=\\"'+ escapeString( $( '#infoPasswordBox' ).val() ) +'\\"';
-			connect( wlan, ssid, data );
+			connect( ssid, data );
 		}
 	} );
 }

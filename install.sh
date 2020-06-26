@@ -7,6 +7,7 @@ alias=rre4
 installstart $@
 
 if grep -q rewrite /etc/nginx/nginx.conf; then
+	nginx=1
 	sed -i -e '/rewrite/ d
 ' -e '/cache busting/ {n;d}
 ' -e '/try_files/ i\
@@ -28,6 +29,6 @@ getinstallzip
 
 installfinish $@
 
-systemctl restart nginx
+[[ $nginx ]] && restartnginx
 
 restartlocalbrowser

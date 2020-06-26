@@ -45,7 +45,6 @@ $( '#listinterfaces' ).on( 'click', 'li', function() {
 $( '#listwifi' ).on( 'click', 'li', function( e ) {
 	var $this = $( this );
 	var connected = $this.data( 'connected' );
-	var wlan = $this.data( 'wlan' );
 	var ssid = $this.data( 'ssid' );
 	var ip = $this.data( 'ip' );
 	var gw = $this.data( 'gateway' );
@@ -85,7 +84,7 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 				local = 1;
 				$.post( 'commands.php', { bash: [
 					  'netctl stop "'+ ssid +'"'
-					, 'systemctl disable netctl-auto@'+ wlan
+					, 'systemctl disable netctl-auto@'+ wlcurrent
 					, 'rm "/etc/netctl/'+ ssid +'" "/srv/http/data/system/netctl-'+ ssid +'"'
 					, curlPage( 'network' )
 					] }, function() {
@@ -126,7 +125,7 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 				$.post( 'commands.php', { bash: [
 					  'netctl stop "'+ ssid +'"'
 					, 'killall wpa_supplicant'
-					, 'ifconfig '+ wlan +' up'
+					, 'ifconfig '+ wlcurrent +' up'
 					, curlPage( 'network' )
 					] }, function() {
 						wlconnected = '';
@@ -141,7 +140,7 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 	} else if ( encrypt === 'on' ) { // new wi-fi
 		newWiFi( $this );
 	} else { // no password
-		var data = 'Interface='+ wlan
+		var data = 'Interface='+ wlcurrent
 				  +'\nConnection=wireless'
 				  +'\nIP=dhcp'
 				  +'\nESSID="'+ ssid +'"'
@@ -606,19 +605,9 @@ function editWiFiSet( ssid, data ) {
 		} );
 	}
 }
-function escapeString( string ) {
-	var to_escape = [ '\\', ';', ',', ':', '"' ];
-	var hex_only = /^[0-9a-f]+$/i;
-	var output = "";
-	for ( var i = 0; i < string.length; i++ ) {
-		if ( $.inArray( string[ i ], to_escape ) != -1 ) {
-			output += '\\'+string[ i ];
-		} else {
-			output += string[ i ];
-		}
-	}
-	return output;
-};
+function escapeString( str ) {
+	return str.replace( /([&()]\\)/g, '\$1' );
+}
 function getIfconfig() {
 	var cmd = 'ifconfig';
 	if ( 'bluetooth' in G ) cmd += "; bluetoothctl show | sed 's/^\\(Controller.*\\)/bluetooth: \\1/'";
@@ -636,7 +625,6 @@ function getNetctl() {
 	} );
 }
 function newWiFi( $this ) {
-	var wlan = $this.data( 'wlan' );
 	var ssid = $this.data( 'ssid' );
 	var wpa = $this.data( 'wpa' );
 	info( {
@@ -646,7 +634,7 @@ function newWiFi( $this ) {
 		, footer        : '<br><px70/><code>"</code> double quotes not allowed'
 		, oklabel       : 'Connect'
 		, ok            : function() {
-			var data = 'Interface='+ wlan
+			var data = 'Interface='+ wlcurrent
 					  +'\nConnection=wireless'
 					  +'\nIP=dhcp'
 					  +'\nESSID=\\"'+ escapeString( ssid ) +'\\"'
@@ -655,9 +643,6 @@ function newWiFi( $this ) {
 			connect( ssid, data );
 		}
 	} );
-}
-function escapeString( str ) {
-	return str.replace( /([&()]\\)/g, '\$1' );
 }
 function nicsStatus() {
 	$.post( 'commands.php', { getjson: '/srv/http/bash/network-data.sh' }, function( list ) {
@@ -743,14 +728,14 @@ function renderQR() {
 function wlanScan( ssid ) {
 	clearTimeout( intervalscan );
 	$( '#scanning-wifi' ).removeClass( 'hide' );
-	$.post( 'commands.php', { getjson: '/srv/http/bash/network-wlanscan.sh', nonumeric: 1 }, function( list ) {
+	$.post( 'commands.php', { getjson: '/srv/http/bash/network-wlanscan.sh '+ wlcurrent, nonumeric: 1 }, function( list ) {
 		var good = -60;
 		var fair = -67;
 		var html = '';
 		if ( list.length ) {
 			$.each( list, function( i, val ) {
 				var profile = val.profile || val.ssid === ssid;
-				html += '<li data-db="'+ val.dbm +'" data-ssid="'+ val.ssid +'" data-encrypt="'+ val.encrypt +'" data-wpa="'+ val.wpa +'" data-wlan="'+ val.wlan +'"';
+				html += '<li data-db="'+ val.dbm +'" data-ssid="'+ val.ssid +'" data-encrypt="'+ val.encrypt +'" data-wpa="'+ val.wpa +'"';
 				html += val.connected  ? ' data-connected="1"' : '';
 				html += val.gateway ? ' data-gateway="'+ val.gateway +'"' : '';
 				html += val.ip ? ' data-ip="'+ val.ip +'"' : '';

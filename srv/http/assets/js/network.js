@@ -92,7 +92,7 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 					wlanScan();
 					resetlocal();
 				} );
-				banner( ssid, 'Forget ...', 'wifi-3' );
+				notify( ssid, 'Forget ...', 'wifi-3 blink' );
 			}
 		} );
 		return
@@ -132,7 +132,7 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 						wlanScan();
 						resetlocal();
 				} );
-				banner( ssid, 'Disconnect ...', 'wifi-3' );
+				notify( ssid, 'Disconnect ...', 'wifi-3 blink' );
 			}
 		} );
 	} else if ( $this.data( 'profile' ) ) { // saved wi-fi

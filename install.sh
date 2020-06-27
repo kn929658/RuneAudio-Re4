@@ -6,6 +6,19 @@ alias=rre4
 
 installstart $@
 
+if [[ ! -e /etc/udev/rules.d/90-alsa-restore.rules ]]; then
+	rm /var/lib/alsa/asound.state
+	alsactl store
+	cp /{usr/lib,etc}/udev/rules.d/90-alsa-restore.rules
+	sed -i '/^TEST/ s/^/#/' /etc/udev/rules.d/90-alsa-restore.rules
+	
+	systemctl -q disable haveged
+	systemctl -q enable --now haveged
+	rm -f /etc/haveged.service
+	
+	chmod 755 /etc /usr
+fi
+
 if grep -q rewrite /etc/nginx/nginx.conf; then
 	nginx=1
 	sed -i -e '/rewrite/ d
@@ -15,7 +28,7 @@ if grep -q rewrite /etc/nginx/nginx.conf; then
 ' /etc/nginx/nginx.conf
 fi
 
-if ! grep -q [RR] /etc/pacman.conf; then
+if ! grep -q '\[RR\]' /etc/pacman.conf; then
 	echo '
 [RR]
 SigLevel = Optional TrustAll

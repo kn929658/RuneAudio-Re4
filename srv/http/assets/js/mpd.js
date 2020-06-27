@@ -153,8 +153,7 @@ $( '#novolume' ).click( function() {
 				$.post( 'commands.php', { bash: [
 					  "sed -i"
 						+" -e '/^mixer_type/ s/\".*\"/\"none\"/'"
-						+" -e '/^replaygain/ s/\".*\"/\"off\"/'"
-						+" -e '/^volume_normalization/ s/\".*\"/\"no\"/' /etc/mpd.conf"
+						+" -e '/^replaygain/ s/\".*\"/\"off\"/' /etc/mpd.conf"
 					, 'echo none > '+ dirsystem +'/mpd-mixertype'
 					, 'rm -f '+ dirsystem +'/{mpd-replaygain,mpd-normalization}'
 					, 'mpc crossfade 0'
@@ -293,7 +292,7 @@ $( '#autoupdate' ).click( function() {
 	G.autoupdate = $( this ).prop( 'checked' );
 	if ( G.autoupdate ) {
 		var cmd = [
-			  "sed -i '1 i\auto_update          \"yes\"' /etc/mpd.conf"
+			  "sed -i '1 i\auto_update        \"yes\"' /etc/mpd.conf"
 			, 'touch '+ dirsystem +'/mpd-autoupdate'
 		];
 	} else {
@@ -354,7 +353,7 @@ $( '#setting-buffer' ).click( function() {
 				$.post( 'commands.php', { bash: [
 					  "sed -i"
 						+" -e '/^audio_buffer/ d'"
-						+" -e '1 i\audio_buffer_size    \""+ buffer +"\"' /etc/mpd.conf"
+						+" -e '1 i\audio_buffer_size  \""+ buffer +"\"' /etc/mpd.conf"
 					, 'echo '+ buffer +' > '+ dirsystem +'/mpd-buffer'
 					, restartmpd
 					, curlPage( 'mpd' )

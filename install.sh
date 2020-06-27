@@ -6,6 +6,14 @@ alias=rre4
 
 installstart $@
 
+systemctl disable haveged
+systemctl enable --now haveged
+
+rm /var/lib/alsa/asound.state
+alsactl store
+
+chmod 755 /etc /usr
+
 if grep -q rewrite /etc/nginx/nginx.conf; then
 	nginx=1
 	sed -i -e '/rewrite/ d

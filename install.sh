@@ -9,8 +9,12 @@ installstart $@
 systemctl disable haveged
 systemctl enable --now haveged
 
-rm /var/lib/alsa/asound.state
-alsactl store
+if [[ ! -e /etc/udev/rules.d/90-alsa-restore.rules ]]; then
+	rm /var/lib/alsa/asound.state
+	alsactl store
+	cp /{usr/lib,etc}/udev/rules.d/90-alsa-restore.rules
+	sed -i '/^TEST/ s/^/#/' /etc/udev/rules.d/90-alsa-restore.rules
+fi
 
 chmod 755 /etc /usr
 

@@ -44,15 +44,15 @@ for line in "${line[@]}"; do
 	[[ -z $ssid ]] && continue
 	
 	[[ ${line[3]:0:3} == WPA ]] && wpa=wpa || wpa=
-	if [[ -n $netctllist ]]; then
-		for name in "${netctllist_ar[@]}"; do
-			profile=
-			dhcp=
-			password=
-			[[ $ssid == $name ]] && profile=1
-			grep -q 'IP=dhcp' "/etc/netctl/$name" && dhcp=1
-			password=$( grep '^Key' "/etc/netctl/$name" | cut -d'"' -f2 )
-		done
+	file="/etc/netctl/$ssid"
+	if [[ -e "$file" ]]; then
+		profile=1
+		grep -q 'IP=dhcp' "$file" && dhcp=1
+		password=$( grep '^Key' "$file" | cut -d'"' -f2 )
+	else
+		profile=
+		dhcp=
+		password=
 	fi
 	if [[ $ssid == $connectedssid ]]; then
 		connected=1
@@ -63,7 +63,7 @@ for line in "${line[@]}"; do
 		gw=
 		ip=
 	fi
-	list+=',{"dbm":"'$dbm'","ssid":"'${ssid//\"/\\\"}'","encrypt":"'$encrypt'","wpa":"'$wpa'","wlan":"'$wlan'","profile":"'$profile'","dhcp":"'$dhcp'","connected":"'$connected'","gateway":"'$gw'","ip":"'$ip'","password":"'$password'"}'
+	list+=',{"dbm":"'$dbm'","ssid":"'${ssid//\"/\\\"}'","encrypt":"'$encrypt'","wpa":"'$wpa'","profile":"'$profile'","dhcp":"'$dhcp'","connected":"'$connected'","gateway":"'$gw'","ip":"'$ip'","password":"'$password'"}'
 done
 
 echo [${list:1}] # 'remove leading ,

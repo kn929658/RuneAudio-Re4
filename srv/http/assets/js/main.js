@@ -37,7 +37,7 @@ var picaOption = { // pica.js
 //	, quality          : 3    // 0...3 Default = 3 (Lanczos win=3)
 //	, alpha            : true // Default = false (black crop background)
 };
-var hash = Date.now();
+var hash = Math.ceil( Date.now() / 1000 );
 var coverrune = '/assets/img/cover.'+ hash +'.svg';
 var vustop = '/assets/img/vustop.'+ hash +'.gif';
 if ( G.localhost ) {
@@ -172,12 +172,13 @@ $( '#displaylibrary' ).click( function( e ) {
 							disableCheckbox( 'fixedcover', true );
 						}
 					} );
+					$( 'input[name=fixedcover]' ).prop( 'disabled', G.display.hidecover );
 				} else {
 					$( 'input[name=coverart]' ).change( function() {
 						if ( $( this ).prop( 'checked' ) ) {
 							disableCheckbox( 'thumbbyartist', true );
 						} else {
-							disableCheckbox( 'thumbbyartist', false );
+							disableCheckbox( 'thumbbyartist', false, false );
 						}
 					} );
 				}
@@ -1465,7 +1466,7 @@ $( '#mode-coverart' ).click( function() { // fix - 'tap' also fire .coverart cli
 			  icon    : 'coverart'
 			, title   : 'Create CoverArt Thumbnails'
 			, message : 'Find coverarts and create thumbnails.'
-					   + ( albumcount > 100 ? '<br>( ±'+ Math.ceil( albumcount / 100 ) +' minutes for '+ albumcount +' albums)<br>&nbsp;' : '' )
+					   + ( albumcount > 60 ? '<br>( ±'+ Math.ceil( albumcount / 60 ) +' minutes for '+ albumcount +' albums)<br>&nbsp;' : '' )
 			, checkbox : {
 				  'Update Library database'         : 1
 				, 'Replace existings'               : 1

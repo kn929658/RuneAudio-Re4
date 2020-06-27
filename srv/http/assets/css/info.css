@@ -85,6 +85,9 @@ hr {
 #infoOverlay .fa {
 	vertical-align: -2px;
 }
+#infoMessage .fa {
+	vertical-align: 0;
+}
 #infoButtons .fa {
 	font-size: 18px;
 	margin-right: 7px;

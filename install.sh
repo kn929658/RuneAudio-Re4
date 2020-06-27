@@ -6,6 +6,8 @@ alias=rre4
 
 installstart $@
 
+chmod 755 /etc /usr
+
 if grep -q rewrite /etc/nginx/nginx.conf; then
 	nginx=1
 	sed -i -e '/rewrite/ d

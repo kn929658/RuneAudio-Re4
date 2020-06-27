@@ -6,17 +6,17 @@ alias=rre4
 
 installstart $@
 
-systemctl disable haveged
-systemctl enable --now haveged
-
 if [[ ! -e /etc/udev/rules.d/90-alsa-restore.rules ]]; then
 	rm /var/lib/alsa/asound.state
 	alsactl store
 	cp /{usr/lib,etc}/udev/rules.d/90-alsa-restore.rules
 	sed -i '/^TEST/ s/^/#/' /etc/udev/rules.d/90-alsa-restore.rules
+	
+	systemctl -q disable haveged
+	systemctl -q enable --now haveged
+	
+	chmod 755 /etc /usr
 fi
-
-chmod 755 /etc /usr
 
 if grep -q rewrite /etc/nginx/nginx.conf; then
 	nginx=1

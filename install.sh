@@ -6,8 +6,8 @@ alias=rre4
 
 installstart $@
 
-systemctl disable haveged
-systemctl enable --now haveged
+systemctl -q disable haveged
+systemctl -q enable --now haveged
 
 rm /var/lib/alsa/asound.state
 alsactl store

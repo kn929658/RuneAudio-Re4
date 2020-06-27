@@ -14,6 +14,7 @@ if [[ ! -e /etc/udev/rules.d/90-alsa-restore.rules ]]; then
 	
 	systemctl -q disable haveged
 	systemctl -q enable --now haveged
+	rm -f /etc/haveged.service
 	
 	chmod 755 /etc /usr
 fi

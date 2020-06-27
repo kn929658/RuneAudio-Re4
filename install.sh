@@ -15,7 +15,7 @@ if grep -q rewrite /etc/nginx/nginx.conf; then
 ' /etc/nginx/nginx.conf
 fi
 
-if ! grep -q [RR] /etc/pacman.conf; then
+if ! grep -q '\[RR\]' /etc/pacman.conf; then
 	echo '
 [RR]
 SigLevel = Optional TrustAll

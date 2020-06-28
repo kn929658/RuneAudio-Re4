@@ -1,5 +1,10 @@
 #!/bin/bash
 
+for pid in $( pgrep mpd ); do
+	ionice -c 0 -n 0 -p $pid
+	renice -n -19 -p $pid
+done
+
 curlPost() {
 	curl -s -X POST 'http://127.0.0.1/pub?id='$1 -d "$2"
 }

@@ -42,6 +42,9 @@ getinstallzip
 
 installfinish $@
 
-[[ $nginx ]] && restartnginx
+if [[ $nginx ]]; then
+	systemctl restart mpd
+	restartnginx
+fi
 
 restartlocalbrowser

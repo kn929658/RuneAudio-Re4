@@ -390,8 +390,8 @@ function pushstream( $channel, $data ) {
 	curl_exec( $ch );
 	curl_close( $ch );
 }
-function volumeIncrement( $volume, $current = null ) {
-	if ( $current === null || abs( $volume - $current ) < 10 ) {
+function volumeIncrement( $volume, $current = '' ) {
+	if ( !$current || abs( $volume - $current ) < 10 ) {
 		exec( 'mpc volume '.$volume );
 	} else {
 		foreach( range( $current, $volume, 5 ) as $val ) {

@@ -92,6 +92,7 @@ foreach( $arrayalias as $alias ) {
 			$taphold = '';
 			$hide = '';
 		}
+		$warning = ' warning="'.$addon[ 'warning' ].'"' ?? '';
 		if ( $version == $versioninstalled ) {
 			$icon = $nouninstall ? '<i class="fa fa-folder-refresh"></i>' : '';
 			// !!! mobile browsers: <button>s submit 'formtemp' with 'get' > 'failed', use <a> instead
@@ -101,30 +102,14 @@ foreach( $arrayalias as $alias ) {
 			$update = 1;
 			$installed = ' class="installed update"';
 			$check = '<grn class="blink">&bull;</grn> ';
-			$btnin = '<a class="btn btn-primary" alias="'.$alias.'"><i class="fa fa-folder-refresh"></i>Update</a>';
+			$btnin = '<a class="btn btn-primary" alias="'.$alias.'"'.$warning.'><i class="fa fa-folder-refresh"></i>Update</a>';
 		}
 		$btnunattr = isset( $addon[ 'rollback' ] ) ? ' rollback="'.$addon[ 'rollback' ].'"' : '';
 		$btnun = '<a class="btn btn-primary'.$hide.'" alias="'.$alias.'"'.$btnunattr.'><i class="fa fa-minus-circle"></i>Uninstall</a>';
 	} else {
 		$installed = '';
 		$check = '';
-		$needspace = $addon[ 'needspace' ] ?? 1;
-		if ( $needspace < $MiBavail ) {
-			$attrspace = '';
-		} else {
-			$expandable = $MiBunpart < 1000 ? round( $MiBunpart ).' MB' : number_format( round( $MiBunpart / 1000 ) ).' GB';
-			$attrspace = ' needmb="'.$needspace.'" space="Available: <white>'.round( $MiBavail ).' MB</white><br>Expandable: <white>'.$expandable.'</white>"';
-		}
-		$conflict = $addon[ 'conflict' ] ?? '';
-		$conflictaddon = $conflict ? file_exists( "$dirsettings/$conflict" ) : '';
-		$attrconflict = !$conflictaddon ? '' : ' conflict="'.preg_replace( '/ *\**$/', '', $addons[ $conflict ][ 'title' ] ).'"';
-		$attrdepend = '';
-		$depend = $addon[ 'depend' ] ?? '';
-		if ( $depend ) {
-			$dependaddon = file_exists( "$dirsettings/$depend" );
-			if ( !$dependaddon ) $attrdepend = ' depend="'.preg_replace( '/ *\**$/', '', $addons[ $depend ][ 'title' ] ).'"';
-		}
-		$btnin = '<a class="btn btn-primary" alias="'.$alias.'"'.$attrspace.$attrconflict.$attrdepend.'>'.$buttonlabel.'</a>';
+		$btnin = '<a class="btn btn-primary" alias="'.$alias.'">'.$buttonlabel.'</a>';
 		$btnun = '<a class="btn btn-default disabled"><i class="fa fa-minus-circle"></i>Uninstall</a>';
 	}
 	

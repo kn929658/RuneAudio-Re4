@@ -79,30 +79,11 @@ $( '.boxed-group .btn' ).on( 'taphold', function () {
 	type = $this.text();
 	opt = '';
 	branch = '';
-	if ( $this.attr( 'space' ) ) {
+	if ( $this.attr( 'warning' ) ) {
 		info( {
 			  icon    : 'addons'
 			, title   : title
-			, message : '<i class="fa fa-warning fa-lg"></i>&ensp;Disk space not enough:'
-					   +'<br><br>Need: <white>'+ $( this ).attr( 'needmb' ) +' MB</white>'
-					   +'<br>'+ $( this ).attr( 'space' )
-					   +'<br>(Use <white>Expand Partition</white> addon to gain more space.)'
-		} );
-		return
-	} else if ( $this.attr( 'conflict' ) ) {
-		info( {
-			  icon    : 'addons'
-			, title   : title
-			, message : '<i class="fa fa-warning fa-lg"></i>&ensp;Conflict Addon:'
-					   +'<br><br><white>'+ $this.attr( 'conflict' ) +'</white> must be uninstalled first.'
-		} );
-		return
-	} else if ( $this.attr( 'depend' ) ) {
-		info( {
-			  icon    : 'addons'
-			, title   : title
-			, message : '<i class="fa fa-warning fa-lg"></i>&ensp;Depend Addon:'
-					   +'<br><br><white>'+ $this.attr( 'depend' ) +'</white> must be installed first.'
+			, message : $( this ).attr( 'warning' )
 		} );
 		return
 	}

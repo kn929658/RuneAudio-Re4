@@ -62,9 +62,8 @@ input::-moz-focus-inner { /* dotted outline */
 }
 hr {
 	margin: 7px 0;
-	border-color: var( --cg );
-	background-color: var( --cg );
-}
+	border: none;
+    border-bottom: 1px solid var( --cg );}
 #infoOverlay {
 	position: fixed;
 	top: 0;

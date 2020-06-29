@@ -74,6 +74,7 @@ echo '[
 	"Genre",
 	"Date"
 ]' > $dirsystem/order
+echo '"mpd":true,"airplay":false,"snapclient":false,"spotify":false,"upnp":false' > $dirsystem/player
 # system
 hostnamectl set-hostname runeaudio
 sed -i 's/#NTP=.*/NTP=pool.ntp.org/' /etc/systemd/timesyncd.conf

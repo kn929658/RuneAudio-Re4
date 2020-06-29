@@ -13,6 +13,12 @@ if [[ ! -e /etc/udev/rules.d/90-alsa-restore.rules ]]; then
 	sed -i '/^TEST/ s/^/#/' /etc/udev/rules.d/90-alsa-restore.rules
 	
 	systemctl -q disable haveged
+	sed -i -e '/^SystemCallFilter\|SystemCallError/ d
+' -e '/SystemCallArchitectures/ a\
+SystemCallFilter=@system-service\
+SystemCallFilter=~@mount\
+SystemCallErrorNumber=EPERM
+' /usr/lib/systemd/system/haveged.service
 	systemctl -q enable --now haveged
 	rm -f /etc/haveged.service
 	

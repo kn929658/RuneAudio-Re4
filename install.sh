@@ -7,7 +7,6 @@ alias=rre4
 installstart $@
 
 if [[ $( cat /srv/http/data/addons/rre4 ) > 20200627 ]]; then
-
 	getinstallzip
 
 	installfinish $@
@@ -17,6 +16,7 @@ if [[ $( cat /srv/http/data/addons/rre4 ) > 20200627 ]]; then
 	exit
 fi
 
+#-------------------------------------------------------------------------------------------------------
 if [[ ! -e /etc/udev/rules.d/90-alsa-restore.rules ]]; then
 	rm /var/lib/alsa/asound.state
 	alsactl store

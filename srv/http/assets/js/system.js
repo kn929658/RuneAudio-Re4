@@ -737,14 +737,14 @@ $( '#backuprestore' ).click( function() {
 			$.post( 'commands.php', { backuprestore: 'backup' }, function( data ) {
 				if ( data === 'ready' ) {
 					notify( backuptitle, 'Download ...', 'sliders blink' );
-					fetch( '/data/tmp/backup.xz' )
+					fetch( '/data/tmp/backup.gz' )
 						.then( response => response.blob() )
 						.then( blob => {
 							var url = window.URL.createObjectURL( blob );
 							var a = document.createElement( 'a' );
 							a.style.display = 'none';
 							a.href = url;
-							a.download = 'backup.xz';
+							a.download = 'backup.gz';
 							document.body.appendChild( a );
 							a.click();
 							setTimeout( () => {
@@ -775,13 +775,13 @@ $( '#backuprestore' ).click( function() {
 				, title       : restoretitle
 				, message     : 'Restore from:'
 				, radio       : {
-					  'Backup file <code>*.xz</code>'         : 'restore'
-					, 'Directory <code>/srv/http/data</code>' : 'directory'
-					, 'Reset to default'                      : 'reset'
+					  'Backup file <code>*.gz</code>, <code>*.xz</code>' : 'restore'
+					, 'Directory <code>/srv/http/data</code>'            : 'directory'
+					, 'Reset to default'                                 : 'reset'
 				}
 				, checked     : 'restore'
 				, fileoklabel : 'Restore'
-				, filetype    : '.xz'
+				, filetype    : '.gz,.xz'
 				, filefilter  : 1
 				, preshow     : function() {
 					$( '#infoRadio input' ).click( function() {

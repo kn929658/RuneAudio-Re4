@@ -9,7 +9,6 @@ if ( isset( $_POST[ 'backuprestore' ] ) ) {
 	$backupfile = '/srv/http/data/tmp/backup.xz';
 	if ( $type === 'backup' ) {
 		exec( $sudobin.'bsdtar \
-				--exclude "./coverarts" \
 				--exclude "./system/version" \
 				--exclude "./tmp" \
 				-czf '.$backupfile.' \

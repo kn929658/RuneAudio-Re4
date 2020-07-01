@@ -538,7 +538,7 @@ $( '#wlan' ).click( function( e ) {
 } );
 $( '#setting-wlan' ).click( function() {
 	info( {
-		  icon      : 'wifi-3'
+		  icon      : 'network'
 		, title     : 'Regulatory Domain'
 		, textlabel : 'Country code'
 		, textvalue : ( G.regdom === 0 ? '00' : G.regdom )

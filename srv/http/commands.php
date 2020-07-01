@@ -116,7 +116,7 @@ if ( isset( $_POST[ 'backuprestore' ] ) ) {
 	$data->color = rtrim( @file_get_contents( $dirsystem.'/color' ) ) ?: '200 100 35';
 	$data->order = json_decode( file_get_contents( $dirsystem.'/order' ) );
 	$audiooutputfile = file_exists( '/srv/http/data/system/usbdac' ) ? 'usbdac' : 'audio-output';
-$data->volumenone = exec( $sudobin.'sed -n "/$( cat /srv/http/data/system/'.$audiooutputfile.' )/,/^}/ p" /etc/mpd.conf | tail -1 | cut -d\" -f2' ) === 'none' ? true : false;
+	$data->volumenone = exec( $sudobin.'sed -n "/$( cat /srv/http/data/system/'.$audiooutputfile.' )/,/^}/ p" /etc/mpd.conf | tail -1 | cut -d\" -f2' ) === 'none' ? true : false;
 	echo json_encode( $data );
 	
 } else if ( isset( $_POST[ 'displayset' ] ) ) {

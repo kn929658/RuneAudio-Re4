@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [[ $1 == backup ]]; then
-	backupfile=/srv/http/data/tmp/backup.xz
+	backupfile=/srv/http/data/tmp/backup.gz
 	rm -f $backupfile
 	bsdtar \
 		--exclude './system/version' \
@@ -22,7 +22,7 @@ version=$( cat $dirsystem/version )
 systemctl restart mpd
 
 if [[ $1 == restore ]]; then
-	backupfile=$dirdata/tmp/backup.xz
+	backupfile=$dirdata/tmp/backup.$2
 	bsdtar -xpf $backupfile -C /srv/http
 	rm $backupfile
 elif [[ $1 == reset ]]; then # reset to default

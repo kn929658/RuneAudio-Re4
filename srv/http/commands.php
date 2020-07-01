@@ -6,15 +6,16 @@ $dirwebradios = '/srv/http/data/webradios';
 
 if ( isset( $_POST[ 'backuprestore' ] ) ) {
 	$type = $_POST[ 'backuprestore' ];
-	$backupfile = '/srv/http/data/tmp/backup.xz';
 	$scriptfile = '/srv/http/bash/backup-restore.sh ';
 	if ( $type === 'backup' ) {
 		exec( $sudo.$scriptfile.'backup' );
 		echo 'ready';
 	} else if ( $type === 'restore' ) {
 		if ( $_FILES[ 'file' ][ 'error' ] == UPLOAD_ERR_OK ) {
+			$ext = pathinfo( $_FILES[ 'file' ][ 'name' ], PATHINFO_EXTENSION );
+			$backupfile = '/srv/http/data/tmp/backup.'.$ext;
 			move_uploaded_file( $_FILES[ 'file' ][ 'tmp_name' ], $backupfile ); // full path
-			exec( $sudo.$scriptfile.'restore' );
+			exec( $sudo.$scriptfile.'restore '.$ext );
 			$reboot = @file_get_contents( '/tmp/reboot' );
 			echo $reboot ?: 'restored';
 		}

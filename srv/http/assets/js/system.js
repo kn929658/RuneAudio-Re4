@@ -519,7 +519,6 @@ $( '#bluetooth' ).click( function( e ) {
 } );
 $( '#wlan' ).click( function( e ) {
 	G.wlan = $( this ).prop( 'checked' );
-	$( '#setting-wlan' ).toggleClass( 'hide', !G.wlan );
 	if ( G.wlan ) {
 		var cmd = [
 			  'modprobe brcmfmac'
@@ -539,7 +538,7 @@ $( '#wlan' ).click( function( e ) {
 } );
 $( '#setting-wlan' ).click( function() {
 	info( {
-		  icon      : 'network'
+		  icon      : 'wifi-3'
 		, title     : 'Regulatory Domain'
 		, textlabel : 'Country code'
 		, textvalue : ( G.regdom === 0 ? '00' : G.regdom )
@@ -977,7 +976,6 @@ refreshData = function() {
 		$( '#onboardhdmi' ).prop( 'checked', G.onboardhdmi );
 		$( '#bluetooth' ).prop( 'checked', G.bluetooth );
 		$( '#wlan' ).prop( 'checked', G.wlan );
-		$( '#setting-wlan' ).toggleClass( 'hide', !G.wlan );
 		$( '#airplay' ).prop( 'checked', G.airplay );
 		$( '#spotify' ).prop( 'checked', G.spotify );
 		$( '#setting-spotify' ).toggleClass( 'hide', !G.spotify );

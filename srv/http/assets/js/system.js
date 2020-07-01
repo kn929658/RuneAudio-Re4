@@ -519,6 +519,7 @@ $( '#bluetooth' ).click( function( e ) {
 } );
 $( '#wlan' ).click( function( e ) {
 	G.wlan = $( this ).prop( 'checked' );
+	$( '#setting-wlan' ).toggleClass( 'hide', !G.wlan );
 	if ( G.wlan ) {
 		var cmd = [
 			  'modprobe brcmfmac'

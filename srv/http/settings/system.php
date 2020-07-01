@@ -190,6 +190,7 @@ foreach( $i2slist as $name => $sysname ) {
 <div class="col-r">
 	<input id="wlan" type="checkbox">
 	<div class="switchlabel" for="wlan"></div>
+	<i id="setting-wlan" class="setting fa fa-gear"></i>
 	<span class="help-block hide">Should be disabled if not used.</span>
 </div>
 	<?php } ?>

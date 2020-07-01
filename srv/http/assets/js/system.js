@@ -536,6 +536,26 @@ $( '#wlan' ).click( function( e ) {
 	}
 	$.post( 'commands.php', { bash: cmd } );
 } );
+$( '#setting-wlan' ).click( function() {
+	info( {
+		  icon      : 'wifi-3'
+		, title     : 'Regulatory Domain'
+		, textlabel : 'Country code'
+		, textvalue : ( G.regdom === 0 ? '00' : G.regdom )
+		, ok        : function() {
+			var regdom = $( '#infoTextBox' ).val();
+			if ( regdom === G.regdom ) return
+			
+			G.regdom = regdom;
+			$.post( 'commands.php', { bash: [ 
+				  'sed -i \'s/".*"/"'+ regdom +'"/\' /etc/conf.d/wireless-regdom'
+				, 'iw reg set '+ regdom
+				, curlPage( 'system' )
+			] }, resetlocal );
+			banner( 'Regulatory Domain', 'Change ...', 'wifi-3' );
+		}
+	} );
+} );
 $( '#i2smodulesw' ).click( function() {
 	// delay to show switch sliding
 	setTimeout( function() {
@@ -955,6 +975,7 @@ refreshData = function() {
 		$( '#onboardhdmi' ).prop( 'checked', G.onboardhdmi );
 		$( '#bluetooth' ).prop( 'checked', G.bluetooth );
 		$( '#wlan' ).prop( 'checked', G.wlan );
+		$( '#setting-wlan' ).toggleClass( 'hide', !G.wlan );
 		$( '#airplay' ).prop( 'checked', G.airplay );
 		$( '#spotify' ).prop( 'checked', G.spotify );
 		$( '#setting-spotify' ).toggleClass( 'hide', !G.spotify );

@@ -544,13 +544,14 @@ $( '#setting-wlan' ).click( function() {
 		, textlabel : 'Country code'
 		, textvalue : ( G.regdom === 0 ? '00' : G.regdom )
 		, ok        : function() {
-			var regdom = $( '#infoTextBox' ).val();
+			var regdom = $( '#infoTextBox' ).val().trim().toUpperCase();
 			if ( regdom === G.regdom ) return
 			
 			G.regdom = regdom;
 			$.post( 'commands.php', { bash: [ 
 				  'sed -i \'s/".*"/"'+ regdom +'"/\' /etc/conf.d/wireless-regdom'
 				, 'iw reg set '+ regdom
+				, ( regdom === '00' ? 'rm ' : 'echo '+ regdom +' > ' ) + dirsystem +'/wlanregdom'
 				, curlPage( 'system' )
 			] }, resetlocal );
 			banner( 'Regulatory Domain', 'Change ...', 'wifi-3' );

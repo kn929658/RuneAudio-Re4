@@ -179,6 +179,12 @@ if [[ ! -e $dirsystem/onboard-wlan ]]; then
 	systemctl disable --now netctl-auto@wlan0
 	rmmod brcmfmac
 fi
+# wifi regdom
+if [[ -e $dirsystem/wlanregdom ]]; then
+	regdom=$( cat $dirsystem/wlanregdom )
+	sed -i 's/".*"/"'$regdom'"/' /etc/conf.d/wireless-regdom
+	iw reg set $regdom
+fi
 # i2s
 if grep -q "$audiooutput.*=>.*$audioaplayname" /srv/http/settings/system-i2smodules.php; then
 	[[ -e $dirsystem/onboard-audio ]] && onoff=on || onoff=off

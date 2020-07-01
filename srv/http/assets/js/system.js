@@ -736,6 +736,7 @@ $( '#backuprestore' ).click( function() {
 		, button      : function() {
 			$.post( 'commands.php', { backuprestore: 'backup' }, function( data ) {
 				if ( data === 'ready' ) {
+					notify( backuptitle, 'Download ...', 'sliders blink' );
 					fetch( '/data/tmp/backup.xz' )
 						.then( response => response.blob() )
 						.then( blob => {
@@ -760,11 +761,10 @@ $( '#backuprestore' ).click( function() {
 				} else {
 					info( {
 						  icon    : icon
-						, title   : restoretitle
-						, message : 'Backup file failed.'
+						, title   : backuptitle
+						, message : 'Backup failed.'
 					} );
 				}
-				bannerHide();
 			} );
 			banner( backuptitle, 'Backup ...', 'sliders' );
 		}

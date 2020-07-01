@@ -1,12 +1,10 @@
 #!/bin/bash
 
 if [[ $1 == backup ]]; then
-	backupfile=/srv/http/data/tmp/backup.gz
-	rm -f $backupfile
 	bsdtar \
 		--exclude './system/version' \
 		--exclude './tmp' \
-		-czf $backupfile \
+		-czf /srv/http/data/tmp/backup.xz \
 		-C /srv/http \
 		data \
 		&> /dev/null
@@ -22,7 +20,7 @@ version=$( cat $dirsystem/version )
 systemctl restart mpd
 
 if [[ $1 == restore ]]; then
-	backupfile=$dirdata/tmp/backup.$2
+	backupfile=$dirdata/tmp/backup.xz
 	bsdtar -xpf $backupfile -C /srv/http
 	rm $backupfile
 elif [[ $1 == reset ]]; then # reset to default
@@ -31,11 +29,27 @@ elif [[ $1 == reset ]]; then # reset to default
 	/srv/http/bash/data-reset.sh
 	mv -f /tmp/addons $dirdata
 else # from copied data
+	e2=1
+	version=e3
 	chown -R http:http "$dirdata"
 	chown -R mpd:audio "$dirdata/mpd"
 fi
 
 echo $version > $dirsystem/version
+
+### temp: to be remove on next release ###
+sed -i 's/barsauto/barsalways/' /srv/http/data/system/display
+dirwebradios=$dirdata/webradios
+if [[ -e $dirsampling ]] && ls $dirwebradios &> /dev/null; then
+	dirsampling=$dirdata/sampling
+	radios=( $dirwebradios/* )
+	for radio in "${radios[@]}"; do
+		sampling=$( cat "$dirsampling/$( head -1 $radio )" )
+		sed -i "1 s|$|^^$sampling|" $radio
+	done
+	rm -r $dirsampling
+fi
+### temp: to be remove on next release ###
 
 # hostname
 if [[ $( cat $dirsystem/hostname ) != RuneAudio ]]; then

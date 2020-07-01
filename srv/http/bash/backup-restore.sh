@@ -1,5 +1,16 @@
 #!/bin/bash
 
+if [[ $1 == backup ]]; then
+	bsdtar \
+		--exclude './system/version' \
+		--exclude './tmp' \
+		-czf /srv/http/data/tmp/backup.xz \
+		-C /srv/http \
+		data \
+		&> /dev/null
+	exit
+fi
+
 dirdata=/srv/http/data
 diraddons=$dirdata/addons
 dirsystem=$dirdata/system

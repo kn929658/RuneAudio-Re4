@@ -7,22 +7,19 @@ $dirwebradios = '/srv/http/data/webradios';
 if ( isset( $_POST[ 'backuprestore' ] ) ) {
 	$type = $_POST[ 'backuprestore' ];
 	$backupfile = '/srv/http/data/tmp/backup.xz';
+	$scriptfile = '/srv/http/bash/backup-restore.sh ';
 	if ( $type === 'backup' ) {
-		exec( $sudobin.'bsdtar \
-				--exclude "./system/version" \
-				--exclude "./tmp" \
-				-czf '.$backupfile.' \
-				-C /srv/http data' );
+		exec( $sudo.$scriptfile.'backup' );
 		echo 'ready';
 	} else if ( $type === 'restore' ) {
 		if ( $_FILES[ 'file' ][ 'error' ] == UPLOAD_ERR_OK ) {
 			move_uploaded_file( $_FILES[ 'file' ][ 'tmp_name' ], $backupfile ); // full path
-			exec( $sudo.'/srv/http/bash/data-restore.sh restore' );
+			exec( $sudo.$scriptfile.'restore' );
 			$reboot = @file_get_contents( '/tmp/reboot' );
 			echo $reboot ?: 'restored';
 		}
 	} else {
-		exec( $sudo.'/srv/http/bash/data-restore.sh '.$type );
+		exec( $sudo.$scriptfile.$type );
 	}
 
 } else if ( isset( $_POST[ 'bash' ] ) ) {

@@ -59,7 +59,6 @@ $( document ).keydown( function( e ) {
 		if ( key.slice( 5 ) === 'Media' ) return
 		
 	}
-	
 	// context menu
 	var $contextmenu = $( '.contextmenu:not( .hide )' );
 	if ( !$contextmenu.length ) $contextmenu = $( '#settings:not( .hide )' );
@@ -88,6 +87,7 @@ $( document ).keydown( function( e ) {
 			$( '.menu' ).addClass( 'hide' )
 			$menuactive.removeClass( 'active' );
 			$( '.submenu' ).removeClass( 'active' );
+			if ( G.playlist ) $( '#pl-list li' ).removeClass( 'lifocus' );
 		} else if ( key === 'ArrowRight' ) {
 			var $submenu = $menuactive.find( '.submenu' );
 			if ( $submenu.length ) {
@@ -170,45 +170,10 @@ $( document ).keydown( function( e ) {
 		}
 		
 		// list ///////////////////////////////////////
-		var $liactive = $( '#lib-list li.active' );
-		if ( !$liactive.length ) {
-			$( '#lib-list li:eq( 0 )' ).addClass( 'active' );
-			setTimeout( function() {
-				$( 'html, body' ).scrollTop( 0 );
-			}, 300 );
-			return
-		}
-		
-		$( '#lib-list li' ).removeClass( 'active' );
-		if ( key === 'ArrowUp' ) {
-			$linext = $liactive.prev( 'li' );
-			if ( $linext.length ) {
-				$linext.addClass( 'active' );
-				setTimeout( function() {
-					var litop = $linext[ 0 ].getBoundingClientRect().top;
-					var libottom = $linext[ 0 ].getBoundingClientRect().bottom;
-					if ( libottom > window.innerHeight - 40 || litop < 80 ) $( 'html, body' ).scrollTop( $linext.offset().top - window.innerHeight + 89 );
-				}, 300 );
-			} else {
-				var $lilast = $( '#lib-list li' ).last();
-				$lilast.addClass( 'active' );
-				$( 'html, body' ).scrollTop( $lilast.offset().top );
-			}
-		} else if ( key === 'ArrowDown' ) {
-			$linext = $liactive.next( 'li' );
-			if ( $linext.length ) {
-				$linext.addClass( 'active' );
-				setTimeout( function() {
-					var litop = $linext[ 0 ].getBoundingClientRect().top;
-					var libottom = $linext[ 0 ].getBoundingClientRect().bottom;
-					if ( libottom > window.innerHeight - 40 )
-					$( 'html, body' ).scrollTop( $linext.offset().top - 80 );
-				}, 300 );
-			} else {
-				$( '#lib-list li:eq( 0 )' ).addClass( 'active' );
-				$( 'html, body' ).scrollTop( 0 );
-			}
+		if ( key === 'ArrowUp' || key === 'ArrowDown' ) {
+			scrollUpDown( $( '#lib-list' ), key );
 		} else if ( key === 'Enter' ) {
+			var $liactive = $( '#lib-list li.active' );
 			if ( $( '.licover' ).length || $( '#lib-list li.mode-webradio' ).length ) {
 				if ( $( '.menu:not(.hide)' ).length ) { // context menu
 					var menu = $liactive.find( '.lib-icon' ).data( 'target' );
@@ -220,76 +185,67 @@ $( document ).keydown( function( e ) {
 		}
 		$( '.contextmenu' ).addClass( 'hide' );
 	} else if ( G.playlist ) {
-		if ( !G.savedlist ) {
-			var $liupdn = $( '#pl-list li.updn' );
-			if ( !$liupdn.length ) $liupdn = $( '#pl-list li.active' );
-			if ( key === 'ArrowUp' ) {
-				var $li = $liupdn.prev( 'li' );
-				$( '#pl-list li' ).removeClass( 'updn' );
-				if ( !$li.length ) $li = $( '#pl-list li' ).last();
-				$li.addClass( 'updn' );
-			} else if ( key === 'ArrowDown' ) {
-				var $li = $liupdn.next( 'li' );
-				$( '#pl-list li' ).removeClass( 'updn' );
-				if ( !$li.length ) {
-					$li = $( '#pl-list li' ).first();
-					setTimeout( function() {
-						$( 'html, body' ).scrollTop( 0 );
-					}, 300 );
-				}
-				$li.addClass( 'updn' );
+		if ( G.savedplaylist || G.savedlist ) {
+			if ( key === 'ArrowUp' || key === 'ArrowDown' ) {
+				scrollUpDown( $( '#pl-savedlist' ), key );
 			} else if ( key === 'ArrowRight' ) {
-				$( '#pl-list li.active' ).find( '.pl-icon' ).click();
-				$( '#pl-list li.updn' ).find( '.pl-icon' ).click();
+				$( '#pl-savedlist li.active .pl-icon' ).click();
 			} else if ( key === 'Enter' ) {
-				$( '#pl-list li.updn' )
-					.click()
-					.removeClass( 'updn' );
+				$( '#pl-savedlist li.active' ).click();
+			} else if ( key === 'ArrowLeft' ) {
+				if ( !$( '.contextmenu:not( .hide )' ).length ) $( '#button-pl-back' ).click();
 			}
-			return
-		}
-		// back button //////////////////////////////////////
-		if ( key === 'ArrowLeft' ) {
-			$( '.plsbackroot, .plsback' ).click();
-			return
-		} else if ( key === 'ArrowRight' ) {
-			$( '#pl-savedlist li.active i' ).click();
-			return
-		}
-		
-		// saved playlist //////////////////////////////////
-		var $liactive = $( '#pl-savedlist li.active' );
-		if ( !$liactive.length ) {
-			$( '#pl-savedlist li:eq( 0 )' ).addClass( 'active' );
-			setTimeout( function() {
-				$( 'html, body' ).scrollTop( 0 );
-			}, 300 );
-			return
-		}
-		
-		if ( key === 'ArrowUp' ) {
-			var $icon = $liactive.prev().find( 'i' );
-			if ( !$icon.length ) $icon = $( '#pl-savedlist i' ).last();
-			$icon.click();
-		} else if ( key === 'ArrowDown' ) {
-			var $icon = $liactive.next().find( 'i' );
-			if ( !$icon.length ) {
-				$icon = $( '#pl-savedlist i:eq( 0 )' );
-				setTimeout( function() {
-					$( 'html, body' ).scrollTop( 0 );
-				}, 300 );
-			}
-			$icon.click();
-		} else if ( key === 'Enter' ) {
-			if ( !$( '#pl-savedlist li.pl-folder' ).length ) {
-				if ( $( '.menu:not(.hide)' ).length ) { // context menu
-					var menu = $liactive.find( 'i' ).data( 'target' );
-					$( menu ).find( 'a:eq( 1 )' ).click();
-				}
-			} else {
-				$liactive.click();
+		} else {
+			if ( key === 'ArrowUp' || key === 'ArrowDown' ) {
+				var $liactive = $( '#pl-list li.updn' );
+				if ( !$liactive.length ) $( '#pl-list li.active' ).addClass( 'updn' );
+				scrollUpDown( $( '#pl-list' ), key );
+			} else if ( key === 'ArrowRight' ) {
+				$( '#pl-list li.updn .pl-icon' ).click();
+			} else if ( key === 'Enter' ) {
+				$( '#pl-list li.updn' ).click();
 			}
 		}
-		$( '.contextmenu' ).addClass( 'hide' );
 	}
 } );
+function scrollUpDown( $list, key ) {
+	var $li = $list.find( 'li' );
+	var $liactive = $list.find( 'li.active' );
+	if ( !$liactive.length ) {
+		$li.first().addClass( 'active' );
+		setTimeout( function() {
+			$( 'html, body' ).scrollTop( 0 );
+		}, 300 );
+		return
+	}
+	
+	var classactive = 'active';
+	if ( $list.prop( 'id' ) === 'pl-list' ) {
+		$liactive = $list.find( 'li.updn' );
+		classactive = 'updn';
+	}
+	var $linext = key === 'ArrowUp' ? $liactive.prev( 'li' ) : $liactive.next( 'li' );
+	$liactive.removeClass( classactive );
+	if ( !$linext.length ) {
+		if ( key === 'ArrowUp' ) {
+			$linext = $li.last();
+			$( 'html, body' ).scrollTop( $linext.offset().top );
+		} else {
+			$linext = $li.first();
+			$( 'html, body' ).scrollTop( 0 );
+		}
+		$linext.addClass( classactive );
+		return
+	}
+	
+	$linext.addClass( classactive );
+	setTimeout( function() {
+		var litop = $linext[ 0 ].getBoundingClientRect().top;
+		var libottom = $linext[ 0 ].getBoundingClientRect().bottom;
+		if ( key === 'ArrowUp' ) {
+			if ( libottom > window.innerHeight - 40 || litop < 80 ) $( 'html, body' ).scrollTop( $linext.offset().top - window.innerHeight + 89 );
+		} else {
+			if ( libottom > window.innerHeight - 40 ) $( 'html, body' ).scrollTop( $linext.offset().top - 80 );
+		}
+	}, 300 );
+}

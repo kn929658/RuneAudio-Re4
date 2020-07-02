@@ -33,7 +33,6 @@
 }
 .fa-arrow-left:hover,
 .lib-mode.updn .mode,
-.lifocus:hover,
 .mode:hover,
 #button-lib-search:hover,
 #lib-search-btn:hover,
@@ -42,12 +41,6 @@
 #button-pl-search:hover,
 #pl-search-btn:hover {
 	background-color: var( --cg ) !important;
-}
-.lifocus {
-	background-color: hsl(0,0%,20%)/*bf*/ !important;
-}
-li.active.lifocus {
-	background-color: var( --cm ) !important;
 }
 /* :active:hover *********************************************************/
 #bar-bottom li.active a:active:hover:active:hover,

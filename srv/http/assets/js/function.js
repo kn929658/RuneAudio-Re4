@@ -1484,7 +1484,7 @@ function setPlaylistScroll() {
 	G.debounce = setTimeout( function() {
 		displayTopBottom();
 		$( '#menu-plaction' ).addClass( 'hide' );
-		$( '#pl-list li' ).removeClass( 'lifocus' );
+		$( '#pl-list li' ).removeClass( 'updn' );
 		setNameWidth();
 		$.post( 'commands.php', { getjson: '/srv/http/bash/status.sh statusonly' }, function( status ) {
 			$.each( status, function( key, value ) {

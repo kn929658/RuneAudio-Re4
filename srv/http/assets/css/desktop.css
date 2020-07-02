@@ -2,7 +2,12 @@
 #lib-list li:hover,
 #pl-savedlist li:hover,
 #pl-list li:hover {
-	background-color: hsl(0,0%,15%)/*bh*/;
+	background-color: var( --cga );
+}
+#lib-list li.updn:hover,
+#pl-savedlist li.updn:hover,
+#pl-list li.updn:hover {
+	background-color: var( --cga );
 }
 #bar-bottom li.active a:hover,
 #button-library:hover,

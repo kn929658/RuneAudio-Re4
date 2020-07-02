@@ -201,7 +201,7 @@ $( document ).keydown( function( e ) {
 				if ( !$liactive.length ) $( '#pl-list li.active' ).addClass( 'updn' );
 				scrollUpDown( $( '#pl-list' ), key );
 			} else if ( key === 'ArrowRight' ) {
-				$( '#pl-list li.updn .pl-icon' ).click();
+				$( '#pl-list li.updn' ).length ? $( '#pl-list li.updn .pl-icon' ).click() : $( '#pl-list li.active .pl-icon' ).click();
 			} else if ( key === 'Enter' ) {
 				$( '#pl-list li.updn' ).click();
 			}

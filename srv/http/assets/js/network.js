@@ -574,7 +574,7 @@ function editWiFiSet( ssid, data ) {
 	$( '#infoMessage' ).html(
 		 '<i class="fa fa-wifi-3"></i>&ensp;<wh>'+ ssid +'</wh>'
 		+'<br>Current: <wh>'+ data.dhcp +'</wh><br>&nbsp;'
-	);
+	).css( 'text-align', 'center' );
 	$( '#infoTextBox1' ).val( data.Address );
 	$( '#infoTextBox2' ).val( data.Gateway );
 	$( '#infoPasswordBox' ).val( data.Key );

@@ -363,7 +363,6 @@ function bookmarkNew() {
 				, textvalue    : name
 				, textrequired : 0
 				, boxwidth     : 'max'
-				, textalign    : 'center'
 				, ok           : function() {
 					$.post( 'commands.php', { bookmarks: $( '#infoTextBox' ).val(), path: path, new: 1 } );
 					notify( 'Bookmark Added', path, 'bookmark' );
@@ -382,7 +381,6 @@ function bookmarkRename( name, path, $block ) {
 						+'To:'
 		, textvalue    : name
 		, textrequired : 0
-		, textalign    : 'center'
 		, boxwidth     : 'max'
 		, oklabel      : '<i class="fa fa-flash"></i>Rename'
 		, ok           : function() {
@@ -454,7 +452,6 @@ function playlistNew() {
 		, message      : 'Save current playlist as:'
 		, textlabel    : 'Name'
 		, textrequired : 0
-		, textalign    : 'center'
 		, boxwidth     : 'max'
 		, ok           : function() {
 			playlistAdd( $( '#infoTextBox' ).val() );
@@ -471,7 +468,6 @@ function playlistRename() {
 						+'<br>To:'
 		, textvalue    : name
 		, textrequired : 0
-		, textalign    : 'center'
 		, boxwidth     : 'max'
 		, oklabel      : '<i class="fa fa-flash"></i>Rename'
 		, ok           : function() {
@@ -908,7 +904,6 @@ function webRadioNew( name, url ) {
 		, textlabel    : ''
 		, textvalue    : name
 		, textrequired : 0
-		, textalign    : 'center'
 		, boxwidth     : 'max'
 		, ok           : function() {
 			var newname = $( '#infoTextBox' ).val();

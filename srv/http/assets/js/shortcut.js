@@ -181,18 +181,33 @@ $( document ).keydown( function( e ) {
 		
 		$( '#lib-list li' ).removeClass( 'active' );
 		if ( key === 'ArrowUp' ) {
-			var $icon = $liactive.prev().find( '.lib-icon' );
-			if ( !$icon.length ) $icon = $( '#lib-list .lib-icon' ).last();
-			$icon.tap();
-		} else if ( key === 'ArrowDown' ) {
-			var $icon = $liactive.next().find( '.lib-icon' );
-			if ( !$icon.length ) {
-				$icon = $( '#lib-list .lib-icon:eq( 0 )' );
+			$linext = $liactive.prev( 'li' );
+			if ( $linext.length ) {
+				$linext.addClass( 'active' );
 				setTimeout( function() {
-					$( 'html, body' ).scrollTop( 0 );
+					var litop = $linext[ 0 ].getBoundingClientRect().top;
+					var libottom = $linext[ 0 ].getBoundingClientRect().bottom;
+					if ( libottom > window.innerHeight - 40 || litop < 80 ) $( 'html, body' ).scrollTop( $linext.offset().top - window.innerHeight + 89 );
 				}, 300 );
+			} else {
+				var $lilast = $( '#lib-list li' ).last();
+				$lilast.addClass( 'active' );
+				$( 'html, body' ).scrollTop( $lilast.offset().top );
 			}
-			$icon.tap();
+		} else if ( key === 'ArrowDown' ) {
+			$linext = $liactive.next( 'li' );
+			if ( $linext.length ) {
+				$linext.addClass( 'active' );
+				setTimeout( function() {
+					var litop = $linext[ 0 ].getBoundingClientRect().top;
+					var libottom = $linext[ 0 ].getBoundingClientRect().bottom;
+					if ( libottom > window.innerHeight - 40 )
+					$( 'html, body' ).scrollTop( $linext.offset().top - 80 );
+				}, 300 );
+			} else {
+				$( '#lib-list li:eq( 0 )' ).addClass( 'active' );
+				$( 'html, body' ).scrollTop( 0 );
+			}
 		} else if ( key === 'Enter' ) {
 			if ( $( '.licover' ).length || $( '#lib-list li.mode-webradio' ).length ) {
 				if ( $( '.menu:not(.hide)' ).length ) { // context menu

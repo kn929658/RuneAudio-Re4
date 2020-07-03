@@ -889,8 +889,9 @@ function rebootText( enable, device ) {
 	G.reboot.push( enable +' '+ device );
 }
 function renderStatus() {
-	var temp = G.cputemp < 80 ? G.cputemp +'°C' : '<red>'+ G.cputemp +'°C</red>';
-	return G.cpuload.replace( / /g, '&emsp;' ) + ' <gr>&bull;</gr> ' + temp +'<br>'
+	var temp = G.cputemp < 80 ? G.cputemp +' °C' : '<red><i class="fa fa-warning blink"></i> '+ G.cputemp +' °C</red>';
+	return G.cpuload.replace( / /g, '&emsp;' ) + '<br>' 
+		+ temp +'<br>'
 		+ G.time.replace( ' ', ' <gr>&bull;</gr> ' ) + '&ensp;<grw>' + G.timezone.replace( /\//g, ' &middot; ' ) +'</grw><br>'
 		+ G.uptime +'&ensp;<gr>since '+ G.uptimesince +'</gr>'
 }
@@ -911,6 +912,7 @@ refreshData = function() {
 			+'<span id="network" class="settings">Network<i class="fa fa-gear"></i></span>';
 		var statuslabel =
 			 'CPU Load<br>'
+			+'CPU Temperatue<br>'
 			+'Time<br>'
 			+'Up Time';
 		var bullet = ' <gr>&bull;</gr> ';

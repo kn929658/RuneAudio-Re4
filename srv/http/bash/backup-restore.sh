@@ -18,6 +18,7 @@ diraddons=$dirdata/addons
 dirsystem=$dirdata/system
 
 version=$( cat $dirsystem/version )
+versionrr=$( cat $diraddons/rr$version )
 
 systemctl restart mpd
 
@@ -35,7 +36,9 @@ else # from copied data
 	chown -R mpd:audio "$dirdata/mpd"
 fi
 
+rm $diraddons/rre*
 echo $version > $dirsystem/version
+echo $versionrr > $diraddons/rr$version
 
 # hostname
 if [[ $( cat $dirsystem/hostname ) != RuneAudio ]]; then

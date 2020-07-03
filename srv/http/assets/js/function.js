@@ -1144,6 +1144,7 @@ function renderPlayback() {
 		if ( status.coverart ) {
 			$( '#coverart' ).prop( 'src', status.coverart );
 		} else {
+			$( '#coverart' ).prop( 'src', coverrune );
 			if ( 'file' in status ) {
 				setTimeout( function() {
 					$.post( 'commands.php', { coverart: escapePath( status.file ) }, function( coverart ) {

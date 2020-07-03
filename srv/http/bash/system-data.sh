@@ -59,7 +59,7 @@ data+='
 	, "ip"              : "'${iplist:1}'"
 	, "kernel"          : "'$( uname -r )'"
 	, "login"           : '$( [[ -e $dirsystem/login ]] && echo true || echo false )'
-	, "mpd"             : "'$( pacman -Q mpd | sed 's/mpd \(.*\)-.*/\1/' )'"
+	, "mpd"             : "'$( pacman -Q mpd 2> /dev/null |  cut -d' ' -f2 )'"
 	, "mpdstats"        : '$mpdstats'
 	, "ntp"             : "'$( grep '^NTP' /etc/systemd/timesyncd.conf | cut -d= -f2 )'"
 	, "onboardaudio"    : '$( grep -q 'dtparam=audio=on' /boot/config.txt && echo true || echo false )'

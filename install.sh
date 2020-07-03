@@ -4,6 +4,11 @@ alias=rre4
 
 . /srv/http/bash/addons-functions.sh
 
+if grep -q shairport-startstop /etc/shairport-sync.conf; then
+	sed -i 's/shairport.*sh/shairport.sh/' /etc/shairport-sync.conf
+	systemctl try-restart shairport-sync
+fi
+
 installstart $@
 
 if [[ $( cat /srv/http/data/addons/rre4 ) > 20200627 ]]; then

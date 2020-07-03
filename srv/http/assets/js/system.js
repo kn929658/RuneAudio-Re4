@@ -83,8 +83,7 @@ $( '#refresh' ).click( function( e ) {
 	} else {
 		var bullet = ' <gr>&bull;</gr> ';
 		intervalcputime = setInterval( function() {
-			$.post( 'commands.php', { getjson: '/srv/http/bash/system-data.sh' }, function( list ) {
-				var status = list[ 0 ];
+			$.post( 'commands.php', { getjson: '/srv/http/bash/system-data.sh status' }, function( status ) {
 				$.each( status, function( key, val ) {
 					G[ key ] = val;
 				} );

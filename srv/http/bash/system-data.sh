@@ -1,7 +1,16 @@
 #!/bin/bash
 
+data='
+	  "cpuload"         : "'$( cat /proc/loadavg | cut -d' ' -f1-3 )'"
+	, "cputemp"         : '$(( $( cat /sys/class/thermal/thermal_zone0/temp ) / 1000 ))'
+	, "time"            : "'$( date +'%T %F' )'"
+	, "timezone"        : "'$( timedatectl | grep zone: | awk '{print $3}' )'"
+	, "uptime"          : "'$( uptime -p | tr -d 's,' | sed 's/up //; s/ day/d/; s/ hour/h/; s/ minute/m/' )'"
+	, "uptimesince"     : "'$( uptime -s | cut -d: -f1-2 )'"'
+
+
 # for interval refresh
-(( $# > 0 )) && echo -e "{$data}" && exit
+(( $# > 0 )) && echo {$data} && exit
 
 hardwarecode=$( grep Revision /proc/cpuinfo | awk '{print $NF}' )
 code=${hardwarecode: -3:2}
@@ -42,11 +51,9 @@ snaplatency=$( grep OPTS= /etc/default/snapclient | cut -d= -f3 | tr -d '"' )
 [[ -n $mpdstats ]] && mpdstats=[$mpdstats] || mpdstats=false
 [[ -z $snaplatency ]] && snaplatency=0
 
-data='
-	  "audioaplayname"  : "'$( cat $dirsystem/audio-aplayname 2> /dev/null )'"
+data+='
+	, "audioaplayname"  : "'$( cat $dirsystem/audio-aplayname 2> /dev/null )'"
 	, "audiooutput"     : "'$( cat $dirsystem/audio-output )'"
-	, "cpuload"         : "'$( cat /proc/loadavg | cut -d' ' -f1-3 )'"
-	, "cputemp"         : '$(( $( cat /sys/class/thermal/thermal_zone0/temp ) / 1000 ))'
 	, "hardware"        : "'$( tr -d '\0' < /sys/firmware/devicetree/base/model )'"
 	, "hostname"        : "'$( cat $dirsystem/hostname )'"
 	, "ip"              : "'${iplist:1}'"
@@ -70,10 +77,6 @@ data='
 	, "streaming"       : '$( grep -q 'type.*"httpd"' /etc/mpd.conf && echo true || echo false )'
 	, "sysswap"         : '$( sysctl vm.swappiness | cut -d" " -f3 )'
 	, "syslatency"      : '$( sysctl kernel.sched_latency_ns | cut -d" " -f3 )'
-	, "time"            : "'$( date +'%T %F' )'"
-	, "timezone"        : "'$( timedatectl | grep zone: | awk '{print $3}' )'"
-	, "uptime"          : "'$( uptime -p | tr -d 's,' | sed 's/up //; s/ day/d/; s/ hour/h/; s/ minute/m/' )'"
-	, "uptimesince"     : "'$( uptime -s | cut -d: -f1-2 )'"
 	, "version"         : "'$version'"
 	, "versionui"       : '$( cat /srv/http/data/addons/rr$version )
 	
@@ -111,4 +114,4 @@ if [[ -e $xinitrc ]]; then
 	, "zoom"            : '$( grep factor $xinitrc | cut -d'=' -f3 )
 fi
 
-echo {$data} | tr -d '\n\t'
+echo {$data}

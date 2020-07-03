@@ -8,7 +8,7 @@ status+=', "webradio" : false'
 if [[ -e $playerfile-snapclient ]]; then
 ########
 	status+=', "snapserverip" : "'$( cat /srv/http/data/tmp/snapserverip )'"'
-	echo {$status} | tr -d '\n\t'
+	echo {$status}
 	exit
 elif [[ -e $playerfile-spotify ]]; then
 	file=/srv/http/data/tmp/spotify
@@ -62,7 +62,7 @@ elif [[ -e $playerfile-airplay ]]; then
 		, "Time"           : '$Time'
 		, "volume"         : '$volume'
 		, "volumemute"     : 0'
-	echo {$status} | tr -d '\n\t'
+	echo {$status}
 	exit
 fi
 
@@ -124,7 +124,7 @@ status+='
 	, "playlists"      : '$( ls /srv/http/data/playlists | wc -l )
 
 if [[ -z $playlistlength ]]; then
-	echo {$status} | tr -d '\n\t'
+	echo {$status}
 	exit
 fi
 
@@ -185,7 +185,7 @@ if [[ $1 == statusonly
 	|| ( $Artist == $1 && $Album == $2 ) # the same song
 	&& $ext != Radio
 ]]; then
-	echo {$status} | tr -d '\n\t'
+	echo {$status}
 	exit
 fi
 
@@ -266,4 +266,4 @@ fi
 ########
 status+=', "sampling" : "'$position$sampling'"'
 
-echo {$status} | tr -d '\n\t'
+echo {$status}

@@ -101,7 +101,7 @@ else
 		, "sampling"   : "48 kHz 320 kbit/s &bull; Spotify"
 		, "volumemute" : 0
 	'
-	echo $metadata | tr -d '\n\t' > $file
+	echo $metadata > $file
 ########
 	status+=$metadata
 	status+=', "elapsed" : '$(( ( $(( $( date +%s%3N ) - $timestamp )) + 500 ) / 1000 ))

@@ -21,6 +21,6 @@ data='
 
 mpc | grep -q Updating && data+=', "updating_db":1'
 
-echo {$data} | tr -d '\n\t'
+echo {$data}
 
 echo $albumartist $composer $genre > /srv/http/data/system/mpddb

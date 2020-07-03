@@ -57,7 +57,7 @@ if ( $type !== 'coverart' ) {
 	<p class="bl"></p>
 	<p id="wait">
 		<w><?=$title?></w><br>
-		<i class="fa fa-gear fa-spin"></i>Please wait until finished...
+		<i class="fa fa-gear fa-spin"></i>Please wait until finished ...
 	</p>
 	
 <script src="/assets/js/plugin/jquery-2.2.4.min.<?=$time?>.js"></script>

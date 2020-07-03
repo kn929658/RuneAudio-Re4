@@ -77,7 +77,7 @@ createThumbnail() {
 	thumbfileS="$dircoverarts/$thumbnameS.jpg"
 	thumbfile="$dircoverarts/$thumbname.jpg"
 	if (( ${#thumbfile} > 255 )); then
-		thumbfile=thumbfileS
+		thumbfile=$thumbfileS
 		if (( ${#thumbfile} > 255 )); then
 			(( longname++ ))
 			echo -e "$padR Skip - Name longer than 255 characters:"

@@ -44,4 +44,4 @@ data='
 	, "usbdac":"'$( cat /srv/http/data/system/usbdac 2> /dev/null )'"
 '
 
-echo {$data} | tr -d '\n\t'
+echo {$data}

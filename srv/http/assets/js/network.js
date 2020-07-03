@@ -325,11 +325,11 @@ $( '#settings-accesspoint' ).click( function() {
 		}
 	} );
 } );
-$( '#ifconfig' ).click( function() {
-	$( '#codeifconfig' ).hasClass( 'hide' ) ? getIfconfig() : $( '#codeifconfig' ).addClass( 'hide' );
+$( '#ifconfig' ).click( function( e ) {
+	codeToggle( e.target, this.id, getIfconfig );
 } );
-$( '#netctl' ).click( function() {
-	$( '#codenetctl' ).hasClass( 'hide' ) ? getNetctl() : $( '#codenetctl' ).addClass( 'hide' );
+$( '#netctl' ).click( function( e ) {
+	codeToggle( e.target, this.id, getNetctl );
 } );
 
 function btRender( data ) {
@@ -574,7 +574,7 @@ function editWiFiSet( ssid, data ) {
 	$( '#infoMessage' ).html(
 		 '<i class="fa fa-wifi-3"></i>&ensp;<wh>'+ ssid +'</wh>'
 		+'<br>Current: <wh>'+ data.dhcp +'</wh><br>&nbsp;'
-	);
+	).css( 'text-align', 'center' );
 	$( '#infoTextBox1' ).val( data.Address );
 	$( '#infoTextBox2' ).val( data.Gateway );
 	$( '#infoPasswordBox' ).val( data.Key );

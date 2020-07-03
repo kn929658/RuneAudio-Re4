@@ -1,5 +1,6 @@
 <div id="divinterface">
-	<heading class="noline">Interfaces<i id="refreshing" class="fa fa-wifi-3 blink hide"></i></heading>
+	<div>
+	<heading class="noline">Interfaces<i id="refreshing" class="fa fa-wifi-3 blink hide"></i><?=$help?></heading>
 	<ul id="listinterfaces" class="entries"></ul>
 	<span class="help-block hide">
 		<wh>LAN</wh>: Use wired LAN if possible for better performance.
@@ -20,23 +21,30 @@
 			<span class="help-block hide">Scan QR code or use IP address to connect RuneAudio web user interface.</span>
 		</div>
 	</div>
-
-	<heading id="ifconfig" class="status">Status<i class="fa fa-code"></i></heading>
+	</div>
+	
+	<div>
+	<heading id="ifconfig" class="status">Status<i class="fa fa-code"></i><?=$help?></heading>
 	<span class="help-block hide"><code>ifconfig</code></span>
 	<pre id="codeifconfig" class="hide"></pre>
+	</div>
 </div>
 
 <div id="divwifi" class="hide">
+	<div>
 	<heading class="noline">Wi-Fi
 		<i id="add" class="fa fa-plus-circle"></i><i id="scanning-wifi" class="fa fa-wifi-3 blink"></i>
-		<i class="fa fa-arrow-left back"></i>
+		<?=$help?><i class="fa fa-arrow-left back"></i>
 	</heading>
 	<ul id="listwifi" class="entries"></ul>
 	<span class="help-block hide">Access points with less than -66dBm should not be used.</span>
+	</div>
 	
-	<heading id="netctl" class="status">Saved Profiles<i class="fa fa-code"></i></heading>
+	<div>
+	<heading id="netctl" class="status">Saved Profiles<i class="fa fa-code"></i><?=$help?></heading>
 	<span class="help-block hide"><code>cat /etc/netctl/SSID</code></span>
 	<pre id="codenetctl" class="hide"></pre>
+	</div>
 </div>
 
 <div id="divbluetooth" class="hide">
@@ -49,7 +57,7 @@
 
 	<?php if ( file_exists( '/usr/bin/hostapd' ) ) { ?>
 <div id="divaccesspoint">
-	<heading>RPi Access Point</heading>
+	<heading>RPi Access Point<?=$help?></heading>
 	<div class="col-l">Enable</div>
 	<div class="col-r">
 		<input id="accesspoint" type="checkbox">

@@ -1144,15 +1144,20 @@ function renderPlayback() {
 		if ( status.coverart ) {
 			$( '#coverart' ).prop( 'src', status.coverart );
 		} else {
-			setTimeout( function() {
-				$.post( 'commands.php', { coverart: escapePath( status.file ) }, function( coverart ) {
-					if ( !coverart ) {
-						$( '#divcover, #coverart' ).addClass( 'coverrune' );
-						$( '#coverart' ).prop( 'src', coverrune );
-						coverartGet( status.Artist, status.Album );
-					}
-				} );
-			}, 300 );
+			$( '#coverart' ).prop( 'src', coverrune );
+			if ( 'file' in status ) {
+				setTimeout( function() {
+					$.post( 'commands.php', { coverart: escapePath( status.file ) }, function( coverart ) {
+						if ( !coverart ) {
+							$( '#divcover, #coverart' ).addClass( 'coverrune' );
+							$( '#coverart' ).prop( 'src', coverrune );
+							coverartGet( status.Artist, status.Album );
+						}
+					} );
+				}, 300 );
+			} else {
+				coverartGet( status.Artist, status.Album );
+			}
 		}
 	}
 	// time
@@ -1484,7 +1489,7 @@ function setPlaylistScroll() {
 	G.debounce = setTimeout( function() {
 		displayTopBottom();
 		$( '#menu-plaction' ).addClass( 'hide' );
-		$( '#pl-list li' ).removeClass( 'lifocus' );
+		$( '#pl-list li' ).removeClass( 'updn' );
 		setNameWidth();
 		$.post( 'commands.php', { getjson: '/srv/http/bash/status.sh statusonly' }, function( status ) {
 			$.each( status, function( key, value ) {

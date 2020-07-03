@@ -561,7 +561,7 @@ $( '#bar-bottom' ).taphold( function() {
 $( '#lib-list, #pl-list, #pl-savedlist' ).on( 'click', 'p', function() {
 	$( '.menu' ).addClass( 'hide' );
 	$( '#lib-list li, #pl-savedlist li' ).removeClass( 'active' );
-	$( '#pl-list li' ).removeClass( 'lifocus' );
+	$( '#pl-list li' ).removeClass( 'updn' );
 	$( '#pl-list .pl-remove' ).remove();
 	$( '#pl-list .name' ).css( 'max-width', '' );
 } );
@@ -2055,7 +2055,7 @@ $( '#pl-list' ).on( 'click', '.pl-icon', function( e ) {
 	var menutop = ( $thisli.position().top + 48 ) +'px';
 	var $menu = $( '#menu-plaction' );
 	var $contextlist = $( '#menu-plaction a' );
-	$( '#pl-list li' ).removeClass( 'lifocus' );
+	$( '#pl-list li' ).removeClass( 'updn' );
 	if ( !$menu.hasClass( 'hide' ) 
 		&& $menu.css( 'top' ) === menutop
 	) {
@@ -2064,7 +2064,7 @@ $( '#pl-list' ).on( 'click', '.pl-icon', function( e ) {
 	}
 	
 	var state = G.status.state;
-	$thisli.addClass( 'lifocus' );
+	$thisli.addClass( 'updn' );
 	$contextlist.removeClass( 'hide' );
 	if ( $thisli.hasClass( 'active' ) ) {
 		$contextlist.eq( 0 ).toggleClass( 'hide', state === 'play' );

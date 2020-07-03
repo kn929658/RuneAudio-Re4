@@ -75,6 +75,8 @@ $( 'body' ).on( 'click touchstart', function( e ) {
 	}
 } );
 $( '#refresh' ).click( function( e ) {
+	if ( $( e.target ).hasClass( 'help' ) ) return
+	
 	var $this = $( this );
 	var active = $this.find( 'i' ).hasClass( 'blink' );
 	$this.find( 'i' ).toggleClass( 'blink', !active );
@@ -83,8 +85,7 @@ $( '#refresh' ).click( function( e ) {
 	} else {
 		var bullet = ' <gr>&bull;</gr> ';
 		intervalcputime = setInterval( function() {
-			$.post( 'commands.php', { getjson: '/srv/http/bash/system-data.sh' }, function( list ) {
-				var status = list[ 0 ];
+			$.post( 'commands.php', { getjson: '/srv/http/bash/system-data.sh status' }, function( status ) {
 				$.each( status, function( key, val ) {
 					G[ key ] = val;
 				} );
@@ -536,6 +537,27 @@ $( '#wlan' ).click( function( e ) {
 	}
 	$.post( 'commands.php', { bash: cmd } );
 } );
+$( '#setting-wlan' ).click( function() {
+	info( {
+		  icon      : 'wifi-3'
+		, title     : 'Regulatory Domain'
+		, textlabel : 'Country code'
+		, textvalue : ( G.regdom === 0 ? '00' : G.regdom )
+		, ok        : function() {
+			var regdom = $( '#infoTextBox' ).val().trim().toUpperCase();
+			if ( regdom === G.regdom ) return
+			
+			G.regdom = regdom;
+			$.post( 'commands.php', { bash: [ 
+				  'sed -i \'s/".*"/"'+ regdom +'"/\' /etc/conf.d/wireless-regdom'
+				, 'iw reg set '+ regdom
+				, ( regdom === '00' ? 'rm ' : 'echo '+ regdom +' > ' ) + dirsystem +'/wlanregdom'
+				, curlPage( 'system' )
+			] }, resetlocal );
+			banner( 'Regulatory Domain', 'Change ...', 'wifi-3' );
+		}
+	} );
+} );
 $( '#i2smodulesw' ).click( function() {
 	// delay to show switch sliding
 	setTimeout( function() {
@@ -707,13 +729,15 @@ $( '#setting-soundprofile' ).click( function() {
 		}
 	} );
 } );
-$( '#journalctl' ).click( function() {
-	$( '#codejournalctl' ).hasClass( 'hide' ) ? getJournalctl() : $( '#codejournalctl' ).addClass( 'hide' );
+$( '#journalctl' ).click( function( e ) {
+	codeToggle( e.target, this.id, getJournalctl );
 } );
-$( '#configtxt' ).click( function() {
-	$( '#codeconfigtxt' ).hasClass( 'hide' ) ? getConfigtxt() : $( '#codeconfigtxt' ).addClass( 'hide' );
+$( '#configtxt' ).click( function( e ) {
+	codeToggle( e.target, this.id, getConfigtxt );
 } );
-$( '#backuprestore' ).click( function() {
+$( '#backuprestore' ).click( function( e ) {
+	if ( $( e.target ).hasClass( 'help' ) ) return
+	
 	var icon = 'sliders';
 	var restoretitle = 'Restore Settings';
 	var backuptitle = restoretitle.replace( 'Restore', 'Backup' );
@@ -736,14 +760,15 @@ $( '#backuprestore' ).click( function() {
 		, button      : function() {
 			$.post( 'commands.php', { backuprestore: 'backup' }, function( data ) {
 				if ( data === 'ready' ) {
-					fetch( '/data/tmp/backup.xz' )
+					notify( backuptitle, 'Download ...', 'sliders blink' );
+					fetch( '/data/tmp/backup.gz' )
 						.then( response => response.blob() )
 						.then( blob => {
 							var url = window.URL.createObjectURL( blob );
 							var a = document.createElement( 'a' );
 							a.style.display = 'none';
 							a.href = url;
-							a.download = 'backup.xz';
+							a.download = 'backup.gz';
 							document.body.appendChild( a );
 							a.click();
 							setTimeout( () => {
@@ -760,11 +785,10 @@ $( '#backuprestore' ).click( function() {
 				} else {
 					info( {
 						  icon    : icon
-						, title   : restoretitle
-						, message : 'Backup file failed.'
+						, title   : backuptitle
+						, message : 'Backup failed.'
 					} );
 				}
-				bannerHide();
 			} );
 			banner( backuptitle, 'Backup ...', 'sliders' );
 		}
@@ -775,13 +799,13 @@ $( '#backuprestore' ).click( function() {
 				, title       : restoretitle
 				, message     : 'Restore from:'
 				, radio       : {
-					  'Backup file <code>*.xz</code>'         : 'restore'
-					, 'Directory <code>/srv/http/data</code>' : 'directory'
-					, 'Reset to default'                      : 'reset'
+					  'Backup file <code>*.gz</code>, <code>*.xz</code>' : 'restore'
+					, 'Directory <code>/srv/http/data</code>'            : 'directory'
+					, 'Reset to default'                                 : 'reset'
 				}
 				, checked     : 'restore'
 				, fileoklabel : 'Restore'
-				, filetype    : '.xz'
+				, filetype    : '.gz,.xz'
 				, filefilter  : 1
 				, preshow     : function() {
 					$( '#infoRadio input' ).click( function() {
@@ -869,7 +893,9 @@ function rebootText( enable, device ) {
 	G.reboot.push( enable +' '+ device );
 }
 function renderStatus() {
-	return G.cpuload.replace( / /g, '&emsp;' ) + ' <gr>&bull;</gr> ' + G.cputemp +'°C<br>'
+	var temp = G.cputemp < 80 ? G.cputemp +' °C' : '<red><i class="fa fa-warning blink"></i> '+ G.cputemp +' °C</red>';
+	return G.cpuload.replace( / /g, '&emsp;' ) + '<br>' 
+		+ temp +'<br>'
 		+ G.time.replace( ' ', ' <gr>&bull;</gr> ' ) + '&ensp;<grw>' + G.timezone.replace( /\//g, ' &middot; ' ) +'</grw><br>'
 		+ G.uptime +'&ensp;<gr>since '+ G.uptimesince +'</gr>'
 }
@@ -890,6 +916,7 @@ refreshData = function() {
 			+'<span id="network" class="settings">Network<i class="fa fa-gear"></i></span>';
 		var statuslabel =
 			 'CPU Load<br>'
+			+'CPU Temperatue<br>'
 			+'Time<br>'
 			+'Up Time';
 		var bullet = ' <gr>&bull;</gr> ';

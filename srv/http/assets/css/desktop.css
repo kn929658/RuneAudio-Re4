@@ -2,7 +2,12 @@
 #lib-list li:hover,
 #pl-savedlist li:hover,
 #pl-list li:hover {
-	background-color: hsl(0,0%,15%)/*bh*/;
+	background-color: var( --cga );
+}
+#lib-list li.updn:hover,
+#pl-savedlist li.updn:hover,
+#pl-list li.updn:hover {
+	background-color: var( --cga );
 }
 #bar-bottom li.active a:hover,
 #button-library:hover,
@@ -28,7 +33,6 @@
 }
 .fa-arrow-left:hover,
 .lib-mode.updn .mode,
-.lifocus:hover,
 .mode:hover,
 #button-lib-search:hover,
 #lib-search-btn:hover,
@@ -37,12 +41,6 @@
 #button-pl-search:hover,
 #pl-search-btn:hover {
 	background-color: var( --cg ) !important;
-}
-.lifocus {
-	background-color: hsl(0,0%,20%)/*bf*/ !important;
-}
-li.active.lifocus {
-	background-color: var( --cm ) !important;
 }
 /* :active:hover *********************************************************/
 #bar-bottom li.active a:active:hover:active:hover,

@@ -196,8 +196,11 @@ pre {
 	color: var( --cg75 );
 }
 w, wh, .wh { color: var( --cw ) !important; }
-bl, .bl { color: var( --cm ) !important; }
+bl, .bl, .blue { color: var( --cm ) !important; }
 gr, .gr, grl { color: var( --cg60 ) !important; }
+red, .red { color: #f00; }
+grn, .green { color: #0f0; }
+.clear { clear: both; }
 whl,
 grl,
 h1,
@@ -219,7 +222,8 @@ heading i {
 	width: 60px;
 	text-align: center;
 }
-heading i.fa-addons {
+heading i.fa-addons,
+heading i.back {
 	width: 40px;
 }
 heading i:nth-child( 2 ) {
@@ -228,6 +232,12 @@ heading i:nth-child( 2 ) {
 heading i,
 .status {
 	cursor: pointer;
+}
+heading i.fa-question-circle {
+	float: right;
+	width: 25px;
+	font-size: 20px;
+	color: var( --cg60 );
 }
 @keyframes blinkopaque {
 	50% { opacity: 0; }
@@ -362,20 +372,6 @@ grw,
 }
 .checkbox {
 	padding-top: 0 !important;
-}
-red,
-.red {
-	color: #f00;
-}
-.clear {
-	clear: both;
-}
-grn,
-.green {
-	color: #0f0;
-}
-.blue {
-	color: var( --cm ) !important;
 }
 .indent {
 	margin: 0 20px;

@@ -31,7 +31,14 @@ foreach( $i2slist as $name => $sysname ) {
 <div class="col-r">
 	<span class="help-block hide">
 		<br><gr><i class="fa fa-refresh"></i>&emsp;Toggle refresh every 10 seconds.</gr>
-		<br>CPU Load - Average number of processes which are being executed and in waiting calculated over 1, 5 and 15 minutes. Each one should not be constantly over 0.75 x CPU cores.
+		<br>
+		<br>CPU Load: Average number of processes which are being executed and in waiting calculated over 1, 5 and 15 minutes. Each one should not be constantly over 0.75 x CPU cores.
+		<br>CPU temperature:
+		<div style="margin-left: 20px">
+			- 80-84°C: ARM cores throttled.
+			<br>- 85°C: ARM cores and GPU throttled.
+			<br>- RPi 3B+: 60°C soft limit (optimized throttling)
+		</div>
 	</span>
 </div>
 

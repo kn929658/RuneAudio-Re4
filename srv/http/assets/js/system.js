@@ -889,7 +889,8 @@ function rebootText( enable, device ) {
 	G.reboot.push( enable +' '+ device );
 }
 function renderStatus() {
-	return G.cpuload.replace( / /g, '&emsp;' ) + ' <gr>&bull;</gr> ' + G.cputemp +'°C<br>'
+	var temp = G.cputemp < 80 ? G.cputemp +'°C' : '<red>'+ G.cputemp +'°C</red>';
+	return G.cpuload.replace( / /g, '&emsp;' ) + ' <gr>&bull;</gr> ' + temp +'<br>'
 		+ G.time.replace( ' ', ' <gr>&bull;</gr> ' ) + '&ensp;<grw>' + G.timezone.replace( /\//g, ' &middot; ' ) +'</grw><br>'
 		+ G.uptime +'&ensp;<gr>since '+ G.uptimesince +'</gr>'
 }

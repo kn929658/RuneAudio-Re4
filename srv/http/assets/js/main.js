@@ -941,9 +941,7 @@ $( '.btn-cmd' ).click( function() {
 			}
 		} else if ( cmd === 'stop' ) {
 			if ( G.status.airplay ) {
-				$.post( 'commands.php', { bash: '/srv/http/bash/shairport.sh stop' }, function() {
-					G.local = 0;
-				} );
+				$.post( 'commands.php', { bash: '/srv/http/bash/shairport.sh stop' } );
 				return
 				
 			} else if ( G.status.snapclient ) {

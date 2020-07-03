@@ -24,7 +24,7 @@ foreach( $i2slist as $name => $sysname ) {
 <div id="systemlabel" class="col-l text gr"></div>
 <div id="system" class="col-r text"></div>
 <div class="col-r">
-	<span class="help-block hide"><br><i class="fa fa-gear"></i>&ensp;Shotcut to each setting</span>
+	<span class="help-block hide"><br><i class="fa fa-gear"></i>&ensp;Shortcut to each setting</span>
 </div>
 </div>
 

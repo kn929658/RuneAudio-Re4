@@ -44,6 +44,7 @@ $icon = [
 	, 'sources' => 'folder-cascade'
 	, 'system'  => 'sliders'
 ];
+$help = '<i class="help fa fa-question-circle"></i>';
 ?>
 <div class="head hide">
 	<i class="page-icon fa fa-<?=$icon[ $page ]?>"></i><span class='title'><?=( strtoupper( $page ) )?></span>

@@ -148,11 +148,11 @@ $( '#refreshshares' ).click( function() {
 		.html( '<li><i class="fa fa-search"></i></li>' )
 		.click();
 } );*/
-$( '#mount' ).click( function() {
-	$( '#codemount' ).hasClass( 'hide' ) ? getMounts() : $( '#codemount' ).addClass( 'hide' );
+$( '#mount' ).click( function( e ) {
+	codeToggle( e.target, this.id, getMounts );
 } );
-$( '#fstab' ).click( function() {
-	$( '#codefstab' ).hasClass( 'hide' ) ? getFstab() : $( '#codefstab' ).addClass( 'hide' );
+$( '#fstab' ).click( function( e ) {
+	codeToggle( e.target, this.id, getFstab );
 } );
 
 function getMounts() {

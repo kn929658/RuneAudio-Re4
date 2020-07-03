@@ -6,23 +6,21 @@ $dirwebradios = '/srv/http/data/webradios';
 
 if ( isset( $_POST[ 'backuprestore' ] ) ) {
 	$type = $_POST[ 'backuprestore' ];
-	$backupfile = '/srv/http/data/tmp/backup.xz';
+	$scriptfile = '/srv/http/bash/backup-restore.sh ';
 	if ( $type === 'backup' ) {
-		exec( $sudobin.'bsdtar \
-				--exclude "./system/version" \
-				--exclude "./tmp" \
-				-czf '.$backupfile.' \
-				-C /srv/http data' );
+		exec( $sudo.$scriptfile.'backup' );
 		echo 'ready';
 	} else if ( $type === 'restore' ) {
 		if ( $_FILES[ 'file' ][ 'error' ] == UPLOAD_ERR_OK ) {
+			$ext = pathinfo( $_FILES[ 'file' ][ 'name' ], PATHINFO_EXTENSION );
+			$backupfile = '/srv/http/data/tmp/backup.'.$ext;
 			move_uploaded_file( $_FILES[ 'file' ][ 'tmp_name' ], $backupfile ); // full path
-			exec( $sudo.'/srv/http/bash/data-restore.sh restore' );
+			exec( $sudo.$scriptfile.'restore '.$ext );
 			$reboot = @file_get_contents( '/tmp/reboot' );
 			echo $reboot ?: 'restored';
 		}
 	} else {
-		exec( $sudo.'/srv/http/bash/data-restore.sh '.$type );
+		exec( $sudo.$scriptfile.$type );
 	}
 
 } else if ( isset( $_POST[ 'bash' ] ) ) {
@@ -118,7 +116,8 @@ if ( isset( $_POST[ 'backuprestore' ] ) ) {
 	$data = json_decode( file_get_contents( $dirsystem.'/display' ) );
 	$data->color = rtrim( @file_get_contents( $dirsystem.'/color' ) ) ?: '200 100 35';
 	$data->order = json_decode( file_get_contents( $dirsystem.'/order' ) );
-	$data->volumenone = exec( $sudobin.'sed -n "/$( cat /srv/http/data/system/audio-output )/,/mixer_type/ p" /etc/mpd.conf | tail -1 | cut -d\" -f2' ) === 'none' ? true : false;
+	$audiooutputfile = file_exists( '/srv/http/data/system/usbdac' ) ? 'usbdac' : 'audio-output';
+	$data->volumenone = exec( $sudobin.'sed -n "/$( cat /srv/http/data/system/'.$audiooutputfile.' )/,/^}/ p" /etc/mpd.conf | tail -1 | cut -d\" -f2' ) === 'none' ? true : false;
 	echo json_encode( $data );
 	
 } else if ( isset( $_POST[ 'displayset' ] ) ) {

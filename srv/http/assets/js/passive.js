@@ -142,7 +142,9 @@ function psCoverart( data ) {
 function psDisplay( data ) {
 	if ( G.local ) return
 	
-	G.display = data;
+	$.each( data, function( key, val ) {
+		G.display[ key ] = val;
+	} );
 	if ( G.playback ) {
 		setButton();
 		renderPlayback();

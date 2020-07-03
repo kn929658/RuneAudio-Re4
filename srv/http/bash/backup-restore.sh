@@ -1,15 +1,29 @@
 #!/bin/bash
 
+if [[ $1 == backup ]]; then
+	backupfile=/srv/http/data/tmp/backup.gz
+	rm -f $backupfile
+	bsdtar \
+		--exclude './system/version' \
+		--exclude './tmp' \
+		-czf $backupfile \
+		-C /srv/http \
+		data \
+		&> /dev/null
+	exit
+fi
+
 dirdata=/srv/http/data
 diraddons=$dirdata/addons
 dirsystem=$dirdata/system
 
 version=$( cat $dirsystem/version )
+versionrr=$( cat $diraddons/rr$version )
 
 systemctl restart mpd
 
 if [[ $1 == restore ]]; then
-	backupfile=$dirdata/tmp/backup.xz
+	backupfile=$dirdata/tmp/backup.$2
 	bsdtar -xpf $backupfile -C /srv/http
 	rm $backupfile
 elif [[ $1 == reset ]]; then # reset to default
@@ -18,27 +32,13 @@ elif [[ $1 == reset ]]; then # reset to default
 	/srv/http/bash/data-reset.sh
 	mv -f /tmp/addons $dirdata
 else # from copied data
-	e2=1
-	version=e3
 	chown -R http:http "$dirdata"
 	chown -R mpd:audio "$dirdata/mpd"
 fi
 
+rm $diraddons/rre*
 echo $version > $dirsystem/version
-
-### temp: to be remove on next release ###
-sed -i 's/barsauto/barsalways/' /srv/http/data/system/display
-dirwebradios=$dirdata/webradios
-if [[ -e $dirsampling ]] && ls $dirwebradios &> /dev/null; then
-	dirsampling=$dirdata/sampling
-	radios=( $dirwebradios/* )
-	for radio in "${radios[@]}"; do
-		sampling=$( cat "$dirsampling/$( head -1 $radio )" )
-		sed -i "1 s|$|^^$sampling|" $radio
-	done
-	rm -r $dirsampling
-fi
-### temp: to be remove on next release ###
+echo $versionrr > $diraddons/rr$version
 
 # hostname
 if [[ $( cat $dirsystem/hostname ) != RuneAudio ]]; then
@@ -181,6 +181,12 @@ fi
 if [[ ! -e $dirsystem/onboard-wlan ]]; then
 	systemctl disable --now netctl-auto@wlan0
 	rmmod brcmfmac
+fi
+# wifi regdom
+if [[ -e $dirsystem/wlanregdom ]]; then
+	regdom=$( cat $dirsystem/wlanregdom )
+	sed -i 's/".*"/"'$regdom'"/' /etc/conf.d/wireless-regdom
+	iw reg set $regdom
 fi
 # i2s
 if grep -q "$audiooutput.*=>.*$audioaplayname" /srv/http/settings/system-i2smodules.php; then

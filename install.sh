@@ -4,8 +4,24 @@ alias=rre4
 
 . /srv/http/bash/addons-functions.sh
 
+if grep -q shairport-startstop /etc/shairport-sync.conf; then
+	sed -i 's/shairport.*sh/shairport.sh/' /etc/shairport-sync.conf
+	systemctl try-restart shairport-sync
+fi
+
 installstart $@
 
+if [[ $( cat /srv/http/data/addons/rre4 ) > 20200627 ]]; then
+	getinstallzip
+
+	installfinish $@
+
+	restartlocalbrowser
+	
+	exit
+fi
+
+#-------------------------------------------------------------------------------------------------------
 if [[ ! -e /etc/udev/rules.d/90-alsa-restore.rules ]]; then
 	rm /var/lib/alsa/asound.state
 	alsactl store

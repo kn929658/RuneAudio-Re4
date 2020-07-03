@@ -1865,7 +1865,7 @@ input[type=text] {
 }
 .lib-mode.updn .mode,
 #pl-list li.updn {
-	background: #374c62;
+	background: var( --cga );
 }
 #pl-list li.active.updn {
 	background: var( --cm );

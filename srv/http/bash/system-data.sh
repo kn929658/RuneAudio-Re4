@@ -2,7 +2,7 @@
 
 data='
 	  "cpuload"         : "'$( cat /proc/loadavg | cut -d' ' -f1-3 )'"
-	, "cputemp"         : '$(( $( cat /sys/class/thermal/thermal_zone0/temp ) / 1000 ))'
+	, "cputemp"         : '$( /opt/vc/bin/vcgencmd measure_temp | cut -d= -f2 | cut -d\' -f1 )'
 	, "time"            : "'$( date +'%T %F' )'"
 	, "timezone"        : "'$( timedatectl | grep zone: | awk '{print $3}' )'"
 	, "uptime"          : "'$( uptime -p | tr -d 's,' | sed 's/up //; s/ day/d/; s/ hour/h/; s/ minute/m/' )'"

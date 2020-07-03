@@ -386,9 +386,7 @@ function displayPlayback() {
 	var volume = ( G.display.volumenone || !G.display.volume ) ? 0 : 1;
 	$( '#volume-knob' ).toggleClass( 'hide', volume === 0 );
 	var column = ( G.display.time ? 1 : 0 ) + ( G.display.cover ? 1 : 0 ) + volume;
-	var $elements = $( '#time-knob, #coverart-block, #volume-knob, #play-group, #vol-group' );
 	if ( column === 2 ) {
-		$elements.css( 'width', '' );
 		$( '#coverart-block' ).addClass( 'coverlarge' );
 		$( '#time-knob, #volume-knob, #play-group, #vol-group' ).addClass( 'knobsmall' );
 		$( '#time-knob' ).css( 'margin-right', '20px' );
@@ -397,7 +395,6 @@ function displayPlayback() {
 		$( '#playback-row' ).css( 'max-width', '' );
 		$( '#coverart-block' ).removeClass( 'coverlarge' );
 		$( '#time-knob, #volume-knob, #play-group, #vol-group' ).removeClass( 'knobsmall' );
-		$elements.css( 'width', column === 1 ? '90%' : '' );
 		$( '#time-knob' ).css( 'margin-right', '' );
 		$( '#volume-knob' ).css( 'margin-left', '' );
 	}

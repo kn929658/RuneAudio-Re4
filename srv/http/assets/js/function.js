@@ -1144,15 +1144,19 @@ function renderPlayback() {
 		if ( status.coverart ) {
 			$( '#coverart' ).prop( 'src', status.coverart );
 		} else {
-			setTimeout( function() {
-				$.post( 'commands.php', { coverart: escapePath( status.file ) }, function( coverart ) {
-					if ( !coverart ) {
-						$( '#divcover, #coverart' ).addClass( 'coverrune' );
-						$( '#coverart' ).prop( 'src', coverrune );
-						coverartGet( status.Artist, status.Album );
-					}
-				} );
-			}, 300 );
+			if ( 'file' in status ) {
+				setTimeout( function() {
+					$.post( 'commands.php', { coverart: escapePath( status.file ) }, function( coverart ) {
+						if ( !coverart ) {
+							$( '#divcover, #coverart' ).addClass( 'coverrune' );
+							$( '#coverart' ).prop( 'src', coverrune );
+							coverartGet( status.Artist, status.Album );
+						}
+					} );
+				}, 300 );
+			} else {
+				coverartGet( status.Artist, status.Album );
+			}
 		}
 	}
 	// time

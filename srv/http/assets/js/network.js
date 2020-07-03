@@ -325,11 +325,11 @@ $( '#settings-accesspoint' ).click( function() {
 		}
 	} );
 } );
-$( '#ifconfig' ).click( function() {
-	$( '#codeifconfig' ).hasClass( 'hide' ) ? getIfconfig() : $( '#codeifconfig' ).addClass( 'hide' );
+$( '#ifconfig' ).click( function( e ) {
+	codeToggle( e.target, this.id, getIfconfig );
 } );
-$( '#netctl' ).click( function() {
-	$( '#codenetctl' ).hasClass( 'hide' ) ? getNetctl() : $( '#codenetctl' ).addClass( 'hide' );
+$( '#netctl' ).click( function( e ) {
+	codeToggle( e.target, this.id, getNetctl );
 } );
 
 function btRender( data ) {

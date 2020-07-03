@@ -19,11 +19,17 @@ foreach( $i2slist as $name => $sysname ) {
 	$optioni2smodule.= '<option value="'.$sysname.'">'.$name.'</option>';
 }
 ?>
-<heading>System</heading>
+<div>
+<heading>System<?=$help?></heading>
 <div id="systemlabel" class="col-l text gr"></div>
 <div id="system" class="col-r text"></div>
+<div class="col-r">
+	<span class="help-block hide"><br><i class="fa fa-gear"></i>&ensp;Shotcut to each setting</span>
+</div>
+</div>
 
-<heading id="refresh" class="status">Status<i class="fa fa-refresh"></i></heading>
+<div>
+<heading id="refresh" class="status">Status<i class="fa fa-refresh"></i><?=$help?></heading>
 <div id="statuslabel" class="col-l text gr"></div>
 <div id="status" class="col-r text"></div>
 
@@ -41,8 +47,10 @@ foreach( $i2slist as $name => $sysname ) {
 		</div>
 	</span>
 </div>
+</div>
 
-<heading>Renderer</heading>
+<div>
+<heading>Renderer<?=$help?></heading>
 	<?php if ( file_exists( '/usr/bin/shairport-sync' ) ) { ?>
 <div class="col-l double"><a>AirPlay<br><gr>Shairport-sync</gr></a><i class="fa fa-airplay fa-lg"></i></div>
 <div class="col-r">
@@ -87,8 +95,10 @@ foreach( $i2slist as $name => $sysname ) {
 	<span class="help-block hide">RuneAudio as UPnP / DLNA rendering device.</span>
 </div>
 	<?php } ?>
+</div>
 
-<heading>Streamer</heading>
+<div>
+<heading>Streamer<?=$help?></heading>
 <div class="col-l double"><a>For browsers<br><gr>MPD http</gr></a><i class="fa fa-webradio fa-lg"></i></div>
 <div class="col-r">
 	<input id="streaming" type="checkbox">
@@ -107,8 +117,10 @@ foreach( $i2slist as $name => $sysname ) {
 	</span>
 </div>
 	<?php } ?>
+</div>
 
-<heading>Features</heading>
+<div>
+<heading>Features<?=$help?></heading>
 	<?php if ( file_exists( '/usr/bin/chromium' ) ) { ?>
 <div class="col-l double"><a>Browser on RPi<br><gr>Chromium</gr></a><i class="fa fa-chromium fa-lg"></i></div>
 <div class="col-r">
@@ -144,8 +156,10 @@ foreach( $i2slist as $name => $sysname ) {
 	<div class="switchlabel" for="autoplay"></div>
 	<span class="help-block hide">Start playing automatically after boot.</span>
 </div>
+</div>
 
-<heading>Audio</heading>
+<div>
+<heading>Audio<?=$help?></heading>
 <div class="col-l">I&#178;S Module</div>
 <div class="col-r i2s">
 	<div id="divi2smodulesw">
@@ -174,8 +188,10 @@ foreach( $i2slist as $name => $sysname ) {
 		</div>
 	</span>
 </div>
+</div>
 
-<heading>On-board Devices</heading>
+<div>
+<heading>On-board Devices<?=$help?></heading>
 <div id="divonboardaudio">
 	<div class="col-l">Audio</div>
 	<div class="col-r">
@@ -201,8 +217,10 @@ foreach( $i2slist as $name => $sysname ) {
 	<span class="help-block hide">Should be disabled if not used.</span>
 </div>
 	<?php } ?>
+</div>
 
-<heading>Environment</heading>
+<div>
+<heading>Environment<?=$help?></heading>
 <div class="col-l">Name</div>
 <div class="col-r">
 	<input type="text" id="hostname" readonly style="cursor: pointer">
@@ -214,16 +232,23 @@ foreach( $i2slist as $name => $sysname ) {
 	<i id="setting-ntp" class="settingedit fa fa-gear"></i>
 	<span class="help-block hide"><i class="fa fa-gear"></i>&ensp;Set Network Time Protocol (NTP) server.</span>
 </div>
+</div>
 
-<heading id="journalctl" class="status">Boot Log<i id="journalctlicon" class="fa fa-code"></i></heading>
+<div>
+<heading id="journalctl" class="status">Boot Log<i id="journalctlicon" class="fa fa-code"></i><?=$help?></heading>
 <span class="help-block hide"><code>journalctl -b | sed -n '1,/Startup finished/ p'</code></span>
 <pre id="codejournalctl" class="hide"></pre>
+</div>
 
-<heading id="configtxt" class="status">/boot/config.txt<i class="fa fa-code"></i></heading>
+<div>
+<heading id="configtxt" class="status">/boot/config.txt<i class="fa fa-code"></i><?=$help?></heading>
 <span class="help-block hide"><code>cat /boot/config.txt</code></span>
 <pre id="codeconfigtxt" class="hide"></pre>
+</div>
 
-<heading id="backuprestore" class="status">Backup/Restore Settings<i class="fa fa-gear"></i></heading>
+<div>
+<heading id="backuprestore" class="status">Backup/Restore Settings<i class="fa fa-gear"></i><?=$help?></heading>
 <span class="help-block hide">Backup or restore all settings and  MPD database.</span>
+</div>
 
 <div style="clear: both"></div>

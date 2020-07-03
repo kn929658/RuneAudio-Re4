@@ -222,7 +222,8 @@ heading i {
 	width: 60px;
 	text-align: center;
 }
-heading i.fa-addons {
+heading i.fa-addons,
+heading i.back {
 	width: 40px;
 }
 heading i:nth-child( 2 ) {
@@ -231,6 +232,12 @@ heading i:nth-child( 2 ) {
 heading i,
 .status {
 	cursor: pointer;
+}
+heading i.fa-question-circle {
+	float: right;
+	width: 25px;
+	font-size: 20px;
+	color: var( --cg60 );
 }
 @keyframes blinkopaque {
 	50% { opacity: 0; }

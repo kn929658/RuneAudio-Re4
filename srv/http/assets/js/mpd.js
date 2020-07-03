@@ -115,11 +115,11 @@ $( '#setting-mixertype' ).click( function() { // hardware mixer
 		} );
 	}, 'json' );
 } );
-$( '#aplay' ).click( function() {
-	$( '#codeaplay' ).hasClass( 'hide' ) ? getAplay() : $( '#codeaplay' ).addClass( 'hide' );
+$( '#aplay' ).click( function( e ) {
+	codeToggle( e.target, this.id, getAplay );
 } );
-$( '#amixer' ).click( function() {
-	$( '#codeamixer' ).hasClass( 'hide' ) ? getAmixer() : $( '#codeamixer' ).addClass( 'hide' );
+$( '#amixer' ).click( function( e ) {
+	codeToggle( e.target, this.id, getAmixer );
 } );
 $( '#dop' ).click( function() {
 	var checked = $( this ).prop( 'checked' );
@@ -374,10 +374,12 @@ $( '#ffmpeg' ).click( function() {
 	] }, resetlocal );
 	banner( 'FFmpeg Decoder', G.ffmpeg, 'mpd' );
 } );
-$( '#status' ).click( function() {
-	$( '#codestatus' ).hasClass( 'hide' ) ? getStatus() : $( '#codestatus' ).addClass( 'hide' );
+$( '#status' ).click( function( e ) {
+	codeToggle( e.target, this.id, getStatus );
 } );
-$( '#restart' ).click( function() {
+$( '#restart' ).click( function( e ) {
+	if ( $( e.target ).hasClass( 'help' ) ) return
+	
 	$this = $( this );
 	local = 1;
 	info( {
@@ -395,8 +397,8 @@ $( '#restart' ).click( function() {
 		}
 	} );
 } );
-$( '#mpdconf' ).click( function() {
-	$( '#codempdconf' ).hasClass( 'hide' ) ? getMpdconf() : $( '#codempdconf' ).addClass( 'hide' );
+$( '#mpdconf' ).click( function( e ) {
+	codeToggle( e.target, this.id, getMpdconf );
 } );
 function checkNoVolume() {
 	var $selected = $( '#audiooutput option:selected' );

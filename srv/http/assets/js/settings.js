@@ -50,10 +50,13 @@ $( '#help' ).click( function() {
 	} )[ 0 ]; // return 1st element
 	var offset0 = eltop.getBoundingClientRect().top;
 	$( this ).toggleClass( 'blue' );
-	$( '.help-block' ).toggleClass( 'hide' );
+	$( '.help-block' ).toggleClass( 'hide', $( '.help-block:not(.hide)' ).length !== 0 );
 	$( window ).scrollTop( eltop.offsetTop - offset0 );
 } );
-
+$( '.help' ).click( function() {
+	$( this ).parent().parent().find( '.help-block' ).toggleClass( 'hide' );
+	$( '#help' ).toggleClass( 'blue', $( '.help-block:not(.hide)' ).length !== 0 );
+} );
 onVisibilityChange( function( visible ) {
 	if ( page === 'credits' ) return
 	
@@ -116,6 +119,9 @@ function psRestore( data ) {
 function banner( title, message, icon ) {
 	if ( typeof message === 'boolean' || typeof message === 'number' ) var message = message ? 'Enable ...' : 'Disable ...';
 	notify( title, message, icon +' blink', -1 );
+}
+function codeToggle( target, id, fn ) {
+	if ( !$( target ).hasClass( 'help' ) ) $( '#code'+ id ).hasClass( 'hide' ) ? fn() : $( '#code'+ id ).addClass( 'hide' );
 }
 function curlPage( page ) {
 	return 'curl -s -X POST "http://127.0.0.1/pub?id=refresh" -d \'{ "page": "'+ page +'" }\''

@@ -75,6 +75,8 @@ $( 'body' ).on( 'click touchstart', function( e ) {
 	}
 } );
 $( '#refresh' ).click( function( e ) {
+	if ( $( e.target ).hasClass( 'help' ) ) return
+	
 	var $this = $( this );
 	var active = $this.find( 'i' ).hasClass( 'blink' );
 	$this.find( 'i' ).toggleClass( 'blink', !active );
@@ -727,13 +729,15 @@ $( '#setting-soundprofile' ).click( function() {
 		}
 	} );
 } );
-$( '#journalctl' ).click( function() {
-	$( '#codejournalctl' ).hasClass( 'hide' ) ? getJournalctl() : $( '#codejournalctl' ).addClass( 'hide' );
+$( '#journalctl' ).click( function( e ) {
+	codeToggle( e.target, this.id, getJournalctl );
 } );
-$( '#configtxt' ).click( function() {
-	$( '#codeconfigtxt' ).hasClass( 'hide' ) ? getConfigtxt() : $( '#codeconfigtxt' ).addClass( 'hide' );
+$( '#configtxt' ).click( function( e ) {
+	codeToggle( e.target, this.id, getConfigtxt );
 } );
-$( '#backuprestore' ).click( function() {
+$( '#backuprestore' ).click( function( e ) {
+	if ( $( e.target ).hasClass( 'help' ) ) return
+	
 	var icon = 'sliders';
 	var restoretitle = 'Restore Settings';
 	var backuptitle = restoretitle.replace( 'Restore', 'Backup' );

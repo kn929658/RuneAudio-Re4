@@ -1,4 +1,5 @@
-<heading>Audio Output</heading>
+<div>
+<heading>Audio Output<?=$help?></heading>
 <div class="col-l control-label">Device</div>
 <div class="col-r">
 	<select id="audiooutput" data-style="btn-default btn-lg"></select>
@@ -14,20 +15,24 @@
 		<br>MPD software: depends on users preferences.
 	</span>
 </div>
+</div>
 
-<heading id="aplay" class="status">Devices<i class="fa fa-code"></i></heading>
+<div>
+<heading id="aplay" class="status">Devices<i class="fa fa-code"></i><?=$help?></heading>
 <span class="help-block hide"><code>aplay -l</code></span>
 <pre id="codeaplay" class="hide"></pre>
+</div>
 
 <div id="divamixer">
-<heading id="amixer" class="status">Hardware Mixers<i class="fa fa-code"></i></heading>
+<heading id="amixer" class="status">Hardware Mixers<i class="fa fa-code"></i><?=$help?></heading>
 <span class="help-block hide"><code>amixer -c N</code></span>
 <pre id="codeamixer" class="hide"></pre>
 </div>
 
 <div style="clear: both;"></div>
 	
-<heading>Bit-Perfect</heading>
+<div>
+<heading>Bit-Perfect<?=$help?></heading>
 <div class="col-l">No Volume</div>
 <div class="col-r">
 	<input id="novolume" type="checkbox">
@@ -44,8 +49,10 @@
 		Then PCM frames will be reassembled back to original DSD stream, COMPLETELY UNCHANGED, with expense of double bandwith.
 		<br>On-board audio and non-DSD devices will always get DSD converted to PCM stream, no bit-perfect</span>
 </div>
+</div>
 
-<heading>Volume</heading>
+<div>
+<heading>Volume<?=$help?></heading>
 <div class="col-l">Crossfade</div>
 <div class="col-r">
 	<input id="crossfade" class="switch" type="checkbox">
@@ -66,8 +73,10 @@
 	<i id="setting-replaygain" class="setting fa fa-gear"></i>
 	<span class="help-block hide">Set gain control to setting in replaygain tag. Currently only FLAC, Ogg Vorbis, Musepack, and MP3 (through ID3v2 ReplayGain tags, not APEv2) are supported.</span>
 </div>
+</div>
 
-<heading>Options</heading>
+<div>
+<heading>Options<?=$help?></heading>
 <div class="col-l">Auto Update</div>
 <div class="col-r">
 	<input id="autoupdate" type="checkbox">
@@ -96,13 +105,18 @@
 	</span>
 </div>
 	<?php } ?>
+</div>
 
-<heading class="status">Status<i id="status" class="fa fa-code"></i><i id="restart" class="fa fa-reboot"></i></heading>
+<div>
+<heading class="status">Status<i id="status" class="fa fa-code"></i><i id="restart" class="fa fa-reboot"></i><?=$help?></heading>
 <span class="help-block hide"><code>systemctl status mpd mpdidle</code>&ensp;<code>systemctl restart mpd</code></span>
 <pre id="codestatus" class="hide"></pre>
+</div>
 
-<heading id="mpdconf" class="status">Configuration<i class="fa fa-code"></i></heading>
+<div>
+<heading id="mpdconf" class="status">Configuration<i class="fa fa-code"></i><?=$help?></heading>
 <span class="help-block hide"><code>cat /etc/mpd.conf</code></span>
 <pre id="codempdconf" class="hide"></pre>
+</div>
 
 <div style="clear: both"></div>

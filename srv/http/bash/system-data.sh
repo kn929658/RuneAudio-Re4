@@ -39,7 +39,6 @@ data='
 
 cpuinfo=$( cat /proc/cpuinfo )
 lscpu=$( lscpu )
-hwcode=$( awk '/Revision/ {print $NF}' <<< "$cpuinfo" )
 soc=$( grep ^Hardware <<< "$cpuinfo" | sed 's/.*: //' )
 cpucores=$( awk '/CPU\(s\):/ {print $NF}' <<< "$lscpu" | cut -d. -f1 )
 cpuname=$( awk '/Model name/ {print $NF}' <<< "$lscpu" )
@@ -48,15 +47,12 @@ cpuspeed=$( awk '/CPU max/ {print $NF}' <<< "$lscpu" | cut -d. -f1 )
 soc="$soc$bullet$cores $cpuname @ "
 (( $cpuspeed < 1000 )) && soc+="${cpuspeed}MHz" || soc+="$( awk "BEGIN { printf \"%.1f\n\", $cpuspeed / 1000 }" )GHz"
 soc+=$bullet
+hwcode=$( awk '/Revision/ {print $NF}' <<< "$cpuinfo" )
 case ${hwcode: -6:1} in
 	9 ) soc+='512KB';;
 	a ) soc+='1GB';;
 	b ) soc+='2GB';;
 	c ) soc+='4GB';;
-esac
-
-case ${hwcode: -3:2} in
-	0c | 08 | 0e | 0d | 11 ) rpiwireless=1;;
 esac
 
 . /srv/http/bash/network-ifconfig.sh
@@ -119,7 +115,7 @@ data+='
 	, "samba"           : '$( systemctl -q is-active smb && echo true || echo false )'
 	, "writesd"         : '$( grep -A1 /mnt/MPD/SD /etc/samba/smb.conf | grep -q 'read only = no' && echo true || echo false )'
 	, "writeusb"        : '$( grep -A1 /mnt/MPD/USB /etc/samba/smb.conf | grep -q 'read only = no' && echo true || echo false )
-[[ -n $rpiwireless ]] && data+='
+[[ ${hwcode: -3:2} =~ ^(08|0c|0d|0e|11)$ ]] && data+='
 	, "wlan"            : '$( lsmod | grep -q '^brcmfmac ' && echo true || echo false )
 
 xinitrc=/etc/X11/xinit/xinitrc

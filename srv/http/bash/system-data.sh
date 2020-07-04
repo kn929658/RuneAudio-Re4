@@ -21,7 +21,7 @@ fi
 
 bullet='<gr> &bull; </gr>'
 date=( $( date +'%T %F' ) )
-timezone=$( timedatectl | grep zone: | awk '{print $3}' )
+timezone=$( timedatectl | awk '/zone:/ {print $3}' )
 time="${date[0]}$bullet${date[1]}&emsp;<grw>${timezone//\// &middot; }</grw>"
 uptime=$( uptime -p | tr -d 's,' | sed 's/up //; s/ day/d/; s/ hour/h/; s/ minute/m/' )
 uptimesince=$( uptime -s | cut -d: -f1-2 )
@@ -39,7 +39,7 @@ data='
 
 cpuinfo=$( cat /proc/cpuinfo )
 lscpu=$( lscpu )
-soc=$( grep ^Hardware <<< "$cpuinfo" | sed 's/.*: //' )
+soc=$( awk '/Hardware/ {print $NF}' <<< "$cpuinfo" )
 cpucores=$( awk '/CPU\(s\):/ {print $NF}' <<< "$lscpu" | cut -d. -f1 )
 cpuname=$( awk '/Model name/ {print $NF}' <<< "$lscpu" )
 cpuspeed=$( awk '/CPU max/ {print $NF}' <<< "$lscpu" | cut -d. -f1 )
@@ -64,14 +64,14 @@ done
 dirsystem=/srv/http/data/system
 version=$( cat $dirsystem/version )
 mpdstats=$( systemctl -q is-active mpd && mpc stats | head -3 | awk '{print $NF}' | tr '\n' ',' | head -c -1 )
-snaplatency=$( grep OPTS= /etc/default/snapclient | cut -d= -f3 | tr -d '"' )
+snaplatency=$( grep OPTS= /etc/default/snapclient | sed 's/.*latency=\(.*\)"/\1/' )
 [[ -n $mpdstats ]] && mpdstats=[$mpdstats] || mpdstats=false
 [[ -z $snaplatency ]] && snaplatency=0
 
 data+='
 	, "audioaplayname"  : "'$( cat $dirsystem/audio-aplayname 2> /dev/null )'"
 	, "audiooutput"     : "'$( cat $dirsystem/audio-output )'"
-	, "hardware"        : "'$( grep ^Model <<< "$cpuinfo" | sed 's/.*: //' )'"
+	, "hardware"        : "'$( awk '/Model/ {$1=$2=""; print}' <<< "$cpuinfo" )'"
 	, "hostname"        : "'$( cat $dirsystem/hostname )'"
 	, "ip"              : "'${iplist:1}'"
 	, "kernel"          : "'$( uname -r )'"
@@ -107,7 +107,7 @@ data+='
 	, "airplay"         : '$( systemctl -q is-active shairport-sync && echo true || echo false )
 [[ -e /usr/bin/spotifyd  ]] && data+='
 	, "spotify"         : '$( systemctl -q is-active spotifyd && echo true || echo false )'
-	, "spotifydevice"   : "'$( grep 'device =' /etc/spotifyd.conf | awk '{print $NF}' )'"'
+	, "spotifydevice"   : "'$( awk '/device =/ {print $NF}' /etc/spotifyd.conf )'"'
 [[ -e /usr/bin/upmpdcli  ]] && data+='
 	, "upnp"            : '$( systemctl -q is-active upmpdcli && echo true || echo false )
 # features

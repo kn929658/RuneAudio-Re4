@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # config.txt
-hwcode=$( grep Revision /proc/cpuinfo | tail -c 4 | cut -c1-2 )
+hwcode=$( awk '/Revision/ {print substr($NF, 4, 2)}' /proc/cpuinfo )
 if (( $# == 0 )); then
 	[[ $hwcode == 09 || $hwcode == 0c ]] && rpi=0
 	[[ $hwcode == 11 ]] && rpi=4

@@ -1,7 +1,5 @@
 #!/bin/bash
 
-hwcode=$( grep Revision /proc/cpuinfo | tail -c 4 | cut -c1-2 )
-
 setConfig() {
 	[[ -n $1 ]] && ip link set eth0 mtu $1
 	[[ -n $2 ]] && ip link set eth0 txqueuelen $2
@@ -9,7 +7,8 @@ setConfig() {
 	sysctl kernel.sched_latency_ns=$4
 }
 
-if [[ ' 04 08 0d 0e 11 ' =~ $hwcode ]]; then # not RPi 1
+hwcode=$( awk '/Revision/ {print substr($NF, 4, 2)}' /proc/cpuinfo )
+if [[ $hwcode =~ ^(04|08|0d|0e|11)$ ]]; then # not RPi 1
 	lat=( 4500000 3500075 1000000 2000000 3700000 1500000 145655 6000000 )
 else
 	lat=( 1500000 850000 500000 120000 500000 1500000 145655 6000000 )

@@ -100,10 +100,11 @@
 		<div style="margin-left: 20px">
 			<?php
 				$types = shell_exec(
-					 'types=$( /usr/bin/mpd -V | grep "\[ffmpeg" | cut -d" " -f3- )'
-					.' && for index in {a..z}; do'
-					.' types=$( sed "s/ \($index\)/\n\1/" <<<"$types" ); done'
-					.' && echo "$types" | sort'
+					'types=$( /usr/bin/mpd -V | grep "\[ffmpeg" | cut -d" " -f3- )'
+						.'; for index in {a..z}'
+						.'; do types=$( sed "s/ \($index\)/\n\1/" <<<"$types" )'
+						.'; done'
+						.'; echo "$types" | sort'
 				);
 				echo str_replace( "\n", '<br>', $types );
 			?>

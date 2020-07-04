@@ -22,10 +22,10 @@ fi
 bullet='<gr> &bull; </gr>'
 date=( $( date +'%T %F' ) )
 timezone=$( timedatectl | grep zone: | awk '{print $3}' )
-time="${date[0]}$bullet${date[1]} <grw>$timezone</grw>"
+time="${date[0]}$bullet${date[1]}&emsp;<grw>${timezone//\// &middot; }</grw>"
 uptime=$( uptime -p | tr -d 's,' | sed 's/up //; s/ day/d/; s/ hour/h/; s/ minute/m/' )
 uptimesince=$( uptime -s | cut -d: -f1-2 )
-uptime+=" <gr>since $uptimesince</gr>"
+uptime+="&emsp;<gr>since ${uptimesince/ / &bull; }</gr>"
 
 data='
 	  "cpuload"         : "'$( cat /proc/loadavg | cut -d' ' -f1-3 | sed 's/ /\&emsp;/g' )'"

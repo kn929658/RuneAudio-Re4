@@ -19,13 +19,19 @@ if [[ $throttle != 0x0 ]]; then
 	[[ $( echo ${D2B[$underv]} | cut -c4 ) == 1 ]] && undervoltage=true || undervoltage=false
 fi
 
+bullet='<gr> &bull; </gr>'
+date=( $( date +'%T %F' ) )
+timezone=$( timedatectl | grep zone: | awk '{print $3}' )
+time="${date[0]}$bullet${date[1]} <grw>$timezone</grw>"
+uptime=$( uptime -p | tr -d 's,' | sed 's/up //; s/ day/d/; s/ hour/h/; s/ minute/m/' )
+uptimesince=$( uptime -s | cut -d: -f1-2 )
+uptime+=" <gr>since $uptimesince</gr>"
+
 data='
-	  "cpuload"         : "'$( cat /proc/loadavg | cut -d' ' -f1-3 )'"
+	  "cpuload"         : "'$( cat /proc/loadavg | cut -d' ' -f1-3 | sed 's/ /\&emsp;/g' )'"
 	, "cputemp"         : '$( printf "%.0f\n" $( /opt/vc/bin/vcgencmd measure_temp | cut -d= -f2 | cut -d\' -f1 ) )'
-	, "time"            : "'$( date +'%T %F' )'"
-	, "timezone"        : "'$( timedatectl | grep zone: | awk '{print $3}' )'"
-	, "uptime"          : "'$( uptime -p | tr -d 's,' | sed 's/up //; s/ day/d/; s/ hour/h/; s/ minute/m/' )'"
-	, "uptimesince"     : "'$( uptime -s | cut -d: -f1-2 )'"
+	, "time"            : "'$time'"
+	, "uptime"          : "'$uptime'"
 	, "undervoltage"    : '$undervoltage
 
 # for interval refresh
@@ -38,7 +44,6 @@ soc=$( grep ^Hardware <<< "$cpuinfo" | sed 's/.*: //' )
 cpucores=$( awk '/CPU\(s\):/ {print $NF}' <<< "$lscpu" | cut -d. -f1 )
 cpuname=$( awk '/Model name/ {print $NF}' <<< "$lscpu" )
 cpuspeed=$( awk '/CPU max/ {print $NF}' <<< "$lscpu" | cut -d. -f1 )
-bullet='<gr> &bull; </gr>'
 (( $cpucores > 1 )) && cores=" $cpucores"
 soc="$soc$bullet$cores $cpuname @ "
 (( $cpuspeed < 1000 )) && soc+="${cpuspeed}MHz" || soc+="$( awk "BEGIN { printf \"%.1f\n\", $cpuspeed / 1000 }" )GHz"

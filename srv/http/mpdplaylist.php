@@ -3,6 +3,7 @@
 if ( isset( $_POST[ 'current' ] ) || $argv[ 1 ] === 'current' ) {
 	$lists = playlist();
 	$array = htmlPlaylist( $lists );
+	$array[ 'playlistlength' ] = count( $lists );
 	echo json_encode( $array );
 	
 } else if ( isset( $_POST[ 'delete' ] ) ) {

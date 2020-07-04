@@ -893,12 +893,12 @@ function rebootText( enable, device ) {
 	G.reboot.push( enable +' '+ device );
 }
 function renderStatus() {
-	var temp = G.cputemp < 80 ? G.cputemp +' °C' : '<red><i class="fa fa-warning blink"></i> '+ G.cputemp +' °C</red>';
-	return G.cpuload.replace( / /g, '&emsp;' ) + '<br>' 
-		+ temp +'<br>'
-		+ G.time.replace( ' ', ' <gr>&bull;</gr> ' ) + '&ensp;<grw>' + G.timezone.replace( /\//g, ' &middot; ' ) +'</grw><br>'
-		+ G.uptime +'&ensp;<gr>since '+ G.uptimesince +'</gr>'
-		+ ( G.undervoltage ? '<br><red><i class="fa fa-warning"></i>&ensp;Under-voltage occured.</red>' : '' )
+	var warning = '<i class="fa fa-warning blink"></i>&ensp;';
+	return G.cpuload
+		+'<br>'+ ( G.cputemp < 80 ? G.cputemp +' °C' : '<red>'+ warning + G.cputemp +' °C</red>' )
+		+'<br>'+ G.time
+		+'<br>'+ G.uptime
+		+ ( G.undervoltage ? '<br><red>'+ warning +'Under-voltage occured.</red>' : '' )
 }
 
 refreshData = function() {

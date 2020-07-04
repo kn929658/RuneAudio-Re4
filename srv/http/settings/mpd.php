@@ -98,12 +98,15 @@
 	<span class="help-block hide">Should be disabled if not used for faster Sources update.
 		<br>Decoder for audio filetypes:
 		<div style="margin-left: 20px">
-			<?=( shell_exec(
-				 'types=$( /usr/bin/mpd -V | grep "\[ffmpeg" | cut -d" " -f3- )'
-				.' && for index in {a..z}; do'
-				.' types=$( sed "s/ \($index\)/<br>\1/" <<<"$types" ); done'
-				.' && echo "$types"'
-			) )?>
+			<?php
+				$types = shell_exec(
+					 'types=$( /usr/bin/mpd -V | grep "\[ffmpeg" | cut -d" " -f3- )'
+					.' && for index in {a..z}; do'
+					.' types=$( sed "s/ \($index\)/\n\1/" <<<"$types" ); done'
+					.' && echo "$types" | sort'
+				);
+				echo str_replace( "\n", '<br>', $types );
+			?>
 		</div>
 	</span>
 </div>

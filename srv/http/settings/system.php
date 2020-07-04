@@ -1,7 +1,5 @@
 <?php
-$hwcode = exec( "/usr/bin/sudo /usr/bin/cat /proc/cpuinfo | grep Revision | rev | cut -c2,3 | rev" );
-$rpiwireless = in_array( $hwcode, [ '0c', '08', '0e', '0d', '11' ] ); // rpi zero w, rpi3, rpi4
-$timezone = exec( "timedatectl | grep zone: | awk '{print $3}'" );
+$timezone = exec( "timedatectl | awk '/zone:/ {print $3}'" );
 date_default_timezone_set( $timezone );
 $timezonelist = timezone_identifiers_list();
 $selecttimezone = '<select id="timezone">';
@@ -200,7 +198,8 @@ foreach( $i2slist as $name => $sysname ) {
 		<span class="help-block hide">Should be disabled if use other devices as audio output.</span>
 	</div>
 </div>
-	<?php if ( $rpiwireless ) {
+	<?php $hwcode = exec( '/usr/bin/sudo /usr/bin/awk \'/Revision/ {print substr($NF, 4, 2)}\' /proc/cpuinfo' );
+		if ( in_array( $hwcode, [ '0c', '08', '0e', '0d', '11' ] ) ) { # rpi with wireless
 			if ( file_exists( '/usr/bin/bluetoothctl' ) ) { ?>
 <div class="col-l">Bluetooth</div>
 <div class="col-r">

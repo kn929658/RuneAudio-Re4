@@ -96,6 +96,7 @@ data+='
 	, "streaming"       : '$( grep -q 'type.*"httpd"' /etc/mpd.conf && echo true || echo false )'
 	, "sysswap"         : '$( sysctl vm.swappiness | cut -d" " -f3 )'
 	, "syslatency"      : '$( sysctl kernel.sched_latency_ns | cut -d" " -f3 )'
+	, "timezone"        : "'$timezone'"
 	, "version"         : "'$version'"
 	, "versionui"       : '$( cat /srv/http/data/addons/rr$version )
 	

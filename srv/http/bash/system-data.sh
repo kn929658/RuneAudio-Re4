@@ -1,12 +1,5 @@
 #!/bin/bash
 
-data='
-	  "cpuload"         : "'$( cat /proc/loadavg | cut -d' ' -f1-3 )'"
-	, "cputemp"         : '$( printf "%.0f\n" $( /opt/vc/bin/vcgencmd measure_temp | cut -d= -f2 | cut -d\' -f1 ) )'
-	, "time"            : "'$( date +'%T %F' )'"
-	, "timezone"        : "'$( timedatectl | grep zone: | awk '{print $3}' )'"
-	, "uptime"          : "'$( uptime -p | tr -d 's,' | sed 's/up //; s/ day/d/; s/ hour/h/; s/ minute/m/' )'"
-	, "uptimesince"     : "'$( uptime -s | cut -d: -f1-2 )'"'
 
 # vcgencmd get_throttled > 0xDDDDD (decimal)
 #  1st D > binary BBBB - occured
@@ -26,6 +19,15 @@ if [[ $throttle != 0x0 ]]; then
 	[[ $( echo ${D2B[$underv]} | cut -c4 ) == 1 ]] && undervoltage=true || undervoltage=false
 fi
 
+data='
+	  "cpuload"         : "'$( cat /proc/loadavg | cut -d' ' -f1-3 )'"
+	, "cputemp"         : '$( printf "%.0f\n" $( /opt/vc/bin/vcgencmd measure_temp | cut -d= -f2 | cut -d\' -f1 ) )'
+	, "time"            : "'$( date +'%T %F' )'"
+	, "timezone"        : "'$( timedatectl | grep zone: | awk '{print $3}' )'"
+	, "uptime"          : "'$( uptime -p | tr -d 's,' | sed 's/up //; s/ day/d/; s/ hour/h/; s/ minute/m/' )'"
+	, "uptimesince"     : "'$( uptime -s | cut -d: -f1-2 )'"
+	, "undervoltage"    : '$undervoltage
+
 # for interval refresh
 (( $# > 0 )) && echo {$data} && exit
 
@@ -37,7 +39,8 @@ cpucores=$( awk '/CPU\(s\):/ {print $NF}' <<< "$lscpu" | cut -d. -f1 )
 cpuname=$( awk '/Model name/ {print $NF}' <<< "$lscpu" )
 cpuspeed=$( awk '/CPU max/ {print $NF}' <<< "$lscpu" | cut -d. -f1 )
 bullet='<gr> &bull; </gr>'
-soc="$soc$bullet$cpucores $cpuname @ "
+(( $cpucores > 1 )) && cores=" $cpucores"
+soc="$soc$bullet$cores $cpuname @ "
 (( $cpuspeed < 1000 )) && soc+="${cpuspeed}MHz" || soc+="$( awk "BEGIN { printf \"%.1f\n\", $cpuspeed / 1000 }" )GHz"
 soc+=$bullet
 case ${hwcode: -6:1} in
@@ -88,7 +91,6 @@ data+='
 	, "streaming"       : '$( grep -q 'type.*"httpd"' /etc/mpd.conf && echo true || echo false )'
 	, "sysswap"         : '$( sysctl vm.swappiness | cut -d" " -f3 )'
 	, "syslatency"      : '$( sysctl kernel.sched_latency_ns | cut -d" " -f3 )'
-	, "undervoltage"    : '$undervoltage'
 	, "version"         : "'$version'"
 	, "versionui"       : '$( cat /srv/http/data/addons/rr$version )
 	

@@ -139,7 +139,7 @@ if [[ $# -gt 0 && $1 != bt ]]; then
 	
 	curl -s -X POST 'http://127.0.0.1/pub?id=notify' -d '{ "title": "Audio Output", "text": "'"$name"'", "icon": "output" }'
 	
-	mixertype=$( sed -n "/$name/,/^}/ p" /etc/mpd.conf | grep mixer_type | cut -d\" -f2 )
+	mixertype=$( sed -n "/$name/,/^}/ p" /etc/mpd.conf | awk '/mixer_type/ {print $2}' )
 	[[ $mixertype == 'none' ]] && volumenone=true || volumenone=false
 	curl -s -X POST 'http://127.0.0.1/pub?id=display' -d '{ "volumenone": '$volumenone' }'
 else

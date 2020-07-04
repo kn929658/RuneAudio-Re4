@@ -375,11 +375,11 @@ $( '#ffmpeg' ).click( function() {
 	banner( 'FFmpeg Decoder', G.ffmpeg, 'mpd' );
 } );
 $( '#status' ).click( function( e ) {
+	if ( $( e.target ).hasClass( 'help' ) || $( e.target ).hasClass( 'fa-reboot' ) ) return
+	
 	codeToggle( e.target, this.id, getStatus );
 } );
 $( '#restart' ).click( function( e ) {
-	if ( $( e.target ).hasClass( 'help' ) ) return
-	
 	$this = $( this );
 	local = 1;
 	info( {

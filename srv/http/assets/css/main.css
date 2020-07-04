@@ -1212,11 +1212,6 @@ svg path.st1 {
 	background: var( --cg );
 }
 .rs-tooltip {
-	top: 40% !important;
-	margin: 0 !important;
-	left: 30% !important;
-	width: 40%;
-	height: 50px;
 	font-family: Lato !important;
 	font-size: 38px !important;
 	line-height: 50px;

@@ -8,7 +8,7 @@ data='
 	, "uptime"          : "'$( uptime -p | tr -d 's,' | sed 's/up //; s/ day/d/; s/ hour/h/; s/ minute/m/' )'"
 	, "uptimesince"     : "'$( uptime -s | cut -d: -f1-2 )'"'
 
-# decimal - 0xDDDDD
+# vcgencmd get_throttled > decimal - 0xDDDDD
 #  1st D > binary BBBB - occured
 #    1st B = Soft temperature limit
 #    2nd B = Throttling

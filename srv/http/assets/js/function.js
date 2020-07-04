@@ -394,10 +394,10 @@ function displayPlayback() {
 		$( '#time-knob' ).css( 'margin-right', '20px' );
 		$( '#volume-knob' ).css( 'margin-left', '20px' );
 	} else {
+		$elements.css( 'width', column === 1 ? '100%' : '' );
 		$( '#playback-row' ).css( 'max-width', '' );
 		$( '#coverart-block' ).removeClass( 'coverlarge' );
 		$( '#time-knob, #volume-knob, #play-group, #vol-group' ).removeClass( 'knobsmall' );
-		$elements.css( 'width', column === 1 ? '90%' : '' );
 		$( '#time-knob' ).css( 'margin-right', '' );
 		$( '#volume-knob' ).css( 'margin-left', '' );
 	}
@@ -619,6 +619,7 @@ function getPlaybackStatus() {
 }
 function getPlaylist() {
 	$.post( 'mpdplaylist.php', { current: 1 }, function( data ) {
+		G.status.playlistlength = data.playlistlength;
 		renderPlaylist( data );
 	}, 'json' );
 }

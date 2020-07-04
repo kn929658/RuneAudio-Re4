@@ -12,30 +12,26 @@ data='
 # for interval refresh
 (( $# > 0 )) && echo {$data} && exit
 
-hardwarecode=$( grep Revision /proc/cpuinfo | awk '{print $NF}' )
-code=${hardwarecode: -3:2}
-case $code in
+cpuinfo=$( cat /proc/cpuinfo )
+lscpu=$( lscpu )
+hwcode=$( awk '/Revision/ {print $NF}' <<< "$cpuinfo" )
+soc=$( grep ^Hardware <<< "$cpuinfo" | sed 's/.*: //' )
+cpucores=$( awk '/CPU\(s\):/ {print $NF}' <<< "$lscpu" | cut -d. -f1 )
+cpuname=$( awk '/Model name/ {print $NF}' <<< "$lscpu" )
+cpuspeed=$( awk '/CPU max/ {print $NF}' <<< "$lscpu" | cut -d. -f1 )
+bullet='<gr> &bull; </gr>'
+soc="$soc$bullet$cpucores $cpuname @ "
+(( $cpuspeed < 1000 )) && soc+="${cpuspeed}MHz" || soc+="$( awk "BEGIN { printf \"%.1f\n\", $cpuspeed / 1000 }" )GHz"
+soc+=$bullet
+case ${hwcode: -6:1} in
+	9 ) soc+='512KB';;
+	a ) soc+='1GB';;
+	b ) soc+='2GB';;
+	c ) soc+='4GB';;
+esac
+
+case ${hwcode: -3:2} in
 	0c | 08 | 0e | 0d | 11 ) rpiwireless=1;;
-esac
-case $code in
-	00 | 01 | 02 | 03 ) cpu='700MHz';;
-	04 )                cpu='4 @ 900MHz';;
-	09 | 0c )           cpu='1GHz';;
-	08 )                cpu='4 @ 900MHz';;
-	0d | 0e )           cpu='4 @ 1.4GHz';;
-	11 )                cpu='4 @ 1.5GHz';;
-esac
-case ${hardwarecode: -4:1} in
-	0 ) soc='BCM2835';;
-	1 ) soc='BCM2836';;
-	2 ) soc='BCM2837';;
-	3 ) soc='BCM2711';;
-esac
-case ${hardwarecode: -6:1} in
-	9 ) mem='512KB';;
-	a ) mem='1GB';;
-	b ) mem='2GB';;
-	c ) mem='4GB';;
 esac
 
 . /srv/http/bash/network-ifconfig.sh
@@ -54,7 +50,7 @@ snaplatency=$( grep OPTS= /etc/default/snapclient | cut -d= -f3 | tr -d '"' )
 data+='
 	, "audioaplayname"  : "'$( cat $dirsystem/audio-aplayname 2> /dev/null )'"
 	, "audiooutput"     : "'$( cat $dirsystem/audio-output )'"
-	, "hardware"        : "'$( tr -d '\0' < /sys/firmware/devicetree/base/model )'"
+	, "hardware"        : "'$( grep ^Model <<< "$cpuinfo" | sed 's/.*: //' )'"
 	, "hostname"        : "'$( cat $dirsystem/hostname )'"
 	, "ip"              : "'${iplist:1}'"
 	, "kernel"          : "'$( uname -r )'"
@@ -70,8 +66,6 @@ data+='
 	, "snapclient"      : '$( [[ -e $dirsystem/snapclient ]] && echo true || echo false )'
 	, "snaplatency"     : '$snaplatency'
 	, "soc"             : "'$soc'"
-	, "soccpu"          : "'$cpu'"
-	, "socmem"          : "'$mem'"
 	, "soundprofile"    : "'$( cat $dirsystem/soundprofile 2> /dev/null )'"
 	, "sources"         : '$( /srv/http/bash/sources-data.sh )'
 	, "streaming"       : '$( grep -q 'type.*"httpd"' /etc/mpd.conf && echo true || echo false )'

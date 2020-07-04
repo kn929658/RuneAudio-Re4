@@ -951,7 +951,7 @@ refreshData = function() {
 		$( '#system' ).html(
 			  '<i class="fa fa-addons gr" style="line-height: 20px;"></i> '+ G.version +' <gr>'+ G.versionui +'</gr>'+ bullet + G.hostname +'<br>'
 			+ G.hardware +'<br>'
-			+ G.soc + bullet + G.soccpu + bullet + G.socmem +'<br>'
+			+ G.soc +'<br>'
 			+ '<span id="output">'+ G.audiooutput +'</span><br>'
 			+ G.kernel +'<br>'
 			+ G.mpd 

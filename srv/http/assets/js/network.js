@@ -332,6 +332,9 @@ $( '#netctl' ).click( function( e ) {
 	codeToggle( e.target, this.id, getNetctl );
 } );
 
+function arp( ip ) {
+	return 'arp -n | grep -q ^'+ ip +' && echo 1 || echo 0'
+}
 function btRender( data ) {
 	var html = '';
 	data.forEach( function( list ) {
@@ -408,7 +411,7 @@ function connect( ssid, data, ip ) { // ip - static
 	} );
 }
 function editCheckIP( data ) {
-	$.post( 'commands.php', { bash: 'arp -n | grep -v Address | cut -d" " -f1 | grep -q '+ data.ip +'$ && echo 1 || echo 0', string: 1 }, function( used ) {
+	$.post( 'commands.php', { bash: arp( data.ip ), string: 1 }, function( used ) {
 		if ( used == 1 ) {
 			info( {
 				  icon    : 'lan'
@@ -470,7 +473,7 @@ function editLAN( data ) {
 			
 			eth0 +=  '\nAddress='+ data1.ip +'/24'
 					+'\nGateway='+ data1.gateway;
-			$.post( 'commands.php', { bash: 'arp -n | grep -v Address | cut -d" " -f1 | grep -q '+ data1.ip +'$ && echo 1 || echo 0', string: 1 }, function( used ) {
+			$.post( 'commands.php', { bash: arp( data1.ip ), string: 1 }, function( used ) {
 				if ( used == 1 ) {
 					info( {
 						  icon    : 'lan'
@@ -547,7 +550,7 @@ function editWiFi( ssid, data ) {
 						+'\nGateway='+ gw;
 			}
 			if ( ssid ) {
-				$.post( 'commands.php', { bash: 'arp -n | grep -v Address | cut -d" " -f1 | grep -q '+ ip +'$ && echo 1 || echo 0', string: 1 }, function( used ) {
+				$.post( 'commands.php', { bash: arp( ip ), string: 1 }, function( used ) {
 					if ( used == 1 ) {
 						info( {
 							  icon    : 'wifi-3'

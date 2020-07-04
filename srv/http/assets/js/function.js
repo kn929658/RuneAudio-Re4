@@ -619,6 +619,7 @@ function getPlaybackStatus() {
 }
 function getPlaylist() {
 	$.post( 'mpdplaylist.php', { current: 1 }, function( data ) {
+		G.status.playlistlength = data.playlistlength;
 		renderPlaylist( data );
 	}, 'json' );
 }

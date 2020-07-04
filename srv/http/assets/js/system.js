@@ -78,10 +78,11 @@ $( '#refresh' ).click( function( e ) {
 	if ( $( e.target ).hasClass( 'help' ) ) return
 	
 	var $this = $( this );
-	var active = $this.find( 'i' ).hasClass( 'blink' );
-	$this.find( 'i' ).toggleClass( 'blink', !active );
+	var active = $this.find( '.fa-refresh' ).hasClass( 'blink' );
+	$this.find( '.fa-refresh' ).toggleClass( 'blink', !active );
 	if ( active ) {
 		clearInterval( intervalcputime );
+		bannerHide();
 	} else {
 		var bullet = ' <gr>&bull;</gr> ';
 		intervalcputime = setInterval( function() {

@@ -316,7 +316,7 @@ function psVolumeNone( data ) {
 		if ( data.volumenone !== existing && G.playback ) displayPlayback();
 	} else {
 		G.display.volumenone = false;
-		$.post( 'commands.php', { bash: "grep volume /srv/http/data/mpd/mpdstate | cut -d' ' -f2", string: 1 }, function( data ) {
+		$.post( 'commands.php', { bash: "awk '/volume/ {print $NF}' /srv/http/data/mpd/mpdstate", string: 1 }, function( data ) {
 			G.status.volume = data;
 			if ( G.playback ) {
 				$volumeRS.setValue( G.status.volume );

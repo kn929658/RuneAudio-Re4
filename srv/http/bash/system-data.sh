@@ -8,6 +8,23 @@ data='
 	, "uptime"          : "'$( uptime -p | tr -d 's,' | sed 's/up //; s/ day/d/; s/ hour/h/; s/ minute/m/' )'"
 	, "uptimesince"     : "'$( uptime -s | cut -d: -f1-2 )'"'
 
+# decimal - 0xDDDDD
+#  1st D > binary BBBB - occured
+#    1st B = Soft temperature limit
+#    2nd B = Throttling
+#    3rd B = Arm frequency capping
+#    4th B = Under-voltage
+#  5th D > binary BBBB - current
+#    1st B = Soft temperature limit active
+#    2nd B = Currently throttled
+#    3rd B = Arm frequency capped
+#    4th B = Under-voltage detected
+throttle=$( /opt/vc/bin/vcgencmd get_throttled )
+if [[ $throttle != 0x0 ]]; then
+	D2B=( {0..1}{0..1}{0..1}{0..1} )
+	underv=$( echo $throttle | cut -dx -f2 | cut -c1 )
+	[[ $( echo ${D2B[$underv]} | cut -c4 ) == 1 ]] && undervoltage=true || undervoltage=false
+fi
 
 # for interval refresh
 (( $# > 0 )) && echo {$data} && exit
@@ -71,6 +88,7 @@ data+='
 	, "streaming"       : '$( grep -q 'type.*"httpd"' /etc/mpd.conf && echo true || echo false )'
 	, "sysswap"         : '$( sysctl vm.swappiness | cut -d" " -f3 )'
 	, "syslatency"      : '$( sysctl kernel.sched_latency_ns | cut -d" " -f3 )'
+	, "undervoltage"    : '$undervoltage'
 	, "version"         : "'$version'"
 	, "versionui"       : '$( cat /srv/http/data/addons/rr$version )
 	

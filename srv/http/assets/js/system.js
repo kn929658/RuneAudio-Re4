@@ -898,6 +898,7 @@ function renderStatus() {
 		+ temp +'<br>'
 		+ G.time.replace( ' ', ' <gr>&bull;</gr> ' ) + '&ensp;<grw>' + G.timezone.replace( /\//g, ' &middot; ' ) +'</grw><br>'
 		+ G.uptime +'&ensp;<gr>since '+ G.uptimesince +'</gr>'
+		+ ( G.undervoltage ? '<br><red><i class="fa fa-warning"></i>&ensp;Under-voltage occured.</red>' : '' )
 }
 
 refreshData = function() {

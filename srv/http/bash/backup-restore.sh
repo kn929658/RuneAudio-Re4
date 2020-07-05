@@ -189,7 +189,7 @@ if [[ -e $dirsystem/wlanregdom ]]; then
 	iw reg set $regdom
 fi
 # i2s
-if grep -q "$audiooutput.*=>.*$audioaplayname" /srv/http/settings/system-i2smodules.php; then
+if grep -q "$audiooutput.*$audioaplayname" /srv/http/settings/system-i2s.json; then
 	[[ -e $dirsystem/onboard-audio ]] && onoff=on || onoff=off
 	config+="\
 dtparam=audio=$onoff

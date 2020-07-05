@@ -1,6 +1,6 @@
 $( function() { // document ready start >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-$( '#timezone, #i2smodule' ).selectric( { maxHeight: 400 } );
+$( '#timezone, #i2smodule, #regdom' ).selectric( { maxHeight: 400 } );
 $( '.selectric-input' ).prop( 'readonly', 1 ); // fix - suppress screen keyboard
 
 var dirsystem = '/srv/http/data/system';
@@ -8,65 +8,6 @@ var filereboot = '/srv/http/data/tmp/reboot';
 
 $( '.container' ).on( 'click', '.settings', function() {
 	location.href = 'index-settings.php?p='+ this.id
-} );
-$( '#hostname' ).click( function() {
-	info( {
-		  icon      : 'rune'
-		, title     : 'Player Name'
-		, textlabel : 'Name'
-		, textvalue : G.hostname
-		, ok        : function() {
-			var hostname = $( '#infoTextBox' ).val().replace( /[^a-zA-Z0-9-]+/g, '-' ).replace( /(^-*|-*$)/g, '' );
-			if ( hostname !== G.hostname ) {
-				G.hostname = hostname;
-				$( '#hostname' ).val( hostname );
-				var hostnamelc = hostname.toLowerCase();
-				local = 1;
-				$.post( 'commands.php', { bash: [
-					  'hostnamectl set-hostname "'+ hostnamelc +'"'                                        // hostname
-					, "sed -i 's/\\(--hostname \\).*/\\1"+ hostname +"/' /etc/systemd/system/wsdd.service" // web service discovery
-					, "sed -i 's/^\\(ssid=\\).*/\\1"+ hostname +"/' /etc/hostapd/hostapd.conf"             // hostapd
-					, "sed -i '/^\\tname =/ s/\".*\"/\""+ hostname +"\"/' /etc/shairport-sync.conf"        // shairport-sync
-					, "sed -i 's/^\\(friendlyname = \\).*/\\1"+ hostname +"/' /etc/upmpdcli.conf"          // upnp
-					, 'rm -f /root/.config/chromium/SingletonLock'                                         // chromium profile reset
-					, 'systemctl daemon-reload'
-					, 'systemctl try-restart avahi-daemon hostapd mpd smb wsdd shairport-sync shairport-meta upmpdcli'
-					, 'systemctl -q is-active bluetooth && bluetoothctl system-alias "'+ hostname +'"'
-					, "echo '"+ hostname +"' > "+ dirsystem +"/hostname"
-					, curlPage( 'system' )
-				] }, resetlocal );
-				banner( 'Name', 'Change ...', 'sliders' );
-			}
-		}
-	} );
-} );
-$( '#setting-ntp' ).click( function() {
-	info( {
-		  icon      : 'stopwatch'
-		, title     : 'NTP Server'
-		, textlabel : 'URL'
-		, textvalue : G.ntp
-		, ok        : function() {
-			var ntp = $( '#infoTextBox' ).val();
-			if ( ntp === G.ntp ) {
-				G.ntp = ntp
-				local = 1;
-				$.post( 'commands.php', { bash: [
-					  "sed -i 's/^\\(NTP=\\).*/\\1"+ ntp +"/' /etc/systemd/timesyncd.conf"
-					, "echo '"+ ntp +"' > "+ dirsystem +"/ntp"
-					, curlPage( 'system' )
-				] }, resetlocal );
-			}
-		}
-	} );
-} );
-$( '#timezone' ).on( 'change', function( e ) {
-	G.timezone = $( this ).find( ':selected' ).val();
-	$.post( 'commands.php', { bash: [ 
-		  'timedatectl set-timezone '+ G.timezone
-		, "echo '"+ G.timezone +"' > "+ dirsystem +"/timezone"
-		, curlPage( 'system' )
-	] } );
 } );
 $( 'body' ).on( 'click touchstart', function( e ) {
 	if ( !$( e.target ).closest( '.i2s' ).length && $( '#i2smodule option:selected' ).val() === 'none' ) {
@@ -538,27 +479,6 @@ $( '#wlan' ).click( function( e ) {
 	}
 	$.post( 'commands.php', { bash: cmd } );
 } );
-$( '#setting-wlan' ).click( function() {
-	info( {
-		  icon      : 'wifi-3'
-		, title     : 'Regulatory Domain'
-		, textlabel : 'Country code'
-		, textvalue : ( G.regdom === 0 ? '00' : G.regdom )
-		, ok        : function() {
-			var regdom = $( '#infoTextBox' ).val().trim().toUpperCase();
-			if ( regdom === G.regdom ) return
-			
-			G.regdom = regdom;
-			$.post( 'commands.php', { bash: [ 
-				  'sed -i \'s/".*"/"'+ regdom +'"/\' /etc/conf.d/wireless-regdom'
-				, 'iw reg set '+ regdom
-				, ( regdom === '00' ? 'rm ' : 'echo '+ regdom +' > ' ) + dirsystem +'/wlanregdom'
-				, curlPage( 'system' )
-			] }, resetlocal );
-			banner( 'Regulatory Domain', 'Change ...', 'wifi-3' );
-		}
-	} );
-} );
 $( '#i2smodulesw' ).click( function() {
 	// delay to show switch sliding
 	setTimeout( function() {
@@ -570,9 +490,8 @@ $( '#i2smodulesw' ).click( function() {
 	}, 200 );
 } );
 $( '#i2smodule' ).on( 'change', function( e ) {
-	var $selected = $( this ).find( ':selected' );
-	var audioaplayname = $selected.val();
-	var audiooutput = $selected.text();
+	var audioaplayname = $( this ).val();
+	var audiooutput = $( this ).find( ':selected' ).text();
 	local = 1;
 	if ( audioaplayname !== 'none' ) {
 		G.audioaplayname = audioaplayname;
@@ -729,6 +648,74 @@ $( '#setting-soundprofile' ).click( function() {
 			}
 		}
 	} );
+} );
+$( '#hostname' ).click( function() {
+	info( {
+		  icon      : 'rune'
+		, title     : 'Player Name'
+		, textlabel : 'Name'
+		, textvalue : G.hostname
+		, ok        : function() {
+			var hostname = $( '#infoTextBox' ).val().replace( /[^a-zA-Z0-9-]+/g, '-' ).replace( /(^-*|-*$)/g, '' );
+			if ( hostname !== G.hostname ) {
+				G.hostname = hostname;
+				$( '#hostname' ).val( hostname );
+				var hostnamelc = hostname.toLowerCase();
+				local = 1;
+				$.post( 'commands.php', { bash: [
+					  'hostnamectl set-hostname "'+ hostnamelc +'"'                                        // hostname
+					, "sed -i 's/\\(--hostname \\).*/\\1"+ hostname +"/' /etc/systemd/system/wsdd.service" // web service discovery
+					, "sed -i 's/^\\(ssid=\\).*/\\1"+ hostname +"/' /etc/hostapd/hostapd.conf"             // hostapd
+					, "sed -i '/^\\tname =/ s/\".*\"/\""+ hostname +"\"/' /etc/shairport-sync.conf"        // shairport-sync
+					, "sed -i 's/^\\(friendlyname = \\).*/\\1"+ hostname +"/' /etc/upmpdcli.conf"          // upnp
+					, 'rm -f /root/.config/chromium/SingletonLock'                                         // chromium profile reset
+					, 'systemctl daemon-reload'
+					, 'systemctl try-restart avahi-daemon hostapd mpd smb wsdd shairport-sync shairport-meta upmpdcli'
+					, 'systemctl -q is-active bluetooth && bluetoothctl system-alias "'+ hostname +'"'
+					, "echo '"+ hostname +"' > "+ dirsystem +"/hostname"
+					, curlPage( 'system' )
+				] }, resetlocal );
+				banner( 'Name', 'Change ...', 'sliders' );
+			}
+		}
+	} );
+} );
+$( '#setting-ntp' ).click( function() {
+	info( {
+		  icon      : 'stopwatch'
+		, title     : 'NTP Server'
+		, textlabel : 'URL'
+		, textvalue : G.ntp
+		, ok        : function() {
+			var ntp = $( '#infoTextBox' ).val();
+			if ( ntp === G.ntp ) {
+				G.ntp = ntp
+				local = 1;
+				$.post( 'commands.php', { bash: [
+					  "sed -i 's/^\\(NTP=\\).*/\\1"+ ntp +"/' /etc/systemd/timesyncd.conf"
+					, "echo '"+ ntp +"' > "+ dirsystem +"/ntp"
+					, curlPage( 'system' )
+				] }, resetlocal );
+			}
+		}
+	} );
+} );
+$( '#timezone' ).on( 'change', function( e ) {
+	G.timezone = $( this ).val();
+	$.post( 'commands.php', { bash: [ 
+		  'timedatectl set-timezone '+ G.timezone
+		, "echo '"+ G.timezone +"' > "+ dirsystem +"/timezone"
+		, curlPage( 'system' )
+	] } );
+} );
+$( '#regdom' ).on( 'change', function( e ) {
+	var regdom = $( this ).val();
+	$.post( 'commands.php', { bash: [
+		  'sed -i \'s/".*"/"'+ regdom +'"/\' /etc/conf.d/wireless-regdom'
+		, 'iw reg set '+ regdom
+		, ( regdom === '00' ? 'rm ' : 'echo '+ regdom +' > ' ) + dirsystem +'/wlanregdom'
+		, curlPage( 'system' )
+	] } );
 } );
 $( '#journalctl' ).click( function( e ) {
 	codeToggle( e.target, this.id, getJournalctl );
@@ -964,26 +951,6 @@ refreshData = function() {
 		);
 		$( '#statuslabel' ).html( statuslabel );
 		$( '#status' ).html( renderStatus );
-		$( '#hostname' ).val( G.hostname );
-		$( '#timezone' )
-			.val( G.timezone )
-			.selectric( 'refresh' );
-		$( '#i2smodule' ).val( 'none' );
-		$( '#i2smodule option' ).filter( function() {
-			var $this = $( this );
-			return $this.text() === G.audiooutput && $this.val() === G.audioaplayname;
-		} ).prop( 'selected', true );
-		$( '#i2smodule' ).selectric( 'refresh' );
-		var i2senabled = $( '#i2smodule' ).val() === 'none' ? false : true;
-		$( '#divi2smodulesw' ).toggleClass( 'hide', i2senabled );
-		$( '#divi2smodule' ).toggleClass( 'hide', !i2senabled );
-		$( '#soundprofile' ).prop( 'checked', G.soundprofile !== '' );
-		$( '#eth0help' ).toggleClass( 'hide', G.ip.slice( 0, 4 ) !== 'eth0' );
-		$( '#setting-soundprofile' ).toggleClass( 'hide', G.soundprofile === '' );
-		$( '#onboardaudio' ).prop( 'checked', G.onboardaudio );
-		$( '#onboardhdmi' ).prop( 'checked', G.onboardhdmi );
-		$( '#bluetooth' ).prop( 'checked', G.bluetooth );
-		$( '#wlan' ).prop( 'checked', G.wlan );
 		$( '#airplay' ).prop( 'checked', G.airplay );
 		$( '#spotify' ).prop( 'checked', G.spotify );
 		$( '#setting-spotify' ).toggleClass( 'hide', !G.spotify );
@@ -1010,6 +977,26 @@ refreshData = function() {
 		$( '#avahi' ).prop( 'checked', G.avahi );
 		$( '#avahiname' ).text( G.hostname.toLowerCase() );
 		$( '#autoplay' ).prop( 'checked', G.autoplay );
+		$( '#i2smodule' ).val( 'none' );
+		$( '#i2smodule option' ).filter( function() {
+			var $this = $( this );
+			return $this.text() === G.audiooutput && $this.val() === G.audioaplayname;
+		} ).prop( 'selected', true );
+		$( '#i2smodule' ).selectric( 'refresh' );
+		var i2senabled = $( '#i2smodule' ).val() === 'none' ? false : true;
+		$( '#divi2smodulesw' ).toggleClass( 'hide', i2senabled );
+		$( '#divi2smodule' ).toggleClass( 'hide', !i2senabled );
+		$( '#soundprofile' ).prop( 'checked', G.soundprofile !== '' );
+		$( '#eth0help' ).toggleClass( 'hide', G.ip.slice( 0, 4 ) !== 'eth0' );
+		$( '#setting-soundprofile' ).toggleClass( 'hide', G.soundprofile === '' );
+		$( '#onboardaudio' ).prop( 'checked', G.onboardaudio );
+		$( '#onboardhdmi' ).prop( 'checked', G.onboardhdmi );
+		$( '#bluetooth' ).prop( 'checked', G.bluetooth );
+		$( '#wlan' ).prop( 'checked', G.wlan );
+		$( '#hostname' ).val( G.hostname );
+		$( '#timezone' ).val( G.timezone );
+		$( '#regdom' ).val( !G.regdom ? '00' : G.regdom );
+		$( '#timezone, #regdom' ).selectric( 'refresh' );
 		showContent();
 	}, 'json' );
 }

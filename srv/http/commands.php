@@ -159,7 +159,7 @@ if ( isset( $_POST[ 'backuprestore' ] ) ) {
 	
 } else if ( isset( $_POST[ 'getjson' ] ) ) {
 	$script = $_POST[ 'getjson' ];
-	$output = exec( $sudo.$script );
+	$output = shell_exec( $sudo.$script );
 	$array = json_decode( $output, true );
 	if ( isset( $_POST[ 'nonumeric' ] ) ) {
 		echo json_encode( $array );

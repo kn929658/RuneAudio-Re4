@@ -11,10 +11,15 @@ foreach( $timezonelist as $key => $zone ) {
 }
 $selecttimezone.= '</select>';
 
-include '/srv/http/settings/system-i2smodules.php';
-$optioni2smodule = '';
+$i2slist = json_decode( file_get_contents( '/srv/http/settings/system-i2s.json' ) );
+$optioni2s = '';
 foreach( $i2slist as $name => $sysname ) {
-	$optioni2smodule.= '<option value="'.$sysname.'">'.$name.'</option>';
+	$optioni2s.= '<option value="'.$sysname.'">'.$name.'</option>';
+}
+$regdomlist = json_decode( file_get_contents( '/srv/http/settings/regdom.json' ) );
+$optionregdom = '';
+foreach( $regdomlist as $country => $code ) {
+	$optionregdom.= '<option value="'.$code.'">'.$country.'</option>';
 }
 ?>
 <div>
@@ -166,7 +171,7 @@ foreach( $i2slist as $name => $sysname ) {
 	</div>
 	<div id="divi2smodule">
 		<select id="i2smodule" data-style="btn-default btn-lg">
-			<?=$optioni2smodule?>
+			<?=$optioni2s?>
 		</select>
 	</div>
 	<span class="help-block hide">I&#178;S modules are not plug-and-play capable. Select a driver for installed device.</span>
@@ -212,7 +217,6 @@ foreach( $i2slist as $name => $sysname ) {
 <div class="col-r">
 	<input id="wlan" type="checkbox">
 	<div class="switchlabel" for="wlan"></div>
-	<i id="setting-wlan" class="setting fa fa-gear"></i>
 	<span class="help-block hide">Should be disabled if not used.</span>
 </div>
 	<?php } ?>
@@ -230,6 +234,13 @@ foreach( $i2slist as $name => $sysname ) {
 	<?=$selecttimezone?>
 	<i id="setting-ntp" class="settingedit fa fa-gear"></i>
 	<span class="help-block hide"><i class="fa fa-gear"></i>&ensp;Set Network Time Protocol (NTP) server.</span>
+</div>
+<div class="col-l">Regulatory Domain</div>
+<div class="col-r">
+	<select id="regdom" data-style="btn-default btn-lg">
+		<?=$optionregdom?>
+	</select>
+	<span class="help-block hide">For wireless - set available channel and transmission power conform to restritions.</span>
 </div>
 </div>
 

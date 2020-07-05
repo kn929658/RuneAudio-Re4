@@ -1,5 +1,4 @@
 <?php
-$dirsettings = '/srv/http/data';
 $diraddons = '/srv/http/data/addons';
 
 $time = time();

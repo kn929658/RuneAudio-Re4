@@ -632,11 +632,10 @@ svg path.st1 {
 .emptyadd {
 	position: absolute;
 	top: 130px;
-	width: 100%;
+	left: 0;
+	right: 0;
 	text-align: center;
-	font-size: 30px !important;
-	color: var( --cw ) !important;
-	z-index: 1;
+	font-size: 24px;
 }
 #divartist,
 #divalbum {

@@ -708,14 +708,17 @@ $( '#timezone' ).on( 'change', function( e ) {
 		, curlPage( 'system' )
 	] } );
 } );
-$( '#regdom' ).on( 'change', function( e ) {
+$( '#regdom' ).on( 'change', function() {
 	var regdom = $( this ).val();
 	$.post( 'commands.php', { bash: [
-		  'sed -i \'s/".*"/"'+ regdom +'"/\' /etc/conf.d/wireless-regdom'
+		, 'sed -i \'s/".*"/"'+ regdom +'"/\' /etc/conf.d/wireless-regdom'
 		, 'iw reg set '+ regdom
 		, ( regdom === '00' ? 'rm ' : 'echo '+ regdom +' > ' ) + dirsystem +'/wlanregdom'
 		, curlPage( 'system' )
-	] } );
+	] }, getIwregget );
+} );
+$( '#iwregget' ).click( function( e ) {
+	codeToggle( e.target, this.id, getIwregget );
 } );
 $( '#journalctl' ).click( function( e ) {
 	codeToggle( e.target, this.id, getJournalctl );
@@ -847,6 +850,13 @@ $( '#backuprestore' ).click( function( e ) {
 		}
 	} );
 } );
+function getIwregget() {
+	$.post( 'commands.php', { bash: 'iw reg get', string: 1 }, function( status ) {
+		$( '#codeiwregget' )
+			.html( status )
+			.removeClass( 'hide' );
+	} );
+}
 function getJournalctl() {
 	if ( $( '#codejournalctl' ).text() ) {
 		$( '#codejournalctl' ).removeClass( 'hide' );

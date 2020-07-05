@@ -469,6 +469,7 @@ $( '#wlan' ).click( function( e ) {
 			, 'touch '+ dirsystem +'/onboard-wlan'
 			, curlPage( 'system' )
 		];
+		$( '.regdom' ).removeClass( 'hide' );
 	} else {
 		var cmd = [
 			  'systemctl disable --now netctl-auto@wlan0'
@@ -476,6 +477,7 @@ $( '#wlan' ).click( function( e ) {
 			, 'rm -f '+ dirsystem +'/onboard-wlan'
 			, curlPage( 'system' )
 		];
+		$( '.regdom' ).addClass( 'hide' );
 	}
 	$.post( 'commands.php', { bash: cmd } );
 } );

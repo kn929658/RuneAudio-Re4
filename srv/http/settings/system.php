@@ -235,15 +235,29 @@ foreach( $regdomlist as $country => $code ) {
 	<i id="setting-ntp" class="settingedit fa fa-gear"></i>
 	<span class="help-block hide"><i class="fa fa-gear"></i>&ensp;Set Network Time Protocol (NTP) server.</span>
 </div>
+	<?php $wlan = exec( 'ifconfig | grep -q ^wlan && echo 1 || echo 0' );
+		if ( $wlan ) { ?>
+<div class="regdom">
 <div class="col-l">Regulatory Domain</div>
 <div class="col-r">
 	<select id="regdom" data-style="btn-default btn-lg">
 		<?=$optionregdom?>
 	</select>
-	<span class="help-block hide">For wireless - set available channel and transmission power conform to restritions.</span>
+	<span class="help-block hide">For wireless - set available channels and transmit power permitted by local regulations.
+	<br>Default: (Generic / World) - Least common denominator settings, channels and transmit power are permitted in all countries.
+	<br>Note: Active regulatory domian may be negotiated and set by connected router.
+	</span>
 </div>
 </div>
-
+	<?php } ?>
+</div>
+	<?php if ( $wlan ) { ?>
+<div class="regdom">
+<heading id="iwregget" class="status">Active regdom<i class="fa fa-code"></i><?=$help?></heading>
+<span class="help-block hide"><code>iw reg get</code></span>
+<pre id="codeiwregget" class="hide"></pre>
+</div>
+	<?php } ?>
 <div>
 <heading id="journalctl" class="status">Boot Log<i id="journalctlicon" class="fa fa-code"></i><?=$help?></heading>
 <span class="help-block hide"><code>journalctl -b | sed -n '1,/Startup finished/ p'</code></span>

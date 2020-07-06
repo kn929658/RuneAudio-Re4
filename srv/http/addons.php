@@ -104,7 +104,7 @@ foreach( $arrayalias as $alias ) {
 			$btnin = '<a class="btn btn-primary" alias="'.$alias.'"'.$warning.'><i class="fa fa-folder-refresh"></i>Update</a>';
 		}
 		$btnunattr = isset( $addon[ 'rollback' ] ) ? ' rollback="'.$addon[ 'rollback' ].'"' : '';
-		$btnun = '<a class="btn btn-primary'.$hide.'" alias="'.$alias.'"'.$btnunattr.'><i class="fa fa-minus-circle"></i>Uninstall</a>';
+		$btnun = '<a class="btn btn-primary red'.$hide.'" alias="'.$alias.'"'.$btnunattr.'><i class="fa fa-minus-circle"></i>Uninstall</a>';
 	} else {
 		$installed = '';
 		$check = '';

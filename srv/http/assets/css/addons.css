@@ -344,6 +344,9 @@ a:hover {
 .btn-default.disabled {
 	background-color: var( --cg );
 }
+.red {
+	background-color: #bb2828;
+}
 .btn i {
 	margin-right: 5px;
 }

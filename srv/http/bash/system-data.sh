@@ -15,8 +15,10 @@
 throttle=$( /opt/vc/bin/vcgencmd get_throttled )
 if [[ $throttle != 0x0 ]]; then
 	D2B=( {0..1}{0..1}{0..1}{0..1} )
-	underv=$( echo $throttle | cut -dx -f2 | cut -c1 )
-	[[ $( echo ${D2B[$underv]} | cut -c4 ) == 1 ]] && undervoltage=true || undervoltage=false
+	undervoltage=${throttle: -1}
+	[[ $( echo ${D2B[$undervoltage]} | cut -c4 ) == 1 ]] && undervoltage=true || undervoltage=false
+	undervdetected=${throttle: -5:1}
+	[[ $( echo ${D2B[$undervdetected]} | cut -c4 ) == 1 ]] && undervdetected=true || undervdetected=false
 fi
 
 bullet='<gr> &bull; </gr>'
@@ -32,7 +34,8 @@ data='
 	, "cputemp"         : '$( printf "%.0f\n" $( /opt/vc/bin/vcgencmd measure_temp | cut -d= -f2 | cut -d\' -f1 ) )'
 	, "time"            : "'$time'"
 	, "uptime"          : "'$uptime'"
-	, "undervoltage"    : '$undervoltage
+	, "undervoltage"    : '$undervoltage'
+	, "undervdetected"  : '$undervdetected
 
 # for interval refresh
 (( $# > 0 )) && echo {$data} && exit

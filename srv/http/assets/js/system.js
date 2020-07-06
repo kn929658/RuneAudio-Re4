@@ -891,14 +891,18 @@ function rebootText( enable, device ) {
 	G.reboot.push( enable +' '+ device );
 }
 function renderStatus() {
+	var undervoltage = '';
 	var warning = '<i style="width: 20px; text-align: center" class="fa fa-warning blink"></i>';
+	if ( G.undervoltage ) {
+		undervoltage = '<br><red>'+ warning +' Voltage under 4.7V</red>';
+	} else if ( G.undervdetected ) {
+		undervoltage = '<br><i class="fa fa-warning gr"></i> Voltage under 4.7V occured.';
+	}
 	return G.cpuload
 		+'<br>'+ ( G.cputemp < 80 ? G.cputemp +' °C' : '<red>'+ warning + G.cputemp +' °C</red>' )
 		+'<br>'+ G.time
 		+'<br>'+ G.uptime
-		+ ( G.undervoltage
-			? '<br><red>'+ warning +' Voltage under 4.65V occured.</red>'
-			: '' )
+		+ undervoltage
 }
 
 refreshData = function() {

@@ -729,7 +729,7 @@ $( '#configtxt' ).click( function( e ) {
 $( '#backuprestore' ).click( function( e ) {
 	if ( $( e.target ).hasClass( 'help' ) ) return
 	
-	var icon = 'sliders';
+	var icon = 'sd';
 	var restoretitle = 'Restore Settings';
 	var backuptitle = restoretitle.replace( 'Restore', 'Backup' );
 	var maintitle = 'Backup/'+ restoretitle;

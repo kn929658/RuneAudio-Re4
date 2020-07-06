@@ -232,7 +232,7 @@ $selecttimezone.= '</select>';
 		<br>- Network Time Protocol (NTP) server
 		<br>- Wi-Fi regulatory domain:
 		<p style="margin: 0 0 0 20px">00 = Least common denominator settings, channels and transmit power are permitted in all countries.
-		<br>Active regulatory domian may be negotiated and set by connected router.</p>
+		<br>Active regulatory domian may be reassigned by connected router.</p>
 	</span>
 </div>
 <div>

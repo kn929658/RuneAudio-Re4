@@ -45,41 +45,56 @@ $( '#listinterfaces' ).on( 'click', 'li', function() {
 $( '#listwifi' ).on( 'click', 'li', function( e ) {
 	var $this = $( this );
 	var connected = $this.data( 'connected' );
+	var profile = $this.data( 'profile' ) || connected;
 	var ssid = $this.data( 'ssid' );
 	var ip = $this.data( 'ip' );
 	var gw = $this.data( 'gateway' );
 	var wpa = $this.data( 'wpa' );
-	var dhcp = $this.data( 'dhcp' ) == 1 ? 'DHCP' : 'Static IP'
-	if ( $( e.target ).hasClass( 'icon' ) ) {
-		if ( !connected && !$this.data( 'profile' ) ) {
+	var dhcp = $this.data( 'dhcp' ) == 1 ? 'DHCP' : 'Static'
+	var encrypt = $this.data( 'encrypt' ) === 'on';
+	var password = $this.data( 'password' );
+	if ( !profile ) {
+		if ( encrypt ) {
 			newWiFi( $this );
-			return
+		} else {
+			var data = 'Interface='+ wlcurrent
+					  +'\nConnection=wireless'
+					  +'\nIP=dhcp'
+					  +'\nESSID="'+ ssid +'"'
+					  +'\nSecurity=none';
+			connect( ssid, data );
 		}
+		return
 		
-		info( {
-			  icon        : 'wifi-3'
-			, title       : ssid
-			, message     :  'Current: <wh>'+ dhcp +'</wh>'
-							+'<br>IP: <wh>'+ ip +'</wh>'
-			, buttonwidth : 1
-			, buttonlabel : '<i class="fa fa-edit-circle"></i> IP'
-			, button      : function() {
-				if ( connected ) {
-					var data = {
-						  Address  : ip
-						, Gateway  : gw
-						, Security : wpa
-						, Key      : $this.data( 'password' )
-						, dhcp     : dhcp
-					}
-					editWiFi( ssid, data );
-				} else {
-					editWiFi( ssid, 0 );
-				}
-			}
-			, oklabel     : '<i class="fa fa-minus-circle"></i> Forget'
-			, okcolor     : '#bb2828'
-			, ok          : function() {
+	} else {
+		if ( !connected ) {
+			connect( ssid, false );
+			return
+			
+		}
+	}
+	info( {
+		  icon        : 'wifi-3'
+		, title       : ssid
+		, message     : '<div class="colL">'
+				+'IP :<br>'
+				+'Gateway :'
+			+'</div>'
+			+'<div class="colR wh" style="text-align: left;">'
+				+ ip +' <gr>&bull; '+ dhcp +'</gr><br>'
+				+ gw
+			+'</div>'
+		, buttonwidth : 1
+		, buttonlabel : [
+			  '<i class="fa fa-minus-circle"></i> Forget'
+			, '<i class="fa fa-edit-circle"></i> IP'
+		]
+		, buttoncolor : [
+			  '#bb2828'
+			, ''
+		]
+		, button      : [
+			  function() {
 				clearTimeout( intervalscan );
 				local = 1;
 				$.post( 'commands.php', { bash: [
@@ -94,59 +109,39 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 				} );
 				notify( ssid, 'Forget ...', 'wifi-3 blink' );
 			}
-		} );
-		return
-	}
-	
-	var encrypt = $this.data( 'encrypt' );
-	var eth0ip = $( '#listinterfaces li.eth0' ).data( 'ip' );
-	if ( location.host === eth0ip ) {
-		var msgreconnect = '';
-	} else {
-		var msgreconnect = '<br>Reconnect with IP: <wh>'+ eth0ip +'</wh>';
-	}
-	if ( connected ) {
-		info( {
-			  icon    : 'wifi-3'
-			, title   : ssid
-			, message : '<div class="colL">'
-					+'IP :<br>'
-					+'Gateway :'
-				+'</div>'
-				+'<div class="colR wh" style="text-align: left;">'
-					+ ip +'<br>'
-					+ gw
-				+'</div>'
-			, oklabel : 'Disconnect'
-			, okcolor : '#de810e'
-			, ok      : function() {
-				clearTimeout( intervalscan );
-				local = 1;
-				$.post( 'commands.php', { bash: [
-					  'netctl stop "'+ ssid +'"'
-					, 'killall wpa_supplicant'
-					, 'ifconfig '+ wlcurrent +' up'
-					, curlPage( 'network' )
-					] }, function() {
-						wlconnected = '';
-						wlanScan();
-						resetlocal();
-				} );
-				notify( ssid, 'Disconnect ...', 'wifi-3 blink' );
+			, function() {
+				if ( connected ) {
+					var data = {
+						  Address  : ip
+						, Gateway  : gw
+						, Security : wpa
+						, Key      : password
+						, dhcp     : dhcp
+					}
+					editWiFi( ssid, data );
+				} else {
+					editWiFi( ssid, 0 );
+				}
 			}
-		} );
-	} else if ( $this.data( 'profile' ) ) { // saved wi-fi
-		connect( ssid, false );
-	} else if ( encrypt === 'on' ) { // new wi-fi
-		newWiFi( $this );
-	} else { // no password
-		var data = 'Interface='+ wlcurrent
-				  +'\nConnection=wireless'
-				  +'\nIP=dhcp'
-				  +'\nESSID="'+ ssid +'"'
-				  +'\nSecurity=none';
-		connect( ssid, data );
-	}
+		]
+		, oklabel : 'Disconnect'
+		, okcolor : '#de810e'
+		, ok      : function() {
+			clearTimeout( intervalscan );
+			local = 1;
+			$.post( 'commands.php', { bash: [
+				  'netctl stop "'+ ssid +'"'
+				, 'killall wpa_supplicant'
+				, 'ifconfig '+ wlcurrent +' up'
+				, curlPage( 'network' )
+				] }, function() {
+					wlconnected = '';
+					wlanScan();
+					resetlocal();
+			} );
+			notify( ssid, 'Disconnect ...', 'wifi-3 blink' );
+		}
+	} );
 } );
 $( '#add' ).click( function() {
 	editWiFi();
@@ -745,12 +740,12 @@ function wlanScan( ssid ) {
 				html += val.dhcp ? ' data-dhcp="'+ val.dhcp +'"' : '';
 				html += val.password ? ' data-password="'+ val.password +'"' : '';
 				html += profile ? ' data-profile="'+ profile +'"' : '';
-				html += '><i class="icon fa fa-wifi-'+ ( val.dbm > good ? 3 : ( val.dbm < fair ? 1 : 2 ) ) +'"></i>';
+				html += '><i class="fa fa-wifi-'+ ( val.dbm > good ? 3 : ( val.dbm < fair ? 1 : 2 ) ) +'"></i>';
 				html += val.connected ? '<grn>&bull;</grn>&ensp;' : '';
 				html += val.dbm < fair ? '<gr>'+ val.ssid +'</gr>' : val.ssid;
 				html += val.encrypt === 'on' ? ' <i class="fa fa-lock"></i>' : '';
 				html += '<gr>'+ val.dbm +' dBm</gr>';
-				html += profile && !val.connected ? '&ensp;<i class="icon fa fa-save"></i>' : '';
+				html += profile && !val.connected ? '&ensp;<i class="fa fa-save"></i>' : '';
 			} );
 		} else {
 			html += '<li><i class="fa fa-lock"></i><gr>(no accesspoints found)</gr></li>';

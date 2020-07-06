@@ -56,14 +56,15 @@ for line in "${line[@]}"; do
 	fi
 	if [[ $ssid == $connectedssid ]]; then
 		connected=1
-		gw=$( ip r | grep "default.*$wlan" | awk '{print $3}' )
 		ip=$( ifconfig $wlan | awk '/inet / {print $2}' )
+		[[ -n $dhcp ]] && wlan= || wlan=$wlan
+		gateway=$( ip r | grep "^default.*$wlan" | awk '{print $3}' )
 	else
 		connected=
-		gw=
+		gateway=
 		ip=
 	fi
-	list+=',{"dbm":"'$dbm'","ssid":"'${ssid//\"/\\\"}'","encrypt":"'$encrypt'","wpa":"'$wpa'","profile":"'$profile'","dhcp":"'$dhcp'","connected":"'$connected'","gateway":"'$gw'","ip":"'$ip'","password":"'$password'"}'
+	list+=',{"dbm":"'$dbm'","ssid":"'${ssid//\"/\\\"}'","encrypt":"'$encrypt'","wpa":"'$wpa'","profile":"'$profile'","dhcp":"'$dhcp'","connected":"'$connected'","gateway":"'$gateway'","ip":"'$ip'","password":"'$password'"}'
 done
 
 echo [${list:1}] # 'remove leading ,

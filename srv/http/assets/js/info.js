@@ -198,7 +198,7 @@ function info( O ) {
 		if ( 'cancel' in O ) {
 			$( '#infoCancel' )
 				.html( 'cancellabel' in O ? O.cancellabel : 'Cancel' )
-				.css( 'background', 'cancelcolor' in O ? O.cancelcolor : '' );
+				.css( 'background-color', 'cancelcolor' in O ? O.cancelcolor : '' );
 			if ( 'cancelbutton' in O || 'cancellabel' in O ) $( '#infoCancel' ).removeClass( 'hide' );
 		}
 		if ( 'button' in O ) {

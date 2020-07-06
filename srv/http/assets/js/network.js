@@ -77,11 +77,11 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 		  icon        : 'wifi-3'
 		, title       : ssid
 		, message     : '<div class="colL">'
-				+'IP :<br>'
+				+ dhcp +' IP :<br>'
 				+'Gateway :'
 			+'</div>'
 			+'<div class="colR wh" style="text-align: left;">'
-				+ ip +' <gr>&bull; '+ dhcp +'</gr><br>'
+				+ ip +'<br>'
 				+ gw
 			+'</div>'
 		, buttonwidth : 1

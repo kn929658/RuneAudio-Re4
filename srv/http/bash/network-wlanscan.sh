@@ -57,7 +57,6 @@ for line in "${line[@]}"; do
 	if [[ $ssid == $connectedssid ]]; then
 		connected=1
 		ip=$( ifconfig $wlan | awk '/inet / {print $2}' )
-		[[ -n $dhcp ]] && wlan= || wlan=$wlan
 		gateway=$( ip r | grep "^default.*$wlan" | awk '{print $3}' )
 	else
 		connected=

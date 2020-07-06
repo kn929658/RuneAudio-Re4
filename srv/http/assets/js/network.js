@@ -65,18 +65,12 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 			connect( ssid, data );
 		}
 		return
-		
-	} else {
-		if ( !connected ) {
-			connect( ssid, false );
-			return
-			
-		}
 	}
+	
 	info( {
 		  icon        : 'wifi-3'
 		, title       : ssid
-		, message     : '<div class="colL">'
+		, message     : !connected ? 'Saved connection' : '<div class="colL">'
 				+ dhcp +' IP :<br>'
 				+'Gateway :'
 			+'</div>'
@@ -124,9 +118,14 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 				}
 			}
 		]
-		, oklabel : 'Disconnect'
-		, okcolor : '#de810e'
+		, oklabel : connected ? 'Disconnect' : 'Connect'
+		, okcolor : connected ? '#de810e' : ''
 		, ok      : function() {
+			if ( !connected ) {
+				connect( ssid, false );
+				return
+			}
+			
 			clearTimeout( intervalscan );
 			local = 1;
 			$.post( 'commands.php', { bash: [

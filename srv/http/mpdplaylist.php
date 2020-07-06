@@ -3,7 +3,6 @@
 if ( isset( $_POST[ 'current' ] ) || $argv[ 1 ] === 'current' ) {
 	$lists = playlist();
 	$array = htmlPlaylist( $lists );
-	$array[ 'playlistlength' ] = count( $lists );
 	echo json_encode( $array );
 	
 } else if ( isset( $_POST[ 'delete' ] ) ) {
@@ -171,7 +170,8 @@ if ( isset( $_POST[ 'current' ] ) || $argv[ 1 ] === 'current' ) {
 
 //-------------------------------------------------------------------------------------
 function htmlPlaylist( $lists, $name = '' ) {
-	if ( !count( $lists ) ) exit( '-1' );
+	$count = count( $lists );
+	if ( !$count ) exit( '-1' );
 	
 	$countradio = 0;
 	$countsong = 0;
@@ -231,7 +231,7 @@ function htmlPlaylist( $lists, $name = '' ) {
 	} else if ( $countradio ) {
 		$counthtml.= $countradiohtml;
 	}
-	return [ 'html' => $html, 'counthtml' => $counthtml ];
+	return [ 'html' => $html, 'counthtml' => $counthtml, 'playlistlength' => $count ];
 }
 function playlist() { // current playlist
 	$f = [ 'album', 'albumartist', 'artist', 'file', 'time', 'title', 'track' ];

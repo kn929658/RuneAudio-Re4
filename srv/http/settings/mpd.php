@@ -116,7 +116,8 @@
 
 <div>
 <heading id="status" class="status">Status<i class="fa fa-code"></i><i id="restart" class="fa fa-reboot"></i><?=$help?></heading>
-<span class="help-block hide"><code>systemctl status mpd mpdidle</code>&ensp;<code>systemctl restart mpd</code></span>
+<span class="help-block hide"><code>systemctl status mpd mpdidle</code>
+<br><i class="fa fa-reboot"></i>&ensp;Restart MPD
 <pre id="codestatus" class="hide"></pre>
 </div>
 

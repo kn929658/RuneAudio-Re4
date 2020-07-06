@@ -1,4 +1,10 @@
 <?php
+$i2slist = json_decode( file_get_contents( '/srv/http/settings/system-i2s.json' ) );
+$selecti2s = '<select id="i2smodule">';
+foreach( $i2slist as $name => $sysname ) {
+	$selecti2s.= '<option value="'.$sysname.'">'.$name.'</option>';
+}
+$selecti2s.= '</select>';
 $timezone = exec( "timedatectl | awk '/zone:/ {print $3}'" );
 date_default_timezone_set( $timezone );
 $timezonelist = timezone_identifiers_list();
@@ -10,17 +16,6 @@ foreach( $timezonelist as $key => $zone ) {
 	$selecttimezone.= '<option value="'.$zone.'">'.$zonename.'&ensp;'.$offset.'</option>\n';
 }
 $selecttimezone.= '</select>';
-
-$i2slist = json_decode( file_get_contents( '/srv/http/settings/system-i2s.json' ) );
-$optioni2s = '';
-foreach( $i2slist as $name => $sysname ) {
-	$optioni2s.= '<option value="'.$sysname.'">'.$name.'</option>';
-}
-$regdomlist = json_decode( file_get_contents( '/srv/http/settings/regdom.json' ) );
-$optionregdom = '';
-foreach( $regdomlist as $country => $code ) {
-	$optionregdom.= '<option value="'.$code.'">'.$country.'</option>';
-}
 ?>
 <div>
 <heading>System<?=$help?></heading>
@@ -170,9 +165,7 @@ foreach( $regdomlist as $country => $code ) {
 		<div class="switchlabel" for="i2smodulesw"></div>
 	</div>
 	<div id="divi2smodule">
-		<select id="i2smodule" data-style="btn-default btn-lg">
-			<?=$optioni2s?>
-		</select>
+		<?=$selecti2s?>
 	</div>
 	<span class="help-block hide">I&#178;S modules are not plug-and-play capable. Select a driver for installed device.</span>
 </div>
@@ -212,7 +205,8 @@ foreach( $regdomlist as $country => $code ) {
 	<div class="switchlabel" for="bluetooth"></div>
 	<span class="help-block hide">Should be disabled if not used.</span>
 </div>
-		<?php } ?>
+		<?php $bluetooth = ', Bluetooth';
+			  } ?>
 <div class="col-l">Wi-Fi</div>
 <div class="col-r">
 	<input id="wlan" type="checkbox">
@@ -227,37 +221,20 @@ foreach( $regdomlist as $country => $code ) {
 <div class="col-l">Name</div>
 <div class="col-r">
 	<input type="text" id="hostname" readonly style="cursor: pointer">
-	<span class="help-block hide">Name for Bluetooth, Renderers, RPi access point and system.</span>
+	<span class="help-block hide">Name for Renderers, Streamers, RPi access point<?=$bluetooth?> and system hostname.</span>
 </div>
 <div class="col-l">Timezone</div>
 <div class="col-r">
 	<?=$selecttimezone?>
-	<i id="setting-ntp" class="settingedit fa fa-gear"></i>
-	<span class="help-block hide"><i class="fa fa-gear"></i>&ensp;Set Network Time Protocol (NTP) server.</span>
-</div>
-	<?php $wlan = exec( 'ifconfig | grep -q ^wlan && echo 1 || echo 0' );
-		if ( $wlan ) { ?>
-<div class="regdom">
-<div class="col-l">Regulatory Domain</div>
-<div class="col-r">
-	<select id="regdom" data-style="btn-default btn-lg">
-		<?=$optionregdom?>
-	</select>
-	<span class="help-block hide">For wireless - set available channels and transmit power permitted by local regulations.
-	<br>Default: (Generic / World) - Least common denominator settings, channels and transmit power are permitted in all countries.
-	<br>Note: Active regulatory domian may be negotiated and set by connected router.
+	<i id="setting-system" class="settingedit fa fa-gear"></i>
+	<span class="help-block hide">
+		<i class="fa fa-gear"></i>&ensp;Set:
+		<br>- Network Time Protocol (NTP) server
+		<br>- Wi-Fi regulatory domain:
+		<p style="margin: 0 0 0 20px">00 = Least common denominator settings, channels and transmit power are permitted in all countries.
+		<br>Active regulatory domian may be negotiated and set by connected router.</p>
 	</span>
 </div>
-</div>
-	<?php } ?>
-</div>
-	<?php if ( $wlan ) { ?>
-<div class="regdom">
-<heading id="iwregget" class="status">Active regdom<i class="fa fa-code"></i><?=$help?></heading>
-<span class="help-block hide"><code>iw reg get</code></span>
-<pre id="codeiwregget" class="hide"></pre>
-</div>
-	<?php } ?>
 <div>
 <heading id="journalctl" class="status">Boot Log<i id="journalctlicon" class="fa fa-code"></i><?=$help?></heading>
 <span class="help-block hide"><code>journalctl -b | sed -n '1,/Startup finished/ p'</code></span>

@@ -1,6 +1,6 @@
 $( function() { // document ready start >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-$( '#timezone, #i2smodule, #regdom' ).selectric( { maxHeight: 400 } );
+$( '#timezone, #i2smodule' ).selectric( { maxHeight: 400 } );
 $( '.selectric-input' ).prop( 'readonly', 1 ); // fix - suppress screen keyboard
 
 var dirsystem = '/srv/http/data/system';
@@ -469,7 +469,6 @@ $( '#wlan' ).click( function( e ) {
 			, 'touch '+ dirsystem +'/onboard-wlan'
 			, curlPage( 'system' )
 		];
-		$( '.regdom' ).removeClass( 'hide' );
 	} else {
 		var cmd = [
 			  'systemctl disable --now netctl-auto@wlan0'
@@ -477,7 +476,6 @@ $( '#wlan' ).click( function( e ) {
 			, 'rm -f '+ dirsystem +'/onboard-wlan'
 			, curlPage( 'system' )
 		];
-		$( '.regdom' ).addClass( 'hide' );
 	}
 	$.post( 'commands.php', { bash: cmd } );
 } );
@@ -682,23 +680,35 @@ $( '#hostname' ).click( function() {
 		}
 	} );
 } );
-$( '#setting-ntp' ).click( function() {
+$( '#setting-system' ).click( function() {
 	info( {
-		  icon      : 'stopwatch'
-		, title     : 'NTP Server'
-		, textlabel : 'URL'
-		, textvalue : G.ntp
+		  icon      : 'gear'
+		, title     : 'Regional Settings'
+		, textlabel : [ 'NTP server', 'Regulatory domain' ]
+		, textvalue : [ G.ntp, G.regdom || '00' ]
+		, footer    : '<px70/><px60/>00 - common for all regions'
 		, ok        : function() {
 			var ntp = $( '#infoTextBox' ).val();
-			if ( ntp === G.ntp ) {
+			var regdom = $( '#infoTextBox1' ).val();
+			var cmd = [];
+			if ( ntp !== G.ntp ) {
 				G.ntp = ntp
-				local = 1;
-				$.post( 'commands.php', { bash: [
+				cmd.push(
 					  "sed -i 's/^\\(NTP=\\).*/\\1"+ ntp +"/' /etc/systemd/timesyncd.conf"
 					, "echo '"+ ntp +"' > "+ dirsystem +"/ntp"
-					, curlPage( 'system' )
-				] }, resetlocal );
+				);
 			}
+			if ( regdom !== G.regdom ) {
+				G.regdom = regdom;
+				cmd.push(
+					  'sed -i \'s/".*"/"'+ regdom +'"/\' /etc/conf.d/wireless-regdom'
+					, 'iw reg set '+ regdom
+					, ( regdom === '00' ? 'rm ' : 'echo '+ regdom +' > ' ) + dirsystem +'/wlanregdom'
+				);
+			}
+			cmd.push( curlPage( 'system' ) );
+			local = 1;
+			$.post( 'commands.php', { bash: cmd }, resetlocal );
 		}
 	} );
 } );
@@ -709,18 +719,6 @@ $( '#timezone' ).on( 'change', function( e ) {
 		, "echo '"+ G.timezone +"' > "+ dirsystem +"/timezone"
 		, curlPage( 'system' )
 	] } );
-} );
-$( '#regdom' ).on( 'change', function() {
-	var regdom = $( this ).val();
-	$.post( 'commands.php', { bash: [
-		, 'sed -i \'s/".*"/"'+ regdom +'"/\' /etc/conf.d/wireless-regdom'
-		, 'iw reg set '+ regdom
-		, ( regdom === '00' ? 'rm ' : 'echo '+ regdom +' > ' ) + dirsystem +'/wlanregdom'
-		, curlPage( 'system' )
-	] }, getIwregget );
-} );
-$( '#iwregget' ).click( function( e ) {
-	codeToggle( e.target, this.id, getIwregget );
 } );
 $( '#journalctl' ).click( function( e ) {
 	codeToggle( e.target, this.id, getJournalctl );
@@ -1006,9 +1004,9 @@ refreshData = function() {
 		$( '#bluetooth' ).prop( 'checked', G.bluetooth );
 		$( '#wlan' ).prop( 'checked', G.wlan );
 		$( '#hostname' ).val( G.hostname );
-		$( '#timezone' ).val( G.timezone );
-		$( '#regdom' ).val( !G.regdom ? '00' : G.regdom );
-		$( '#timezone, #regdom' ).selectric( 'refresh' );
+		$( '#timezone' )
+			.val( G.timezone )
+			.selectric( 'refresh' );
 		showContent();
 	}, 'json' );
 }

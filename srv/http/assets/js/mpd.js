@@ -9,10 +9,6 @@ var warning = '<wh><i class="fa fa-warning fa-lg"></i>&ensp;Lower amplifier volu
 			 +'<br>(If current level in MPD is not 100%.)'
 			 +'<br><br>Signal level will be set to full amplitude to 0dB'
 			 +'<br>Too high volume can damage speakers and ears';
-$( 'body' ).on( 'click touchstart', function( e ) {
-	// fired twice, input + label
-	if ( e.target.id !== 'novolume' && $( e.target ).prop( 'for' ) !== 'novolume' ) checkNoVolume();
-} );
 $( '#audiooutput' ).on( 'selectric-change', function() {
 	var $selected = $( this ).find( ':selected' );
 	G.audiooutput = $selected.text();
@@ -143,7 +139,7 @@ $( '#novolume' ).click( function() {
 				$.post( 'commands.php', { bash: [
 					  "sed -i"
 						+" -e '/mixer_type/ s/\".*\"/\"none\"/'"
-						+" -e '/mixer_control\\|mixer_device/ d'"
+						+" -e '/mixer_control\\|mixer_device\\|volume_normalization/ d'"
 						+" -e '/^replaygain/ s/\".*\"/\"off\"/' /etc/mpd.conf"
 					, 'echo none > '+ dirsystem +'"/mpd-mixertype-'+ $output.text() +'"'
 					, 'rm -f '+ dirsystem +'/{mpd-replaygain,mpd-normalization}'
@@ -230,7 +226,7 @@ $( '#normalization' ).click( function() {
 	G.normalization = $( this ).prop( 'checked' );
 	if ( G.normalization ) {
 		var cmd = [
-			  "sed -i '/^user/ a\volume_normalization \"yes\"' /etc/mpd.conf"
+			  "sed -i '/^user/ a\\volume_normalization \"yes\"' /etc/mpd.conf"
 			, 'touch '+ dirsystem +'/mpd-normalization'
 		];
 	} else {
@@ -299,7 +295,7 @@ $( '#autoupdate' ).click( function() {
 	G.autoupdate = $( this ).prop( 'checked' );
 	if ( G.autoupdate ) {
 		var cmd = [
-			  "sed -i '1 i\auto_update        \"yes\"' /etc/mpd.conf"
+			  "sed -i '1 i\\auto_update        \"yes\"' /etc/mpd.conf"
 			, 'touch '+ dirsystem +'/mpd-autoupdate'
 		];
 	} else {
@@ -360,7 +356,7 @@ $( '#setting-buffer' ).click( function() {
 				$.post( 'commands.php', { bash: [
 					  "sed -i"
 						+" -e '/^audio_buffer/ d'"
-						+" -e '1 i\audio_buffer_size  \""+ buffer +"\"' /etc/mpd.conf"
+						+" -e '1 i\\audio_buffer_size  \""+ buffer +"\"' /etc/mpd.conf"
 					, 'echo '+ buffer +' > '+ dirsystem +'/mpd-buffer'
 					, restartmpd
 					, curlPage( 'mpd' )

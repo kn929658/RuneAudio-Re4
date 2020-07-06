@@ -9,6 +9,10 @@ var warning = '<wh><i class="fa fa-warning fa-lg"></i>&ensp;Lower amplifier volu
 			 +'<br>(If current level in MPD is not 100%.)'
 			 +'<br><br>Signal level will be set to full amplitude to 0dB'
 			 +'<br>Too high volume can damage speakers and ears';
+$( 'body' ).on( 'click touchstart', function( e ) {
+	// fired twice, input + label
+	if ( e.target.id !== 'novolume' && $( e.target ).prop( 'for' ) !== 'novolume' ) checkNoVolume();
+} );
 $( '#audiooutput' ).on( 'selectric-change', function() {
 	var $selected = $( this ).find( ':selected' );
 	G.audiooutput = $selected.text();
@@ -43,12 +47,13 @@ $( '#audiooutput' ).on( 'selectric-change', function() {
 	$( '#mixertype' )
 		.val( $selected.data( 'mixertype' ) )
 		.selectric( 'refresh' );
+	$( '#novolume' ).prop( 'checked', $selected.data( 'mixertype' ) === 'none' );
 	$( '#dop' ).prop( 'checked', $selected.data( 'dop' ) );
 	if ( !$( '#codestatus' ).hasClass( 'hide' ) ) getStatus();
 	if ( !$( '#codempdconf' ).hasClass( 'hide' ) ) getMpdconf();
 } );
 $( '#mixertype' ).on( 'selectric-change', function() {
-	var mixertype = $( '#mixertype' ).val();
+	var mixertype = $( this ).val();
 	if ( mixertype === 'none' ) {
 		info( {
 			  icon    : 'volume'
@@ -56,7 +61,7 @@ $( '#mixertype' ).on( 'selectric-change', function() {
 			, message : warning
 			, cancel  : function() {
 				$( '#mixertype' )
-					.val( mixertype )
+					.val( $( '#audiooutput option:selected' ).data( 'mixertype' ) )
 					.selectric( 'refresh' );
 			}
 			, ok      : function() {
@@ -121,6 +126,48 @@ $( '#aplay' ).click( function( e ) {
 $( '#amixer' ).click( function( e ) {
 	codeToggle( e.target, this.id, getAmixer );
 } );
+$( '#novolume' ).click( function() {
+	var checked = $( this ).prop( 'checked' );
+	if ( checked ) {
+		info( {
+			  icon    : 'volume'
+			, title   : 'Mixer Control'
+			, message : warning
+			, ok      : function() {
+				G.crossfade === 0;
+				G.normalization === false;
+				G.replaygain === 'off';
+				var $output = $( '#audiooutput option:selected' );
+				var volumenone = $output.data( 'mixertype' ) === 'none' ? 0 : 1;
+				local = 1;
+				$.post( 'commands.php', { bash: [
+					  "sed -i"
+						+" -e '/mixer_type/ s/\".*\"/\"none\"/'"
+						+" -e '/mixer_control\\|mixer_device/ d'"
+						+" -e '/^replaygain/ s/\".*\"/\"off\"/' /etc/mpd.conf"
+					, 'echo none > '+ dirsystem +'"/mpd-mixertype-'+ $output.text() +'"'
+					, 'rm -f '+ dirsystem +'/{mpd-replaygain,mpd-normalization}'
+					, 'mpc crossfade 0'
+					, setmpdconf
+					, curlPage( 'mpd' )
+					, 'curl -s -X POST "http://127.0.0.1/pub?id=volumenone" -d \'{ "volumenone": "'+ volumenone +'" }\''
+				] }, resetlocal );
+				banner( 'No Volume', 'Enable ...', 'mpd' );
+				$( '#crossfade, #normalization, #replaygain' ).prop( 'checked', 0 );
+				$( '#audiooutput option:selected' ).data( 'mixertype', 'none' );
+				$( '#mixertype' )
+					.val( 'none' )
+					.selectric( 'refresh' );
+			}
+		} );
+	} else {
+		info( {
+			  icon    : 'volume'
+			, title   : 'Mixer Control'
+			, message : 'Enable any volume features - disable <wh>No volume</wh>.'
+		} );
+	}
+} );
 $( '#dop' ).click( function() {
 	var checked = $( this ).prop( 'checked' );
 	var $selected = $( '#audiooutput option:selected' );
@@ -132,46 +179,6 @@ $( '#dop' ).click( function() {
 		, curlPage( 'mpd' )
 	] }, resetlocal );
 	banner( 'DSP over PCM', checked, 'mpd' );
-} );
-$( 'body' ).on( 'click touchstart', function( e ) {
-	// fired twice, input + label
-	if ( e.target.id !== 'novolume' && $( e.target ).prop( 'for' ) !== 'novolume' ) checkNoVolume();
-} );
-$( '#novolume' ).click( function() {
-	var checked = $( this ).prop( 'checked' );
-	if ( checked ) {
-		info( {
-			  icon    : 'volume'
-			, title   : 'Mixer Control'
-			, message : warning
-			, ok      : function() {
-				G.crossfade === 0;
-				G.normalization === 'no';
-				G.replaygain === 'off';
-				var volumenone = $( '#audiooutput option:selected' ).data( 'mixertype' ) === 'none' ? 0 : 1;
-				local = 1;
-				$.post( 'commands.php', { bash: [
-					  "sed -i"
-						+" -e '/^mixer_type/ s/\".*\"/\"none\"/'"
-						+" -e '/^replaygain/ s/\".*\"/\"off\"/' /etc/mpd.conf"
-					, 'echo none > '+ dirsystem +'/mpd-mixertype'
-					, 'rm -f '+ dirsystem +'/{mpd-replaygain,mpd-normalization}'
-					, 'mpc crossfade 0'
-					, setmpdconf
-					, curlPage( 'mpd' )
-					, 'curl -s -X POST "http://127.0.0.1/pub?id=volumenone" -d \'{ "volumenone": "'+ volumenone +'" }\''
-				] }, resetlocal );
-				banner( 'No Volume', 'Enable ...', 'mpd' );
-				$( '#crossfade, #normalization, #replaygain' ).prop( 'checked', 0 );
-			}
-		} );
-	} else {
-		info( {
-			  icon    : 'volume'
-			, title   : 'Mixer Control'
-			, message : 'Enable any volume features - disable <wh>No volume</wh>.'
-		} );
-	}
 } );
 $( '#crossfade' ).click( function() {
 	if ( $( this ).prop( 'checked' ) ) {
@@ -402,7 +409,7 @@ $( '#mpdconf' ).click( function( e ) {
 } );
 function checkNoVolume() {
 	var $selected = $( '#audiooutput option:selected' );
-	if ( $selected.data( 'mixertype' ) === 'none'
+	if ( $( '#mixertype' ).val() === 'none'
 		&& G.crossfade === 0
 		&& G.normalization === false
 		&& G.replaygain === 'off'
@@ -449,6 +456,7 @@ function getStatus() {
 }
 function setMixerType( mixertype ) {
 	var $output = $( '#audiooutput option:selected' );
+	$output.data( 'mixertype', mixertype );
 	var cmd = [];
 	if ( mixertype === 'none' ) {
 		var volumenone = 1;
@@ -457,6 +465,7 @@ function setMixerType( mixertype ) {
 	} else {
 		var volumenone = 0;
 	}
+	checkNoVolume();
 	cmd.push(
 		  'echo '+ mixertype +' > "'+ dirsystem +'/mpd-mixertype-'+ $output.text() +'"'
 		, setmpdconf
@@ -470,7 +479,6 @@ function setMixerType( mixertype ) {
 		resetlocal();
 	} );
 	banner( 'Mixer Control', 'Change ...', 'mpd' );
-	checkNoVolume();
 	$( '.hwmixer' ).toggleClass( 'hide', mixertype !== 'hardware' );
 }
 

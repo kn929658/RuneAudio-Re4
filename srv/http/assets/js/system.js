@@ -489,7 +489,7 @@ $( '#i2smodulesw' ).click( function() {
 			.find( '.selectric' ).click();
 	}, 200 );
 } );
-$( '#i2smodule' ).on( 'change', function( e ) {
+$( '#i2smodule' ).on( 'selectric-change', function( e ) {
 	var audioaplayname = $( this ).val();
 	var audiooutput = $( this ).find( ':selected' ).text();
 	local = 1;
@@ -712,7 +712,7 @@ $( '#setting-system' ).click( function() {
 		}
 	} );
 } );
-$( '#timezone' ).on( 'change', function( e ) {
+$( '#timezone' ).on( 'selectric-change', function( e ) {
 	G.timezone = $( this ).val();
 	$.post( 'commands.php', { bash: [ 
 		  'timedatectl set-timezone '+ G.timezone

@@ -102,17 +102,7 @@ $( '#coverart' ).on( 'error', function() {
 	$( '#coverart' ).removeClass( 'hide' );
 	$( '.rs-animation .rs-transition' ).css( 'transition-property', '' ); // restore animation after load
 	$( 'html, body' ).scrollTop( 0 );
-	if ( !$( '#lib-cover-list' ).html() ) return
-	
-	var lazyLoad = new LazyLoad( { elements_selector: '.lazy' } );
-	// for load 1st page without lazy
-	var perrow = $( 'body' )[ 0 ].clientWidth / 200;
-	var percolumn = window.innerHeight / 200;
-	var perpage = Math.ceil( perrow ) * Math.ceil( percolumn );
-	var lazyL = $( '#lib-cover-list .lazy' ).length;
-	if ( perpage > lazyL ) perpage = lazyL;
-	var lazy = document.getElementsByClassName( 'lazy' );
-	for( i = 0; i < perpage; i++ ) LazyLoad.load( lazy[ i ], 'force' );
+	if ( $( '#lib-cover-list' ).html() ) new LazyLoad( { elements_selector: '.lazy' } );
 } );
 // COMMON /////////////////////////////////////////////////////////////////////////////////////
 $( '#button-settings, #badge' ).click( function() {

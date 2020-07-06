@@ -65,18 +65,12 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 			connect( ssid, data );
 		}
 		return
-		
-	} else {
-		if ( !connected ) {
-			connect( ssid, false );
-			return
-			
-		}
 	}
+	
 	info( {
 		  icon        : 'wifi-3'
 		, title       : ssid
-		, message     : '<div class="colL">'
+		, message     : !connected ? 'Saved connection' : '<div class="colL">'
 				+ dhcp +' IP :<br>'
 				+'Gateway :'
 			+'</div>'
@@ -97,10 +91,11 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 			  function() {
 				clearTimeout( intervalscan );
 				local = 1;
+				var ssidfilename = escapeSingleQuote( ssid )
 				$.post( 'commands.php', { bash: [
-					  'netctl stop "'+ ssid +'"'
+					  "netctl stop '"+ ssidfilename +"'"
 					, 'systemctl disable netctl-auto@'+ wlcurrent
-					, 'rm "/etc/netctl/'+ ssid +'" "/srv/http/data/system/netctl-'+ ssid +'"'
+					, "rm '/etc/netctl/"+ ssidfilename +"' '/srv/http/data/system/netctl-"+ ssidfilename +"'"
 					, curlPage( 'network' )
 					] }, function() {
 					wlconnected = '';
@@ -124,13 +119,18 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 				}
 			}
 		]
-		, oklabel : 'Disconnect'
-		, okcolor : '#de810e'
+		, oklabel : connected ? 'Disconnect' : 'Connect'
+		, okcolor : connected ? '#de810e' : ''
 		, ok      : function() {
+			if ( !connected ) {
+				connect( ssid, false );
+				return
+			}
+			
 			clearTimeout( intervalscan );
 			local = 1;
 			$.post( 'commands.php', { bash: [
-				  'netctl stop "'+ ssid +'"'
+				  "netctl stop '"+ escapeSingleQuote( ssid ) +"'"
 				, 'killall wpa_supplicant'
 				, 'ifconfig '+ wlcurrent +' up'
 				, curlPage( 'network' )
@@ -366,19 +366,20 @@ function connect( ssid, data, ip ) { // ip - static
 		  'netctl stop-all'
 		, 'ifconfig '+ wlcurrent +' down'
 	];
+	var ssidfilename = escapeSingleQuote( ssid );
 	if ( data ) cmd.push(
-		  'echo -e "'+ data +'" > "/srv/http/data/system/netctl-'+ ssid +'"'
-		, 'cp "/srv/http/data/system/netctl-'+ ssid +'" "/etc/netctl/'+ ssid +'"'
+		  "echo '"+ data +"' > '/srv/http/data/system/netctl-"+ ssidfilename +"'"
+		, "cp '/srv/http/data/system/netctl-"+ ssidfilename +"' '/etc/netctl/"+ ssidfilename +"'"
 	);
 	if ( ip ) {
-		cmd.push( 'echo -e "'+ data +'" > "/etc/netctl/'+ ssid +'"' );
+		cmd.push( "echo '"+ data +"' > '/etc/netctl/"+ ssidfilename +"'" );
 		$( '#loader' ).removeClass( 'hide' );
 		banner( ssid, 'Static IP ...', 'wifi-3' );
 		location.href = 'http://'+ ip +'/index-settings.php?p=network';
 	} else {
 		banner( ssid, 'Connect ...', 'wifi-3' );
 	}
-	cmd.push( 'netctl start "'+ ssid +'"' );
+	cmd.push( "netctl start '"+ ssidfilename +"'" );
 	local = 1;
 	$.post( 'commands.php', { bash: cmd }, function( std ) {
 		if ( std != -1 ) {
@@ -455,7 +456,7 @@ function editLAN( data ) {
 			$( '#loader' ).removeClass( 'hide' );
 			location.href = 'http://'+ G.hostname +'.local/index-settings.php?p=network';
 			$.post( 'commands.php', { bash: [
-				  'echo -e "'+ eth0 +'" > /etc/systemd/network/eth0.network'
+				  "echo '"+ eth0 +"' > /etc/systemd/network/eth0.network"
 				, 'rm -f /srv/http/data/system/eth0.network'
 				, 'systemctl restart systemd-networkd'
 			] } );
@@ -483,8 +484,8 @@ function editLAN( data ) {
 					$( '#loader' ).removeClass( 'hide' );
 					location.href = 'http://'+ data1.ip +'/index-settings.php?p=network';
 					$.post( 'commands.php', { bash: [
-						  'echo -e "'+ eth0 +'" > /etc/systemd/network/eth0.network'
-						, 'echo -e "'+ eth0 +'" > /srv/http/data/system/eth0.network'
+						  "echo '"+ eth0 +"' > /etc/systemd/network/eth0.network"
+						, "echo '"+ eth0 +"' > /srv/http/data/system/eth0.network"
 						, 'systemctl restart systemd-networkd'
 					] } );
 				}
@@ -495,9 +496,11 @@ function editLAN( data ) {
 }
 function editWiFi( ssid, data ) {
 	var data0 = data;
+	var icon = ssid ? 'edit-circle' : 'wifi-3';
+	var title = ssid ? 'Wi-Fi IP' : 'Add Wi-Fi';
 	info( {
-		  icon          : ssid ? 'edit-circle' : 'wifi-3'
-		, title         : ssid ? 'Wi-Fi IP' : 'Add Wi-Fi'
+		  icon          : icon
+		, title         : title
 		, textlabel     : [ 'SSID', 'IP', 'Gateway' ]
 		, checkbox      : { 'Static IP': 1, 'Hidden SSID': 1, 'WEP': 1 }
 		, passwordlabel : 'Password'
@@ -508,7 +511,7 @@ function editWiFi( ssid, data ) {
 				if ( data ) {
 					editWiFiSet( ssid, data );
 				} else {
-					$.post( 'commands.php', { getwifi: ssid }, function( data ) {
+					$.post( 'commands.php', { getwifi: escapeSingleQuote( ssid ) }, function( data ) {
 						data.dhcp = data.IP === 'static' ? 'Static IP' : 'DHCP';
 						data.Address = 'Address' in data ? data.Address.replace( '/24', '' ) : '';
 						editWiFiSet( ssid, data );
@@ -516,12 +519,11 @@ function editWiFi( ssid, data ) {
 				}
 			}
 		}
-		, footer        : '<br><px50/><code>"</code> double quotes not allowed'
 		, ok            : function() {
 			var ssidadd = $( '#infoTextBox' ).val();
+			var password = $( '#infoPasswordBox' ).val();
 			var ip = $( '#infoTextBox1' ).val();
 			var gw = $( '#infoTextBox2' ).val();
-			var password = $( '#infoPasswordBox' ).val();
 			var static = $( '#infoCheckBox input:eq( 0 )' ).prop( 'checked' );
 			var hidden = $( '#infoCheckBox input:eq( 1 )' ).prop( 'checked' );
 			var security = $( '#infoCheckBox input:eq( 2 )' ).prop( 'checked' );
@@ -529,11 +531,11 @@ function editWiFi( ssid, data ) {
 			
 			var data =   'Interface='+ wlcurrent
 						+'\nConnection=wireless'
-						+'\nESSID=\\"'+ escapeString( ssid || ssidadd ) +'\\"'
+						+'\nESSID="'+ escapeString( ssid || ssidadd ) +'"'
 						+'\nIP='+ ( static ? 'static' : 'dhcp' );
 			if ( password ) {
 				data +=  '\nSecurity='+ ( security ?  'wep' : 'wpa' )
-						+'\nKey=\\"'+ escapeString( password ) +'\\"';
+						+'\nKey="'+ escapeString( password ) +'"';
 			} else {
 				data +=  '\nSecurity=none'
 			}
@@ -592,19 +594,26 @@ function editWiFiSet( ssid, data ) {
 			$( '#loader' ).removeClass( 'hide' );
 			banner( ssid, 'DHCP ...', 'wifi-3' );
 			location.href = 'http://'+ G.hostname +'.local/index-settings.php?p=network';
+			var ssidfilename = escapeSingleQuote( ssid );
 			$.post( 'commands.php', { bash: [
-				  'netctl stop "'+ ssid +'"'
+				  "netctl stop '"+ ssidfilename +"'"
 				, "sed -i "
 					+" -e '/^Address\\|^Gateway/ d'"
-					+" -e 's/^IP.*/IP=dhcp/' '/srv/http/data/system/netctl-"+ ssid +"'"
-				, "cp '/srv/http/data/system/netctl-"+ ssid +"' '/etc/netctl/"+ ssid +"'"
-				, 'netctl start "'+ ssid +'"'
+					+" -e 's/^IP.*/IP=dhcp/' '/srv/http/data/system/netctl-"+ ssidfilename +"'"
+				, "cp '/srv/http/data/system/netctl-"+ ssidfilename +"' '/etc/netctl/"+ ssidfilename +"'"
+				, "netctl start '"+ ssidfilename +"'"
 			] } );
 		} );
 	}
 }
 function escapeString( str ) {
-	return str.replace( /([&()]\\)/g, '\$1' );
+	var string = str
+			.replace( /([&()\\])/g, '\$1' )
+			.replace( /"/g, '\\\"' )
+	return escapeSingleQuote( string )
+}
+function escapeSingleQuote( str ) {
+	return str.replace( /'/g, '\'"\'"\'' );
 }
 function getIfconfig() {
 	var cmd = 'ifconfig';
@@ -629,15 +638,15 @@ function newWiFi( $this ) {
 		  icon          : 'wifi-3'
 		, title         : ssid
 		, passwordlabel : 'Password'
-		, footer        : '<br><px70/><code>"</code> double quotes not allowed'
 		, oklabel       : 'Connect'
 		, ok            : function() {
+			var password = $( '#infoPasswordBox' ).val();
 			var data = 'Interface='+ wlcurrent
 					  +'\nConnection=wireless'
 					  +'\nIP=dhcp'
-					  +'\nESSID=\\"'+ escapeString( ssid ) +'\\"'
+					  +'\nESSID="'+ escapeString( ssid ) +'"'
 					  +'\nSecurity='+ ( wpa || 'wep' )
-					  +'\nKey=\\"'+ escapeString( $( '#infoPasswordBox' ).val() ) +'\\"';
+					  +'\nKey="'+ escapeString( password ) +'"';
 			connect( ssid, data );
 		}
 	} );

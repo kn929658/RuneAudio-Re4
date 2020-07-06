@@ -896,7 +896,7 @@ function renderStatus() {
 		+'<br>'+ ( G.cputemp < 80 ? G.cputemp +' °C' : '<red>'+ warning + G.cputemp +' °C</red>' )
 		+'<br>'+ G.time
 		+'<br>'+ G.uptime
-		+ ( !G.undervoltage
+		+ ( G.undervoltage
 			? '<br><red>'+ warning +' Voltage under 4.65V occured.</red>'
 			: '' )
 }

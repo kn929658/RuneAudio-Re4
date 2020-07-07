@@ -315,6 +315,54 @@ $( '#setting-localbrowser' ).click( function( e ) {
 		}
 	} );
 } );
+$( '#mpdscribble' ).click( function() {
+	var checked = $( this ).prop( 'checked' );
+	if ( checked && !G.mpdscribbleuser ) {
+		$( '#setting-mpdscribble' ).click();
+	} else {
+		if ( checked ) {
+			var cmd = [
+				  'systemctl enable --now mpdscribble@mpd'
+				, 'touch '+ dirsystem +'/mpd-mpdscribble'
+			];
+		} else {
+			var cmd = [
+				  'systemctl disable --now mpdscribble@mpd'
+				, 'rm -f '+ dirsystem +'/mpd-mpdscribble'
+			];
+		}
+		cmd.push( curlPage( 'system' ) );
+		banner( 'Scrobbler', checked, 'lastfm' );
+		$.post( 'commands.php', { bash: cmd }, refreshData );
+	}
+} );
+$( '#setting-mpdscribble' ).click( function() {
+	info( {
+		  icon          : 'lastfm'
+		, title         : 'Scrobbler'
+		, textlabel     : 'User'
+		, textvalue     : G.mpdscribbleuser
+		, passwordlabel : 'Password'
+		, cancel        : function() {
+			$( '#mpdscribble' ).prop( 'checked', G.mpdscribble );
+		}
+		, ok            : function() {
+			var user = $( '#infoTextBox' ).val().replace( /([&()\\])/g, '\$1' );
+			var password = $( '#infoPasswordBox' ).val().replace( /([&()\\])/g, '\$1' );
+			banner( 'Scrobbler', G.mpdscribble ? 'Change ...' : 'Enable ...', 'lastfm' );
+			$.post( 'commands.php', { bash: [
+				  'sed -i'
+					+" -e 's/^\\(username =\\).*/\\1 "+ user +"/'"
+					+" -e 's/^\\(password =\\).*/\\1 "+ password +"/'"
+					+' /etc/mpdscribble.conf'
+				, "echo '"+ user +"\n"+ password +"' > "+ dirsystem +'/mpdscribble'
+				, 'touch '+ dirsystem +'/mpd-mpdscribble'
+				, ( G.mpdscribble ? 'systemctl restart mpdscribble@mpd' : 'systemctl enable --now mpdscribble@mpd' )
+				, curlPage( 'system' )
+			] }, refreshData );
+		}
+	} );
+} );
 $( '#login' ).click( function( e ) {
 	G.login = $( this ).prop( 'checked' );
 	$( '#setting-login' ).toggleClass( 'hide', !G.login );
@@ -985,6 +1033,8 @@ refreshData = function() { // system page: use resetLocal() to aviod delay
 		}
 		$( '#streaming' ).prop( 'checked', G.streaming );
 		$( '#ip' ).text( G.streamingip +':8000' );
+		$( '#mpdscribble' ).prop( 'checked', G.mpdscribble );
+		$( '#setting-mpdscribble' ).toggleClass( 'hide', !G.mpdscribble );
 		$( '#login' ).prop( 'checked', G.login );
 		$( '#setting-login' ).toggleClass( 'hide', !G.login );
 		$( '#avahi' ).prop( 'checked', G.avahi );

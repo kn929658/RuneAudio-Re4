@@ -120,7 +120,10 @@ $selecttimezone.= '</select>';
 <div>
 <heading>Features<?=$help?></heading>
 	<?php if ( file_exists( '/usr/bin/chromium' ) ) { ?>
-<div class="col-l double"><a>Browser on RPi<br><gr>Chromium</gr></a><i class="fa fa-chromium fa-lg"></i></div>
+<div class="col-l double">
+	<!-- keep in single line to prevent extrs spaces -->
+	<a>Browser on RPi<br><gr>Chromium</gr></a><i class="fa fa-chromium fa-lg"></i>
+</div>
 <div class="col-r">
 	<input id="localbrowser" type="checkbox">
 	<div class="switchlabel" for="localbrowser"></div>
@@ -129,7 +132,9 @@ $selecttimezone.= '</select>';
 </div>
 	<?php } 
 		if ( file_exists( '/usr/bin/smbd' ) ) { ?>
-<div class="col-l double"><a>File Sharing<br><gr>Samba</gr></a><i class="fa fa-network fa-lg"></i></div>
+<div class="col-l double">
+	<a>File Sharing<br><gr>Samba</gr></a><i class="fa fa-network fa-lg"></i>
+</div>
 <div class="col-r">
 	<input id="samba" type="checkbox">
 	<div class="switchlabel" for="samba"></div>
@@ -141,14 +146,25 @@ $selecttimezone.= '</select>';
 	</span>
 </div>
 	<?php } ?>
-<div class="col-l double"><a>Password Login<br><gr>Blowfish</gr></a><i class="fa fa-lock-circle fa-lg"></i></div>
+<div class="col-l double">
+	<a>Scrobbler<br><gr>mpdscribble</gr></a><i class="fa fa-lastfm fa-lg"></i></div>
+<div class="col-r">
+	<input id="mpdscribble" type="checkbox">
+	<div class="switchlabel" for="mpdscribble"></div>
+	<i id="setting-mpdscribble" class="setting fa fa-gear"></i>
+	<span class="help-block hide">Automatically send listened music data to Last.fm for tracking.
+	</span>
+</div>
+<div class="col-l double">
+	<a>Password Login<br><gr>Blowfish</gr></a><i class="fa fa-lock-circle fa-lg"></i></div>
 <div class="col-r">
 	<input id="login" type="checkbox"<?=( password_verify( 'rune', file_get_contents( '/srv/http/data/system/password' ) ) ? ' data-default="1"' : '' )?>>
 	<div class="switchlabel" for="password"></div>
 	<i id="setting-login" class="setting fa fa-gear"></i>
 	<span class="help-block hide">Browser interface login. (Default: <code>rune</code>)</span>
 </div>
-<div class="col-l double"><a>Play on Startup<br><gr>System</gr></a><i class="fa fa-refresh-play fa-lg"></i></div>
+<div class="col-l double">
+	<a>Play on Startup<br><gr>System</gr></a><i class="fa fa-refresh-play fa-lg"></i></div>
 <div class="col-r">
 	<input id="autoplay" type="checkbox">
 	<div class="switchlabel" for="autoplay"></div>

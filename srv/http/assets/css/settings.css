@@ -494,7 +494,7 @@ input:checked + .switchlabel:after {
 	line-height: 26px;
 }
 .col-l i {
-	width: 35px;
+	width: 30px;
 	vertical-align: 5px;
 }
 .col-l i.fa-gear {

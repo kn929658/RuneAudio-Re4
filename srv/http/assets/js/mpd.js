@@ -386,6 +386,7 @@ $( '#setting-mpdscribble' ).click( function() {
 				, "echo '"+ user +"\n"+ password +"' > "+ dirsystem +'/mpdscribble'
 				, 'touch /srv/http/data/system/mpd-mpdscribble'
 				, 'systemctl restart mpdscribble@mpd'
+				, '[[ ! -e /etc/systemd/system/multi-user.target.wants/mpdscribble@mpd.service ]] && systemctl enable mpdscribble@mpd'
 				, curlPage( 'mpd' )
 			] }, refreshData );
 		}

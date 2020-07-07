@@ -16,6 +16,7 @@ if [[ ! -e /usr/bin/mpdscribble ]]; then
 	wget -q https://github.com/rern/rern.github.io/raw/master/$arch/mpdscribble-0.22-14-$arch.pkg.tar.xz
 	pacman -U --noconfirm mpdscribble*
 	rm mpdscribble*
+	cp /usr/share/mpdscribble/mpdscribble.conf.example /etc/mpdscribble.conf
 fi
 
 if [[ $( cat /srv/http/data/addons/rre4 ) > 20200627 ]]; then

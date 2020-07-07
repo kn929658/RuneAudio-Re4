@@ -405,7 +405,7 @@ function setMixerType( mixertype ) {
 		var volumenone = 0;
 	}
 	cmd.push(
-		  'echo '+ mixertype +' > "'+ dirsystem +'/mpd-mixertype-'+ $output.text() +'"'
+		  ( mixertype === 'hardware' ? 'rm -f' : 'echo '+ mixertype +' >' ) +' "'+ dirsystem +'/mpd-mixertype-'+ $output.text() +'"'
 		, setmpdconf
 		, curlPage( 'mpd' )
 		, 'curl -s -X POST "http://127.0.0.1/pub?id=volumenone" -d \'{ "volumenone": "'+ volumenone +'" }\''

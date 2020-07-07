@@ -116,8 +116,8 @@ if ( isset( $_POST[ 'backuprestore' ] ) ) {
 	$data = json_decode( file_get_contents( $dirsystem.'/display' ) );
 	$data->color = rtrim( @file_get_contents( $dirsystem.'/color' ) ) ?: '200 100 35';
 	$data->order = json_decode( file_get_contents( $dirsystem.'/order' ) );
-	$audiooutputfile = file_exists( '/srv/http/data/system/usbdac' ) ? 'usbdac' : 'audio-output';
-	$data->volumenone = exec( $sudobin.'sed -n "/$( cat /srv/http/data/system/'.$audiooutputfile.' )/,/^}/ p" /etc/mpd.conf | tail -1 | cut -d\" -f2' ) === 'none' ? true : false;
+	$audiooutputfile = $dirsystem.'/'.( file_exists( $dirsystem.'/usbdac' ) ? 'usbdac' : 'audio-output' );
+	$data->volumenone = exec( $sudobin.'sed -n "/$( cat '.$audiooutputfile." )/,/^}/ p\" /etc/mpd.conf | awk -F '\"' '/mixer_type/ {print $2}'" ) === 'none' ? true : false;
 	echo json_encode( $data );
 	
 } else if ( isset( $_POST[ 'displayset' ] ) ) {

@@ -44,11 +44,9 @@ data='
 	, "usbdac":"'$( cat /srv/http/data/system/usbdac 2> /dev/null )'"
 '
 if [[ -e /etc/mpdscribble.conf ]]; then
-	mpdscribble=$( grep '^username\|^password' /etc/mpdscribble.conf )
 	data+='
 	, "mpdscribble":'$( [[ -e /srv/http/data/system/mpd-mpdscribble ]] && echo true || echo false )'
-	, "mpdscribbleuser":"'$( grep ^username <<< "$mpdscribble" | cut -d' ' -f3- )'"
-	, "mpdscribblepwd":"'$( grep ^password <<< "$mpdscribble" | cut -d' ' -f3- )'"
+	, "mpdscribbleuser":"'$( grep ^username /etc/mpdscribble.conf | cut -d' ' -f3- )'"
 '
 fi
 

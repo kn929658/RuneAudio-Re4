@@ -365,26 +365,18 @@ $( '#mpdscribble' ).click( function() {
 } );
 $( '#setting-mpdscribble' ).click( function() {
 	var user0 = G.mpdscribbleuser || '';
-	var password0 = G.mpdscribblepwd || '';
 	info( {
 		  icon          : 'lastfm'
 		, title         : 'Last.fm Scrobbler'
 		, textlabel     : 'User'
 		, textvalue     : user0
 		, passwordlabel : 'Password'
-		, preshow       : function() {
-			$( '#infoPasswordBox' ).val( password0 );
-		}
 		, cancel        : function() {
 			$( '#mpdscribble' ).prop( 'checked', G.mpdscribble );
 		}
 		, ok            : function() {
 			var user = $( '#infoTextBox' ).val().replace( /([&()\\])/g, '\$1' );
 			var password = $( '#infoPasswordBox' ).val().replace( /([&()\\])/g, '\$1' );
-			if ( user === user0 && password === password0 ) {
-				$( '#mpdscribble' ).prop( 'checked', G.mpdscribble );
-				return
-			}
 			banner( 'Last.fm Scrobbler', 'Change ...', 'lastfm' );
 			$.post( 'commands.php', { bash: [
 				  'sed -i'

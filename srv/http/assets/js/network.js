@@ -609,7 +609,7 @@ function editWiFiSet( ssid, data ) {
 function escapeString( str ) {
 	var string = str
 			.replace( /([&()\\])/g, '\$1' )
-			.replace( /"/g, '\\\"' )
+			.replace( /"/g, '\\\"' );
 	return escapeSingleQuote( string )
 }
 function escapeSingleQuote( str ) {

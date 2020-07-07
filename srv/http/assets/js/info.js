@@ -270,7 +270,6 @@ function info( O ) {
 			}
 			$( '#infotextlabel' ).html( labelhtml );
 			$( '#infotextbox' ).html( boxhtml );
-			var $infofocus = $( '#infoTextBox' );
 			$( '#infoText' ).removeClass( 'hide' );
 			if ( 'textalign' in O ) $( '.infoinput' ).css( 'text-align', O.textalign );
 			if ( 'textrequired' in O ) {
@@ -296,7 +295,6 @@ function info( O ) {
 			$( '#infotextlabel' ).append( labelhtml );
 			$( '#infotextbox' ).append( boxhtml );
 			$( '#infoText' ).removeClass( 'hide' );
-			var $infofocus = $( '#infoPasswordBox' );
 		}
 		if ( 'fileoklabel' in O ) {
 			$( '#infoOk' )
@@ -388,7 +386,7 @@ function info( O ) {
 		.removeClass( 'hide' )
 		.focus(); // enable e.which keypress (#infoOverlay needs tabindex="1")
 	alignVertical();
-	if ( $infofocus && !( 'nofocus' in O ) ) $infofocus.focus();
+	if ( !( 'nofocus' in O ) ) $( '.infoinput:eq( 0 )' ).focus();
 	if ( 'boxwidth' in O ) {
 		var maxW = window.innerWidth * 0.98;
 		var infoW = width || parseInt( $( '#infoBox' ).css( 'width' ) );

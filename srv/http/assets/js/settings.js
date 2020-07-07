@@ -127,15 +127,6 @@ function codeToggle( target, id, fn ) {
 function curlPage( page ) {
 	return 'curl -s -X POST "http://127.0.0.1/pub?id=refresh" -d \'{ "page": "'+ page +'" }\''
 }
-function escapeString( str ) {
-	var string = str
-			.replace( /([&()\\])/g, '\$1' )
-			.replace( /"/g, '\\\"' );
-	return escapeSingleQuote( string )
-}
-function escapeSingleQuote( str ) {
-	return str.replace( /'/g, '\'"\'"\'' );
-}
 function onVisibilityChange( callback ) {
     var visible = 1;
     function focused() {

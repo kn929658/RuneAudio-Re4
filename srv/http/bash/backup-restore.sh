@@ -111,6 +111,7 @@ if [[ -e $file ]]; then
 	sed -i -e 's/^\(username =\).*/\1 "'$( sed -n '1 p' $file )'"/
 ' -e 's/^\(password =\).*/\1 "'$( sed -n '2 p' $file )'"/
 ' /etc/mpdscribble.conf
+	[[ -e $dirsystem/mpd-mpdscribble ]] && enable+=' mpdscribble'
 fi
 # netctl profiles
 if ls $dirsystem/netctl-* &> /dev/null; then

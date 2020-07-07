@@ -342,6 +342,52 @@ $( '#ffmpeg' ).click( function() {
 		, curlPage( 'mpd' )
 	] }, refreshData );
 } );
+$( '#mpdscribble' ).click( function() {
+	var checked = $( this ).prop( 'checked' );
+	if ( checked && !G.mpdscribble ) {
+		$( '#setting-mpdscribble' ).click();
+	} else {
+		var cmd = [
+			  ( checked ? 'touch ' : 'rm -f ' ) + dirsystem +'/mpd-mpdscribble-on'
+			, 'systemctl restart mpdidle'
+			, curlPage( 'mpd' )
+		]
+		if ( !checked ) cmd.unshift( 'killall mpdscribble' );
+		banner( 'Last.fm Scrobbler', checked, 'lastfm' );
+		$.post( 'commands.php', { bash: cmd }, refreshData );
+	}
+} );
+$( '#setting-mpdscribble' ).click( function() {
+	var userpwd = G.mpdscribble.split( '^^' );
+	var user0 = userpwd[ 0 ] || '';
+	var password0 = userpwd[ 1 ] || '';
+	info( {
+		  icon          : 'lastfm'
+		, title         : 'Last.fm Scrobbler'
+		, textlabel     : 'User'
+		, textvalue     : user0
+		, passwordlabel : 'Password'
+		, preshow       : function() {
+			$( '#infoPasswordBox' ).val( password0 );
+		}
+		, ok            : function() {
+			var user = $( '#infoTextBox' ).val();
+			var password = $( '#infoPasswordBox' ).val();
+			if ( user === user0 && password === password0 ) {
+				$( '#mpdscribble' ).prop( 'checked', G.mpdscribble );
+				return
+			}
+			
+			banner( 'Last.fm Scrobbler', 'Change ...', 'lastfm' );
+			$.post( 'commands.php', { bash: [
+				  "echo '"+ escapeString( user ) +"^^"+ escapeString( password ) +"' > "+ dirsystem +'/mpd-mpdscribble'
+				, 'touch /srv/http/data/system/mpd-mpdscribble-on'
+				, 'systemctl restart mpdidle'
+				, curlPage( 'mpd' )
+			] }, refreshData );
+		}
+	} );
+} );
 $( '#status' ).click( function( e ) {
 	if ( $( e.target ).hasClass( 'help' ) || $( e.target ).hasClass( 'fa-reboot' ) ) return
 	
@@ -490,6 +536,8 @@ refreshData = function() {
 		$( '#buffer' ).prop( 'checked', G.buffer > 4096 );
 		$( '#setting-buffer' ).toggleClass( 'hide', G.buffer === '' );
 		$( '#ffmpeg' ).prop( 'checked', G.ffmpeg );
+		$( '#mpdscribble' ).prop( 'checked', G.mpdscribbleon );
+		$( '#setting-mpdscribble' ).toggleClass( 'hide', !G.mpdscribbleon );
 		if ( !$( '#codeaplay' ).hasClass( 'hide' ) ) getAplay();
 		if ( !$( '#codestatus' ).hasClass( 'hide' ) ) getStatus();
 		if ( !$( '#codempdconf' ).hasClass( 'hide' ) ) getMpdconf();

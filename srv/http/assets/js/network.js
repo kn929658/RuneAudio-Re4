@@ -577,15 +577,6 @@ function editWiFiSet( ssid, data ) {
 		} );
 	}
 }
-function escapeString( str ) {
-	var string = str
-			.replace( /([&()\\])/g, '\$1' )
-			.replace( /"/g, '\\\"' );
-	return escapeSingleQuote( string )
-}
-function escapeSingleQuote( str ) {
-	return str.replace( /'/g, '\'"\'"\'' );
-}
 function getIfconfig() {
 	var cmd = 'ifconfig';
 	if ( 'bluetooth' in G ) cmd += "; bluetoothctl show | sed 's/^\\(Controller.*\\)/bluetooth: \\1/'";

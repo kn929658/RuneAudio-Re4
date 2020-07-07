@@ -25,7 +25,7 @@ $( '#audiooutput' ).on( 'selectric-change', function() {
 	}
 	// set only if not usbdac
 	if ( G.audioaplayname !== G.usbdac ) cmd.push(
-		  'echo '+ audiooutput +' > '+ dirsystem +'/audio-output'
+		  'echo '+ G.audiooutput +' > '+ dirsystem +'/audio-output'
 		, 'echo '+ G.audioaplayname +' > '+ dirsystem +'/audio-aplayname'
 	);
 	cmd.push(

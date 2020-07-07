@@ -364,12 +364,11 @@ $( '#mpdscribble' ).click( function() {
 	}
 } );
 $( '#setting-mpdscribble' ).click( function() {
-	var user0 = G.mpdscribbleuser || '';
 	info( {
 		  icon          : 'lastfm'
 		, title         : 'Last.fm Scrobbler'
 		, textlabel     : 'User'
-		, textvalue     : user0
+		, textvalue     : G.mpdscribbleuser
 		, passwordlabel : 'Password'
 		, cancel        : function() {
 			$( '#mpdscribble' ).prop( 'checked', G.mpdscribble );

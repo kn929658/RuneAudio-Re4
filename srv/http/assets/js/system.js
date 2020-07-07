@@ -316,11 +316,11 @@ $( '#setting-localbrowser' ).click( function( e ) {
 	} );
 } );
 $( '#mpdscribble' ).click( function() {
-	var checked = $( this ).prop( 'checked' );
-	if ( checked && !G.mpdscribbleuser ) {
+	G.mpdscribble = $( this ).prop( 'checked' );
+	if ( G.mpdscribble && !G.mpdscribbleuser ) {
 		$( '#setting-mpdscribble' ).click();
 	} else {
-		if ( checked ) {
+		if ( G.mpdscribble ) {
 			var cmd = [
 				  'systemctl enable --now mpdscribble@mpd'
 				, 'touch '+ dirsystem +'/mpd-mpdscribble'
@@ -332,34 +332,35 @@ $( '#mpdscribble' ).click( function() {
 			];
 		}
 		cmd.push( curlPage( 'system' ) );
-		banner( 'Scrobbler', checked, 'lastfm' );
-		$.post( 'commands.php', { bash: cmd }, refreshData );
+		banner( 'Scrobbler', G.mpdscribble, 'lastfm' );
+		$.post( 'commands.php', { bash: cmd }, resetLocal );
+		$( '#setting-mpdscribble' ).toggleClass( 'hide', !G.mpdscribble );
 	}
 } );
 $( '#setting-mpdscribble' ).click( function() {
 	info( {
 		  icon          : 'lastfm'
 		, title         : 'Scrobbler'
-		, textlabel     : 'User'
+		, textlabel     : 'Username'
 		, textvalue     : G.mpdscribbleuser
 		, passwordlabel : 'Password'
 		, cancel        : function() {
 			$( '#mpdscribble' ).prop( 'checked', G.mpdscribble );
 		}
 		, ok            : function() {
-			var user = $( '#infoTextBox' ).val().replace( /([&()\\])/g, '\$1' );
+			G.mpdscribbleuser = $( '#infoTextBox' ).val().replace( /([&()\\])/g, '\$1' );
 			var password = $( '#infoPasswordBox' ).val().replace( /([&()\\])/g, '\$1' );
 			banner( 'Scrobbler', G.mpdscribble ? 'Change ...' : 'Enable ...', 'lastfm' );
 			$.post( 'commands.php', { bash: [
 				  'sed -i'
-					+" -e 's/^\\(username =\\).*/\\1 "+ user +"/'"
+					+" -e 's/^\\(username =\\).*/\\1 "+ G.mpdscribbleuser +"/'"
 					+" -e 's/^\\(password =\\).*/\\1 "+ password +"/'"
 					+' /etc/mpdscribble.conf'
-				, "echo '"+ user +"\n"+ password +"' > "+ dirsystem +'/mpdscribble'
+				, "echo '"+ G.mpdscribbleuser +"\n"+ password +"' > "+ dirsystem +'/mpdscribble'
 				, 'touch '+ dirsystem +'/mpd-mpdscribble'
 				, ( G.mpdscribble ? 'systemctl restart mpdscribble@mpd' : 'systemctl enable --now mpdscribble@mpd' )
 				, curlPage( 'system' )
-			] }, refreshData );
+			] }, resetLocal );
 		}
 	} );
 } );

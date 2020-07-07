@@ -48,7 +48,7 @@ $selecttimezone.= '</select>';
 </div>
 
 <div>
-<heading>Renderer<?=$help?></heading>
+<heading>Renderers<?=$help?></heading>
 	<?php if ( file_exists( '/usr/bin/shairport-sync' ) ) { ?>
 <div class="col-l double"><a>AirPlay<br><gr>Shairport-sync</gr></a><i class="fa fa-airplay fa-lg"></i></div>
 <div class="col-r">
@@ -96,7 +96,7 @@ $selecttimezone.= '</select>';
 </div>
 
 <div>
-<heading>Streamer<?=$help?></heading>
+<heading>Streamers<?=$help?></heading>
 <div class="col-l double"><a>For browsers<br><gr>MPD http</gr></a><i class="fa fa-webradio fa-lg"></i></div>
 <div class="col-r">
 	<input id="streaming" type="checkbox">
@@ -147,7 +147,7 @@ $selecttimezone.= '</select>';
 </div>
 	<?php } ?>
 <div class="col-l double">
-	<a>Scrobbler<br><gr>mpdscribble</gr></a><i class="fa fa-lastfm fa-lg"></i></div>
+	<a>Last.fm Scrobbler<br><gr>mpdscribble</gr></a><i class="fa fa-lastfm fa-lg"></i></div>
 <div class="col-r">
 	<input id="mpdscribble" type="checkbox">
 	<div class="switchlabel" for="mpdscribble"></div>

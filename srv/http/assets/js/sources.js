@@ -59,16 +59,14 @@ $( '#list' ).on( 'click', 'li', function() {
 			, oklabel : 'Unmount'
 			, okcolor : '#de810e'
 			, ok      : function() {
-				local = 1;
+				banner( 'Network Mount', 'Unmount ...', 'network' );
 				$.post( 'commands.php', { bash: [
 						  ( nas ? '' : 'udevil ' ) +'umount -l "'+ mountpoint +'"'
 						, curlPage( 'source' )
 					] }, function() {
 					refreshData();
-					resetlocal();
 					$( '#refreshing' ).addClass( 'hide' );
 				} );
-				banner( 'Network Mount', 'Unmount ...', 'network' );
 				$( '#refreshing' ).removeClass( 'hide' );
 			}
 		} );
@@ -81,7 +79,7 @@ $( '#list' ).on( 'click', 'li', function() {
 			, buttonlabel : 'Remove'
 			, buttoncolor : '#bb2828'
 			, button      : function() {
-				local = 1;
+				banner( 'Network Mount', 'Remove ...', 'network' );
 				$.post( 'commands.php', { bash: [
 						  "sed -i '\\|"+ mountname +"| d' /etc/fstab"
 						, 'rmdir "'+ mountpoint +'" &> /dev/null'
@@ -89,24 +87,20 @@ $( '#list' ).on( 'click', 'li', function() {
 						, curlPage( 'source' )
 					] }, function() {
 					refreshData();
-					resetlocal();
 					$( '#refreshing' ).addClass( 'hide' );
 				} );
-				banner( 'Network Mount', 'Remove ...', 'network' );
 				$( '#refreshing' ).removeClass( 'hide' );
 			}
 			, oklabel     : 'Remount'
 			, ok          : function() {
-				local = 1;
+				banner( 'Network Mount', 'Remount ...', 'network' );
 				$.post( 'commands.php', { bash: [
 						  ( nas ? 'mount "'+ mountpoint +'"' : 'udevil mount '+ $this.data( 'source' ) )
 						, curlPage( 'source' )
 					] }, function() {
 					refreshData();
-					resetlocal();
 					$( '#refreshing' ).addClass( 'hide' );
 				} );
-				banner( 'Network Mount', 'Remount ...', 'network' );
 				$( '#refreshing' ).removeClass( 'hide' );
 			}
 		} );
@@ -214,7 +208,7 @@ function infoMount( formdata, cifs ) {
 				var device = '"'+ data.ip +':/'+ directory +'"';
 			}
 			var cmd = '"'+ mountpoint +'" '+ data.ip +' '+ device +' '+ data.protocol +' '+ options;
-			local = 1;
+			banner( 'Network Mount', 'Mount ...', 'network' );
 			$.post( 'commands.php', { bash: [
 					  '/srv/http/bash/sources-mount.sh '+ cmd
 					, curlPage( 'source' )
@@ -234,10 +228,8 @@ function infoMount( formdata, cifs ) {
 					refreshData();
 					formdata = {}
 				}
-				resetlocal();
 				$( '#refreshing' ).addClass( 'hide' );
 			}, 'json' );
-			banner( 'Network Mount', 'Mount ...', 'network' );
 			$( '#refreshing' ).removeClass( 'hide' );
 		}
 	} );
@@ -266,6 +258,7 @@ refreshData = function() {
 		$( '#refreshing' ).addClass( 'hide' );
 		if ( !$( '#codemount' ).hasClass( 'hide' ) ) getMounts();
 		if ( !$( '#codefstab' ).hasClass( 'hide' ) ) getFstab();
+		resetLocal();
 		showContent();
 	}, 'json' );
 }

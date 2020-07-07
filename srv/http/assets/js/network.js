@@ -89,20 +89,15 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 		]
 		, button      : [
 			  function() {
-				clearTimeout( intervalscan );
-				local = 1;
 				var ssidfilename = escapeSingleQuote( ssid )
+				clearTimeout( intervalscan );
+				banner( ssid, 'Forget ...', 'wifi-3' );
 				$.post( 'commands.php', { bash: [
 					  "netctl stop '"+ ssidfilename +"'"
 					, 'systemctl disable netctl-auto@'+ wlcurrent
 					, "rm '/etc/netctl/"+ ssidfilename +"' '/srv/http/data/system/netctl-"+ ssidfilename +"'"
 					, curlPage( 'network' )
-					] }, function() {
-					wlconnected = '';
-					wlanScan();
-					resetlocal();
-				} );
-				notify( ssid, 'Forget ...', 'wifi-3 blink' );
+					] }, refreshData );
 			}
 			, function() {
 				if ( connected ) {
@@ -128,18 +123,13 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 			}
 			
 			clearTimeout( intervalscan );
-			local = 1;
+			banner( ssid, 'Disconnect ...', 'wifi-3' );
 			$.post( 'commands.php', { bash: [
 				  "netctl stop '"+ escapeSingleQuote( ssid ) +"'"
 				, 'killall wpa_supplicant'
 				, 'ifconfig '+ wlcurrent +' up'
 				, curlPage( 'network' )
-				] }, function() {
-					wlconnected = '';
-					wlanScan();
-					resetlocal();
-			} );
-			notify( ssid, 'Disconnect ...', 'wifi-3 blink' );
+			] }, refreshData );
 		}
 	} );
 } );
@@ -256,13 +246,8 @@ $( '#accesspoint' ).change( function() {
 			, curlPage( 'network' )
 		];
 	}
-	local = 1;
-	$.post( 'commands.php', { bash: cmd }, function() {
-		nicsStatus();
-		resetlocal();
-		if ( G.hostapd ) renderQR();
-	} );
 	banner( 'RPi Access Point', G.hostapd, 'wifi-3' );
+	$.post( 'commands.php', { bash: cmd }, refreshData );
 });
 $( '#settings-accesspoint' ).click( function() {
 	info( {
@@ -311,12 +296,8 @@ $( '#settings-accesspoint' ).click( function() {
 				);
 			}
 			cmd.push( ( passphrase === 'RuneAudio' ? 'rm -f ' : 'echo '+ passphrase +' > ' ) + dirsystem +'/accesspoint-passphrase' )
-			local = 1;
-			$.post( 'commands.php', { bash: cmd }, resetlocal );
 			banner( 'RPi Access Point', 'Change ...', 'wifi-3' );
-			$( '#passphrase' ).text( passphrase || '(No password)' );
-			$( '#ipwebuiap' ).text( ip );
-			renderQR();
+			$.post( 'commands.php', { bash: cmd }, refreshData );
 		}
 	} );
 } );
@@ -374,26 +355,17 @@ function connect( ssid, data, ip ) { // ip - static
 	if ( ip ) {
 		cmd.push( "echo '"+ data +"' > '/etc/netctl/"+ ssidfilename +"'" );
 		$( '#loader' ).removeClass( 'hide' );
-		banner( ssid, 'Static IP ...', 'wifi-3' );
 		location.href = 'http://'+ ip +'/index-settings.php?p=network';
-	} else {
-		banner( ssid, 'Connect ...', 'wifi-3' );
 	}
 	cmd.push( "netctl start '"+ ssidfilename +"'" );
-	local = 1;
+	banner( ssid, ( ip ? 'Static IP ...' : 'Connect ...' ), 'wifi-3' );
 	$.post( 'commands.php', { bash: cmd }, function( std ) {
 		if ( std != -1 ) {
 			wlconnected = wlcurrent;
 			$.post( 'commands.php', { bash: [ 
 				  'systemctl enable netctl-auto@'+ wlcurrent
 				, curlPage( 'network' )
-			] }, function() {
-				wlanScan( ssid ); // fix - scan takes sometimes to get connected profile
-				$( 'li.'+ wlcurrent +' .fa-search')
-					.removeClass( 'fa-search' )
-					.addClass( 'fa-refresh blink' )
-					.next().remove();
-			} );
+			] }, refreshData );
 		} else {
 			$( '#scanning-wifi' ).addClass( 'hide' );
 			wlconnected =  '';
@@ -402,7 +374,6 @@ function connect( ssid, data, ip ) { // ip - static
 				, title     : 'Wi-Fi'
 				, message   : 'Connect to <wh>'+ ssid +'</wh> failed.'
 			} );
-			resetlocal();
 		}
 	} );
 }
@@ -732,7 +703,7 @@ function renderQR() {
 	$( '#qrwebuiap' ).qrcode( qroptions );
 	$( '#boxqr' ).removeClass( 'hide' );
 }
-function wlanScan( ssid ) {
+function wlanScan() {
 	clearTimeout( intervalscan );
 	$( '#scanning-wifi' ).removeClass( 'hide' );
 	$.post( 'commands.php', { getjson: '/srv/http/bash/network-wlanscan.sh '+ wlcurrent, nonumeric: 1 }, function( list ) {
@@ -741,7 +712,7 @@ function wlanScan( ssid ) {
 		var html = '';
 		if ( list.length ) {
 			$.each( list, function( i, val ) {
-				var profile = val.profile || val.ssid === ssid;
+				var profile = val.profile;
 				html += '<li data-db="'+ val.dbm +'" data-ssid="'+ val.ssid +'" data-encrypt="'+ val.encrypt +'" data-wpa="'+ val.wpa +'"';
 				html += val.connected  ? ' data-connected="1"' : '';
 				html += val.gateway ? ' data-gateway="'+ val.gateway +'"' : '';
@@ -760,7 +731,6 @@ function wlanScan( ssid ) {
 			html += '<li><i class="fa fa-lock"></i><gr>(no accesspoints found)</gr></li>';
 		}
 		$( '#listwifi' ).html( html +'</li>' ).promise().done( function() {
-			resetlocal();
 			$( '#scanning-wifi' ).addClass( 'hide' );
 		} );
 		intervalscan = setTimeout( wlanScan, 12000 );
@@ -780,6 +750,7 @@ refreshData = function() {
 	} else {
 		nicsStatus();
 	}
+	resetLocal();
 }
 refreshData();
 

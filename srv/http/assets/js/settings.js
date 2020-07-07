@@ -117,6 +117,7 @@ function psRestore( data ) {
 }
 
 function banner( title, message, icon ) {
+	local = 1;
 	if ( typeof message === 'boolean' || typeof message === 'number' ) var message = message ? 'Enable ...' : 'Disable ...';
 	notify( title, message, icon +' blink', -1 );
 }
@@ -140,12 +141,12 @@ function onVisibilityChange( callback ) {
     window.onpageshow = window.onfocus = focused;
     window.onpagehide = window.onblur = unfocused;
 }
-function resetlocal( ms ) {
+function resetLocal( ms ) {
 	local = 0;
 	setTimeout( function() {
 		$( '#bannerTitle i' ).removeClass( 'blink' );
 		$( '#bannerMessage' ).text( 'Done' );
-	}, ms ? ms -2000 : 0 );
+	}, ms ? ms - 2000 : 0 );
 	setTimeout( bannerHide, ms || 2000 );
 }
 function showContent() {

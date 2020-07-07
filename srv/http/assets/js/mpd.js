@@ -410,8 +410,8 @@ function setMixerType( mixertype ) {
 		, curlPage( 'mpd' )
 		, 'curl -s -X POST "http://127.0.0.1/pub?id=volumenone" -d \'{ "volumenone": "'+ volumenone +'" }\''
 	);
-	$.post( 'commands.php', { bash: cmd }, refreshData );
 	banner( 'Mixer Control', 'Change ...', 'mpd' );
+	$.post( 'commands.php', { bash: cmd }, refreshData );
 }
 
 refreshData = function() {
@@ -493,10 +493,10 @@ refreshData = function() {
 		if ( !$( '#codeaplay' ).hasClass( 'hide' ) ) getAplay();
 		if ( !$( '#codestatus' ).hasClass( 'hide' ) ) getStatus();
 		if ( !$( '#codempdconf' ).hasClass( 'hide' ) ) getMpdconf();
-		bannerHide()
 		if ( !$( '#codeamixer' ).hasClass( 'hide' ) ) getAmixer();
 		if ( !$( '#codestatus' ).hasClass( 'hide' ) ) getStatus();
 		if ( !$( '#codempdconf' ).hasClass( 'hide' ) ) getMpdconf();
+		resetLocal();
 		showContent();
 	}, 'json' );
 }

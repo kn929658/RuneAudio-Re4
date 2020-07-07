@@ -118,7 +118,7 @@
 	<input id="mpdscribble" type="checkbox">
 	<div class="switchlabel" for="mpdscribble"></div>
 	<i id="setting-mpdscribble" class="setting fa fa-gear"></i>
-	<span class="help-block hide">Send listening music data to Last.fm.
+	<span class="help-block hide">Automatically send listened music data to Last.fm for tracking.
 	</span>
 </div>
 	<?php } ?>

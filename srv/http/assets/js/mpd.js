@@ -349,12 +349,12 @@ $( '#mpdscribble' ).click( function() {
 	} else {
 		if ( checked ) {
 			var cmd = [
-				  'mpdscribble'
+				  'systemctl enable --now mpdscribble'
 				, 'touch '+ dirsystem +'/mpd-mpdscribble'
 			];
 		} else {
 			var cmd = [
-				  'killall mpdscribble'
+				  'systemctl disable --now mpdscribble'
 				, 'rm -f '+ dirsystem +'/mpd-mpdscribble'
 			];
 		}
@@ -379,8 +379,8 @@ $( '#setting-mpdscribble' ).click( function() {
 			$( '#mpdscribble' ).prop( 'checked', G.mpdscribble );
 		}
 		, ok            : function() {
-			var user = escapeString( $( '#infoTextBox' ).val() );
-			var password = escapeString( $( '#infoPasswordBox' ).val() );
+			var user = $( '#infoTextBox' ).val().replace( /([&()\\])/g, '\$1' );
+			var password = $( '#infoPasswordBox' ).val().replace( /([&()\\])/g, '\$1' );
 			if ( user === user0 && password === password0 ) {
 				$( '#mpdscribble' ).prop( 'checked', G.mpdscribble );
 				return
@@ -388,12 +388,12 @@ $( '#setting-mpdscribble' ).click( function() {
 			banner( 'Last.fm Scrobbler', 'Change ...', 'lastfm' );
 			$.post( 'commands.php', { bash: [
 				  'sed -i'
-					+' -e \'s/^\\(username =\\).*/\\1 "'+ user +'"/\''
-					+' -e \'s/^\\(password =\\).*/\\1 "'+ password +'"/\''
+					+" -e 's/^\\(username =\\).*/\\1 "+ user +"/'"
+					+" -e 's/^\\(password =\\).*/\\1 "+ password +"/'"
 					+' /etc/mpdscribble.conf'
 				, "echo '"+ user +"\n"+ password +"' > "+ dirsystem +'/mpdscribble'
 				, 'touch /srv/http/data/system/mpd-mpdscribble'
-				, 'killall mpdscribble && mpdscribble'
+				, 'systemctl restart mpdscribble'
 				, curlPage( 'mpd' )
 			] }, refreshData );
 		}

@@ -47,8 +47,8 @@ if [[ -e /etc/mpdscribble.conf ]]; then
 	mpdscribble=$( grep '^username\|^password' /etc/mpdscribble.conf )
 	data+='
 	, "mpdscribble":'$( [[ -e /srv/http/data/system/mpd-mpdscribble ]] && echo true || echo false )'
-	, "mpdscribbleuser":"'$( awk -F '"' '/^username/ {print $2}' <<< "$mpdscribble" )'"
-	, "mpdscribblepwd":"'$( awk -F '"' '/^password/ {print $2}' <<< "$mpdscribble" )'"
+	, "mpdscribbleuser":"'$( grep ^username <<< "$mpdscribble" | cut -d' ' -f3- )'"
+	, "mpdscribblepwd":"'$( grep ^password <<< "$mpdscribble" | cut -d' ' -f3- )'"
 '
 fi
 

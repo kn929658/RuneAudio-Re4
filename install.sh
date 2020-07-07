@@ -7,7 +7,7 @@ alias=rre4
 if [[ ! -e /usr/bin/mpdscribble ]]; then
 	[[ $( lscpu | awk '/CPU\(s\):/ {print $NF}' ) == 4 ]] && arch=armv7h || arch=armv6h
 	wget -q https://github.com/rern/rern.github.io/raw/master/$arch/mpdscribble-0.22-14-$arch.pkg.tar.xz
-	pacman -U mpdscribble*
+	pacman -U --noconfirm mpdscribble*
 	rm mpdscribble*
 fi
 if grep -q shairport-startstop /etc/shairport-sync.conf; then

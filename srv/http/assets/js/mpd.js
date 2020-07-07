@@ -371,16 +371,19 @@ $( '#setting-mpdscribble' ).click( function() {
 			$( '#infoPasswordBox' ).val( password0 );
 		}
 		, ok            : function() {
-			var user = $( '#infoTextBox' ).val();
-			var password = $( '#infoPasswordBox' ).val();
+			var user = escapeString( $( '#infoTextBox' ).val() );
+			var password = escapeString( $( '#infoPasswordBox' ).val() );
 			if ( user === user0 && password === password0 ) {
 				$( '#mpdscribble' ).prop( 'checked', G.mpdscribble );
 				return
 			}
-			
 			banner( 'Last.fm Scrobbler', 'Change ...', 'lastfm' );
 			$.post( 'commands.php', { bash: [
-				  "echo '"+ escapeString( user ) +"^^"+ escapeString( password ) +"' > "+ dirsystem +'/mpd-mpdscribble'
+				  'sed -i'
+					+' -e \'s/^\\(username = \\).*/\\1"'+ user +'"/\''
+					+' -e \'s/^\\(password = \\).*/\\1"'+ password +'"/\''
+					+' /etc/mpdscribble.conf'
+				, "echo '"+ user +"^^"+ password +"' > "+ dirsystem +'/mpd-mpdscribble'
 				, 'touch /srv/http/data/system/mpd-mpdscribble-on'
 				, 'systemctl restart mpdidle'
 				, curlPage( 'mpd' )

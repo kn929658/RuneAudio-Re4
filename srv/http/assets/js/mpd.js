@@ -25,7 +25,7 @@ $( '#audiooutput' ).on( 'selectric-change', function() {
 	}
 	// set only if not usbdac
 	if ( G.audioaplayname !== G.usbdac ) cmd.push(
-		  'echo '+ G.audiooutput +' > '+ dirsystem +'/audio-output'
+		  'echo '+ audiooutput +' > '+ dirsystem +'/audio-output'
 		, 'echo '+ G.audioaplayname +' > '+ dirsystem +'/audio-aplayname'
 	);
 	cmd.push(
@@ -36,17 +36,8 @@ $( '#audiooutput' ).on( 'selectric-change', function() {
 		, 'systemctl try-restart shairport-sync shairport-meta'
 		, curlPage( 'mpd' )
 	);
-	local = 1;
-	$.post( 'commands.php', { bash: cmd }, resetlocal );
 	banner( 'Audio Output Device', 'Change ...', 'mpd' );
-	$( '.hwmixer' ).toggleClass( 'hide', $selected.data( 'mixercount' ) < 2 );
-	$( '#mixertype' )
-		.val( $selected.data( 'mixertype' ) )
-		.selectric( 'refresh' );
-	$( '#novolume' ).prop( 'checked', $selected.data( 'mixertype' ) === 'none' );
-	$( '#dop' ).prop( 'checked', $selected.data( 'dop' ) );
-	if ( !$( '#codestatus' ).hasClass( 'hide' ) ) getStatus();
-	if ( !$( '#codempdconf' ).hasClass( 'hide' ) ) getMpdconf();
+	$.post( 'commands.php', { bash: cmd }, refreshData );
 } );
 $( '#mixertype' ).on( 'selectric-change', function() {
 	var mixertype = $( this ).val();
@@ -105,13 +96,8 @@ $( '#setting-mixertype' ).click( function() { // hardware mixer
 					, 'systemctl try-restart mpd shairport-sync shairport-meta'
 					, ( mixerauto ? 'rm -f' : 'echo '+ mixermanual ) +' /srv/http/data/system/mpd-hwmixer-'+ card
 				];
-				local = 1;
-				$.post( 'commands.php', { bash: cmd }, function() {
-					if ( !$( '#codestatus' ).hasClass( 'hide' ) ) getStatus();
-					if ( !$( '#codempdconf' ).hasClass( 'hide' ) ) getMpdconf();
-					resetlocal();
-				} );
 				banner( 'Hardware Mixer', 'Change ...', 'mpd' );
+				$.post( 'commands.php', { bash: cmd }, refreshData );
 			}
 		} );
 	}, 'json' );
@@ -135,7 +121,7 @@ $( '#novolume' ).click( function() {
 				G.replaygain === 'off';
 				var $output = $( '#audiooutput option:selected' );
 				var volumenone = $output.data( 'mixertype' ) === 'none' ? 0 : 1;
-				local = 1;
+				banner( 'No Volume', 'Enable ...', 'mpd' );
 				$.post( 'commands.php', { bash: [
 					  "sed -i"
 						+" -e '/mixer_type/ s/\".*\"/\"none\"/'"
@@ -147,13 +133,7 @@ $( '#novolume' ).click( function() {
 					, setmpdconf
 					, curlPage( 'mpd' )
 					, 'curl -s -X POST "http://127.0.0.1/pub?id=volumenone" -d \'{ "volumenone": "'+ volumenone +'" }\''
-				] }, resetlocal );
-				banner( 'No Volume', 'Enable ...', 'mpd' );
-				$( '#crossfade, #normalization, #replaygain' ).prop( 'checked', 0 );
-				$( '#audiooutput option:selected' ).data( 'mixertype', 'none' );
-				$( '#mixertype' )
-					.val( 'none' )
-					.selectric( 'refresh' );
+				] }, refreshData );
 			}
 		} );
 	} else {
@@ -162,32 +142,30 @@ $( '#novolume' ).click( function() {
 			, title   : 'Mixer Control'
 			, message : 'Enable any volume features - disable <wh>No volume</wh>.'
 		} );
+		$( this ).prop( 'checked', 1 );
 	}
 } );
 $( '#dop' ).click( function() {
 	var checked = $( this ).prop( 'checked' );
 	var $selected = $( '#audiooutput option:selected' );
 	$selected.data( 'dop', 1 );
-	local = 1;
+	banner( 'DSP over PCM', checked, 'mpd' );
 	$.post( 'commands.php', { bash: [
 		  ( checked ? 'touch "' : 'rm -f "' ) + dirsystem +'/mpd-dop-'+ $selected.val() +'"'
 		, setmpdconf
 		, curlPage( 'mpd' )
-	] }, resetlocal );
-	banner( 'DSP over PCM', checked, 'mpd' );
+	] }, refreshData );
 } );
 $( '#crossfade' ).click( function() {
 	if ( $( this ).prop( 'checked' ) ) {
 		$( '#setting-crossfade' ).click();
 	} else {
-		local = 1;
+		banner( 'Crossfade', G.crossfade > 0, 'mpd' );
 		$.post( 'commands.php', { bash: [
 			  'mpc crossfade 0'
 			, 'rm -f '+ dirsystem +'/mpd-crossfade'
 			, curlPage( 'mpd' )
-		] }, resetlocal );
-		banner( 'Crossfade', G.crossfade > 0, 'mpd' );
-		checkNoVolume();
+		] }, refreshData );
 	}
 } );
 $( '#setting-crossfade' ).click( function() {
@@ -209,15 +187,13 @@ $( '#setting-crossfade' ).click( function() {
 			crossfade = $( 'input[name=inforadio]:checked' ).val();
 			if ( crossfade !== G.crossfade ) {
 				G.crossfade = crossfade;
-				local = 1;
+				banner( 'Crossfade', 'Change ...', 'mpd' );
 				$.post( 'commands.php', { bash: [
 					  "mpc crossfade "+ crossfade +" &> /dev/null || /usr/bin/sudo /usr/bin/"+
 						"sed -i 's/\\(crossfade: \\)/\\1"+ crossfade +"/' /srv/http/data/mpd/mpdstate"
 					, 'echo '+ crossfade +' > '+ dirsystem +'/mpd-crossfade'
 					, curlPage( 'mpd' )
-				] }, resetlocal );
-				banner( 'Crossfade', 'Change ...', 'mpd' );
-				$( '#setting-crossfade' ).removeClass( 'hide' );
+				] }, refreshData );
 			}
 		}
 	} );
@@ -239,24 +215,20 @@ $( '#normalization' ).click( function() {
 		  restartmpd
 		, curlPage( 'mpd' )
 	);
-	local = 1;
-	$.post( 'commands.php', { bash: cmd }, resetlocal );
 	banner( 'Normalization', G.normalization, 'mpd' );
-	checkNoVolume();
+	$.post( 'commands.php', { bash: cmd }, refreshData );
 } );
 $( '#replaygain' ).click( function() {
 	if ( $( this ).prop( 'checked' ) ) {
 		$( '#setting-replaygain' ).click();
 	} else {
-		local = 1;
+		banner( 'Replay Gain', G.replaygain !== 'off', 'mpd' );
 		$.post( 'commands.php', { bash: [
 			  "sed -i '/^replaygain/ s/\".*\"/\"off\"/' /etc/mpd.conf"
 			, 'rm -f '+ dirsystem +'/mpd-replaygain'
 			, restartmpd
 			, curlPage( 'mpd' )
-		] }, resetlocal );
-		banner( 'Replay Gain', G.replaygain !== 'off', 'mpd' );
-		checkNoVolume();
+		] }, refreshData );
 	}
 } );
 $( '#setting-replaygain' ).click( function() {
@@ -278,15 +250,13 @@ $( '#setting-replaygain' ).click( function() {
 			replaygain = $( 'input[name=inforadio]:checked' ).val();
 			if ( replaygain !== G.replaygain ) {
 				G.replaygain = replaygain;
-				local = 1;
+				banner( 'Replay Gain', 'Change ...', 'mpd' );
 				$.post( 'commands.php', { bash: [
 					  "sed -i '/^replaygain/ s/\".*\"/\""+ replaygain +"\"/' /etc/mpd.conf"
 					, 'echo '+ replaygain +' > '+ dirsystem +'/mpd-replaygain'
 					, restartmpd
 					, curlPage( 'mpd' )
-				] }, resetlocal );
-				banner( 'Replay Gain', 'Change ...', 'mpd' );
-				$( '#setting-replaygain' ).removeClass( 'hide' );
+				] }, refreshData );
 			}
 		}
 	} );
@@ -308,23 +278,20 @@ $( '#autoupdate' ).click( function() {
 		  restartmpd
 		, curlPage( 'mpd' )
 	);
-	local = 1;
-	$.post( 'commands.php', { bash: cmd }, resetlocal );
 	banner( 'Auto Update', G.autoupdate, 'mpd' );
+	$.post( 'commands.php', { bash: cmd }, refreshData );
 } );
 $( '#buffer' ).click( function() {
 	if ( $( this ).prop( 'checked' ) ) {
 		$( '#setting-buffer' ).click();
 	} else {
-		local = 1;
+		banner( 'Custom Buffer', 'Disable ...', 'mpd' );
 		$.post( 'commands.php', { bash: [
 			  "sed -i '/^audio_buffer/ d' /etc/mpd.conf"
 			, 'rm -f ' + dirsystem +'/mpd-buffer'
 			, restartmpd
 			, curlPage( 'mpd' )
-		] }, resetlocal );
-		banner( 'Custom Buffer', 'Disable ...', 'mpd' );
-		$( '#setting-buffer' ).addClass( 'hide' );
+		] }, refreshData );
 	}
 } );
 $( '#setting-buffer' ).click( function() {
@@ -352,7 +319,7 @@ $( '#setting-buffer' ).click( function() {
 				if ( !G.buffer ) $( '#buffer' ).prop( 'checked', 0 );
 			} else if ( buffer !== G.buffer ) {
 				G.buffer = buffer;
-				local = 1;
+				banner( 'Custom Buffer', 'Change ...', 'mpd' );
 				$.post( 'commands.php', { bash: [
 					  "sed -i"
 						+" -e '/^audio_buffer/ d'"
@@ -360,22 +327,20 @@ $( '#setting-buffer' ).click( function() {
 					, 'echo '+ buffer +' > '+ dirsystem +'/mpd-buffer'
 					, restartmpd
 					, curlPage( 'mpd' )
-				] }, resetlocal );
-				banner( 'Custom Buffer', 'Change ...', 'mpd' );
+				] }, refreshData );
 			}
 		}
 	} );
 } );
 $( '#ffmpeg' ).click( function() {
 	G.ffmpeg = $( this ).prop( 'checked' );
-	local = 1;
+	banner( 'FFmpeg Decoder', G.ffmpeg, 'mpd' );
 	$.post( 'commands.php', { bash: [
 		  "sed -i '/ffmpeg/ {n; s/\".*\"/\""+ ( G.ffmpeg ? 'yes' : 'no' ) +"\"/}' /etc/mpd.conf"
 		, ( G.ffmpeg ? 'touch ' : 'rm -f ' ) + dirsystem +'/mpd-ffmpeg'
 		, restartmpd
 		, curlPage( 'mpd' )
-	] }, resetlocal );
-	banner( 'FFmpeg Decoder', G.ffmpeg, 'mpd' );
+	] }, refreshData );
 } );
 $( '#status' ).click( function( e ) {
 	if ( $( e.target ).hasClass( 'help' ) || $( e.target ).hasClass( 'fa-reboot' ) ) return
@@ -384,40 +349,19 @@ $( '#status' ).click( function( e ) {
 } );
 $( '#restart' ).click( function( e ) {
 	$this = $( this );
-	local = 1;
 	info( {
 		  icon    : 'mpd'
 		, title   : 'MPD'
 		, message : 'Restart MPD?'
 		, ok      : function() {
-			$this.removeClass( 'fa-reboot' ).addClass( 'fa-refresh blink' );
-			$.post( 'commands.php', { bash: '/srv/http/bash/mpd-conf.sh' }, function() {
-				$this.removeClass( 'fa-refresh blink' ).addClass( 'fa-reboot' );
-				refreshData();
-				resetlocal();
-			} );
 			banner( 'MPD', 'Restart ...', 'mpd' );
+			$.post( 'commands.php', { bash: '/srv/http/bash/mpd-conf.sh' }, refreshData );
 		}
 	} );
 } );
 $( '#mpdconf' ).click( function( e ) {
 	codeToggle( e.target, this.id, getMpdconf );
 } );
-function checkNoVolume() {
-	var $selected = $( '#audiooutput option:selected' );
-	if ( $( '#mixertype' ).val() === 'none'
-		&& G.crossfade === 0
-		&& G.normalization === false
-		&& G.replaygain === 'off'
-	) {
-		G.novolume = true;
-	} else {
-		G.novolume = false;
-	}
-	$( '#novolume' ).prop( 'checked', G.novolume );
-	$( '.dop' ).toggleClass( 'hide', $selected.val() === 'bcm2835 ALSA' );
-	$( '#dop' ).prop( 'checked', $selected.data( 'dop' ) );
-}
 function getAplay() {
 	$.post( 'commands.php', { bash: 'aplay -l', string: 1 }, function( status ) {
 		$( '#codeaplay' )
@@ -452,7 +396,6 @@ function getStatus() {
 }
 function setMixerType( mixertype ) {
 	var $output = $( '#audiooutput option:selected' );
-	$output.data( 'mixertype', mixertype );
 	var cmd = [];
 	if ( mixertype === 'none' ) {
 		var volumenone = 1;
@@ -461,21 +404,14 @@ function setMixerType( mixertype ) {
 	} else {
 		var volumenone = 0;
 	}
-	checkNoVolume();
 	cmd.push(
 		  'echo '+ mixertype +' > "'+ dirsystem +'/mpd-mixertype-'+ $output.text() +'"'
 		, setmpdconf
 		, curlPage( 'mpd' )
 		, 'curl -s -X POST "http://127.0.0.1/pub?id=volumenone" -d \'{ "volumenone": "'+ volumenone +'" }\''
 	);
-	local = 1;
-	$.post( 'commands.php', { bash: cmd }, function() {
-		if ( !$( '#codestatus' ).hasClass( 'hide' ) ) getStatus();
-		if ( !$( '#codempdconf' ).hasClass( 'hide' ) ) getMpdconf();
-		resetlocal();
-	} );
+	$.post( 'commands.php', { bash: cmd }, refreshData );
 	banner( 'Mixer Control', 'Change ...', 'mpd' );
-	$( '.hwmixer' ).toggleClass( 'hide', mixertype !== 'hardware' );
 }
 
 refreshData = function() {
@@ -532,7 +468,19 @@ refreshData = function() {
 			$( '.hwmixer' ).addClass( 'hide' );
 		}
 		$( '#divmixer' ).toggleClass( 'hide', $selected.data( 'hwmixer' ) === '' );
-		checkNoVolume();
+		var $selected = $( '#audiooutput option:selected' );
+		if ( $( '#mixertype' ).val() === 'none'
+			&& G.crossfade === 0
+			&& G.normalization === false
+			&& G.replaygain === 'off'
+		) {
+			G.novolume = true;
+		} else {
+			G.novolume = false;
+		}
+		$( '#novolume' ).prop( 'checked', G.novolume );
+		$( '.dop' ).toggleClass( 'hide', $selected.val() === 'bcm2835 ALSA' );
+		$( '#dop' ).prop( 'checked', $selected.data( 'dop' ) );
 		$( '#crossfade' ).prop( 'checked', G.crossfade > 0 );
 		$( '#setting-crossfade' ).toggleClass( 'hide', G.crossfade === 0 );
 		$( '#normalization' ).prop( 'checked', G.normalization );
@@ -543,6 +491,10 @@ refreshData = function() {
 		$( '#setting-buffer' ).toggleClass( 'hide', G.buffer === '' );
 		$( '#ffmpeg' ).prop( 'checked', G.ffmpeg );
 		if ( !$( '#codeaplay' ).hasClass( 'hide' ) ) getAplay();
+		if ( !$( '#codestatus' ).hasClass( 'hide' ) ) getStatus();
+		if ( !$( '#codempdconf' ).hasClass( 'hide' ) ) getMpdconf();
+		bannerHide()
+		if ( !$( '#codeamixer' ).hasClass( 'hide' ) ) getAmixer();
 		if ( !$( '#codestatus' ).hasClass( 'hide' ) ) getStatus();
 		if ( !$( '#codempdconf' ).hasClass( 'hide' ) ) getMpdconf();
 		showContent();

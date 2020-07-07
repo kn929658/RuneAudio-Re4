@@ -376,7 +376,7 @@ $( '#setting-mpdscribble' ).click( function() {
 		, ok            : function() {
 			var user = $( '#infoTextBox' ).val().replace( /([&()\\])/g, '\$1' );
 			var password = $( '#infoPasswordBox' ).val().replace( /([&()\\])/g, '\$1' );
-			banner( 'Last.fm Scrobbler', 'Change ...', 'lastfm' );
+			banner( 'Last.fm Scrobbler', G.mpdscribble ? 'Change ...' : 'Enable ...', 'lastfm' );
 			$.post( 'commands.php', { bash: [
 				  'sed -i'
 					+" -e 's/^\\(username =\\).*/\\1 "+ user +"/'"
@@ -384,8 +384,7 @@ $( '#setting-mpdscribble' ).click( function() {
 					+' /etc/mpdscribble.conf'
 				, "echo '"+ user +"\n"+ password +"' > "+ dirsystem +'/mpdscribble'
 				, 'touch /srv/http/data/system/mpd-mpdscribble'
-				, 'systemctl restart mpdscribble@mpd'
-				, '[[ ! -e /etc/systemd/system/multi-user.target.wants/mpdscribble@mpd.service ]] && systemctl enable mpdscribble@mpd'
+				, ( G.mpdscribble ? 'systemctl restart mpdscribble@mpd' : 'systemctl enable --now mpdscribble@mpd' )
 				, curlPage( 'mpd' )
 			] }, refreshData );
 		}

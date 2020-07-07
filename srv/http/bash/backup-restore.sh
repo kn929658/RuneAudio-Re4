@@ -95,15 +95,22 @@ if [[ -e /usr/bin/hostapd ]]; then
 	[[ -e $dirsystem/accesspoint ]] && enable+=' hostapd'
 fi
 # login
-[[ -e $dirsystem/login ]] && sed -i 's/\(bind_to_address\).*/\1         "127.0.0.1"/' /etc/mpd.conf
+[[ -e $dirsystem/login ]] && sed -i 's/\(bind_to_address\).*/\1           "127.0.0.1"/' /etc/mpd.conf
 # mpd.conf
 file=$dirsystem/mpd
 if ls $file-* &> /dev/null; then
-	[[ -e $file-autoupdate ]] &&    sed -i '1 i\auto_update           "yes"' /etc/mpd.conf
-	[[ -e $file-buffer ]] &&        sed -i '1 i\audio_buffer_size     "'$( cat $dirsystem/mpd-buffer )'"' /etc/mpd.conf
+	[[ -e $file-autoupdate ]] &&    sed -i '1 i\auto_update             "yes"' /etc/mpd.conf
+	[[ -e $file-buffer ]] &&        sed -i '1 i\audio_buffer_size       "'$( cat $dirsystem/mpd-buffer )'"' /etc/mpd.conf
 	[[ -e $file-ffmpeg ]] &&        sed -i '/ffmpeg/ {n;s/\(enabled\s*"\).*/\1yes"/}' /etc/mpd.conf
 	[[ -e $file-normalization ]] && sed -i '/^user/ a\volume_normalization  "yes"' /etc/mpd.conf
 	[[ -e $file-replaygain ]] &&    sed -i 's/\(replaygain\s*\"\).*/\1'$( cat $dirsystem/mpd-replaygain )'"/' /etc/mpd.conf
+fi
+# mpdscribble
+file=$dirsystem/mpdscribble
+if [[ -e $file ]]; then
+	sed -i -e 's/^\(username =\).*/\1 "'$( sed -n '1 p' $file )'"/
+' -e 's/^\(password =\).*/\1 "'$( sed -n '2 p' $file )'"/
+' /etc/mpdscribble.conf
 fi
 # netctl profiles
 if ls $dirsystem/netctl-* &> /dev/null; then

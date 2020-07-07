@@ -5,7 +5,7 @@ for pid in $( pgrep mpd ); do
 	renice -n -19 -p $pid
 done
 
-[[ -e /srv/http/data/system/mpd-mpdscribble-on ]] && mpdscribble
+[[ -e /srv/http/data/system/mpd-mpdscribble ]] && mpdscribble
 
 curlPost() {
 	curl -s -X POST 'http://127.0.0.1/pub?id='$1 -d "$2"

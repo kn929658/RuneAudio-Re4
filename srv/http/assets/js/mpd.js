@@ -344,11 +344,11 @@ $( '#ffmpeg' ).click( function() {
 } );
 $( '#mpdscribble' ).click( function() {
 	var checked = $( this ).prop( 'checked' );
-	if ( checked && !G.mpdscribble ) {
+	if ( checked && !G.mpdscribbleuser ) {
 		$( '#setting-mpdscribble' ).click();
 	} else {
 		var cmd = [
-			  ( checked ? 'touch ' : 'rm -f ' ) + dirsystem +'/mpd-mpdscribble-on'
+			  ( checked ? 'touch ' : 'rm -f ' ) + dirsystem +'/mpd-mpdscribble'
 			, 'systemctl restart mpdidle'
 			, curlPage( 'mpd' )
 		]
@@ -358,9 +358,8 @@ $( '#mpdscribble' ).click( function() {
 	}
 } );
 $( '#setting-mpdscribble' ).click( function() {
-	var userpwd = G.mpdscribble.split( '^^' );
-	var user0 = userpwd[ 0 ] || '';
-	var password0 = userpwd[ 1 ] || '';
+	var user0 = G.mpdscribbleuser || '';
+	var password0 = G.mpdscribblepwd || '';
 	info( {
 		  icon          : 'lastfm'
 		, title         : 'Last.fm Scrobbler'
@@ -369,6 +368,9 @@ $( '#setting-mpdscribble' ).click( function() {
 		, passwordlabel : 'Password'
 		, preshow       : function() {
 			$( '#infoPasswordBox' ).val( password0 );
+		}
+		, cancel        : function() {
+			$( '#mpdscribble' ).prop( 'checked', G.mpdscribble );
 		}
 		, ok            : function() {
 			var user = escapeString( $( '#infoTextBox' ).val() );
@@ -380,11 +382,11 @@ $( '#setting-mpdscribble' ).click( function() {
 			banner( 'Last.fm Scrobbler', 'Change ...', 'lastfm' );
 			$.post( 'commands.php', { bash: [
 				  'sed -i'
-					+' -e \'s/^\\(username = \\).*/\\1"'+ user +'"/\''
-					+' -e \'s/^\\(password = \\).*/\\1"'+ password +'"/\''
+					+' -e \'s/^\\(username =\\).*/\\1 "'+ user +'"/\''
+					+' -e \'s/^\\(password =\\).*/\\1 "'+ password +'"/\''
 					+' /etc/mpdscribble.conf'
-				, "echo '"+ user +"^^"+ password +"' > "+ dirsystem +'/mpd-mpdscribble'
-				, 'touch /srv/http/data/system/mpd-mpdscribble-on'
+				, "echo '"+ user +"\n"+ password +"' > "+ dirsystem +'/mpdscribble'
+				, 'touch /srv/http/data/system/mpd-mpdscribble'
 				, 'systemctl restart mpdidle'
 				, curlPage( 'mpd' )
 			] }, refreshData );
@@ -539,8 +541,8 @@ refreshData = function() {
 		$( '#buffer' ).prop( 'checked', G.buffer > 4096 );
 		$( '#setting-buffer' ).toggleClass( 'hide', G.buffer === '' );
 		$( '#ffmpeg' ).prop( 'checked', G.ffmpeg );
-		$( '#mpdscribble' ).prop( 'checked', G.mpdscribbleon );
-		$( '#setting-mpdscribble' ).toggleClass( 'hide', !G.mpdscribbleon );
+		$( '#mpdscribble' ).prop( 'checked', G.mpdscribble );
+		$( '#setting-mpdscribble' ).toggleClass( 'hide', !G.mpdscribble );
 		if ( !$( '#codeaplay' ).hasClass( 'hide' ) ) getAplay();
 		if ( !$( '#codestatus' ).hasClass( 'hide' ) ) getStatus();
 		if ( !$( '#codempdconf' ).hasClass( 'hide' ) ) getMpdconf();

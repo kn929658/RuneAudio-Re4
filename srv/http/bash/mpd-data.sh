@@ -38,12 +38,18 @@ data='
 	, "ffmpeg":'$( grep -A1 ffmpeg /etc/mpd.conf | grep -q yes && echo true || echo false )'
 	, "mixertype":"'$( grep mixer_type /etc/mpd.conf | cut -d'"' -f2 )'"
 	, "mpd":'$( systemctl -q is-active mpd && echo true || echo false )'
-	, "mpdscribble":"'$( cat /srv/http/data/system/mpd-mpdscribble 2> /dev/null )'"
-	, "mpdscribbleon":'$( [[ -e /srv/http/data/system/mpd-mpdscribble-on ]] && echo true || echo false )'
 	, "normalization":'$( grep -q 'volume_normalization.*yes' /etc/mpd.conf && echo true || echo false )'
 	, "reboot":"'$( cat /srv/http/data/tmp/reboot 2> /dev/null )'"
 	, "replaygain":"'$( grep replaygain /etc/mpd.conf | cut -d'"' -f2 )'"
 	, "usbdac":"'$( cat /srv/http/data/system/usbdac 2> /dev/null )'"
 '
+if [[ -e /etc/mpdscribble.conf ]]; then
+	mpdscribble=$( grep '^username\|^password' /etc/mpdscribble.conf )
+	data+='
+	, "mpdscribble":'$( [[ -e /srv/http/data/system/mpd-mpdscribble ]] && echo true || echo false )'
+	, "mpdscribbleuser":"'$( awk -F '"' '/^username/ {print $2}' <<< "$mpdscribble" )'"
+	, "mpdscribblepwd":"'$( awk -F '"' '/^password/ {print $2}' <<< "$mpdscribble" )'"
+'
+fi
 
 echo {$data}

@@ -349,12 +349,12 @@ $( '#mpdscribble' ).click( function() {
 	} else {
 		if ( checked ) {
 			var cmd = [
-				  'systemctl enable --now mpdscribble'
+				  'systemctl enable --now mpdscribble@mpd'
 				, 'touch '+ dirsystem +'/mpd-mpdscribble'
 			];
 		} else {
 			var cmd = [
-				  'systemctl disable --now mpdscribble'
+				  'systemctl disable --now mpdscribble@mpd'
 				, 'rm -f '+ dirsystem +'/mpd-mpdscribble'
 			];
 		}
@@ -385,7 +385,7 @@ $( '#setting-mpdscribble' ).click( function() {
 					+' /etc/mpdscribble.conf'
 				, "echo '"+ user +"\n"+ password +"' > "+ dirsystem +'/mpdscribble'
 				, 'touch /srv/http/data/system/mpd-mpdscribble'
-				, 'systemctl restart mpdscribble'
+				, 'systemctl restart mpdscribble@mpd'
 				, curlPage( 'mpd' )
 			] }, refreshData );
 		}

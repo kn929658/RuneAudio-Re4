@@ -347,12 +347,18 @@ $( '#mpdscribble' ).click( function() {
 	if ( checked && !G.mpdscribbleuser ) {
 		$( '#setting-mpdscribble' ).click();
 	} else {
-		var cmd = [
-			  ( checked ? 'touch ' : 'rm -f ' ) + dirsystem +'/mpd-mpdscribble'
-			, 'systemctl restart mpdidle'
-			, curlPage( 'mpd' )
-		]
-		if ( !checked ) cmd.unshift( 'killall mpdscribble' );
+		if ( checked ) {
+			var cmd = [
+				  'mpdscribble'
+				, 'touch '+ dirsystem +'/mpd-mpdscribble'
+			];
+		} else {
+			var cmd = [
+				  'killall mpdscribble'
+				, 'rm -f '+ dirsystem +'/mpd-mpdscribble'
+			];
+		}
+		cmd.push( curlPage( 'mpd' ) );
 		banner( 'Last.fm Scrobbler', checked, 'lastfm' );
 		$.post( 'commands.php', { bash: cmd }, refreshData );
 	}
@@ -387,7 +393,7 @@ $( '#setting-mpdscribble' ).click( function() {
 					+' /etc/mpdscribble.conf'
 				, "echo '"+ user +"\n"+ password +"' > "+ dirsystem +'/mpdscribble'
 				, 'touch /srv/http/data/system/mpd-mpdscribble'
-				, 'systemctl restart mpdidle'
+				, 'killall mpdscribble && mpdscribble'
 				, curlPage( 'mpd' )
 			] }, refreshData );
 		}

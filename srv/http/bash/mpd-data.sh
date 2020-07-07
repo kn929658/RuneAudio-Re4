@@ -45,7 +45,7 @@ data='
 '
 if [[ -e /etc/mpdscribble.conf ]]; then
 	data+='
-	, "mpdscribble":'$( [[ -e /srv/http/data/system/mpd-mpdscribble ]] && echo true || echo false )'
+	, "mpdscribble":'$( systemctl -q is-active mpdscribble && echo true || echo false )'
 	, "mpdscribbleuser":"'$( grep ^username /etc/mpdscribble.conf | cut -d' ' -f3- )'"
 '
 fi

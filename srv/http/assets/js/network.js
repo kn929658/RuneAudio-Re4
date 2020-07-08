@@ -1,12 +1,10 @@
 $( function() { // document ready start >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 var dirsystem = '/srv/http/data/system';
-var wlcurrent = '';
-var wlconnected = '';
 var accesspoint = $( '#accesspoint' ).length;
 
 $( '.back' ).click( function() {
-	wlcurrent = '';
+	G.wlcurrent = '';
 	clearTimeout( intervalscan );
 	$( '#divinterface, #divwebui, #divaccesspoint' ).removeClass( 'hide' );
 	$( '#divwifi, #divbluetooth' ).addClass( 'hide' );
@@ -16,10 +14,10 @@ $( '.back' ).click( function() {
 } );
 $( '#listinterfaces' ).on( 'click', 'li', function() {
 	var $this = $( this );
-	wlcurrent = $this.prop( 'class' );
-	if ( wlcurrent !== 'eth0' ) {
-		if ( wlcurrent !== 'bt' ) {
-			if ( G.hostapd && wlcurrent === 'wlan0' ) {
+	G.wlcurrent = $this.prop( 'class' );
+	if ( G.wlcurrent !== 'eth0' ) {
+		if ( G.wlcurrent !== 'bt' ) {
+			if ( G.hostapd && G.wlcurrent === 'wlan0' ) {
 				info( {
 					  icon    : 'wifi-3'
 					, title   : 'Wi-Fi'
@@ -61,7 +59,7 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 		if ( encrypt ) {
 			newWiFi( $this );
 		} else {
-			var data = 'Interface='+ wlcurrent
+			var data = 'Interface='+ G.wlcurrent
 					  +'\nConnection=wireless'
 					  +'\nIP=dhcp'
 					  +'\nESSID="'+ ssid +'"'
@@ -95,7 +93,7 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 			  function() {
 				clearTimeout( intervalscan );
 				banner( ssid, 'Forget ...', 'wifi-3' );
-				$.post( 'commands.php', { bash: settingbash +' disconnect '+ wlcurrent +' "'+ escDoubleQuote( ssid ) +'"' }, refreshData );
+				$.post( 'commands.php', { bash: settingbash +' disconnect '+ G.wlcurrent +' "'+ escapeString( ssid ) +'"' }, refreshData );
 			}
 			, function() {
 				if ( connected ) {
@@ -122,7 +120,7 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 			
 			clearTimeout( intervalscan );
 			banner( ssid, 'Disconnect ...', 'wifi-3' );
-			$.post( 'commands.php', { bash: settingbash +' disconnect '+ wlcurrent }, refreshData );
+			$.post( 'commands.php', { bash: settingbash +' disconnect '+ G.wlcurrent }, refreshData );
 		}
 	} );
 } );
@@ -252,7 +250,7 @@ $( '#settings-accesspoint' ).click( function() {
 			var ip012 = ips.join( '.' );
 			var iprange = ip012 +'.'+ ( +ip3 + 1 ) +','+ ip012 +'.254,24h';
 			banner( 'RPi Access Point', 'Change ...', 'wifi-3' );
-			$.post( 'commands.php', { bash: settingbash +' accesspointset '+ iprange +' '+ ip +' "'+ escDoubleQuote( passphrase ) +'"' }, refreshData );
+			$.post( 'commands.php', { bash: settingbash +' accesspointset '+ iprange +' '+ ip +' "'+ escapeString( passphrase ) +'"' }, refreshData );
 		}
 	} );
 } );
@@ -295,7 +293,7 @@ function btStatus() {
 function connect( ssid, data, ip ) { // ip - static
 	clearTimeout( intervalscan );
 	$( '#scanning-wifi' ).removeClass( 'hide' );
-	var arg = wlcurrent +' "'+ escapeSingleQuote( ssid ) +'"';
+	var arg = G.wlcurrent +' "'+ escapeString( ssid ) +'"';
 	if ( data ) arg += ' "'+ data +'"';
 	if ( ip ) {
 		$( '#loader' ).removeClass( 'hide' );
@@ -304,14 +302,14 @@ function connect( ssid, data, ip ) { // ip - static
 	banner( ssid, ( ip ? 'Static IP ...' : 'Connect ...' ), 'wifi-3' );
 	$.post( 'commands.php', { bash: settingbash +' connect '+ arg }, function( std ) {
 		if ( std != -1 ) {
-			wlconnected = wlcurrent;
+			G.wlconnected = G.wlcurrent;
 			$.post( 'commands.php', { bash: [ 
-				  'systemctl enable netctl-auto@'+ wlcurrent
+				  'systemctl enable netctl-auto@'+ G.wlcurrent
 				, curlPage( 'network' )
 			] }, refreshData );
 		} else {
 			$( '#scanning-wifi' ).addClass( 'hide' );
-			wlconnected =  '';
+			G.wlconnected =  '';
 			info( {
 				  icon      : 'wifi-3'
 				, title     : 'Wi-Fi'
@@ -379,7 +377,7 @@ function editWiFi( ssid, data ) {
 				if ( data ) {
 					editWiFiSet( ssid, data );
 				} else {
-					$.post( 'commands.php', { bash: settingbash +" getwifi '"+ escapeSingleQuote( ssid ) +"'", string: 1 }, function( data ) {
+					$.post( 'commands.php', { bash: settingbash +' getwifi "'+ escapeString( ssid ) +'"', string: 1 }, function( data ) {
 						data.dhcp = data.IP === 'static' ? 'Static IP' : 'DHCP';
 						data.Address = 'Address' in data ? data.Address.replace( '/24', '' ) : '';
 						editWiFiSet( ssid, data );
@@ -397,7 +395,7 @@ function editWiFi( ssid, data ) {
 			var security = $( '#infoCheckBox input:eq( 2 )' ).prop( 'checked' );
 			if ( data0 && ip === data0.Address && gw === data0.Gateway ) return
 			
-			var data =   'Interface='+ wlcurrent
+			var data =   'Interface='+ G.wlcurrent
 						+'\nConnection=wireless'
 						+'\nESSID="'+ escapeString( ssid || ssidadd ) +'"'
 						+'\nIP='+ ( static ? 'static' : 'dhcp' );
@@ -462,22 +460,14 @@ function editWiFiSet( ssid, data ) {
 			$( '#loader' ).removeClass( 'hide' );
 			banner( ssid, 'DHCP ...', 'wifi-3' );
 			location.href = 'http://'+ G.hostname +'.local/index-settings.php?p=network';
-			var ssidfilename = escapeSingleQuote( ssid );
-			$.post( 'commands.php', { bash: settingbash +' editwifidhcp "'+ escDoubleQuote( ssid ) +'"' } );
+			$.post( 'commands.php', { bash: settingbash +' editwifidhcp "'+ escapeString( ssid ) +'"' } );
 		} );
 	}
 }
 function escapeString( str ) {
-	var string = str
+	return str
 			.replace( /([&()\\])/g, '\$1' )
 			.replace( /"/g, '\\\"' );
-	return escapeSingleQuote( string )
-}
-function escapeSingleQuote( str ) {
-	return str.replace( /'/g, '\'"\'"\'' );
-}
-function escDoubleQuote( str ) {
-	return str.replace( /"/g, '\\"' );
 }
 function getIfconfig() {
 	$.post( 'commands.php', { bash: settingbash +' getifconfig', string: 1 }, function( status ) {
@@ -503,7 +493,7 @@ function newWiFi( $this ) {
 		, oklabel       : 'Connect'
 		, ok            : function() {
 			var password = $( '#infoPasswordBox' ).val();
-			var data = 'Interface='+ wlcurrent
+			var data = 'Interface='+ G.wlcurrent
 					  +'\nConnection=wireless'
 					  +'\nIP=dhcp'
 					  +'\nESSID="'+ escapeString( ssid ) +'"'
@@ -543,7 +533,7 @@ function nicsStatus() {
 				if ( accesspoint && G.hostapd && val.ip === G.hostapdip ) {
 					html += '&ensp;<grn>&bull;</grn>&ensp;<gr>RPi access point&ensp;&raquo;&ensp;</gr>'+ G.hostapdip
 				} else {
-					wlconnected = val.interface;
+					G.wlconnected = val.interface;
 					html += '&ensp;<grn>&bull;</grn>&ensp;'+ val.ip +'<gr>&ensp;&raquo;&ensp;'+ val.gateway +'&ensp;&bull;&ensp;</gr>'+ val.ssid;
 				}
 			} else {
@@ -597,7 +587,7 @@ function renderQR() {
 function wlanScan() {
 	clearTimeout( intervalscan );
 	$( '#scanning-wifi' ).removeClass( 'hide' );
-	$.post( 'commands.php', { getjson: '/srv/http/bash/network-wlanscan.sh '+ wlcurrent, nonumeric: 1 }, function( list ) {
+	$.post( 'commands.php', { getjson: '/srv/http/bash/network-wlanscan.sh '+ G.wlcurrent, nonumeric: 1 }, function( list ) {
 		var good = -60;
 		var fair = -67;
 		var html = '';

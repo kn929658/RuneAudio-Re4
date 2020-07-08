@@ -66,8 +66,6 @@ elif [[ $1 == ffmpeg ]]; then
 	fi
 	systemctl restart mpd
 	curlPage
-elif [[ $1 == getstatus ]]; then
-	echo 111
 elif [[ $1 == mixerhw ]]; then
 	sed -i '/'$2'/,/mixer_control/ s/\(mixer_control \+"\).*/\1"'$3'"/' /etc/mpd.conf
 	sed -i '/mixer_control_name = / s/".*"/"'$3'"/' /etc/shairport-sync.conf

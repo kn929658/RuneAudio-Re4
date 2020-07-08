@@ -30,18 +30,14 @@ if ( isset( $_POST[ 'backuprestore' ] ) ) {
 } else if ( isset( $_POST[ 'bash' ] ) ) {
 	$bash = $_POST[ 'bash' ];
 	if ( isset( $_POST[ 'string' ] ) ) {
-		echo shell_exec( $sudo.$bash );
+		echo shell_exec( $cmd[ 0 ] === '/' ? $sudo.$bash : $sudobin.$bash );
 		exit;
 	}
 	
 	$command = '';
 	if ( !is_array( $bash ) ) $bash = [ $bash ];
 	foreach( $bash as $cmd ) {
-		if ( $cmd[ 0 ] === '/' ) {
-			$command.= $sudo.$cmd.';';
-		} else {
-			$command.= $sudobin.$cmd.';';
-		}
+		$command.= $cmd[ 0 ] === '/' ? $sudo.$cmd.';' : $sudobin.$cmd.';';
 	}
 	exec( $command, $output, $std );
 	if ( $std !== 0 && $std !== 3 ) { // systemctl status: inactive $std = 3

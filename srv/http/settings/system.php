@@ -242,7 +242,7 @@ $selecttimezone.= '</select>';
 <div class="col-l">Timezone</div>
 <div class="col-r">
 	<?=$selecttimezone?>
-	<i id="setting-system" class="settingedit fa fa-gear"></i>
+	<i id="setting-regional" class="settingedit fa fa-gear"></i>
 	<span class="help-block hide">
 		<i class="fa fa-gear"></i>&ensp;Set:
 		<br>- NTP - Network Time Protocol server

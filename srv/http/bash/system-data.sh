@@ -92,21 +92,20 @@ data+='
 	, "snapclient"      : '$( [[ -e $dirsystem/snapclient ]] && echo true || echo false )'
 	, "snaplatency"     : '$snaplatency'
 	, "soc"             : "'$soc'"
-	, "soundprofile"    : "'$( cat $dirsystem/soundprofile 2> /dev/null )'"
 	, "sources"         : '$( /srv/http/bash/sources-data.sh )'
 	, "streaming"       : '$( grep -q 'type.*"httpd"' /etc/mpd.conf && echo true || echo false )'
-	, "sysswap"         : '$( sysctl vm.swappiness | cut -d" " -f3 )'
-	, "syslatency"      : '$( sysctl kernel.sched_latency_ns | cut -d" " -f3 )'
 	, "timezone"        : "'$timezone'"
 	, "version"         : "'$version'"
 	, "versionui"       : '$( cat /srv/http/data/addons/rr$version )
 	
+profile=$( cat $dirsystem/soundprofile 2> /dev/null )
+[[ -z $profile ]] && profile=RuneAudio
+data+='
+	, "soundprofile"    : "'$profile'"
+	, "soundprofileval" : "'$( /srv/http/bash/system-soundprofile.sh $profile getvalue )'"'
 [[ -e /usr/bin/bluetoothctl  ]] && data+='
 	, "bluetooth"       : '$( grep -q dtoverlay=bcmbt /boot/config.txt && echo true || echo false )'
 	, "bluetoothon"     : '$( [[ $( systemctl is-active bluetooth ) == active ]] && echo true || echo false )
-[[ -e /sys/class/net/eth0 ]] && data+='
-	, "eth0mtu"         : '$( cat /sys/class/net/eth0/mtu )'
-	, "eth0txq"         : '$( cat /sys/class/net/eth0/tx_queue_len )
 # renderer
 [[ -e /usr/bin/shairport-sync  ]] && data+='
 	, "airplay"         : '$( systemctl -q is-active shairport-sync && echo true || echo false )

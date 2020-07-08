@@ -2,6 +2,7 @@ var G = {};
 var local = 0;
 var intervalcputime;
 var intervalscan;
+var settingbash = '/srv/http/bash/settings.sh';
 var page = location.href.split( '=' ).pop();
 if ( page === 'credits' ) { // no script file to get reboot data for credits page
 	$.post( 'commands.php', { bash: 'cat /srv/http/data/tmp/reboot' }, function( reboot ) {
@@ -10,14 +11,6 @@ if ( page === 'credits' ) { // no script file to get reboot data for credits pag
 }
 $( '#close' ).click( function() {
 	if ( G.reboot.length ) {
-		var cmdpower = [ 'rm -f /srv/http/data/tmp/reboot' ];
-		if ( $( '#gpio' ).length ) cmdpower.push( '/usr/local/bin/gpiooff.py' );
-		cmdpower.push(
-			  '/usr/local/bin/ply-image /srv/http/assets/img/splash.png'
-			, 'mount | grep -q /mnt/MPD/NAS && umount -l /mnt/MPD/NAS/* &> /dev/null && sleep 3'
-			, 'rm -f /srv/http/data/tmp/*'
-			, 'shutdown -r now'
-		);
 		info( {
 			  icon    : 'sliders'
 			, title   : 'System Setting'
@@ -25,16 +18,16 @@ $( '#close' ).click( function() {
 					   +'<br><br><w>'+ G.reboot.join( '<br>' ) +'</w>'
 			, cancel  : function() {
 				G.reboot = [];
-				$.post( 'commands.php', { bash: 'rm -f /srv/http/data/tmp/*' } );
+				$.post( 'commands.php', { bash: 'rm -f /srv/http/data/tmp/reboot' } );
 			}
 			, ok      : function() {
-				$.post( 'commands.php', { bash: cmdpower } );
+				$.post( 'commands.php', { bash: '/srv/http/bash/commands.sh reboot' } );
 				notify( 'Rebooting ...', '', 'reboot blink', -1 );
 			}
 		} );
 	} else {
 		if ( page === 'system' ) {
-			$.post( 'commands.php', { bash: 'rm -f /srv/http/data/tmp/backup.xz' } );
+			$.post( 'commands.php', { bash: 'rm -f /srv/http/data/tmp/backup.*' } );
 		} else if ( page === 'network' ) {
 			if ( $( '#listinterfaces li' ).hasClass( 'bt' ) ) $.post( 'commands.php', { bash: 'bluetoothctl scan off' } );
 		}

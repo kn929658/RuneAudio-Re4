@@ -16,13 +16,15 @@ fi
 
 case $1 in
 	#                     mtu  txq  sw lat
-	RuneAudio ) setConfig ''   ''   0  ${lat[0]};;
-	ACX )       setConfig ''   4000 0  ${lat[1]};;
-	Orion )     setConfig 1000 4000 20 ${lat[2]};;
-	OrionV2 )   setConfig 1000 4000 0  ${lat[3]};;
-	Um3ggh1U )  setConfig ''   ''   0  ${lat[4]};;
-	iqaudio )   setConfig 1000 4000 0  ${lat[5]};;
-	berrynos )  setConfig 1000 4000 '' ${lat[6]};;
-	default )   setConfig 1500 1000 60 18000000;;
-	custom )    setConfig $2   $3   $4 $5;;
+	RuneAudio ) val="''   ''   0  ${lat[0]}";;
+	ACX )       val="''   4000 0  ${lat[1]}";;
+	Orion )     val="1000 4000 20 ${lat[2]}";;
+	OrionV2 )   val="1000 4000 0  ${lat[3]}";;
+	Um3ggh1U )  val="''   ''   0  ${lat[4]}";;
+	iqaudio )   val="1000 4000 0  ${lat[5]}";;
+	berrynos )  val="1000 4000 '' ${lat[6]}";;
+	default )   val="1500 1000 60 18000000";;
+	* )         val="$1   $2   $3 $4";;
 esac
+
+[[ $2 == getvalue ]] && echo $val || setConfig $val

@@ -4,6 +4,16 @@ alias=rre4
 
 . /srv/http/bash/addons-functions.sh
 
+dirsystem=/srv/http/data/system
+if [[ -e $dirsystem/sound-eth0mtu ]]; then
+	echo \
+	$( cat $dirsystem/sound-eth0mtu ) \
+	$( cat $dirsystem/sound-eth0txq ) \
+	$( cat $dirsystem/sound-sysswap ) \
+	$( cat $dirsystem/sound-syslatency ) \
+	> $dirsystem/soundprofile
+	rm $dirsystem/sound-*
+fi
 if grep -q shairport-startstop /etc/shairport-sync.conf; then
 	sed -i 's/shairport.*sh/shairport.sh/' /etc/shairport-sync.conf
 	systemctl try-restart shairport-sync

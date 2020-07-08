@@ -29,6 +29,11 @@ if ( isset( $_POST[ 'backuprestore' ] ) ) {
 
 } else if ( isset( $_POST[ 'bash' ] ) ) {
 	$bash = $_POST[ 'bash' ];
+	if ( isset( $_POST[ 'string' ] ) ) {
+		echo shell_exec( $sudo.$bash );
+		exit;
+	}
+	
 	$command = '';
 	if ( !is_array( $bash ) ) $bash = [ $bash ];
 	foreach( $bash as $cmd ) {
@@ -38,13 +43,7 @@ if ( isset( $_POST[ 'backuprestore' ] ) ) {
 			$command.= $sudobin.$cmd.';';
 		}
 	}
-	if ( isset( $_POST[ 'string' ] ) ) {
-		echo shell_exec( $command );
-		exit;
-		
-	} else {
-		exec( $command, $output, $std );
-	}
+	exec( $command, $output, $std );
 	if ( $std !== 0 && $std !== 3 ) { // systemctl status: inactive $std = 3
 		echo -1;
 	} else {
@@ -151,15 +150,6 @@ if ( isset( $_POST[ 'backuprestore' ] ) ) {
 	}
 	echo json_encode( $data );
 	
-} else if ( isset( $_POST[ 'getbootlog' ] ) ) {
-	$logfile = "/tmp/bootlog";
-	if ( !file_exists( $logfile ) ) exec( $sudobin."journalctl -b | sed -n '1,/Startup finished.*kernel/ p' | grep -v 'is already registered' > ".$logfile ); // omit bcm8235 driver error
-	$lines = file( $logfile );
-	$errors = preg_grep( '/Error:.*|Under-voltage/', $lines );
-	$errors = count( $errors ) ? "<red>Warnings:</red>\n".implode( $errors )."<hr>\n" : '';
-	$finished = preg_replace( '/.*Startup.*in/' , 'Startup:', end( $lines ) )."\n";
-	echo $errors.$finished.implode( $lines );
-	
 } else if ( isset( $_POST[ 'getjson' ] ) ) {
 	$script = $_POST[ 'getjson' ];
 	$output = shell_exec( $sudo.$script );
@@ -169,24 +159,6 @@ if ( isset( $_POST[ 'backuprestore' ] ) ) {
 	} else {
 		echo json_encode( $array, JSON_NUMERIC_CHECK );
 	}
-	
-} else if ( isset( $_POST[ 'getnetctl' ] ) ) {
-	exec( $sudobin.'netctl list', $profiles );
-	if ( count( $profiles ) ) {
-		$data = '';
-		foreach( $profiles as $profile ) {
-			$profile = preg_replace( '/\**\s*/', '', $profile );
-			$data.= $profile."<hr>";
-			$data.= shell_exec( "cat /etc/netctl/Home2GHz | sed -e '/^#.*/ d' -e 's/Key=.*/Key=\"*********\"/'" )."\n";
-		}
-	} else {
-		$data = '(none)';
-	}
-	echo $data;
-	
-} else if ( isset( $_POST[ 'getwifi' ] ) ) {
-	$profile = shell_exec( "grep '^Address\|^Gateway\|^IP\|^Key\|^Security' '/etc/netctl/".$_POST[ 'getwifi' ]."' | tr -d '\"' | sed 's/^/\"/ ;s/=/\":\"/; s/\$/\",/'" );
-	echo '{'.substr( $profile, 0, -2 ).'}';
 	
 } else if ( isset( $_POST[ 'imagefile' ] ) ) {
 	$imagefile = $_POST[ 'imagefile' ];

@@ -620,12 +620,9 @@ function getJournalctl() {
 	if ( $( '#codejournalctl' ).text() ) {
 		$( '#codejournalctl' ).removeClass( 'hide' );
 	} else {
-		$.post( 'commands.php', { getbootlog: 1 }, function( data ) {
-			var htmldata = data.replace( /(Error:.*|Under-voltage detected.*)/g, function( match, $1 ) {
-				return '<red>'+ $1 +'</red>'
-			} );
+		$.post( 'commands.php', { bash: settingbash +' getbootlog', string: 1 }, function( data ) {
 			$( '#codejournalctl' )
-				.html( htmldata )
+				.html( data )
 				.removeClass( 'hide' );
 			$( '#journalctlicon' )
 				.removeClass( 'fa-refresh blink' )

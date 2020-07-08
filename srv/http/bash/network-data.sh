@@ -25,8 +25,9 @@ for line in "${lines[@]}"; do
 		ip=
 		mac=$items1
 	fi
+	ipr=$( ip r | grep "^default.*$interface" )
 	dhcp=$( [[ $ipr == *"dhcp src $ip "* ]] && echo true || echo false )
-	gateway=$( ip r | grep "^default.*$interface" | awk '{print $3}' )
+	gateway=$( cut -d' ' -f3 <<< $ipr )
 	[[ $inftype == wlan && -n $ip && $ip != $hostapdip ]] && ssid=$( iwgetid $interface -r ) || ssid=
 	data+='{"dhcp":'$dhcp',"mac":"'$mac'","gateway":"'$gateway'","interface":"'$interface'","ip":"'$ip'","ssid":"'$ssid'"},'
 done

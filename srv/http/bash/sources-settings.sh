@@ -1,5 +1,13 @@
 #!/bin/bash
 
+if [[ -z $2 ]]; then
+	umount -l "$1"
+	sed -i "\|$1\| d" /etc/fstab
+	rmdir "$1" &> /dev/null
+	rm "$dirsystem/fstab-${1/*\/}"
+	exit
+fi
+
 mountpoint=$1
 ip=$2
 source=$3

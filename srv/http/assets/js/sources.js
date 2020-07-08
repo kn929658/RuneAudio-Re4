@@ -1,6 +1,8 @@
 $( function() { // document ready start >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 var dirsystem = '/srv/http/data/system';
+var settingbash = '/srv/http/bash/sources-settings.sh';
+
 var formdata = {}
 var html = heredoc( function() { /*
 	<form id="formmount">
@@ -81,11 +83,9 @@ $( '#list' ).on( 'click', 'li', function() {
 			, button      : function() {
 				banner( 'Network Mount', 'Remove ...', 'network' );
 				$.post( 'commands.php', { bash: [
-						  "sed -i '\\|"+ mountname +"| d' /etc/fstab"
-						, 'rmdir "'+ mountpoint +'" &> /dev/null'
-						, 'rm -f "'+ dirsystem +'/fstab-'+ mountpoint.split( '/' ).pop() +'"'
-						, curlPage( 'source' )
-					] }, function() {
+					  settingbash +' "'+ mountpoint +'"'
+					, curlPage( 'source' )
+				] }, function() {
 					refreshData();
 					$( '#refreshing' ).addClass( 'hide' );
 				} );
@@ -210,7 +210,7 @@ function infoMount( formdata, cifs ) {
 			var cmd = '"'+ mountpoint +'" '+ data.ip +' '+ device +' '+ data.protocol +' '+ options;
 			banner( 'Network Mount', 'Mount ...', 'network' );
 			$.post( 'commands.php', { bash: [
-					  '/srv/http/bash/sources-mount.sh '+ cmd
+					  settingbash +' '+ cmd
 					, curlPage( 'source' )
 				] }, function( std ) {
 				var std = std[ 0 ];

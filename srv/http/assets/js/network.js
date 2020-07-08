@@ -2,6 +2,7 @@ $( function() { // document ready start >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 var dirsystem = '/srv/http/data/system';
 var accesspoint = $( '#accesspoint' ).length;
+var settingbash = '/srv/http/bash/network-settings.sh';
 
 $( '.back' ).click( function() {
 	G.wlcurrent = '';
@@ -463,11 +464,6 @@ function editWiFiSet( ssid, data ) {
 			$.post( 'commands.php', { bash: settingbash +' editwifidhcp "'+ escapeString( ssid ) +'"' } );
 		} );
 	}
-}
-function escapeString( str ) {
-	return str
-			.replace( /([&()\\])/g, '\$1' )
-			.replace( /"/g, '\\\"' );
 }
 function getIfconfig() {
 	$.post( 'commands.php', { bash: settingbash +' getifconfig', string: 1 }, function( status ) {

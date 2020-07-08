@@ -2,7 +2,6 @@ var G = {};
 var local = 0;
 var intervalcputime;
 var intervalscan;
-var settingbash = '/srv/http/bash/settings.sh';
 var page = location.href.split( '=' ).pop();
 if ( page === 'credits' ) { // no script file to get reboot data for credits page
 	$.post( 'commands.php', { bash: 'cat /srv/http/data/tmp/reboot' }, function( reboot ) {
@@ -119,6 +118,11 @@ function codeToggle( target, id, fn ) {
 }
 function curlPage( page ) {
 	return 'curl -s -X POST "http://127.0.0.1/pub?id=refresh" -d \'{ "page": "'+ page +'" }\''
+}
+function escapeString( str ) {
+	return str
+			.replace( /([&()\\])/g, '\$1' )
+			.replace( /"/g, '\\\"' );
 }
 function onVisibilityChange( callback ) {
     var visible = 1;

@@ -58,7 +58,8 @@ case ${hwcode::1} in
 	c ) soc+='4GB';;
 esac
 
-. /srv/http/bash/network-ifconfig.sh
+lines=$( /srv/http/bash/settings-network.sh ifconfig )
+readarray -t lines <<<"$lines"
 for line in "${lines[@]}"; do
     items=( $line )
     iplist+=",${items[0]} ${items[1]} ${items[2]}"

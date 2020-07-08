@@ -5,6 +5,7 @@ $( '.selectric-input' ).prop( 'readonly', 1 ); // fix - suppress screen keyboard
 
 var dirsystem = '/srv/http/data/system';
 var filereboot = '/srv/http/data/tmp/reboot';
+var settingbash = '/srv/http/bash/system-settings.sh';
 
 $( '.container' ).on( 'click', '.settings', function() {
 	location.href = 'index-settings.php?p='+ this.id

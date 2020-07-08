@@ -11,7 +11,7 @@ $( '.back' ).click( function() {
 	$( '#divwifi, #divbluetooth' ).addClass( 'hide' );
 	$( '#listwifi, #listbt' ).empty();
 	nicsStatus();
-	if ( 'bluetooth' in G ) $.post( 'commands.php', { bash: 'bluetoothctl scan off' } );
+	if ( 'bluetooth' in G ) $.post( 'commands.php', { bash0: 'bluetoothctl scan off' } );
 } );
 $( '#listinterfaces' ).on( 'click', 'li', function() {
 	var $this = $( this );
@@ -29,7 +29,7 @@ $( '#listinterfaces' ).on( 'click', 'li', function() {
 				wlanStatus();
 			}
 		} else {
-			$.post( 'commands.php', { bash: 'bluetoothctl scan on' } );
+			$.post( 'commands.php', { bash0: 'bluetoothctl scan on' } );
 			btStatus();
 		}
 	} else {
@@ -94,7 +94,7 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 			  function() {
 				clearTimeout( intervalscan );
 				banner( ssid, 'Forget ...', 'wifi-3' );
-				$.post( 'commands.php', { bash: settingbash +' disconnect '+ G.wlcurrent +' "'+ escapeString( ssid ) +'"' }, refreshData );
+				$.post( 'commands.php', { bash0: settingbash +' disconnect '+ G.wlcurrent +' "'+ escapeString( ssid ) +'"' }, refreshData );
 			}
 			, function() {
 				if ( connected ) {
@@ -121,7 +121,7 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 			
 			clearTimeout( intervalscan );
 			banner( ssid, 'Disconnect ...', 'wifi-3' );
-			$.post( 'commands.php', { bash: settingbash +' disconnect '+ G.wlcurrent }, refreshData );
+			$.post( 'commands.php', { bash0: settingbash +' disconnect '+ G.wlcurrent }, refreshData );
 		}
 	} );
 } );
@@ -143,19 +143,19 @@ $( '#listbt' ).on( 'click', 'li', function( e ) {
 			, buttonwidth : 1
 			, button      : function() {
 				$this.remove();
-				$.post( 'commands.php', { bash: 'bluetoothctl remove '+ mac } );
+				$.post( 'commands.php', { bash0: 'bluetoothctl remove '+ mac } );
 			}
 		}
 		if ( connected ) {
 			jsoninfo.oklabel = 'Disconnect';
 			jsoninfo.ok      = function() {
 				$this.find( 'grn' ).remove();
-				$.post( 'commands.php', { bash: 'bluetoothctl disconnect '+ mac } );
+				$.post( 'commands.php', { bash0: 'bluetoothctl disconnect '+ mac } );
 			}
 		} else {
 			jsoninfo.oklabel = 'Connect';
 			jsoninfo.ok      = function() {
-				$.post( 'commands.php', { bash: 'bluetoothctl connect '+ mac }, btScan );
+				$.post( 'commands.php', { bash0: 'bluetoothctl connect '+ mac }, btScan );
 			}
 		}
 		info( jsoninfo );
@@ -171,16 +171,16 @@ $( '#listbt' ).on( 'click', 'li', function( e ) {
 			, ok      : function() {
 				$this.find( 'grn' ).remove();
 				banner( 'Bluetooth', 'Disonnect ...', 'bluetooth' );
-				$.post( 'commands.php', { bash: 'bluetoothctl disconnect '+ mac } );
+				$.post( 'commands.php', { bash0: 'bluetoothctl disconnect '+ mac } );
 			}
 		} );
 	} else {
 		if ( $this.find( 'fa-edit-circle' ).length ) {
 			banner( 'Bluetooth', 'Connect ...', 'bluetooth' );
-			$.post( 'commands.php', { bash: 'bluetoothctl connect '+ mac }, btScan );
+			$.post( 'commands.php', { bash0: 'bluetoothctl connect '+ mac }, btScan );
 		} else {
 			banner( 'Bluetooth', 'Pair ...', 'bluetooth' );
-			$.post( 'commands.php', { bash: settingbash +' btconnect '+ mac }, function( data ) {
+			$.post( 'commands.php', { bash0: settingbash +' btconnect '+ mac }, function( data ) {
 				if ( data != -1 ) {
 					notify( 'Bluetooth', name +' paired', 'bluetooth' );
 				} else {
@@ -224,7 +224,7 @@ $( '#accesspoint' ).change( function() {
 	}
 	G.hostapd = hostapd;
 	banner( 'RPi Access Point', G.hostapd, 'wifi-3' );
-	$.post( 'commands.php', { bash: settingbash +' accesspoint '+ G.hostapd +' '+ G.hostapdip }, refreshData );
+	$.post( 'commands.php', { bash0: settingbash +' accesspoint '+ G.hostapd +' '+ G.hostapdip }, refreshData );
 });
 $( '#settings-accesspoint' ).click( function() {
 	info( {
@@ -251,7 +251,7 @@ $( '#settings-accesspoint' ).click( function() {
 			var ip012 = ips.join( '.' );
 			var iprange = ip012 +'.'+ ( +ip3 + 1 ) +','+ ip012 +'.254,24h';
 			banner( 'RPi Access Point', 'Change ...', 'wifi-3' );
-			$.post( 'commands.php', { bash: settingbash +' accesspointset '+ iprange +' '+ ip +' "'+ escapeString( passphrase ) +'"' }, refreshData );
+			$.post( 'commands.php', { bash0: settingbash +' accesspointset '+ iprange +' '+ ip +' "'+ escapeString( passphrase ) +'"' }, refreshData );
 		}
 	} );
 } );
@@ -301,10 +301,10 @@ function connect( ssid, data, ip ) { // ip - static
 		location.href = 'http://'+ ip +'/index-settings.php?p=network';
 	}
 	banner( ssid, ( ip ? 'Static IP ...' : 'Connect ...' ), 'wifi-3' );
-	$.post( 'commands.php', { bash: settingbash +' connect '+ arg }, function( std ) {
+	$.post( 'commands.php', { bash0: settingbash +' connect '+ arg }, function( std ) {
 		if ( std != -1 ) {
 			G.wlconnected = G.wlcurrent;
-			$.post( 'commands.php', { bash: [ 
+			$.post( 'commands.php', { bash0: [ 
 				  'systemctl enable netctl-auto@'+ G.wlcurrent
 				, curlPage( 'network' )
 			] }, refreshData );
@@ -337,7 +337,7 @@ function editLAN( data ) {
 			banner( 'LAN IP Address', 'DHCP ...', 'lan' );
 			$( '#loader' ).removeClass( 'hide' );
 			location.href = 'http://'+ G.hostname +'.local/index-settings.php?p=network';
-			$.post( 'commands.php', { bash: settingbash +' editlan' } );
+			$.post( 'commands.php', { bash0: settingbash +' editlan' } );
 		}
 		, ok           : function() {
 			var data1 = {}
@@ -345,7 +345,7 @@ function editLAN( data ) {
 			data1.gateway = $( '#infoTextBox1' ).val();
 			if ( data1.ip === data.ip && data1.gateway === data.gateway ) return
 			
-			$.post( 'commands.php', { bash: settingbash +' editlan '+ data1.ip +' '+ data1.gateway, string: 1 }, function( used ) {
+			$.post( 'commands.php', { bash0: settingbash +' editlan '+ data1.ip +' '+ data1.gateway }, function( used ) {
 				if ( used == -1 ) {
 					info( {
 						  icon    : 'lan'
@@ -378,7 +378,7 @@ function editWiFi( ssid, data ) {
 				if ( data ) {
 					editWiFiSet( ssid, data );
 				} else {
-					$.post( 'commands.php', { bash: settingbash +' getwifi "'+ escapeString( ssid ) +'"', string: 1 }, function( data ) {
+					$.post( 'commands.php', { bash0: settingbash +' getwifi "'+ escapeString( ssid ) +'"' }, function( data ) {
 						data.dhcp = data.IP === 'static' ? 'Static IP' : 'DHCP';
 						data.Address = 'Address' in data ? data.Address.replace( '/24', '' ) : '';
 						editWiFiSet( ssid, data );
@@ -414,7 +414,7 @@ function editWiFi( ssid, data ) {
 						+'\nGateway='+ gw;
 			}
 			if ( ssid ) {
-				$.post( 'commands.php', { bash: settingbash +' ipused '+ ip , string: 1 }, function( used ) {
+				$.post( 'commands.php', { bash0: settingbash +' ipused '+ ip }, function( used ) {
 					if ( used == 1 ) {
 						info( {
 							  icon    : 'wifi-3'
@@ -461,19 +461,19 @@ function editWiFiSet( ssid, data ) {
 			$( '#loader' ).removeClass( 'hide' );
 			banner( ssid, 'DHCP ...', 'wifi-3' );
 			location.href = 'http://'+ G.hostname +'.local/index-settings.php?p=network';
-			$.post( 'commands.php', { bash: settingbash +' editwifidhcp "'+ escapeString( ssid ) +'"' } );
+			$.post( 'commands.php', { bash0: settingbash +' editwifidhcp "'+ escapeString( ssid ) +'"' } );
 		} );
 	}
 }
 function getIfconfig() {
-	$.post( 'commands.php', { bash: settingbash +' getifconfig', string: 1 }, function( status ) {
+	$.post( 'commands.php', { bash0: settingbash +' getifconfig' }, function( status ) {
 		$( '#codeifconfig' )
 			.html( status )
 			.removeClass( 'hide' );
 	} );
 }
 function getNetctl() {
-	$.post( 'commands.php', { bash: settingbash +' getnetctl', string: 1 }, function( data ) {
+	$.post( 'commands.php', { bash0: settingbash +' getnetctl' }, function( data ) {
 		$( '#codenetctl' )
 			.html( data )
 			.removeClass( 'hide' );

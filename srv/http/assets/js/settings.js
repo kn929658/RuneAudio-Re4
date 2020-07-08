@@ -4,7 +4,7 @@ var intervalcputime;
 var intervalscan;
 var page = location.href.split( '=' ).pop();
 if ( page === 'credits' ) { // no script file to get reboot data for credits page
-	$.post( 'commands.php', { bash: 'cat /srv/http/data/tmp/reboot' }, function( reboot ) {
+	$.post( 'commands.php', { bash0: 'cat /srv/http/data/tmp/reboot' }, function( reboot ) {
 		G.reboot = reboot !== -1 ? reboot[ 0 ].split( '\n' ) : [];
 	}, 'json' );
 }
@@ -17,18 +17,18 @@ $( '#close' ).click( function() {
 					   +'<br><br><w>'+ G.reboot.join( '<br>' ) +'</w>'
 			, cancel  : function() {
 				G.reboot = [];
-				$.post( 'commands.php', { bash: 'rm -f /srv/http/data/tmp/reboot' } );
+				$.post( 'commands.php', { bash0: 'rm -f /srv/http/data/tmp/reboot' } );
 			}
 			, ok      : function() {
-				$.post( 'commands.php', { bash: '/srv/http/bash/commands.sh reboot' } );
+				$.post( 'commands.php', { bash0: '/srv/http/bash/commands.sh reboot' } );
 				notify( 'Rebooting ...', '', 'reboot blink', -1 );
 			}
 		} );
 	} else {
 		if ( page === 'system' ) {
-			$.post( 'commands.php', { bash: 'rm -f /srv/http/data/tmp/backup.*' } );
+			$.post( 'commands.php', { bash0: 'rm -f /srv/http/data/tmp/backup.*' } );
 		} else if ( page === 'network' ) {
-			if ( $( '#listinterfaces li' ).hasClass( 'bt' ) ) $.post( 'commands.php', { bash: 'bluetoothctl scan off' } );
+			if ( $( '#listinterfaces li' ).hasClass( 'bt' ) ) $.post( 'commands.php', { bash0: 'bluetoothctl scan off' } );
 		}
 		location.href = '/';
 	}

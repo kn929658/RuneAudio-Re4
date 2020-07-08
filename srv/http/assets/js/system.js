@@ -45,13 +45,13 @@ $( '#airplay' ).click( function( e ) {
 		$( '#avahi' ).prop( 'checked', 1 );
 	}
 	banner( 'AirPlay  Renderer'+ bannertxt, G.airplay, 'airplay' );
-	$.post( 'commands.php', { bash: settingbash +' airplay '+ G.airplay }, resetLocal );
+	$.post( 'commands.php', { bash0: settingbash +' airplay '+ G.airplay }, resetLocal );
 } );
 $( '#snapclient' ).click( function( e ) {
 	G.snapclient = $( this ).prop( 'checked' );
 	$( '#setting-snapclient' ).toggleClass( 'hide', !G.snapclient );
 	banner( 'SnapClient Renderer', G.snapclient, 'snapcast' );
-	$.post( 'commands.php', { bash: settingbash +' snapclient '+ G.snapclient }, resetLocal );
+	$.post( 'commands.php', { bash0: settingbash +' snapclient '+ G.snapclient }, resetLocal );
 } );
 $( '#setting-snapclient' ).click( function() {
 	info( {
@@ -65,7 +65,7 @@ $( '#setting-snapclient' ).click( function() {
 			if ( latency !== G.snaplatency ) {
 				G.snaplatency = latency;
 				banner( 'Snapclient Latency', 'Change ...', 'snapcast' );
-				$.post( 'commands.php', { bash: settingbash +' snapclientset '+ G.snaplatency }, resetLocal );
+				$.post( 'commands.php', { bash0: settingbash +' snapclientset '+ G.snaplatency }, resetLocal );
 			}
 		}
 	} );
@@ -74,10 +74,10 @@ $( '#spotify' ).click( function() {
 	G.spotify = $( this ).prop( 'checked' );
 	$( '#setting-spotify' ).toggleClass( 'hide', !G.spotify );
 	banner( 'Spotify Connect', G.spotify, 'spotify' );
-	$.post( 'commands.php', { bash: settingbash +' spotify '+ G.spotify }, resetLocal );
+	$.post( 'commands.php', { bash0: settingbash +' spotify '+ G.spotify }, resetLocal );
 } );
 $( '#setting-spotify' ).click( function() {
-	$.post( 'commands.php', { bash: "aplay -L | grep -v '^\\s\\|^null' | tr '\\n' ' '" }, function( data ) {
+	$.post( 'commands.php', { bash0: "aplay -L | grep -v '^\\s\\|^null' | tr '\\n' ' '" }, function( data ) {
 		var devices = data[ 0 ].split( ' ' );
 		var select = {}
 		devices.forEach( function( val ) {
@@ -105,7 +105,7 @@ $( '#setting-spotify' ).click( function() {
 				if ( device !== G.spotifydevice ) {
 					G.spotifydevice = device;
 					banner( 'Spotify Renderer', 'Change ...', 'spotify' );
-					$.post( 'commands.php', { bash: settingbash +' spotifyset '+ device }, resetLocal );
+					$.post( 'commands.php', { bash0: settingbash +' spotifyset '+ device }, resetLocal );
 				}
 			}
 		} );
@@ -114,7 +114,7 @@ $( '#setting-spotify' ).click( function() {
 $( '#upnp' ).click( function( e ) {
 	G.upnp = $( this ).prop( 'checked' );
 	banner( 'UPnP Renderer', G.upnp, 'upnp' );
-	$.post( 'commands.php', { bash: settingbash +' upnp '+ G.upnp }, resetLocal );
+	$.post( 'commands.php', { bash0: settingbash +' upnp '+ G.upnp }, resetLocal );
 } );
 $( '#snapcast' ).click( function( e ) {
 	G.snapcast = $( this ).prop( 'checked' );
@@ -125,18 +125,18 @@ $( '#snapcast' ).click( function( e ) {
 		$( '#divsnapclient' ).removeClass( 'hide' );
 	}
 	banner( 'Snapcast - Sync Streaming Server', G.snapcast, 'snapcast' );
-	$.post( 'commands.php', { bash: settingbash +' snapcast '+ G.snapcast }, resetLocal );
+	$.post( 'commands.php', { bash0: settingbash +' snapcast '+ G.snapcast }, resetLocal );
 } );
 $( '#streaming' ).click( function( e ) {
 	G.streaming = $( this ).prop( 'checked' );
 	banner( 'HTTP Streaming', G.streaming, 'mpd' );
-	$.post( 'commands.php', { bash: settingbash +' streaming '+ G.streaming }, resetLocal );
+	$.post( 'commands.php', { bash0: settingbash +' streaming '+ G.streaming }, resetLocal );
 } );
 $( '#localbrowser' ).click( function( e ) {
 	G.localbrowser = $( this ).prop( 'checked' );
 	$( '#setting-localbrowser' ).toggleClass( 'hide', !G.localbrowser );
 	banner( 'Chromium - Browser on RPi', G.localbrowser, 'chromium' );
-	$.post( 'commands.php', { bash: settingbash +' localbrowser '+ G.localbrowser }, resetLocal( 7000 ) );
+	$.post( 'commands.php', { bash0: settingbash +' localbrowser '+ G.localbrowser }, resetLocal( 7000 ) );
 } );
 var localbrowserinfo = heredoc( function() { /*
 	<div id="infoText" class="infocontent">
@@ -180,7 +180,7 @@ $( '#setting-localbrowser' ).click( function( e ) {
 		, buttonlabel : '<i class="fa fa-refresh"></i>Refresh'
 		, buttoncolor : '#de810e'
 		, button      : function() {
-			$.post( 'commands.php', { bash: 'curl -s -X POST "http://127.0.0.1/pub?id=reload" -d \'{ "reload": 1 }\'' } );
+			$.post( 'commands.php', { bash0: 'curl -s -X POST "http://127.0.0.1/pub?id=reload" -d \'{ "reload": 1 }\'' } );
 		}
 		, buttonwidth : 1
 		, ok          : function() {
@@ -197,7 +197,7 @@ $( '#setting-localbrowser' ).click( function( e ) {
 			G.screenoff = screenoff;
 			G.zoom      = zoom;
 			banner( 'Chromium - Browser on RPi', 'Change ...', 'chromium' );
-			$.post( 'commands.php', { bash: settingbash +' localbrowserset '+ rotate +' '+ cursor +' '+ ( screenoff * 60 ) +' '+ zoom }, function() {
+			$.post( 'commands.php', { bash0: settingbash +' localbrowserset '+ rotate +' '+ cursor +' '+ ( screenoff * 60 ) +' '+ zoom }, function() {
 				resetLocal( 7000 );
 			} );
 		}
@@ -209,7 +209,7 @@ $( '#mpdscribble' ).click( function() {
 		$( '#setting-mpdscribble' ).click();
 	} else {
 		banner( 'Scrobbler', G.mpdscribble, 'lastfm' );
-		$.post( 'commands.php', { bash: settingbash +' mpdscribble '+ G.mpdscribble }, resetLocal );
+		$.post( 'commands.php', { bash0: settingbash +' mpdscribble '+ G.mpdscribble }, resetLocal );
 		$( '#setting-mpdscribble' ).toggleClass( 'hide', !G.mpdscribble );
 	}
 } );
@@ -227,7 +227,7 @@ $( '#setting-mpdscribble' ).click( function() {
 			G.mpdscribbleuser = $( '#infoTextBox' ).val().replace( /(["&()\\])/g, '\$1' );
 			var password = $( '#infoPasswordBox' ).val().replace( /(["&()\\])/g, '\$1' );
 			banner( 'Scrobbler', G.mpdscribble ? 'Change ...' : 'Enable ...', 'lastfm' );
-			$.post( 'commands.php', { bash: settingbash +' mpdscribbleset "'+ G.mpdscribbleuser +'" "'+ password +'"' }, resetLocal );
+			$.post( 'commands.php', { bash0: settingbash +' mpdscribbleset "'+ G.mpdscribbleuser +'" "'+ password +'"' }, resetLocal );
 		}
 	} );
 } );
@@ -235,7 +235,7 @@ $( '#login' ).click( function( e ) {
 	G.login = $( this ).prop( 'checked' );
 	$( '#setting-login' ).toggleClass( 'hide', !G.login );
 	banner( 'Password Login', G.login, 'lock' );
-	$.post( 'commands.php', { bash: settingbash +' mpdscribbleset "'+ G.login }, resetLocal );
+	$.post( 'commands.php', { bash0: settingbash +' mpdscribbleset "'+ G.login }, resetLocal );
 	if ( G.login && G.passworddefault ) {
 		info( {
 			  icon    : 'lock'
@@ -268,7 +268,7 @@ $( '#samba' ).click( function( e ) {
 	G.samba = $( this ).prop( 'checked' );
 	$( '#setting-samba' ).toggleClass( 'hide', !G.samba );
 	banner( 'Samba - File Sharing', G.samba, 'network' );
-	$.post( 'commands.php', { bash: settingbash +' samba "'+ G.samba }, resetLocal );
+	$.post( 'commands.php', { bash0: settingbash +' samba "'+ G.samba }, resetLocal );
 } );
 $( '#setting-samba' ).click( function() {
 	info( {
@@ -287,7 +287,7 @@ $( '#setting-samba' ).click( function() {
 				G.writesd = writesd;
 				G.writeusb = writeusb;
 				banner( 'Samba - File Sharing', 'Change ...', 'network' );
-				$.post( 'commands.php', { bash: settingbash +' sambaset '+ G.writesd +' '+ G.writeusb }, resetLocal );
+				$.post( 'commands.php', { bash0: settingbash +' sambaset '+ G.writesd +' '+ G.writeusb }, resetLocal );
 			}
 		}
 	} );
@@ -295,7 +295,7 @@ $( '#setting-samba' ).click( function() {
 $( '#autoplay' ).click( function() {
 	G.autoplay = $( this ).prop( 'checked' );
 	local = 1;
-	$.post( 'commands.php', { bash: settingbash +' autoplay '+ G.autoplay }, resetLocal );
+	$.post( 'commands.php', { bash0: settingbash +' autoplay '+ G.autoplay }, resetLocal );
 } );
 $( '#onboardaudio' ).click( function( e ) {
 	var onboardaudio = $( this ).prop( 'checked' );
@@ -310,19 +310,19 @@ $( '#onboardaudio' ).click( function( e ) {
 		G.onboardaudio = onboardaudio;
 		rebootText( onboardaudio ? 'Enable' : 'Disable', 'on-board audio' );
 		local = 1;
-		$.post( 'commands.php', { bash: settingbash +' onboardaudio '+ G.onboardaudio +" '"+ G.reboot.join( '\n' ) +"'" }, resetLocal );
+		$.post( 'commands.php', { bash0: settingbash +' onboardaudio '+ G.onboardaudio +" '"+ G.reboot.join( '\n' ) +"'" }, resetLocal );
 	}
 } );
 $( '#bluetooth' ).click( function( e ) {
 	G.bluetooth = $( this ).prop( 'checked' );
 	rebootText( G.bluetooth ? 'Enable' : 'Disable', 'on-board Bluetooth' );
 	banner( 'On-board Bluetooth', G.bluetooth, 'bluetooth' );
-	$.post( 'commands.php', { bash: settingbash +' bluetooth '+ G.bluetooth +" '"+ G.reboot.join( '\n' ) +"'" }, resetLocal );
+	$.post( 'commands.php', { bash0: settingbash +' bluetooth '+ G.bluetooth +" '"+ G.reboot.join( '\n' ) +"'" }, resetLocal );
 } );
 $( '#wlan' ).click( function( e ) {
 	G.wlan = $( this ).prop( 'checked' );
 	banner( 'On-board Wi-Fi', G.wlan, 'bluetooth' );
-	$.post( 'commands.php', { bash: settingbash +' wlan '+ G.wlan }, resetLocal );
+	$.post( 'commands.php', { bash0: settingbash +' wlan '+ G.wlan }, resetLocal );
 } );
 $( '#i2smodulesw' ).click( function() {
 	// delay to show switch sliding
@@ -365,14 +365,14 @@ $( '#i2smodule' ).on( 'selectric-change', function( e ) {
 		rebootText( 'Disable', 'I&#178;S Module' );
 		banner( 'I&#178;S Module', 'Disable ...', 'volume' );
 	}
-	$.post( 'commands.php', { bash: settingbash +' i2smodule '+ G.audioaplayname +' "'+ G.audiooutput +" '"+ G.reboot.join( '\n' ) +"'" }, resetLocal );
+	$.post( 'commands.php', { bash0: settingbash +' i2smodule '+ G.audioaplayname +' "'+ G.audiooutput +" '"+ G.reboot.join( '\n' ) +"'" }, resetLocal );
 	$( '#output' ).text( G.audiooutput );
 } );
 $( '#soundprofile' ).click( function( e ) {
 	G.soundprofile = $( this ).prop( 'checked' );
 	rebootText( G.soundprofile ? 'Enable' : 'Disable', 'sound profile' );
 	banner( 'Sound Profile', G.soundprofile, 'volume' );
-	$.post( 'commands.php', { bash: settingbash +' soundprofile '+ soundprofile }, resetLocal );
+	$.post( 'commands.php', { bash0: settingbash +' soundprofile '+ soundprofile }, resetLocal );
 } );
 $( '#setting-soundprofile' ).click( function() {
 	var radio= {
@@ -414,7 +414,7 @@ $( '#setting-soundprofile' ).click( function() {
 						if ( soundprofile != G.soundprofile ) {
 							G.soundprofile = soundprofile;
 							banner( 'Sound Profile', 'Change ...', 'volume' );
-							$.post( 'commands.php', { bash: settingbash +' soundprofileset '+ soundprofile }, resetLocal );
+							$.post( 'commands.php', { bash0: settingbash +' soundprofileset '+ soundprofile }, resetLocal );
 						}
 					}
 				} );
@@ -432,7 +432,7 @@ $( '#setting-soundprofile' ).click( function() {
 				rebootText( G.soundprofile ? 'Change' : 'Enable', 'sound profile' );
 				G.soundprofile = soundprofile;
 				banner( 'Sound Profile', 'Change ...', 'volume' );
-				$.post( 'commands.php', { bash: settingbash +' soundprofileset '+ soundprofile }, resetLocal );
+				$.post( 'commands.php', { bash0: settingbash +' soundprofileset '+ soundprofile }, resetLocal );
 			}
 		}
 	} );
@@ -449,7 +449,7 @@ $( '#hostname' ).click( function() {
 				G.hostname = hostname;
 				$( '#hostname' ).val( hostname );
 				banner( 'Name', 'Change ...', 'sliders' );
-				$.post( 'commands.php', { bash: settingbash +' hostname '+ hostname }, resetLocal );
+				$.post( 'commands.php', { bash0: settingbash +' hostname '+ hostname }, resetLocal );
 			}
 		}
 	} );
@@ -468,14 +468,14 @@ $( '#setting-regional' ).click( function() {
 				G.ntp = ntp;
 				G.regdom = regdom;
 				banner( 'Regional Settings', 'Change ...', 'gear' );
-				$.post( 'commands.php', { bash: settingbash +' regional '+ ntp +' '+ regdom }, resetLocal );
+				$.post( 'commands.php', { bash0: settingbash +' regional '+ ntp +' '+ regdom }, resetLocal );
 			}
 		}
 	} );
 } );
 $( '#timezone' ).on( 'selectric-change', function( e ) {
 	G.timezone = $( this ).val();
-	$.post( 'commands.php', { bash: settingbash +' timezone '+ G.timezone } );
+	$.post( 'commands.php', { bash0: settingbash +' timezone '+ G.timezone } );
 } );
 $( '#journalctl' ).click( function( e ) {
 	codeToggle( e.target, this.id, getJournalctl );
@@ -611,7 +611,7 @@ $( '#backuprestore' ).click( function( e ) {
 	} );
 } );
 function getIwregget() {
-	$.post( 'commands.php', { bash: 'iw reg get', string: 1 }, function( status ) {
+	$.post( 'commands.php', { bash0: 'iw reg get' }, function( status ) {
 		$( '#codeiwregget' )
 			.html( status )
 			.removeClass( 'hide' );
@@ -621,7 +621,7 @@ function getJournalctl() {
 	if ( $( '#codejournalctl' ).text() ) {
 		$( '#codejournalctl' ).removeClass( 'hide' );
 	} else {
-		$.post( 'commands.php', { bash: settingbash +' getbootlog', string: 1 }, function( data ) {
+		$.post( 'commands.php', { bash0: settingbash +' getbootlog' }, function( data ) {
 			$( '#codejournalctl' )
 				.html( data )
 				.removeClass( 'hide' );
@@ -635,7 +635,7 @@ function getJournalctl() {
 	}
 }
 function getConfigtxt() {
-	$.post( 'commands.php', { bash: 'cat /boot/config.txt', string: 1 }, function( status ) {
+	$.post( 'commands.php', { bash0: 'cat /boot/config.txt' }, function( status ) {
 		$( '#codeconfigtxt' )
 			.html( status )
 			.removeClass( 'hide' );

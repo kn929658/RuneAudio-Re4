@@ -62,7 +62,7 @@ $( '#list' ).on( 'click', 'li', function() {
 			, okcolor : '#de810e'
 			, ok      : function() {
 				banner( 'Network Mount', 'Unmount ...', 'network' );
-				$.post( 'commands.php', { bash: [
+				$.post( 'commands.php', { bash0: [
 						  ( nas ? '' : 'udevil ' ) +'umount -l "'+ mountpoint +'"'
 						, curlPage( 'source' )
 					] }, function() {
@@ -82,10 +82,7 @@ $( '#list' ).on( 'click', 'li', function() {
 			, buttoncolor : '#bb2828'
 			, button      : function() {
 				banner( 'Network Mount', 'Remove ...', 'network' );
-				$.post( 'commands.php', { bash: [
-					  settingbash +' "'+ mountpoint +'"'
-					, curlPage( 'source' )
-				] }, function() {
+				$.post( 'commands.php', { bash0: settingbash +' "'+ mountpoint +'"' }, function() {
 					refreshData();
 					$( '#refreshing' ).addClass( 'hide' );
 				} );
@@ -94,7 +91,7 @@ $( '#list' ).on( 'click', 'li', function() {
 			, oklabel     : 'Remount'
 			, ok          : function() {
 				banner( 'Network Mount', 'Remount ...', 'network' );
-				$.post( 'commands.php', { bash: [
+				$.post( 'commands.php', { bash0: [
 						  ( nas ? 'mount "'+ mountpoint +'"' : 'udevil mount '+ $this.data( 'source' ) )
 						, curlPage( 'source' )
 					] }, function() {
@@ -111,7 +108,7 @@ $( '#list' ).on( 'click', 'li', function() {
 	
 	if ( $( this ).find( '.fa-search' ).length ) {
 		$( '#listshare' ).html( '<li><i class="fa fa-search blink"></i></li>' );
-		$.post( 'commands.php', { bash: '/srv/http/bash/sources-sharescan.sh' }, function( list ) {
+		$.post( 'commands.php', { bash0: '/srv/http/bash/sources-sharescan.sh' }, function( list ) {
 			var list = JSON.parse( list );
 			if ( list.length ) {
 				var html = '';
@@ -150,14 +147,14 @@ $( '#fstab' ).click( function( e ) {
 } );
 
 function getMounts() {
-	$.post( 'commands.php', { bash: 'mount | grep " / \\|MPD"', string: 1 }, function( status ) {
+	$.post( 'commands.php', { bash0: 'mount | grep " / \\|MPD"' }, function( status ) {
 		$( '#codemount' )
 			.html( status )
 			.removeClass( 'hide' );
 	} );
 }
 function getFstab() {
-	$.post( 'commands.php', { bash: 'cat /etc/fstab', string: 1 }, function( status ) {
+	$.post( 'commands.php', { bash0: 'cat /etc/fstab' }, function( status ) {
 		$( '#codefstab' )
 			.html( status )
 			.removeClass( 'hide' );
@@ -209,10 +206,7 @@ function infoMount( formdata, cifs ) {
 			}
 			var cmd = '"'+ mountpoint +'" '+ data.ip +' '+ device +' '+ data.protocol +' '+ options;
 			banner( 'Network Mount', 'Mount ...', 'network' );
-			$.post( 'commands.php', { bash: [
-					  settingbash +' '+ cmd
-					, curlPage( 'source' )
-				] }, function( std ) {
+			$.post( 'commands.php', { bash0: settingbash +' '+ cmd }, function( std ) {
 				var std = std[ 0 ];
 				if ( std ) {
 					formdata = data;

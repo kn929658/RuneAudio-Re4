@@ -1,10 +1,15 @@
 #!/bin/bash
 
+curlPage() {
+	curl -s -X POST 'http://127.0.0.1/pub?id=refresh' -d '{ "page": "sources" }'
+}
+
 if [[ -z $2 ]]; then
 	umount -l "$1"
 	sed -i "\|$1\| d" /etc/fstab
 	rmdir "$1" &> /dev/null
 	rm "$dirsystem/fstab-${1/*\/}"
+	curlPage
 	exit
 fi
 
@@ -32,3 +37,4 @@ source=${source// /\\040} # escape spaces in fstab
 name=$( basename "$mountpoint" )
 mountpoint=${mountpoint// /\\040}
 echo "$source  $mountpoint  $cifsnfs  $options  0  0" | tee -a /etc/fstab "/srv/http/data/system/fstab-$name" &> /dev/null
+curlPage

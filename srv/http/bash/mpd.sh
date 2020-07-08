@@ -119,4 +119,7 @@ elif [[ $1 == replaygain ]]; then
 	fi
 	systemctl restart mpd
 	curlPage
+elif [[ $1 == statusmpd ]]; then
+	systemctl status mpd \
+		| sed 's|\(active (running)\)|<grn>\1</grn>|; s|\(inactive (dead)\)|<red>\1</ed>|'
 fi

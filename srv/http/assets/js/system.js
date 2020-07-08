@@ -5,7 +5,7 @@ $( '.selectric-input' ).prop( 'readonly', 1 ); // fix - suppress screen keyboard
 
 var dirsystem = '/srv/http/data/system';
 var filereboot = '/srv/http/data/tmp/reboot';
-var settingbash = '/srv/http/bash/system-settings.sh';
+var settingbash = '/srv/http/bash/system.sh';
 
 $( '.container' ).on( 'click', '.settings', function() {
 	location.href = 'index-settings.php?p='+ this.id
@@ -621,7 +621,7 @@ function getJournalctl() {
 	if ( $( '#codejournalctl' ).text() ) {
 		$( '#codejournalctl' ).removeClass( 'hide' );
 	} else {
-		$.post( 'commands.php', { bash0: settingbash +' getbootlog' }, function( data ) {
+		$.post( 'commands.php', { bash0: settingbash +' statusbootlog' }, function( data ) {
 			$( '#codejournalctl' )
 				.html( data )
 				.removeClass( 'hide' );

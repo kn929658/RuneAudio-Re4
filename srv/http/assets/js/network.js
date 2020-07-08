@@ -2,7 +2,7 @@ $( function() { // document ready start >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 var dirsystem = '/srv/http/data/system';
 var accesspoint = $( '#accesspoint' ).length;
-var settingbash = '/srv/http/bash/network-settings.sh';
+var settingbash = '/srv/http/bash/network.sh';
 
 $( '.back' ).click( function() {
 	G.wlcurrent = '';
@@ -378,7 +378,7 @@ function editWiFi( ssid, data ) {
 				if ( data ) {
 					editWiFiSet( ssid, data );
 				} else {
-					$.post( 'commands.php', { bash0: settingbash +' getwifi "'+ escapeString( ssid ) +'"' }, function( data ) {
+					$.post( 'commands.php', { bash0: settingbash +' statuswifi "'+ escapeString( ssid ) +'"' }, function( data ) {
 						data.dhcp = data.IP === 'static' ? 'Static IP' : 'DHCP';
 						data.Address = 'Address' in data ? data.Address.replace( '/24', '' ) : '';
 						editWiFiSet( ssid, data );
@@ -466,14 +466,14 @@ function editWiFiSet( ssid, data ) {
 	}
 }
 function getIfconfig() {
-	$.post( 'commands.php', { bash0: settingbash +' getifconfig' }, function( status ) {
+	$.post( 'commands.php', { bash0: settingbash +' statusifconfig' }, function( status ) {
 		$( '#codeifconfig' )
 			.html( status )
 			.removeClass( 'hide' );
 	} );
 }
 function getNetctl() {
-	$.post( 'commands.php', { bash0: settingbash +' getnetctl' }, function( data ) {
+	$.post( 'commands.php', { bash0: settingbash +' statusnetctl' }, function( data ) {
 		$( '#codenetctl' )
 			.html( data )
 			.removeClass( 'hide' );

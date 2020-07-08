@@ -3,7 +3,7 @@ $( function() { // document ready start >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 $( '#audiooutput, #mixertype' ).selectric();
 $( '.selectric-input' ).prop( 'readonly', 1 ); // fix - suppress screen keyboard
 var dirsystem = '/srv/http/data/system';
-var settingbash = '/srv/http/bash/mpd-settings.sh';
+var settingbash = '/srv/http/bash/mpd.sh';
 var restartmpd = '';
 var setmpdconf = '/srv/http/bash/mpd-conf.sh';
 var warning = '<wh><i class="fa fa-warning fa-lg"></i>&ensp;Lower amplifier volume.</wh>'

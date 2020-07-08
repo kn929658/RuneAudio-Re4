@@ -1,7 +1,7 @@
 $( function() { // document ready start >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 var dirsystem = '/srv/http/data/system';
-var settingbash = '/srv/http/bash/sources-settings.sh';
+var settingbash = '/srv/http/bash/sources.sh';
 
 var formdata = {}
 var html = heredoc( function() { /*

@@ -50,6 +50,9 @@ elif [[ $1 == connect ]]; then
 	[[ -n $4 ]] && echo "$4" | tee "/srv/http/data/system/netctl-$3" > "/etc/netctl/$3"
 	netctl start "$3"
 	curlPage
+elif [[ $1 == connectenable ]]; then
+	systemctl enable netctl-auto$2
+	curlPage
 elif [[ $1 == disconnect ]]; then
 	netctl stop-all
 	killall wpa_supplicant
@@ -92,13 +95,23 @@ elif [[ $1 == editwifidhcp ]]; then
 	cp "$file" "/etc/netctl/$2"
 	netctl start "$2"
 	curlPage
-elif [[ $1 == getifconfig ]]; then
+elif [[ $1 == ifconfig ]]; then
+	lines=$( ifconfig \
+		| sed -n '/^eth\|^wlan/,/ether/ p' \
+		| grep -v inet6 \
+		| sed 's/^\(.*\): .*/\1/; s/^ *inet \(.*\)   *net.*/\1/; s/^ *ether \(.*\)   *txq.*/\1=/' \
+		| tr '\n' ' ' \
+		| sed 's/= /\n/g' )
+	echo "$lines"
+elif [[ $1 == ipused ]]; then
+	arp -n | grep -q ^$2 && echo 1 || echo 0
+elif [[ $1 == statusifconfig ]]; then
 	ifconfig
 	if systemctl -q is-active bluetooth; then
 		echo '<hr>'
 		bluetoothctl show | sed 's/^\(Controller.*\)/bluetooth: \1/'
 	fi
-elif [[ $1 == getnetctl ]]; then
+elif [[ $1 == statusnetctl ]]; then
 	lists=$( netctl list )
 	[[ -z $lists ]] && echo '(none)' && exit
 	
@@ -108,19 +121,9 @@ elif [[ $1 == getnetctl ]]; then
 		profiles+="<hr>$name<hr>$( cat /etc/netctl/$name | sed -e '/^#.*/ d' -e 's/Key=.*/Key="*********"/' )"
 	done
 	echo "$profiles"
-elif [[ $1 == getwifi ]]; then
+elif [[ $1 == statuswifi ]]; then
 	value=$( grep '^Address\|^Gateway\|^IP\|^Key\|^Security' "/etc/netctl/$2" \
 				| tr -d '"' \
 				| sed 's/^/"/ ;s/=/":"/; s/$/",/' )
 	echo {${value:0:-1}}
-elif [[ $1 == ipused ]]; then
-	arp -n | grep -q ^$2 && echo 1 || echo 0
-elif [[ $1 == ifconfig ]]; then
-	lines=$( ifconfig \
-		| sed -n '/^eth\|^wlan/,/ether/ p' \
-		| grep -v inet6 \
-		| sed 's/^\(.*\): .*/\1/; s/^ *inet \(.*\)   *net.*/\1/; s/^ *ether \(.*\)   *txq.*/\1=/' \
-		| tr '\n' ' ' \
-		| sed 's/= /\n/g' )
-	echo "$lines"
 fi

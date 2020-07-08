@@ -9,7 +9,7 @@ if [[ -e /usr/bin/hostapd ]]; then
 	extra+=',"hostapd":{"ssid":"'${ssid//\"/\\\"}'","passphrase":"'${passphrase//\"/\\\"}'","hostapdip":"'$hostapdip'","hostapd":'$hostapd'}'
 fi
 
-lines=$( /srv/http/bash/network-settings.sh ifconfig )
+lines=$( /srv/http/bash/network.sh ifconfig )
 readarray -t lines <<<"$lines"
 for line in "${lines[@]}"; do
 	items=( $line )

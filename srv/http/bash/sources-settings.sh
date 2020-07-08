@@ -4,6 +4,8 @@ curlPage() {
 	curl -s -X POST 'http://127.0.0.1/pub?id=refresh' -d '{ "page": "sources" }'
 }
 
+dirsystem=/srv/http/data/system
+
 if [[ -z $2 ]]; then
 	umount -l "$1"
 	sed -i "\|$1\| d" /etc/fstab

@@ -3,6 +3,7 @@ $( function() { // document ready start >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 $( '#audiooutput, #mixertype' ).selectric();
 $( '.selectric-input' ).prop( 'readonly', 1 ); // fix - suppress screen keyboard
 var dirsystem = '/srv/http/data/system';
+var settingbash = '/srv/http/bash/mpd-settings.sh';
 var restartmpd = '';
 var setmpdconf = '/srv/http/bash/mpd-conf.sh';
 var warning = '<wh><i class="fa fa-warning fa-lg"></i>&ensp;Lower amplifier volume.</wh>'
@@ -15,29 +16,8 @@ $( '#audiooutput' ).on( 'selectric-change', function() {
 	G.audioaplayname = $selected.val();
 	var card = $selected.data( 'card' );
 	var hwmixer = $selected.data( 'hwmixer' );
-	// route command
-	if ( G.audioaplayname.slice( 0, 7 ) === 'bcm2835' ) {
-		var cmd = [ 'amixer -c '+ card +' cset numid=3 '+ $selected.data( 'device' ) +' &> /dev/null' ];
-	} else if ( G.audioaplayname.slice( 0, 6 ) === 'WM5102' ) {
-		var cmd = [ '/srv/http/bash/mpd-wm5102.sh '+ card +' '+ G.audioaplayname.split( ' - ' ).pop() +' &> /dev/null' ];
-	} else {
-		var cmd = [];
-	}
-	// set only if not usbdac
-	if ( G.audioaplayname !== G.usbdac ) cmd.push(
-		  'echo '+ G.audiooutput +' > '+ dirsystem +'/audio-output'
-		, 'echo '+ G.audioaplayname +' > '+ dirsystem +'/audio-aplayname'
-	);
-	cmd.push(
-		  "sed -i "
-			+" -e '/output_device = / s/\".*\"/\"hw:"+ card +"\"/'"
-			+" -e '/mixer_control_name = / s/\".*\"/\""+ hwmixer +"\"/'"
-			+" /etc/shairport-sync.conf"
-		, 'systemctl try-restart shairport-sync shairport-meta'
-		, curlPage( 'mpd' )
-	);
 	banner( 'Audio Output Device', 'Change ...', 'mpd' );
-	$.post( 'commands.php', { bash: cmd }, refreshData );
+	$.post( 'commands.php', { bash: settingbash +' audiooutput "'+ G.audioaplayname +'" '+ card +' "'+ G.audiooutput +'" '+ hwmixer }, refreshData );
 } );
 $( '#mixertype' ).on( 'selectric-change', function() {
 	var mixertype = $( this ).val();
@@ -90,14 +70,8 @@ $( '#setting-mixertype' ).click( function() { // hardware mixer
 				var mixermanual = $( '#infoSelectBox' ).val();
 				var mixerauto = mixermanual === 'auto';
 				var mixer = mixerauto ? hwmixer : mixermanual;
-				var cmd = [ 
-					  "sed -i '/"+ name +"/,/mixer_control/ s/\\(mixer_control \\+\"\\).*/\\1"+ mixer +"\"/' /etc/mpd.conf"
-					, "sed -i '/mixer_control_name = / s/\".*\"/\""+ mixer +"\"/' /etc/shairport-sync.conf"
-					, 'systemctl try-restart mpd shairport-sync shairport-meta'
-					, ( mixerauto ? 'rm -f' : 'echo '+ mixermanual ) +' /srv/http/data/system/mpd-hwmixer-'+ card
-				];
 				banner( 'Hardware Mixer', 'Change ...', 'mpd' );
-				$.post( 'commands.php', { bash: cmd }, refreshData );
+				$.post( 'commands.php', { bash: settingbash +' mixerhw "'+ name +'" '+ mixer +' '+ mixermanual +' '+ card }, refreshData );
 			}
 		} );
 	}, 'json' );
@@ -120,20 +94,8 @@ $( '#novolume' ).click( function() {
 				G.normalization === false;
 				G.replaygain === 'off';
 				var $output = $( '#audiooutput option:selected' );
-				var volumenone = $output.data( 'mixertype' ) === 'none' ? 0 : 1;
 				banner( 'No Volume', 'Enable ...', 'mpd' );
-				$.post( 'commands.php', { bash: [
-					  "sed -i"
-						+" -e '/mixer_type/ s/\".*\"/\"none\"/'"
-						+" -e '/mixer_control\\|mixer_device\\|volume_normalization/ d'"
-						+" -e '/^replaygain/ s/\".*\"/\"off\"/' /etc/mpd.conf"
-					, 'echo none > '+ dirsystem +'"/mpd-mixertype-'+ $output.text() +'"'
-					, 'rm -f '+ dirsystem +'/{mpd-replaygain,mpd-normalization}'
-					, 'mpc crossfade 0'
-					, setmpdconf
-					, curlPage( 'mpd' )
-					, 'curl -s -X POST "http://127.0.0.1/pub?id=volumenone" -d \'{ "volumenone": "'+ volumenone +'" }\''
-				] }, refreshData );
+				$.post( 'commands.php', { bash: settingbash +' dop '+ $output.text() }, refreshData );
 			}
 		} );
 	} else {
@@ -150,22 +112,14 @@ $( '#dop' ).click( function() {
 	var $selected = $( '#audiooutput option:selected' );
 	$selected.data( 'dop', 1 );
 	banner( 'DSP over PCM', checked, 'mpd' );
-	$.post( 'commands.php', { bash: [
-		  ( checked ? 'touch "' : 'rm -f "' ) + dirsystem +'/mpd-dop-'+ $selected.val() +'"'
-		, setmpdconf
-		, curlPage( 'mpd' )
-	] }, refreshData );
+	$.post( 'commands.php', { bash: settingbash +' dop '+ checked }, refreshData );
 } );
 $( '#crossfade' ).click( function() {
 	if ( $( this ).prop( 'checked' ) ) {
 		$( '#setting-crossfade' ).click();
 	} else {
 		banner( 'Crossfade', G.crossfade > 0, 'mpd' );
-		$.post( 'commands.php', { bash: [
-			  'mpc crossfade 0'
-			, 'rm -f '+ dirsystem +'/mpd-crossfade'
-			, curlPage( 'mpd' )
-		] }, refreshData );
+		$.post( 'commands.php', { bash: settingbash +' crossfade' }, refreshData );
 	}
 } );
 $( '#setting-crossfade' ).click( function() {
@@ -188,47 +142,22 @@ $( '#setting-crossfade' ).click( function() {
 			if ( crossfade !== G.crossfade ) {
 				G.crossfade = crossfade;
 				banner( 'Crossfade', 'Change ...', 'mpd' );
-				$.post( 'commands.php', { bash: [
-					  "mpc crossfade "+ crossfade +" &> /dev/null || /usr/bin/sudo /usr/bin/"+
-						"sed -i 's/\\(crossfade: \\)/\\1"+ crossfade +"/' /srv/http/data/mpd/mpdstate"
-					, 'echo '+ crossfade +' > '+ dirsystem +'/mpd-crossfade'
-					, curlPage( 'mpd' )
-				] }, refreshData );
+				$.post( 'commands.php', { bash: settingbash +' crossfade '+ G.crossfade }, refreshData );
 			}
 		}
 	} );
 } );
 $( '#normalization' ).click( function() {
 	G.normalization = $( this ).prop( 'checked' );
-	if ( G.normalization ) {
-		var cmd = [
-			  "sed -i '/^user/ a\\volume_normalization \"yes\"' /etc/mpd.conf"
-			, 'touch '+ dirsystem +'/mpd-normalization'
-		];
-	} else {
-		var cmd = [
-			  "sed -i '/^volume_normalization/ d' /etc/mpd.conf"
-			, 'rm '+ dirsystem +'/mpd-normalization'
-		];
-	}
-	cmd.push(
-		  restartmpd
-		, curlPage( 'mpd' )
-	);
 	banner( 'Normalization', G.normalization, 'mpd' );
-	$.post( 'commands.php', { bash: cmd }, refreshData );
+	$.post( 'commands.php', { bash: settingbash +' replaygain '+ G.normalization }, refreshData );
 } );
 $( '#replaygain' ).click( function() {
 	if ( $( this ).prop( 'checked' ) ) {
 		$( '#setting-replaygain' ).click();
 	} else {
 		banner( 'Replay Gain', G.replaygain !== 'off', 'mpd' );
-		$.post( 'commands.php', { bash: [
-			  "sed -i '/^replaygain/ s/\".*\"/\"off\"/' /etc/mpd.conf"
-			, 'rm -f '+ dirsystem +'/mpd-replaygain'
-			, restartmpd
-			, curlPage( 'mpd' )
-		] }, refreshData );
+		$.post( 'commands.php', { bash: settingbash +' replaygain' }, refreshData );
 	}
 } );
 $( '#setting-replaygain' ).click( function() {
@@ -251,47 +180,22 @@ $( '#setting-replaygain' ).click( function() {
 			if ( replaygain !== G.replaygain ) {
 				G.replaygain = replaygain;
 				banner( 'Replay Gain', 'Change ...', 'mpd' );
-				$.post( 'commands.php', { bash: [
-					  "sed -i '/^replaygain/ s/\".*\"/\""+ replaygain +"\"/' /etc/mpd.conf"
-					, 'echo '+ replaygain +' > '+ dirsystem +'/mpd-replaygain'
-					, restartmpd
-					, curlPage( 'mpd' )
-				] }, refreshData );
+				$.post( 'commands.php', { bash: settingbash +' replaygain '+ G.replaygain }, refreshData );
 			}
 		}
 	} );
 } );
 $( '#autoupdate' ).click( function() {
 	G.autoupdate = $( this ).prop( 'checked' );
-	if ( G.autoupdate ) {
-		var cmd = [
-			  "sed -i '1 i\\auto_update        \"yes\"' /etc/mpd.conf"
-			, 'touch '+ dirsystem +'/mpd-autoupdate'
-		];
-	} else {
-		var cmd = [
-			  "sed -i '/^auto_update/ d' /etc/mpd.conf"
-			, 'rm '+ dirsystem +'/mpd-autoupdate'
-		];
-	}
-	cmd.push(
-		  restartmpd
-		, curlPage( 'mpd' )
-	);
 	banner( 'Auto Update', G.autoupdate, 'mpd' );
-	$.post( 'commands.php', { bash: cmd }, refreshData );
+	$.post( 'commands.php', { bash: settingbash +' autoupdate '+ G.autoupdate }, refreshData );
 } );
 $( '#buffer' ).click( function() {
 	if ( $( this ).prop( 'checked' ) ) {
 		$( '#setting-buffer' ).click();
 	} else {
 		banner( 'Custom Buffer', 'Disable ...', 'mpd' );
-		$.post( 'commands.php', { bash: [
-			  "sed -i '/^audio_buffer/ d' /etc/mpd.conf"
-			, 'rm -f ' + dirsystem +'/mpd-buffer'
-			, restartmpd
-			, curlPage( 'mpd' )
-		] }, refreshData );
+		$.post( 'commands.php', { bash: settingbash +' buffer' }, refreshData );
 	}
 } );
 $( '#setting-buffer' ).click( function() {
@@ -320,14 +224,7 @@ $( '#setting-buffer' ).click( function() {
 			} else if ( buffer !== G.buffer ) {
 				G.buffer = buffer;
 				banner( 'Custom Buffer', 'Change ...', 'mpd' );
-				$.post( 'commands.php', { bash: [
-					  "sed -i"
-						+" -e '/^audio_buffer/ d'"
-						+" -e '1 i\\audio_buffer_size  \""+ buffer +"\"' /etc/mpd.conf"
-					, 'echo '+ buffer +' > '+ dirsystem +'/mpd-buffer'
-					, restartmpd
-					, curlPage( 'mpd' )
-				] }, refreshData );
+				$.post( 'commands.php', { bash: settingbash +' buffer '+ G.buffer }, refreshData );
 			}
 		}
 	} );
@@ -335,12 +232,7 @@ $( '#setting-buffer' ).click( function() {
 $( '#ffmpeg' ).click( function() {
 	G.ffmpeg = $( this ).prop( 'checked' );
 	banner( 'FFmpeg Decoder', G.ffmpeg, 'mpd' );
-	$.post( 'commands.php', { bash: [
-		  "sed -i '/ffmpeg/ {n; s/\".*\"/\""+ ( G.ffmpeg ? 'yes' : 'no' ) +"\"/}' /etc/mpd.conf"
-		, ( G.ffmpeg ? 'touch ' : 'rm -f ' ) + dirsystem +'/mpd-ffmpeg'
-		, restartmpd
-		, curlPage( 'mpd' )
-	] }, refreshData );
+	$.post( 'commands.php', { bash: settingbash +' ffmpeg '+ G.ffmpeg }, refreshData );
 } );
 $( '#status' ).click( function( e ) {
 	if ( $( e.target ).hasClass( 'help' ) || $( e.target ).hasClass( 'fa-reboot' ) ) return
@@ -385,10 +277,7 @@ function getMpdconf() {
 	} );
 }
 function getStatus() {
-	$.post( 'commands.php', { bash: 'systemctl status mpd'
-								   +' | sed "s|\\(active (running)\\)|<grn>\\1</grn>|;'
-								   +'s|\\(inactive (dead)\\)|<red>\\1</ed>|"', string: 1
-		}, function( status ) {
+	$.post( 'commands.php', { bash: 'systemctl status mpd', string: 1 }, function( status ) {
 		$( '#codestatus' )
 			.html( status )
 			.removeClass( 'hide' );
@@ -396,22 +285,14 @@ function getStatus() {
 }
 function setMixerType( mixertype ) {
 	var $output = $( '#audiooutput option:selected' );
+	var name = $output.text();
 	var cmd = [];
 	if ( mixertype === 'none' ) {
-		var volumenone = 1;
+		var card = $output.data( 'card' );
 		var hwmixer = $output.data( 'hwmixer' );
-		if ( hwmixer ) cmd.push( 'amixer -c '+ $output.data( 'card' ) +' sset '+ hwmixer +' 0dB' );
-	} else {
-		var volumenone = 0;
 	}
-	cmd.push(
-		  ( mixertype === 'hardware' ? 'rm -f' : 'echo '+ mixertype +' >' ) +' "'+ dirsystem +'/mpd-mixertype-'+ $output.text() +'"'
-		, setmpdconf
-		, curlPage( 'mpd' )
-		, 'curl -s -X POST "http://127.0.0.1/pub?id=volumenone" -d \'{ "volumenone": "'+ volumenone +'" }\''
-	);
 	banner( 'Mixer Control', 'Change ...', 'mpd' );
-	$.post( 'commands.php', { bash: cmd }, refreshData );
+	$.post( 'commands.php', { bash: settingbash +' mixerset '+ mixertype +'"'+ name +'" '+ card +' '+ hwmixer  }, refreshData );
 }
 
 refreshData = function() {

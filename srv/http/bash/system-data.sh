@@ -58,7 +58,7 @@ case ${hwcode::1} in
 	c ) soc+='4GB';;
 esac
 
-lines=$( /srv/http/bash/settings-network.sh ifconfig )
+lines=$( /srv/http/bash/network-settings.sh ifconfig )
 readarray -t lines <<<"$lines"
 for line in "${lines[@]}"; do
     items=( $line )

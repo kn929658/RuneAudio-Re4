@@ -881,7 +881,7 @@ function webRadioNew( name, url ) {
 	var urlname = url.replace( /\//g, '|' );
 	var thumb = G.list.li.find( '.lithumb' ).text();
 	var img = G.list.li.find( '.liimg' ).text();
-	$.post( 'commands.php', { bash0: "test -e '/srv/http/data/webradios/"+ urlname }, function( data ) {
+	$.post( 'commands.php', { bash0: "test -e '/srv/http/data/webradios/"+ urlname +' && echo 0 || echo -1' }, function( data ) {
 		if ( data != -1 ) {
 			info( {
 				  icon    : 'webradio'

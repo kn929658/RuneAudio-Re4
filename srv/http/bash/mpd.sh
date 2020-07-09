@@ -22,7 +22,7 @@ if [[ $1 == audiooutput ]]; then
 	pushRefresh
 elif [[ $1 == autoupdate ]]; then
 	if [[ $2 == true ]]; then
-		sed -i '1 i\auto_update        "yes"' /etc/mpd.conf
+		sed -i '1 i\auto_update          "yes"' /etc/mpd.conf
 		touch $dirsystem/mpd-autoupdate
 	else
 		sed -i '/^auto_update/ d' /etc/mpd.conf
@@ -33,7 +33,7 @@ elif [[ $1 == autoupdate ]]; then
 elif [[ $1 == buffer ]]; then
 	if [[ -n $2 ]]; then
 		sed -i -e '/^audio_buffer/ d
-		' -e '1 i\audio_buffer_size  "'$2'"' /etc/mpd.conf
+		' -e '1 i\audio_buffer_size    "'$2'"' /etc/mpd.conf
 		echo $2 > $dirsystem/mpd-buffer
 	else
 		sed -i '/^audio_buffer/ d' /etc/mpd.conf
@@ -68,6 +68,15 @@ elif [[ $1 == ffmpeg ]]; then
 	fi
 	restartMPD
 	pushRefresh
+elif [[ $1 == amixer ]]; then
+	amixer -c $2 scontents \
+		| grep -A2 'Simple mixer control' \
+		| grep -v 'Capabilities' \
+		| tr -d '\n' \
+		| sed 's/--/\n/g' \
+		| grep 'Playback channels' \
+		| sed "s/.*'\(.*\)',\(.\) .*/\1 \2/; s/ 0$//" \
+		| awk '!a[$0]++'
 elif [[ $1 == mixerhw ]]; then
 	sed -i '/'$2'/,/}/ s/\(mixer_control \+"\).*/\1"'$3'"/' /etc/mpd.conf
 	sed -i '/mixer_control_name = / s/".*"/"'$3'"/' /etc/shairport-sync.conf

@@ -45,8 +45,8 @@ $( '#setting-mixertype' ).click( function() { // hardware mixer
 	var card = $selectedoutput.data( 'card' );
 	var hwmixer = $selectedoutput.data( 'hwmixer' );
 	var select = $selectedoutput.data( 'mixermanual' ) ? { 'Auto select': 'auto' } : {};
-	$.post( 'commands.php', { bash0: '/srv/http/bash/mpd-hwmixers.sh '+ card }, function( data ) {
-		var devices = data[ 0 ].split( '^' );
+	$.post( 'commands.php', { bash0: settingbash +' amixer '+ card }, function( data ) {
+		var devices = data.slice( 0, -1 ).split( '\n' );
 		devices.forEach( function( val ) {
 			select[ val ] = val;
 		} );

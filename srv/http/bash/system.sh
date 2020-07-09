@@ -38,14 +38,6 @@ elif [[ $1 == bluetooth ]]; then
 	fi
 	echo "$3" > $filereboot
 	pushRefresh
-elif [[ $1 == getbootlog ]]; then
-	if [[ -e /tmp/bootlog ]]; then
-		cat /tmp/bootlog
-	else
-		log=$( journalctl -b | sed -n '1,/Startup finished.*kernel/ p' )
-		finish=$( sed 's/.*\(Startup.*\)/\1/' <<< ${log##*$'\n'} )
-		echo "$finish<hr>$log" | tee /tmp/bootlog
-	fi
 elif [[ $1 == hostname ]]; then
 	hostnamectl set-hostname $2
 	sed -i "s/\(--hostname \).*/\1$2/" /etc/systemd/system/wsdd.service
@@ -215,6 +207,14 @@ elif [[ $1 == spotify ]]; then
 	[[ $2 == true ]] && enable spotifyd $1 || disable spotifyd $1
 elif [[ $1 == spotifyset ]]; then
 	changeSetting spotifyd spotify-device $2
+elif [[ $1 == statusbootlog ]]; then
+	if [[ -e /tmp/bootlog ]]; then
+		cat /tmp/bootlog
+	else
+		log=$( journalctl -b | sed -n '1,/Startup finished.*kernel/ p' )
+		finish=$( sed 's/.*\(Startup.*\)/\1/' <<< ${log##*$'\n'} )
+		echo "$finish<hr>$log" | tee /tmp/bootlog
+	fi
 elif [[ $1 == streaming ]]; then
 	[[ $2 == true ]] && touch $dirsystem/streaming || rm $dirsystem/streaming
 	pushRefresh

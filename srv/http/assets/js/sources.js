@@ -8,7 +8,7 @@ var html = heredoc( function() { /*
 	<form id="formmount">
 		<div id="infoRadio" class="infocontent infohtml">
 			Type&emsp;<label><input type="radio" name="protocol" value="cifs"> CIFS</label>&emsp;
-			<label><input type="radio" name="protocol" value="nfs"> NFS</label>
+			<label><input type="radio" name="protocol" value="nfs"> NFS</label>&emsp;
 		</div>
 		<div id="infoText" class="infocontent">
 			<div id="infotextlabel">
@@ -48,12 +48,12 @@ $( '#infoContent' ).on( 'click', '#infoRadio', function() {
 } );
 $( '#list' ).on( 'click', 'li', function() {
 	var $this = $( this );
-	var mountpoint = $this.data( 'mountpoint' );
+	var mountpoint = $this.find( '.mountpoint' ).text();
 	if ( mountpoint === '/' ) return
 	
-	var mountname = mountpoint.replace( / /g, '\\\\040' );
+	var mountescaped = escapeString( mountpoint );
 	var nas = mountpoint.slice( 9, 12 ) === 'NAS';
-	var source = $this.data( 'source' );
+	var source = $this.find( '.source' ).text();
 	if ( !$this.data( 'unmounted' ) ) {
 		info( {
 			  icon    : nas ? 'network' : 'usbdrive'
@@ -63,7 +63,7 @@ $( '#list' ).on( 'click', 'li', function() {
 			, okcolor : '#de810e'
 			, ok      : function() {
 				banner( 'Network Mount', 'Unmount ...', 'network' );
-				$.post( 'commands.php', { bash0: settingbash +' unmount "'+ mountpoint +'"' }, function() {
+				$.post( 'commands.php', { bash0: settingbash +' unmount "'+ mountescaped +'"' }, function() {
 					refreshData();
 					$( '#refreshing' ).addClass( 'hide' );
 				} );
@@ -80,7 +80,7 @@ $( '#list' ).on( 'click', 'li', function() {
 			, buttoncolor : '#bb2828'
 			, button      : function() {
 				banner( 'Network Mount', 'Remove ...', 'network' );
-				$.post( 'commands.php', { bash0: settingbash +' remove "'+ mountpoint +'"' }, function() {
+				$.post( 'commands.php', { bash0: settingbash +' remove "'+ mountescaped +'"' }, function() {
 					refreshData();
 					$( '#refreshing' ).addClass( 'hide' );
 				} );
@@ -89,7 +89,7 @@ $( '#list' ).on( 'click', 'li', function() {
 			, oklabel     : 'Remount'
 			, ok          : function() {
 				banner( 'Network Mount', 'Remount ...', 'network' );
-				$.post( 'commands.php', { bash0: settingbash +' remount "'+ mountpoint +'" '+ source }, function() {
+				$.post( 'commands.php', { bash0: settingbash +' remount "'+ mountescaped +'" '+ source }, function() {
 					refreshData();
 					$( '#refreshing' ).addClass( 'hide' );
 				} );
@@ -201,10 +201,9 @@ function infoMount( formdata, cifs ) {
 			}
 			banner( 'Network Mount', 'Mount ...', 'network' );
 			$.post( 'commands.php'
-				, { bash0: settingbash +' mount '+ '"'+ mountpoint +'" '+ data.ip +' '+ device +' '+ data.protocol +' '+ options }
+				, { bash0: settingbash +' mount '+ '"'+ escapeString( mountpoint ) +'" '+ data.ip +' '+ device +' '+ data.protocol +' '+ options }
 				, function( std ) {
-				var std = std[ 0 ];
-				if ( std ) {
+				if ( std !== 0 ) {
 					formdata = data;
 					info( {
 						  icon    : 'network'
@@ -239,9 +238,9 @@ refreshData = function() {
 				var dataunmounted = ' data-unmounted="1"';
 				var dot = '<red>&ensp;&bull;&ensp;</red>';
 			}
-			html += '<li data-mountpoint="'+ val.mountpoint +'"'+ dataunmounted;
-			html += '><i class="fa fa-'+ val.icon +'"></i>'+ val.mountpoint + dot
-			html += '<gr>'+ val.source +'</gr>';
+			html += '<li '+ dataunmounted;
+			html += '><i class="fa fa-'+ val.icon +'"></i><wh class="mountpoint">'+ val.mountpoint +'</wh>'+ dot
+			html += '<gr class="source">'+ val.source +'</gr>';
 			html +=  val.size ? '&ensp;'+ val.size +'</li>' : '</li>';
 		} );
 		$( '#list' ).html( html );

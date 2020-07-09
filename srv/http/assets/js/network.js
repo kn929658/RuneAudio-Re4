@@ -38,7 +38,7 @@ $( '#listinterfaces' ).on( 'click', 'li', function() {
 		editLAN( {
 			  ip      : $this.data( 'ip' ) || ''
 			, gateway : $this.data( 'gateway' ) || ''
-			, dhcp    : $this.data( 'dhcp' ) || ''
+			, dhcp    : $this.data( 'dhcp' )
 		} );
 		$( '#infoCheckBox' ).on( 'click', 'input', function() {
 			$( '#infoText' ).toggle( $( this ).prop( 'checked' ) );
@@ -53,7 +53,7 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 	var ip = $this.data( 'ip' );
 	var gw = $this.data( 'gateway' );
 	var wpa = $this.data( 'wpa' );
-	var dhcp = $this.data( 'dhcp' ) == 1 ? 'DHCP' : 'Static'
+	var dhcp = $this.data( 'dhcp' );
 	var encrypt = $this.data( 'encrypt' ) === 'on';
 	var password = $this.data( 'password' );
 	if ( !profile ) {
@@ -74,7 +74,7 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 		  icon        : 'wifi-3'
 		, title       : ssid
 		, message     : !connected ? 'Saved connection' : '<div class="colL">'
-				+ dhcp +' IP :<br>'
+				+ ( dhcp === 'dhcp' ? 'DHCP IP' : 'Static IP' ) +'<br>'
 				+'Gateway :'
 			+'</div>'
 			+'<div class="colR wh" style="text-align: left;">'
@@ -299,8 +299,11 @@ function connect( ssid, data, ip ) { // ip - static
 	if ( ip ) {
 		$( '#loader' ).removeClass( 'hide' );
 		location.href = 'http://'+ ip +'/index-settings.php?p=network';
+		var text = ip.slice( -5 ) === 'local' ? 'Change URL to ' : 'Change IP to ';
+		banner( ssid, text + ip, 'wifi-3' );
+	} else {
+		banner( ssid, 'Connect ...', 'wifi-3' );
 	}
-	banner( ssid, ( ip ? 'Static IP ...' : 'Connect ...' ), 'wifi-3' );
 	$.post( 'commands.php', { bash0: settingbash +' connect '+ arg }, function( std ) {
 		if ( std != -1 ) {
 			G.wlconnected = G.wlcurrent;
@@ -321,17 +324,17 @@ function editLAN( data ) {
 	info( {
 		  icon         : 'edit-circle'
 		, title        : 'LAN IP'
-		, message      : 'Current: <wh>'+ ( data.dhcp ? 'DHCP' : 'Static IP' ) +'</wh><br>&nbsp;'
+		, message      : 'Current: <wh>'+ ( data.dhcp === 'dhcp' ? 'DHCP' : 'Static IP' ) +'</wh><br>&nbsp;'
 		, textlabel    : [ 'IP', 'Gateway' ]
 		, textvalue    : [ data.ip, data.gateway ]
 		, textrequired : [ 0 ]
 		, preshow      : function() {
-			if ( data.dhcp ) $( '#infoButton' ).addClass( 'hide' );
+			if ( data.dhcp === 'dhcp' ) $( '#infoButton' ).addClass( 'hide' );
 		}
 		, buttonlabel  : '<i class="fa fa-undo"></i>DHCP'
 		, buttonwidth  : 1
 		, button       : function() {
-			banner( 'LAN IP Address', 'DHCP ...', 'lan' );
+			banner( 'LAN IP Address', 'Change URL to '+ G.hostname +'.local ...', 'lan' );
 			$( '#loader' ).removeClass( 'hide' );
 			location.href = 'http://'+ G.hostname +'.local/index-settings.php?p=network';
 			$.post( 'commands.php', { bash0: settingbash +' editlan' } );
@@ -342,6 +345,7 @@ function editLAN( data ) {
 			data1.gateway = $( '#infoTextBox1' ).val();
 			if ( data1.ip === data.ip && data1.gateway === data.gateway ) return
 			
+			banner( 'LAN IP Address', 'Change ip to '+ data1.ip, 'lan' );
 			$.post( 'commands.php', { bash0: settingbash +' editlan '+ data1.ip +' '+ data1.gateway }, function( used ) {
 				if ( used == -1 ) {
 					info( {
@@ -353,6 +357,7 @@ function editLAN( data ) {
 						}
 					} );
 				}
+				bannerHide();
 			} );
 			
 		}
@@ -451,7 +456,7 @@ function editWiFiSet( ssid, data ) {
 	} else {
 		$( '#infoFooter' ).html( '<br>*Connect to get DHCP IPs' );
 	}
-	if ( data.dhcp === 'Static IP' ) {
+	if ( data.dhcp === 'static' ) {
 		$( '#infoOk' ).before( '<a id="infoButton" class="infobtn extrabtn infobtn-default"><i class="fa fa-undo"></i>DHCP</a>' );
 		$( '#infoButton' ).click( function() {
 			$( '#infoX' ).click();
@@ -516,7 +521,7 @@ function nicsStatus() {
 			html += '<li class="'+ val.interface +'"';
 			html += val.ip ? ' data-ip="'+ val.ip +'"' : '';
 			html += val.gateway ? ' data-gateway="'+ val.gateway +'"' : '';
-			html += val.dhcp ? ' data-dhcp="1"' : '';
+			html += ' data-dhcp="'+ val.dhcp +'"';
 			html += '><i class="fa fa-';
 			html += val.interface === 'eth0' ? 'lan"></i>LAN' : 'wifi-3"></i>Wi-Fi';
 			if ( val.interface === 'eth0' ) {
@@ -591,7 +596,7 @@ function wlanScan() {
 				html += val.connected  ? ' data-connected="1"' : '';
 				html += val.gateway ? ' data-gateway="'+ val.gateway +'"' : '';
 				html += val.ip ? ' data-ip="'+ val.ip +'"' : '';
-				html += val.dhcp ? ' data-dhcp="'+ val.dhcp +'"' : '';
+				html += ' data-dhcp="'+ val.dhcp +'"';
 				html += val.password ? ' data-password="'+ val.password +'"' : '';
 				html += profile ? ' data-profile="'+ profile +'"' : '';
 				html += '><i class="fa fa-wifi-'+ ( val.dbm > good ? 3 : ( val.dbm < fair ? 1 : 2 ) ) +'"></i>';

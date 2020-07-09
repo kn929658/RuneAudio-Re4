@@ -344,8 +344,7 @@ $( '#i2smodule' ).on( 'selectric-change', function( e ) {
 		G.audioaplayname = audioaplayname;
 		G.audiooutput = audiooutput;
 		G.onboardaudio = false;
-		G.onboardhdmi = false;
-		$( '#onboardaudio, #onboardhdmi' ).prop( 'checked', 0 );
+		$( '#onboardaudio' ).prop( 'checked', 0 );
 		$( '#divi2smodulesw' ).addClass( 'hide' );
 		$( '#divi2smodule' ).removeClass( 'hide' );
 		rebootText( 'Enable', 'I&#178;S Module' );
@@ -774,7 +773,6 @@ refreshData = function() { // system page: use resetLocal() to aviod delay
 		$( '#setting-soundprofile' ).toggleClass( 'hide', G.soundprofile === '' );
 		$( '#eth0help' ).toggleClass( 'hide', G.ip.slice( 0, 4 ) !== 'eth0' );
 		$( '#onboardaudio' ).prop( 'checked', G.onboardaudio );
-		$( '#onboardhdmi' ).prop( 'checked', G.onboardhdmi );
 		$( '#bluetooth' ).prop( 'checked', G.bluetooth );
 		$( '#wlan' ).prop( 'checked', G.wlan );
 		$( '#hostname' ).val( G.hostname );

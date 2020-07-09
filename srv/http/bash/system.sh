@@ -136,6 +136,7 @@ login )
 	;;
 mpdscribble )
 	[[ $2 == true ]] && enable mpdscribble@mpd $1 || disable mpdscribble@mpd $1
+	systemctl -q is-active mpdscribble@mpd && echo 0
 	;;
 mpdscribbleset )
 	sed -i -e "s/^\(username =\).*/\1 $2/
@@ -143,7 +144,8 @@ mpdscribbleset )
 	" /etc/mpdscribble.conf
 	echo -e "$2\n$3" > $dirsystem/mpdscribble-login
 	touch $dirsystem/mpdscribble
-	systemctl -q is-active mpdscribble@mpd && systemctl restart mpdscribble@mpd || systemctl enable --now mpdscribble@mpd
+	systemctl restart mpdscribble@mpd && systemctl enable mpdscribble@mpd || systemctl disable mpdscribble@mpd
+	systemctl -q is-active mpdscribble@mpd && echo 0
 	pushRefresh
 	;;
 onboardaudio )

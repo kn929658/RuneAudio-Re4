@@ -231,10 +231,12 @@ $( '#mpdscribble' ).click( function() {
 	if ( mpdscribble && !G.mpdscribbleuser ) {
 		$( '#setting-mpdscribble' ).click();
 	} else {
-		G.mpdscribble = mpdscribble;
-		banner( 'Scrobbler', G.mpdscribble, 'lastfm' );
-		$.post( 'commands.php', { bash0: settingbash +' mpdscribble '+ G.mpdscribble }, resetLocal );
-		$( '#setting-mpdscribble' ).toggleClass( 'hide', !G.mpdscribble );
+		banner( 'Scrobbler', mpdscribble, 'lastfm' );
+		$.post( 'commands.php', { bash0: settingbash +' mpdscribble '+ mpdscribble }, function( std ) {
+			G.mpdscribble = std == 0 ? true : false;
+			$( '#setting-mpdscribble' ).toggleClass( 'hide', !G.mpdscribble );
+			resetLocal();
+		} );
 	}
 } );
 $( '#setting-mpdscribble' ).click( function() {
@@ -251,8 +253,11 @@ $( '#setting-mpdscribble' ).click( function() {
 			G.mpdscribbleuser = $( '#infoTextBox' ).val().replace( /(["&()\\])/g, '\$1' );
 			var password = $( '#infoPasswordBox' ).val().replace( /(["&()\\])/g, '\$1' );
 			banner( 'Scrobbler', G.mpdscribble ? 'Change ...' : 'Enable ...', 'lastfm' );
-			$.post( 'commands.php', { bash0: settingbash +' mpdscribbleset "'+ G.mpdscribbleuser +'" "'+ password +'"' }, resetLocal );
-			G.mpdscribble = true;
+			$.post( 'commands.php', { bash0: settingbash +' mpdscribbleset "'+ G.mpdscribbleuser +'" "'+ password +'"' }, function( std ) {
+				G.mpdscribble = std == 0 ? true : false;
+				$( '#setting-mpdscribble' ).toggleClass( 'hide', !G.mpdscribble );
+				resetLocal();
+		} );
 		}
 	} );
 } );

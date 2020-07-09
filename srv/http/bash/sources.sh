@@ -6,7 +6,9 @@ pushRefresh() {
 
 dirsystem=/srv/http/data/system
 
-if [[ $1 == mount ]] then
+case $1 in
+
+mount )
 	mountpoint=$2
 	ip=$3
 	source=$4
@@ -32,24 +34,29 @@ if [[ $1 == mount ]] then
 	mountpoint=${mountpoint// /\\040}
 	echo "$source  $mountpoint  $cifsnfs  $options  0  0" | tee -a /etc/fstab "/srv/http/data/system/fstab-$name" &> /dev/null
 	pushRefresh
-elif [[ $1 == remount ]]; then
+	;;
+remount )
 	if [[ ${2:9:3} == NAS ]]; then
 		mount "$2"
 	else
 		udevil mount "$3"
 	fi
 	pushRefresh
-elif [[ $1 == remove ]]; then
+	;;
+remove )
 	umount -l "$2"
 	sed -i "\|$2\| d" /etc/fstab
 	rmdir "$2" &> /dev/null
 	rm "$dirsystem/fstab-${2/*\/}"
 	pushRefresh
-elif [[ $1 == unmount ]]; then
+	;;
+unmount )
 	if [[ ${2:9:3} == NAS ]]; then
 		umount -l "$2"
 	else
 		udevil umount l "$2"
 	fi
 	pushRefresh
-fi
+	;;
+	
+esac

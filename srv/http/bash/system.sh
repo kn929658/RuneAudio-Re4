@@ -22,12 +22,16 @@ changeSetting() {
 dirsystem=/srv/http/data/system
 filereboot=/srv/http/data/tmp/reboot
 
-if [[ $1 == airplay ]]; then
+case $1 in
+
+airplay )
 	[[ $2 == true ]] && enable shairport-sync $1 || disable shairport-sync $1
-elif [[ $1 == autoplay ]]; then
+	;;
+autoplay )
 	[[ $2 == true ]] && touch $dirsystem/autoplay || rm $dirsystem/autoplay
 	pushRefresh
-elif [[ $1 == bluetooth ]]; then
+	;;
+bluetooth )
 	if [[ $2 == true ]]; then
 		! grep -q 'dtoverlay=bcmbt' /boot/config.txt && echo dtoverlay=bcmbt >> /boot/config.txt
 		touch $dirsystem/onboard-bluetooth
@@ -38,7 +42,8 @@ elif [[ $1 == bluetooth ]]; then
 	fi
 	echo "$3" > $filereboot
 	pushRefresh
-elif [[ $1 == hostname ]]; then
+	;;
+hostname )
 	hostnamectl set-hostname $2
 	sed -i "s/\(--hostname \).*/\1$2/" /etc/systemd/system/wsdd.service
 	sed -i "s/^\(ssid=\).*/\1$2/" /etc/hostapd/hostapd.conf
@@ -50,7 +55,8 @@ elif [[ $1 == hostname ]]; then
 	systemctl -q is-active bluetooth && bluetoothctl system-alias $2
 	echo $2 > $dirsystem/hostname
 	pushRefresh
-elif [[ $1 == i2smodule ]]; then
+	;;
+i2smodule )
 	grep -q 'dtoverlay=gpio' /boot/config.txt && gpio=1
 	grep -q 'dtoverlay=bcmbt' /boot/config.txt && bt=1
 	sed -i '/dtparam=\|dtoverlay=\|^$/ d' /boot/config.txt
@@ -71,7 +77,8 @@ dtoverlay=$2\
 	echo $3 > $dirsystem/audio-output
 	echo "$4" > $filereboot
 	pushRefresh
-elif [[ $1 == localbrowser ]]; then
+	;;
+localbrowser )
 	if [[ $2 == true ]]; then
 		enable localbrowser $1
 		systemctl disable getty@tty1
@@ -83,7 +90,8 @@ elif [[ $1 == localbrowser ]]; then
 		/usr/local/bin/ply-image /srv/http/assets/img/splash.png
 	fi
 	pushRefresh
-elif [[ $1 == localbrowserset ]]; then # rotate cursor screenoff zoom
+	;;
+localbrowserset )
 	path=$dirsystem/localbrowser
 	rotateconf=/etc/X11/xorg.conf.d/99-raspi-rotate.conf
 	if [[ $1 == NORMAL ]]; then
@@ -113,7 +121,8 @@ elif [[ $1 == localbrowserset ]]; then # rotate cursor screenoff zoom
 	' /etc/X11/xinit/xinitrc
 	systemctl restart localbrowser
 	pushRefresh
-elif [[ $1 == login ]]; then
+	;;
+login )
 	if [[ $2 == true ]]; then
 		touch $dirsystem/login
 		ip=127.0.0.1
@@ -124,9 +133,11 @@ elif [[ $1 == login ]]; then
 	sed -i '/^bind_to_address/ s/".*"/"'$ip'"/' /etc/mpd.conf
 	systemctl restart mpd
 	pushRefresh
-elif [[ $1 == mpdscribble ]]; then
+	;;
+mpdscribble )
 	[[ $2 == true ]] && enable mpdscribble@mpd $1 || disable mpdscribble@mpd $1
-elif [[ $1 == mpdscribbleset ]]; then
+	;;
+mpdscribbleset )
 	sed -i -e "s/^\(username =\).*/\1 $2/
 	" -e "s/^\(password =\).*/\1 $3/
 	" /etc/mpdscribble.conf
@@ -134,7 +145,8 @@ elif [[ $1 == mpdscribbleset ]]; then
 	touch $dirsystem/mpdscribble
 	systemctl -q is-active mpdscribble@mpd && systemctl restart mpdscribble@mpd || systemctl enable --now mpdscribble@mpd
 	pushRefresh
-elif [[ $1 == onboardaudio ]]; then
+	;;
+onboardaudio )
 	if [[ $2 == true ]]; then
 		onoff=on
 		touch $dirsystem/onboard-audio
@@ -145,7 +157,8 @@ elif [[ $1 == onboardaudio ]]; then
 	sed -i "s/\(dtparam=audio=\).*/\1$onoff/" /boot/config.txt
 	echo "$3" > $filereboot
 	pushRefresh
-elif [[ $1 == reboot ]]; then
+	;;
+reboot )
 	rm -f $filereboot
 	/usr/local/bin/gpiooff.py &> /dev/null
 	/usr/local/bin/ply-image /srv/http/assets/img/splash.png
@@ -153,16 +166,19 @@ elif [[ $1 == reboot ]]; then
 	sleep 3
 	rm -f /srv/http/data/tmp/*
 	shutdown -r now
-elif [[ $1 == regional ]]; then
+	;;
+regional )
 	sed -i "s/^\(NTP=\).*/\1$2/" /etc/systemd/timesyncd.conf
 	sed -i 's/".*"/"'$3'"/' /etc/conf.d/wireless-regdom
 	iw reg set $3
 	[[ $2 == pool.ntp.org ]] && rm $dirsystem/ntp || echo $2 > $dirsystem/ntp
 	[[ $3 == 00 ]] && rm $dirsystem/wlanregdom || echo $3 > $dirsystem/wlanregdom
 	pushRefresh
-elif [[ $1 == samba ]]; then
+	;;
+samba )
 	[[ $2 == true ]] && enable 'samba wsdd' $1 || disable 'samba wsdd' $1
-elif [[ $1 == sambaset ]]; then
+	;;
+sambaset )
 	smbconf=/etc/samba/smb.conf
 	sed -i '/read only = no/ d' $smbconf
 	rm -f $dirsystem/samba-*
@@ -176,17 +192,21 @@ elif [[ $1 == sambaset ]]; then
 	fi
 	systemctl restart smb wsdd
 	pushRefresh
-elif [[ $1 == snapcast ]]; then
+	;;
+snapcast )
 	[[ $2 == true ]] && enable snapserver $1 || disable snapserver $1
 	/srv/http/bash/mpd-conf.sh
 	/srv/http/bash/snapcast.sh serverstop
-elif [[ $1 == snapclient ]]; then
+	;;
+snapclient )
 	[[ $2 == true ]] && touch $dirsystem/snapclient || rm $dirsystem/snapclient
 	pushRefresh
-elif [[ $1 == snapclientset ]]; then
+	;;
+snapclientset )
 	sed -i '/OPTS=/ s/".*"/"--latency="'$2'"/' /etc/default/snapclient
 	changeSetting snapclient snapcast-latency $2
-elif [[ $1 == soundprofile ]]; then
+	;;
+soundprofile )
 	if [[ $2 == true ]]; then
 		[[ -e $dirsystem/soundprofile ]] && profile=$( cat $dirsystem/soundprofile ) || profile=RuneAudio
 	else
@@ -194,7 +214,8 @@ elif [[ $1 == soundprofile ]]; then
 	fi
 	/srv/http/bash/system-soundprofile.sh $profile
 	pushRefresh
-elif [[ $1 == soundprofileset ]]; then
+	;;
+soundprofileset )
 	if [[ $2 != [0-9]* ]]; then
 		/srv/http/bash/system-soundprofile.sh $2
 		echo $2 > $dirsystem/soundprofile
@@ -203,11 +224,14 @@ elif [[ $1 == soundprofileset ]]; then
 		echo $2 $3 $4 $5 > $dirsystem/soundprofile
 	fi
 	pushRefresh
-elif [[ $1 == spotify ]]; then
+	;;
+spotify )
 	[[ $2 == true ]] && enable spotifyd $1 || disable spotifyd $1
-elif [[ $1 == spotifyset ]]; then
+	;;
+spotifyset )
 	changeSetting spotifyd spotify-device $2
-elif [[ $1 == statusbootlog ]]; then
+	;;
+statusbootlog )
 	if [[ -e /tmp/bootlog ]]; then
 		cat /tmp/bootlog
 	else
@@ -215,17 +239,21 @@ elif [[ $1 == statusbootlog ]]; then
 		finish=$( sed 's/.*\(Startup.*\)/\1/' <<< ${log##*$'\n'} )
 		echo "$finish<hr>$log" | tee /tmp/bootlog
 	fi
-elif [[ $1 == streaming ]]; then
+	;;
+streaming )
 	[[ $2 == true ]] && touch $dirsystem/streaming || rm $dirsystem/streaming
 	pushRefresh
 	/srv/http/bash/mpd-conf.sh
-elif [[ $1 == timezone ]]; then
+	;;
+timezone )
 	timedatectl set-timezone $2
 	echo $2 > $dirsystem/timezone
 	pushRefresh
-elif [[ $1 == upnp ]]; then
+	;;
+upnp )
 	[[ $2 == true ]] && enable upmpdcli $1 || disable upmpdcli $1
-elif [[ $1 == wlan ]]; then
+	;;
+wlan )
 	if [[ $2 == true ]]; then
 		modprobe brcmfmac
 		enable netctl-auto@wlan0 onboard-wlan
@@ -234,4 +262,6 @@ elif [[ $1 == wlan ]]; then
 		rmmod brcmfmac
 	fi
 	pushRefresh
-fi
+	;;
+	
+esac

@@ -49,7 +49,7 @@ mpc idleloop | while read changed; do
 			if mpc | grep -q '^Updating DB ('; then
 				curlPost mpdupdate 1
 			else
-				curlPost mpdupdate "$( /srv/http/bash/mpdcount.sh )"
+				curlPost mpdupdate "$( /srv/http/bash/mpd.sh count )"
 			fi
 			;;
 	esac

@@ -6,7 +6,9 @@ pushRefresh() {
 
 dirsystem=/srv/http/data/system
 
-if [[ $1 == accesspoint ]]; then
+case $1 in
+
+accesspoint )
 	if [[ $2 == true ]]; then
 		ifconfig wlan0 $3
 		systemctl enable --now hostapd dnsmasq
@@ -17,7 +19,8 @@ if [[ $1 == accesspoint ]]; then
 		ifconfig wlan0 0.0.0.0
 	fi
 	pushRefresh
-elif [[ $1 == accesspointset ]]; then
+	;;
+accesspointset )
 	sed -i -e "s/^\(dhcp-range=\).*/\1$1/
 	" -e "s/^\(.*option:router,\).*/\1$2/
 	" -e "s/^\(.*option:dns-server,\).*/\1$2
@@ -38,22 +41,26 @@ elif [[ $1 == accesspointset ]]; then
 		echo $3 > $dirsystem/accesspoint-passphrase
 	fi
 	pushRefresh
-elif [[ $1 == btconnect ]]; then
+	;;
+btconnect )
 	/srv/http/bash/network-btscan.sh disconnect
 	bluetoothctl trust $2
 	bluetoothctl pair $2
 	bluetoothctl connect $2
 	[[ $? != 0 ]] && echo -1 ||	pushRefresh
-elif [[ $1 == connect ]]; then
+	;;
+connect )
 	netctl stop-all
 	ifconfig $2 down
 	[[ -n $4 ]] && echo "$4" | tee "/srv/http/data/system/netctl-$3" > "/etc/netctl/$3"
 	netctl start "$3"
 	pushRefresh
-elif [[ $1 == connectenable ]]; then
+	;;
+connectenable )
 	systemctl enable netctl-auto$2
 	pushRefresh
-elif [[ $1 == disconnect ]]; then
+	;;
+disconnect )
 	netctl stop-all
 	killall wpa_supplicant
 	ifconfig $2 up
@@ -62,7 +69,8 @@ elif [[ $1 == disconnect ]]; then
 		rm "/etc/netctl/$3" "/srv/http/data/system/netctl-$3"
 	fi
 	pushRefresh
-elif [[ $1 == editlan ]]; then
+	;;
+editlan )
 	eth0="\
 [Match]
 Name=eth0
@@ -86,7 +94,8 @@ Gateway=$3
 	echo "$eth0" > /etc/systemd/network/eth0.network
 	systemctl restart systemd-networkd
 	pushRefresh
-elif [[ $1 == editwifidhcp ]]; then
+	;;
+editwifidhcp )
 	file="/srv/http/data/system/netctl-$2"
 	netctl stop "$2"
 	sed -i -e '/^Address\|^Gateway/ d
@@ -95,7 +104,8 @@ elif [[ $1 == editwifidhcp ]]; then
 	cp "$file" "/etc/netctl/$2"
 	netctl start "$2"
 	pushRefresh
-elif [[ $1 == ifconfig ]]; then
+	;;
+ifconfig )
 	lines=$( ifconfig \
 		| sed -n '/^eth\|^wlan/,/ether/ p' \
 		| grep -v inet6 \
@@ -103,15 +113,18 @@ elif [[ $1 == ifconfig ]]; then
 		| tr '\n' ' ' \
 		| sed 's/= /\n/g' )
 	echo "$lines"
-elif [[ $1 == ipused ]]; then
+	;;
+ipused )
 	arp -n | grep -q ^$2 && echo 1 || echo 0
-elif [[ $1 == statusifconfig ]]; then
+	;;
+statusifconfig )
 	ifconfig
 	if systemctl -q is-active bluetooth; then
 		echo '<hr>'
 		bluetoothctl show | sed 's/^\(Controller.*\)/bluetooth: \1/'
 	fi
-elif [[ $1 == statusnetctl ]]; then
+	;;
+statusnetctl )
 	lists=$( netctl list )
 	[[ -z $lists ]] && echo '(none)' && exit
 	
@@ -121,9 +134,12 @@ elif [[ $1 == statusnetctl ]]; then
 		profiles+="<hr>$name<hr>$( cat /etc/netctl/$name | sed -e '/^#.*/ d' -e 's/Key=.*/Key="*********"/' )"
 	done
 	echo "$profiles"
-elif [[ $1 == statuswifi ]]; then
+	;;
+statuswifi )
 	value=$( grep '^Address\|^Gateway\|^IP\|^Key\|^Security' "/etc/netctl/$2" \
 				| tr -d '"' \
 				| sed 's/^/"/ ;s/=/":"/; s/$/",/' )
 	echo {${value:0:-1}}
-fi
+	;;
+	
+esac

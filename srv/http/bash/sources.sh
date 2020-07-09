@@ -32,7 +32,7 @@ mount )
 	source=${source// /\\040} # escape spaces in fstab
 	name=$( basename "$mountpoint" )
 	mountpoint=${mountpoint// /\\040}
-	echo "$source  $mountpoint  $cifsnfs  $options  0  0" | tee -a /etc/fstab "/srv/http/data/system/fstab-$name" &> /dev/null
+	echo "$source  $mountpoint  $cifsnfs  $options  0  0" | tee -a /etc/fstab > "/srv/http/data/system/fstab-$name" && echo 0
 	pushRefresh
 	;;
 remount )
@@ -45,7 +45,7 @@ remount )
 	;;
 remove )
 	umount -l "$2"
-	sed -i "\|$2\| d" /etc/fstab
+	sed -i "\|${2// /.040}| d" /etc/fstab
 	rmdir "$2" &> /dev/null
 	rm "$dirsystem/fstab-${2/*\/}"
 	pushRefresh
@@ -54,7 +54,7 @@ unmount )
 	if [[ ${2:9:3} == NAS ]]; then
 		umount -l "$2"
 	else
-		udevil umount l "$2"
+		udevil umount -l "$2"
 	fi
 	pushRefresh
 	;;

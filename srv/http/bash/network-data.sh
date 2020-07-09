@@ -27,10 +27,11 @@ for line in "${lines[@]}"; do
 		mac=$items1
 	fi
 	ipr=$( ip r | grep "^default.*$interface" )
-	dhcp=$( [[ $ipr == *"dhcp src $ip "* ]] && echo true || echo false )
+	dhcp=$( [[ $ipr == *"dhcp src $ip "* ]] && echo dhcp || echo static )
 	gateway=$( cut -d' ' -f3 <<< $ipr )
+	[[ -z $gateway ]] && gateway=$( ip r | grep ^default | head -n1 | cut -d' ' -f3 )
 	[[ $inftype == wlan && -n $ip && $ip != $hostapdip ]] && ssid=$( iwgetid $interface -r ) || ssid=
-	data+='{"dhcp":'$dhcp',"mac":"'$mac'","gateway":"'$gateway'","interface":"'$interface'","ip":"'$ip'","ssid":"'$ssid'"},'
+	data+='{"dhcp":"'$dhcp'","mac":"'$mac'","gateway":"'$gateway'","interface":"'$interface'","ip":"'$ip'","ssid":"'$ssid'"},'
 done
 
 # bluetooth

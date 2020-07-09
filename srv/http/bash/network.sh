@@ -53,6 +53,7 @@ connect )
 	ifconfig $2 down
 	[[ -n $4 ]] && echo "$4" | tee "/srv/http/data/system/netctl-$3" > "/etc/netctl/$3"
 	netctl switch-to "$3"
+	ifconfig $2 up
 	pushRefresh
 	;;
 connectenable )

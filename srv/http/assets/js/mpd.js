@@ -290,9 +290,12 @@ function setMixerType( mixertype ) {
 	if ( mixertype === 'none' ) {
 		var card = $output.data( 'card' );
 		var hwmixer = $output.data( 'hwmixer' );
+	} else {
+		var card = '';
+		var hwmixer = '';
 	}
 	banner( 'Mixer Control', 'Change ...', 'mpd' );
-	$.post( 'commands.php', { bash0: settingbash +' mixerset '+ mixertype +'"'+ name +'" '+ card +' '+ hwmixer  }, refreshData );
+	$.post( 'commands.php', { bash0: settingbash +' mixerset '+ mixertype +' "'+ name +'" '+ card +' '+ hwmixer }, refreshData );
 }
 
 refreshData = function() {

@@ -76,12 +76,13 @@ elif [[ $1 == mixerhw ]]; then
 	fi
 	systemctl try-restart mpd shairport-sync shairport-meta
 	pushRefresh
-elif [[ $1 == mixerset ]]; then
+elif [[ $1 == mixerset ]]; then #none "On-board - HDMI" 0 HDMI
 	volumenone=0
 	if [[ $2 == none ]]; then
 		[[ -n $5 ]] && amixer -c $4 sset $5 0dB
 		volumenone=1
-	elif [[ $2 == hardware ]]; then
+	fi
+	if [[ $2 == hardware ]]; then
 		rm "$dirsystem/mpd-mixertype-$3"
 	else
 		echo $2 > "$dirsystem/mpd-mixertype-$3"

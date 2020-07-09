@@ -75,6 +75,7 @@ snaplatency=$( grep OPTS= /etc/default/snapclient | sed 's/.*latency=\(.*\)"/\1/
 data+='
 	, "audioaplayname"  : "'$( cat $dirsystem/audio-aplayname 2> /dev/null )'"
 	, "audiooutput"     : "'$( cat $dirsystem/audio-output )'"
+	, "autoplay"        : '$( [[ -e $dirsystem/autoplay ]] && echo true || echo false )'
 	, "hardware"        : "'$( awk '/Model/ {$1=$2=""; print}' <<< "$cpuinfo" )'"
 	, "hostname"        : "'$( cat $dirsystem/hostname )'"
 	, "ip"              : "'${iplist:1}'"
@@ -97,12 +98,8 @@ data+='
 	, "streaming"       : '$( grep -q 'type.*"httpd"' /etc/mpd.conf && echo true || echo false )'
 	, "timezone"        : "'$timezone'"
 	, "version"         : "'$version'"
-	, "versionui"       : '$( cat /srv/http/data/addons/rr$version )
-	
-profile=$( cat $dirsystem/soundprofile 2> /dev/null )
-[[ -z $profile ]] && profile=RuneAudio
-data+='
-	, "soundprofile"    : "'$profile'"
+	, "versionui"       : '$( cat /srv/http/data/addons/rr$version )'
+	, "soundprofile"    : "'$( cat $dirsystem/soundprofile 2> /dev/null )'"
 	, "soundprofileval" : "'$( /srv/http/bash/system-soundprofile.sh $profile getvalue )'"'
 [[ -e /usr/bin/bluetoothctl  ]] && data+='
 	, "bluetooth"       : '$( grep -q dtoverlay=bcmbt /boot/config.txt && echo true || echo false )'

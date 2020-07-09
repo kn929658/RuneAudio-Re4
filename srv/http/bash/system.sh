@@ -62,15 +62,15 @@ i2smodule )
 	sed -i '/dtparam=\|dtoverlay=\|^$/ d' /boot/config.txt
 	[[ -n $gpio ]] && echo dtoverlay=gpio >> /boot/config.txt
 	[[ -n $bt ]] && echo dtoverlay=bcmbt >> /boot/config.txt
-	if [[ $2 != none ]]; then
+	if [[ ${2:0:7} != bcm2835 ]]; then
 		echo "\
 dtparam=audio=off
 dtparam=i2s=on
 dtoverlay=$2\
-" > /boot/config.txt
+" >> /boot/config.txt
 		rm -f $dirsystem/onboard-audio
 	else
-		echo dtparam=audio=on > /boot/config.txt
+		echo dtparam=audio=on >> /boot/config.txt
 		touch $dirsystem/onboard-audio
 	fi
 	echo $2 > $dirsystem/audio-aplayname
@@ -176,7 +176,7 @@ regional )
 	pushRefresh
 	;;
 samba )
-	[[ $2 == true ]] && enable 'samba wsdd' $1 || disable 'samba wsdd' $1
+	[[ $2 == true ]] && enable 'smb wsdd' $1 || disable 'smb wsdd' $1
 	;;
 sambaset )
 	smbconf=/etc/samba/smb.conf
@@ -208,8 +208,10 @@ snapclientset )
 	;;
 soundprofile )
 	if [[ $2 == true ]]; then
-		[[ -e $dirsystem/soundprofile ]] && profile=$( cat $dirsystem/soundprofile ) || profile=RuneAudio
+		echo RuneAudio > $dirsystem/soundprofile
+		profile=RuneAudio
 	else
+		rm $dirsystem/soundprofile
 		profile=default
 	fi
 	/srv/http/bash/system-soundprofile.sh $profile

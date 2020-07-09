@@ -39,12 +39,7 @@ $( '#refresh' ).click( function( e ) {
 } );
 $( '#airplay' ).click( function( e ) {
 	G.airplay = $( this ).prop( 'checked' );
-	var bannertxt = G.airplay && !G.avahi ? ' + URL By Name' : '';
-	if ( G.airplay ) {
-		G.avahi = true;
-		$( '#avahi' ).prop( 'checked', 1 );
-	}
-	banner( 'AirPlay  Renderer'+ bannertxt, G.airplay, 'airplay' );
+	banner( 'AirPlay Renderer', G.airplay, 'airplay' );
 	$.post( 'commands.php', { bash0: settingbash +' airplay '+ G.airplay }, resetLocal );
 } );
 $( '#snapclient' ).click( function( e ) {
@@ -135,7 +130,7 @@ $( '#streaming' ).click( function( e ) {
 $( '#localbrowser' ).click( function( e ) {
 	G.localbrowser = $( this ).prop( 'checked' );
 	$( '#setting-localbrowser' ).toggleClass( 'hide', !G.localbrowser );
-	banner( 'Chromium - Browser on RPi', G.localbrowser, 'chromium' );
+	banner( 'Chromium - Browser on RPi', G.localbrowser, 'chromium blink' );
 	$.post( 'commands.php', { bash0: settingbash +' localbrowser '+ G.localbrowser }, resetLocal( 7000 ) );
 } );
 var localbrowserinfo = heredoc( function() { /*
@@ -196,18 +191,47 @@ $( '#setting-localbrowser' ).click( function( e ) {
 			G.rotate    = rotate;
 			G.screenoff = screenoff;
 			G.zoom      = zoom;
-			banner( 'Chromium - Browser on RPi', 'Change ...', 'chromium' );
+			banner( 'Chromium - Browser on RPi', 'Change ...', 'chromium blink' );
 			$.post( 'commands.php', { bash0: settingbash +' localbrowserset '+ rotate +' '+ cursor +' '+ ( screenoff * 60 ) +' '+ zoom }, function() {
 				resetLocal( 7000 );
 			} );
 		}
 	} );
 } );
+$( '#samba' ).click( function( e ) {
+	G.samba = $( this ).prop( 'checked' );
+	$( '#setting-samba' ).toggleClass( 'hide', !G.samba );
+	banner( 'Samba - File Sharing', G.samba, 'network blink' );
+	$.post( 'commands.php', { bash0: settingbash +' samba '+ G.samba }, resetLocal );
+} );
+$( '#setting-samba' ).click( function() {
+	info( {
+		  icon     : 'network'
+		, title    : 'Samba File Sharing'
+		, message  : '<wh>Write</wh> permission:</gr>'
+		, checkbox : { '<gr>/mnt/MPD/</gr>SD': 1, '<gr>/mnt/MPD/</gr>USB': 1 }
+		, preshow  : function() {
+			$( '#infoCheckBox input:eq( 0 )' ).prop( 'checked', G.writesd );
+			$( '#infoCheckBox input:eq( 1 )' ).prop( 'checked', G.writeusb );
+		}
+		, ok       : function() {
+			var writesd = $( '#infoCheckBox input:eq( 0 )' ).prop( 'checked' );
+			var writeusb = $( '#infoCheckBox input:eq( 1 )' ).prop( 'checked' );
+			if ( writesd !== G.writesd || writeusb !== G.writeusb ) {
+				G.writesd = writesd;
+				G.writeusb = writeusb;
+				banner( 'Samba - File Sharing', 'Change ...', 'network blink' );
+				$.post( 'commands.php', { bash0: settingbash +' sambaset '+ G.writesd +' '+ G.writeusb }, resetLocal );
+			}
+		}
+	} );
+} );
 $( '#mpdscribble' ).click( function() {
-	G.mpdscribble = $( this ).prop( 'checked' );
-	if ( G.mpdscribble && !G.mpdscribbleuser ) {
+	var mpdscribble = $( this ).prop( 'checked' );
+	if ( mpdscribble && !G.mpdscribbleuser ) {
 		$( '#setting-mpdscribble' ).click();
 	} else {
+		G.mpdscribble = mpdscribble;
 		banner( 'Scrobbler', G.mpdscribble, 'lastfm' );
 		$.post( 'commands.php', { bash0: settingbash +' mpdscribble '+ G.mpdscribble }, resetLocal );
 		$( '#setting-mpdscribble' ).toggleClass( 'hide', !G.mpdscribble );
@@ -228,6 +252,7 @@ $( '#setting-mpdscribble' ).click( function() {
 			var password = $( '#infoPasswordBox' ).val().replace( /(["&()\\])/g, '\$1' );
 			banner( 'Scrobbler', G.mpdscribble ? 'Change ...' : 'Enable ...', 'lastfm' );
 			$.post( 'commands.php', { bash0: settingbash +' mpdscribbleset "'+ G.mpdscribbleuser +'" "'+ password +'"' }, resetLocal );
+			G.mpdscribble = true;
 		}
 	} );
 } );
@@ -235,7 +260,7 @@ $( '#login' ).click( function( e ) {
 	G.login = $( this ).prop( 'checked' );
 	$( '#setting-login' ).toggleClass( 'hide', !G.login );
 	banner( 'Password Login', G.login, 'lock' );
-	$.post( 'commands.php', { bash0: settingbash +' mpdscribbleset "'+ G.login }, resetLocal );
+	$.post( 'commands.php', { bash0: settingbash +' login '+ G.login }, resetLocal );
 	if ( G.login && G.passworddefault ) {
 		info( {
 			  icon    : 'lock'
@@ -264,37 +289,9 @@ $( '#setting-login' ).click( function() {
 		}
 	} );
 } );
-$( '#samba' ).click( function( e ) {
-	G.samba = $( this ).prop( 'checked' );
-	$( '#setting-samba' ).toggleClass( 'hide', !G.samba );
-	banner( 'Samba - File Sharing', G.samba, 'network' );
-	$.post( 'commands.php', { bash0: settingbash +' samba "'+ G.samba }, resetLocal );
-} );
-$( '#setting-samba' ).click( function() {
-	info( {
-		  icon     : 'network'
-		, title    : 'Samba File Sharing'
-		, message  : '<wh>Write</wh> permission:</gr>'
-		, checkbox : { '<gr>/mnt/MPD/</gr>SD': 1, '<gr>/mnt/MPD/</gr>USB': 1 }
-		, preshow  : function() {
-			$( '#infoCheckBox input:eq( 0 )' ).prop( 'checked', G.writesd );
-			$( '#infoCheckBox input:eq( 1 )' ).prop( 'checked', G.writeusb );
-		}
-		, ok       : function() {
-			var writesd = $( '#infoCheckBox input:eq( 0 )' ).prop( 'checked' );
-			var writeusb = $( '#infoCheckBox input:eq( 1 )' ).prop( 'checked' );
-			if ( writesd !== G.writesd || writeusb !== G.writeusb ) {
-				G.writesd = writesd;
-				G.writeusb = writeusb;
-				banner( 'Samba - File Sharing', 'Change ...', 'network' );
-				$.post( 'commands.php', { bash0: settingbash +' sambaset '+ G.writesd +' '+ G.writeusb }, resetLocal );
-			}
-		}
-	} );
-} );
 $( '#autoplay' ).click( function() {
 	G.autoplay = $( this ).prop( 'checked' );
-	local = 1;
+	banner( 'Play on Startup', G.autoplay, 'refresh-play' );
 	$.post( 'commands.php', { bash0: settingbash +' autoplay '+ G.autoplay }, resetLocal );
 } );
 $( '#onboardaudio' ).click( function( e ) {
@@ -321,7 +318,7 @@ $( '#bluetooth' ).click( function( e ) {
 } );
 $( '#wlan' ).click( function( e ) {
 	G.wlan = $( this ).prop( 'checked' );
-	banner( 'On-board Wi-Fi', G.wlan, 'bluetooth' );
+	banner( 'On-board Wi-Fi', G.wlan, 'wifi-3' );
 	$.post( 'commands.php', { bash0: settingbash +' wlan '+ G.wlan }, resetLocal );
 } );
 $( '#i2smodulesw' ).click( function() {
@@ -365,14 +362,21 @@ $( '#i2smodule' ).on( 'selectric-change', function( e ) {
 		rebootText( 'Disable', 'I&#178;S Module' );
 		banner( 'I&#178;S Module', 'Disable ...', 'volume' );
 	}
-	$.post( 'commands.php', { bash0: settingbash +' i2smodule '+ G.audioaplayname +' "'+ G.audiooutput +" '"+ G.reboot.join( '\n' ) +"'" }, resetLocal );
+	$.post( 'commands.php'
+		, { bash0: settingbash +' i2smodule "'+ G.audioaplayname +'" "'+ G.audiooutput +'" "'+ G.reboot.join( '\n' ) +'"' }
+		, function() {
+			resetLocal();
+			getConfigtxt();
+		} );
 	$( '#output' ).text( G.audiooutput );
 } );
 $( '#soundprofile' ).click( function( e ) {
-	G.soundprofile = $( this ).prop( 'checked' );
-	rebootText( G.soundprofile ? 'Enable' : 'Disable', 'sound profile' );
-	banner( 'Sound Profile', G.soundprofile, 'volume' );
-	$.post( 'commands.php', { bash0: settingbash +' soundprofile '+ soundprofile }, resetLocal );
+	var checked = $( this ).prop( 'checked' );
+	rebootText( checked ? 'Enable' : 'Disable', 'sound profile' );
+	banner( 'Sound Profile', checked, 'volume' );
+	$.post( 'commands.php', { bash0: settingbash +' soundprofile '+ checked }, resetLocal );
+	$( '#setting-soundprofile' ).toggleClass( 'hide', !checked );
+	G.soundprofile = checked ? 'RuneAudio' : '';
 } );
 $( '#setting-soundprofile' ).click( function() {
 	var radio= {
@@ -391,7 +395,7 @@ $( '#setting-soundprofile' ).click( function() {
 		, radio   : radio
 		, preshow : function() {
 			var values = G.soundprofileval.split( ' ' );
-			$( 'input[name=inforadio]' ).val( [ soundprofile ] )
+			$( 'input[value='+ G.soundprofile +']' ).prop( 'checked', 1 )
 			$( '#infoRadio input[value=custom]' ).click( function() {
 				var textlabel = [ 'vm.swappiness (0-100)', 'kernel.sched_latency_ns (ns)' ];
 				var textvalue = [ values[ 2 ], values[ 3 ] ];
@@ -762,8 +766,8 @@ refreshData = function() { // system page: use resetLocal() to aviod delay
 		$( '#divi2smodulesw' ).toggleClass( 'hide', i2senabled );
 		$( '#divi2smodule' ).toggleClass( 'hide', !i2senabled );
 		$( '#soundprofile' ).prop( 'checked', G.soundprofile !== '' );
-		$( '#eth0help' ).toggleClass( 'hide', G.ip.slice( 0, 4 ) !== 'eth0' );
 		$( '#setting-soundprofile' ).toggleClass( 'hide', G.soundprofile === '' );
+		$( '#eth0help' ).toggleClass( 'hide', G.ip.slice( 0, 4 ) !== 'eth0' );
 		$( '#onboardaudio' ).prop( 'checked', G.onboardaudio );
 		$( '#onboardhdmi' ).prop( 'checked', G.onboardhdmi );
 		$( '#bluetooth' ).prop( 'checked', G.bluetooth );

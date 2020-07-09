@@ -118,7 +118,7 @@ function codeToggle( target, id, fn ) {
 }
 function escapeString( str ) {
 	return str
-			.replace( /([&()\\])/g, '\$1' )
+			.replace( /([&()])/g, '\$1' )
 			.replace( /"/g, '\\\"' );
 }
 function onVisibilityChange( callback ) {

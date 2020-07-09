@@ -12,7 +12,7 @@ dirsystem=/srv/http/data/system
 case $1 in
 
 amixer )
-	amixer -c $2 scontents \
+	amixer -c $2scontents \
 		| grep -A2 'Simple mixer control' \
 		| grep -v 'Capabilities' \
 		| tr -d '\n' \

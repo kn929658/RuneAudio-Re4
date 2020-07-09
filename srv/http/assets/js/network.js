@@ -513,9 +513,9 @@ function nicsStatus() {
 			$( '#accesspoint' ).prop( 'checked', G.hostapd );
 			$( '#settings-accesspoint, #boxqr' ).toggleClass( 'hide', !G.hostapd );
 		}
+		G.reboot = reboot;
 		if ( 'bluetooth' in extra ) G.bluetooth = extra.bluetooth;
 		G.hostname = extra.hostname;
-		G.reboot = extra.reboot ? extra.reboot.split( '\n' ) : [];
 		var html = '';
 		$.each( list, function( i, val ) {
 			html += '<li class="'+ val.interface +'"';

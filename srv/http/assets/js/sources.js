@@ -227,8 +227,7 @@ function infoMount( formdata, cifs ) {
 refreshData = function() {
 	$( '#refreshing' ).removeClass( 'hide' );
 	$.post( 'commands.php', { getjson: '/srv/http/bash/sources-data.sh' }, function( list ) {
-		var reboot = list.pop();
-		G.reboot = reboot ? reboot.split( '\n' ) : [];
+		G.reboot = reboot;
 		var html = '';
 		$.each( list, function( i, val ) {
 			if ( val.mounted ) {

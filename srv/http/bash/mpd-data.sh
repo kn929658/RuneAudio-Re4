@@ -39,7 +39,6 @@ data='
 	, "mixertype"      : "'$( grep mixer_type /etc/mpd.conf | cut -d'"' -f2 )'"
 	, "mpd"            : '$( systemctl -q is-active mpd && echo true || echo false )'
 	, "normalization"  : '$( grep -q 'volume_normalization.*yes' /etc/mpd.conf && echo true || echo false )'
-	, "reboot"         : "'$( cat /srv/http/data/tmp/reboot 2> /dev/null )'"
 	, "replaygain"     : "'$( grep replaygain /etc/mpd.conf | cut -d'"' -f2 )'"
 	, "usbdac"         : "'$( cat /srv/http/data/system/usbdac 2> /dev/null )'"
 '

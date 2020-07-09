@@ -52,7 +52,6 @@ if systemctl -q is-active bluetooth; then
 	extra+=',"bluetooth":'$btlist
 fi
 extra+=',"hostname":"'$( hostname )'"
-	    ,"reboot":"'$( cat /srv/http/data/tmp/reboot 2> /dev/null )'"
 	    ,"wlan":'$( lsmod | grep -q ^brcmfmac && echo true || echo false )
 		
 data+={${extra:1}}

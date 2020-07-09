@@ -303,6 +303,7 @@ function setMixerType( mixertype ) {
 refreshData = function() {
 	$.post( 'commands.php', { getjson: '/srv/http/bash/mpd-data.sh' }, function( list ) {
 		G = list;
+		G.reboot = reboot;
 		restartmpd = G.mpd ? 'systemctl restart mpd' : '';
 		var htmldevices = '';
 		$.each( G.devices, function() {

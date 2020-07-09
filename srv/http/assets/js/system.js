@@ -673,7 +673,7 @@ refreshData = function() { // system page: use resetLocal() to aviod delay
 	$.post( 'commands.php', { getjson: '/srv/http/bash/system-data.sh' }, function( list ) {
 		G = list;
 		G.sources.pop(); // remove 'reboot' from sources-data.sh
-		G.reboot = G.reboot ? G.reboot.split( '\n' ) : [];
+		G.reboot = reboot;
 		
 		var systemlabel =
 			 'RuneAudio<br>'

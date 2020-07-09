@@ -1,6 +1,6 @@
 #!/bin/bash
 
-curlPage() {
+pushRefresh() {
 	curl -s -X POST 'http://127.0.0.1/pub?id=refresh' -d '{ "page": "mpd" }'
 }
 
@@ -16,7 +16,7 @@ if [[ $1 == audiooutput ]]; then
 	' -e '/mixer_control_name = / s/".*"/"'$5'"/
 	' /etc/shairport-sync.conf
 	systemctl try-restart shairport-sync shairport-meta
-	curlPage
+	pushRefresh
 elif [[ $1 == autoupdate ]]; then
 	if [[ $2 == true ]]; then
 		sed -i '1 i\auto_update        "yes"' /etc/mpd.conf
@@ -26,7 +26,7 @@ elif [[ $1 == autoupdate ]]; then
 		rm $dirsystem/mpd-autoupdate
 	fi
 	systemctl restart mpd
-	curlPage
+	pushRefresh
 elif [[ $1 == buffer ]]; then
 	if [[ -n $2 ]]; then
 		sed -i -e '/^audio_buffer/ d
@@ -37,7 +37,7 @@ elif [[ $1 == buffer ]]; then
 		rm $dirsystem/mpd-buffer
 	fi
 	systemctl restart mpd
-	curlPage
+	pushRefresh
 elif [[ $1 == crossfade ]]; then
 	if [[ -n $2 ]]; then
 		mpc crossfade $2
@@ -47,7 +47,7 @@ elif [[ $1 == crossfade ]]; then
 		rm $dirsystem/mpd-crossfade
 	fi
 	systemctl restart mpd
-	curlPage
+	pushRefresh
 elif [[ $1 == dop ]]; then
 	if [[ $2 == true ]]; then
 		echo $2 > $dirsystem/mpd-dop
@@ -55,7 +55,7 @@ elif [[ $1 == dop ]]; then
 		rm $dirsystem/mpd-dop
 	fi
 	systemctl restart mpd
-	curlPage
+	pushRefresh
 elif [[ $1 == ffmpeg ]]; then
 	if [[ $2 == true ]]; then
 		sed -i '/ffmpeg/ {n; s/".*"/"yes"/}' /etc/mpd.conf
@@ -65,7 +65,7 @@ elif [[ $1 == ffmpeg ]]; then
 		rm $dirsystem/mpd-ffmpeg
 	fi
 	systemctl restart mpd
-	curlPage
+	pushRefresh
 elif [[ $1 == mixerhw ]]; then
 	sed -i '/'$2'/,/mixer_control/ s/\(mixer_control \+"\).*/\1"'$3'"/' /etc/mpd.conf
 	sed -i '/mixer_control_name = / s/".*"/"'$3'"/' /etc/shairport-sync.conf
@@ -75,7 +75,7 @@ elif [[ $1 == mixerhw ]]; then
 		echo $4 > /srv/http/data/system/mpd-hwmixer-$5
 	fi
 	systemctl try-restart mpd shairport-sync shairport-meta
-	curlPage
+	pushRefresh
 elif [[ $1 == mixerset ]]; then
 	volumenone=0
 	if [[ $2 == none ]]; then
@@ -87,7 +87,7 @@ elif [[ $1 == mixerset ]]; then
 		echo $2 > "$dirsystem/mpd-mixertype-$3"
 	fi
 	systemctl restart mpd
-	curlPage
+	pushRefresh
 	curl -s -X POST 'http://127.0.0.1/pub?id=volumenone' -d '{ "pvolumenone": "'$volumenone'" }'
 elif [[ $1 == normalization ]]; then
 	if [[ $2 == true ]]; then
@@ -98,7 +98,7 @@ elif [[ $1 == normalization ]]; then
 		rm $dirsystem/mpd-normalization
 	fi
 	systemctl restart mpd
-	curlPage
+	pushRefresh
 elif [[ $1 == novolume ]]; then
 	sed -i -e '/mixer_type/ s/".*"/"none"/
 	' -e '/mixer_control\|mixer_device\|volume_normalization/ d
@@ -107,7 +107,7 @@ elif [[ $1 == novolume ]]; then
 	rm $dirsystem/{mpd-replaygain,mpd-normalization}
 	mpc crossfade 0
 	systemctl restart mpd
-	curlPage
+	pushRefresh
 	curl -s -X POST 'http://127.0.0.1/pub?id=volumenone' -d '{ "pvolumenone": "1" }'
 elif [[ $1 == replaygain ]]; then
 	if [[ -n $2 ]]; then
@@ -118,7 +118,7 @@ elif [[ $1 == replaygain ]]; then
 		rm $dirsystem/mpd-replaygain
 	fi
 	systemctl restart mpd
-	curlPage
+	pushRefresh
 elif [[ $1 == statusmpd ]]; then
 	systemctl status mpd \
 		| sed 's|\(active (running)\)|<grn>\1</grn>|; s|\(inactive (dead)\)|<red>\1</ed>|'

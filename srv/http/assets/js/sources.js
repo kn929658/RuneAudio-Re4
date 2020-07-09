@@ -53,6 +53,7 @@ $( '#list' ).on( 'click', 'li', function() {
 	
 	var mountname = mountpoint.replace( / /g, '\\\\040' );
 	var nas = mountpoint.slice( 9, 12 ) === 'NAS';
+	var source = $this.data( 'source' );
 	if ( !$this.data( 'unmounted' ) ) {
 		info( {
 			  icon    : nas ? 'network' : 'usbdrive'
@@ -62,10 +63,7 @@ $( '#list' ).on( 'click', 'li', function() {
 			, okcolor : '#de810e'
 			, ok      : function() {
 				banner( 'Network Mount', 'Unmount ...', 'network' );
-				$.post( 'commands.php', { bash0: [
-						  ( nas ? '' : 'udevil ' ) +'umount -l "'+ mountpoint +'"'
-						, curlPage( 'source' )
-					] }, function() {
+				$.post( 'commands.php', { bash0: settingbash +' unmount "'+ mountpoint +'"' }, function() {
 					refreshData();
 					$( '#refreshing' ).addClass( 'hide' );
 				} );
@@ -82,7 +80,7 @@ $( '#list' ).on( 'click', 'li', function() {
 			, buttoncolor : '#bb2828'
 			, button      : function() {
 				banner( 'Network Mount', 'Remove ...', 'network' );
-				$.post( 'commands.php', { bash0: settingbash +' "'+ mountpoint +'"' }, function() {
+				$.post( 'commands.php', { bash0: settingbash +' remove "'+ mountpoint +'"' }, function() {
 					refreshData();
 					$( '#refreshing' ).addClass( 'hide' );
 				} );
@@ -91,10 +89,7 @@ $( '#list' ).on( 'click', 'li', function() {
 			, oklabel     : 'Remount'
 			, ok          : function() {
 				banner( 'Network Mount', 'Remount ...', 'network' );
-				$.post( 'commands.php', { bash0: [
-						  ( nas ? 'mount "'+ mountpoint +'"' : 'udevil mount '+ $this.data( 'source' ) )
-						, curlPage( 'source' )
-					] }, function() {
+				$.post( 'commands.php', { bash0: settingbash +' remount "'+ mountpoint +'" '+ source }, function() {
 					refreshData();
 					$( '#refreshing' ).addClass( 'hide' );
 				} );
@@ -204,9 +199,10 @@ function infoMount( formdata, cifs ) {
 				options += data.options ? ','+ data.options : '';
 				var device = '"'+ data.ip +':/'+ directory +'"';
 			}
-			var cmd = '"'+ mountpoint +'" '+ data.ip +' '+ device +' '+ data.protocol +' '+ options;
 			banner( 'Network Mount', 'Mount ...', 'network' );
-			$.post( 'commands.php', { bash0: settingbash +' '+ cmd }, function( std ) {
+			$.post( 'commands.php'
+				, { bash0: settingbash +' mount '+ '"'+ mountpoint +'" '+ data.ip +' '+ device +' '+ data.protocol +' '+ options }
+				, function( std ) {
 				var std = std[ 0 ];
 				if ( std ) {
 					formdata = data;

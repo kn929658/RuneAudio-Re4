@@ -1,22 +1,22 @@
 #!/bin/bash
 
-curlPage() {
+pushRefresh() {
 	curl -s -X POST 'http://127.0.0.1/pub?id=refresh' -d '{ "page": "system" }'
 }
 enable() {
 	systemctl enable --now $1
 	touch $dirsystem/$2
-	curlPage
+	pushRefresh
 }
 disable() {
 	systemctl disable --now $1
 	rm $dirsystem/$2
-	curlPage
+	pushRefresh
 }
 changeSetting() {
 	systemctl try-restart $1
 	echo $3 > $dirsystem/$2
-	curlPage
+	pushRefresh
 }
 
 dirsystem=/srv/http/data/system
@@ -26,7 +26,7 @@ if [[ $1 == airplay ]]; then
 	[[ $2 == true ]] && enable shairport-sync $1 || disable shairport-sync $1
 elif [[ $1 == autoplay ]]; then
 	[[ $2 == true ]] && touch $dirsystem/autoplay || rm $dirsystem/autoplay
-	curlPage
+	pushRefresh
 elif [[ $1 == bluetooth ]]; then
 	if [[ $2 == true ]]; then
 		! grep -q 'dtoverlay=bcmbt' /boot/config.txt && echo dtoverlay=bcmbt >> /boot/config.txt
@@ -37,7 +37,7 @@ elif [[ $1 == bluetooth ]]; then
 		rm $dirsystem/onboard-bluetooth
 	fi
 	echo "$3" > $filereboot
-	curlPage
+	pushRefresh
 elif [[ $1 == getbootlog ]]; then
 	if [[ -e /tmp/bootlog ]]; then
 		cat /tmp/bootlog
@@ -57,7 +57,7 @@ elif [[ $1 == hostname ]]; then
 	systemctl try-restart avahi-daemon hostapd mpd smb wsdd shairport-sync shairport-meta upmpdcli
 	systemctl -q is-active bluetooth && bluetoothctl system-alias $2
 	echo $2 > $dirsystem/hostname
-	curlPage
+	pushRefresh
 elif [[ $1 == i2smodule ]]; then
 	grep -q 'dtoverlay=gpio' /boot/config.txt && gpio=1
 	grep -q 'dtoverlay=bcmbt' /boot/config.txt && bt=1
@@ -78,7 +78,7 @@ dtoverlay=$2\
 	echo $2 > $dirsystem/audio-aplayname
 	echo $3 > $dirsystem/audio-output
 	echo "$4" > $filereboot
-	curlPage
+	pushRefresh
 elif [[ $1 == localbrowser ]]; then
 	if [[ $2 == true ]]; then
 		enable localbrowser $1
@@ -90,7 +90,7 @@ elif [[ $1 == localbrowser ]]; then
 		sed -i 's/\(console=\).*/\1tty1/' /boot/cmdline.txt
 		/usr/local/bin/ply-image /srv/http/assets/img/splash.png
 	fi
-	curlPage
+	pushRefresh
 elif [[ $1 == localbrowserset ]]; then # rotate cursor screenoff zoom
 	path=$dirsystem/localbrowser
 	rotateconf=/etc/X11/xorg.conf.d/99-raspi-rotate.conf
@@ -120,7 +120,7 @@ elif [[ $1 == localbrowserset ]]; then # rotate cursor screenoff zoom
 	' -e 's/\(factor=\).*/\1"'$4'"/
 	' /etc/X11/xinit/xinitrc
 	systemctl restart localbrowser
-	curlPage
+	pushRefresh
 elif [[ $1 == login ]]; then
 	if [[ $2 == true ]]; then
 		touch $dirsystem/login
@@ -131,7 +131,7 @@ elif [[ $1 == login ]]; then
 	fi
 	sed -i '/^bind_to_address/ s/".*"/"'$ip'"/' /etc/mpd.conf
 	systemctl restart mpd
-	curlPage
+	pushRefresh
 elif [[ $1 == mpdscribble ]]; then
 	[[ $2 == true ]] && enable mpdscribble@mpd $1 || disable mpdscribble@mpd $1
 elif [[ $1 == mpdscribbleset ]]; then
@@ -141,7 +141,7 @@ elif [[ $1 == mpdscribbleset ]]; then
 	echo -e "$2\n$3" > $dirsystem/mpdscribble-login
 	touch $dirsystem/mpdscribble
 	systemctl -q is-active mpdscribble@mpd && systemctl restart mpdscribble@mpd || systemctl enable --now mpdscribble@mpd
-	curlPage
+	pushRefresh
 elif [[ $1 == onboardaudio ]]; then
 	if [[ $2 == true ]]; then
 		onoff=on
@@ -152,7 +152,7 @@ elif [[ $1 == onboardaudio ]]; then
 	fi
 	sed -i "s/\(dtparam=audio=\).*/\1$onoff/" /boot/config.txt
 	echo "$3" > $filereboot
-	curlPage
+	pushRefresh
 elif [[ $1 == reboot ]]; then
 	rm -f $filereboot
 	/usr/local/bin/gpiooff.py &> /dev/null
@@ -167,7 +167,7 @@ elif [[ $1 == regional ]]; then
 	iw reg set $3
 	[[ $2 == pool.ntp.org ]] && rm $dirsystem/ntp || echo $2 > $dirsystem/ntp
 	[[ $3 == 00 ]] && rm $dirsystem/wlanregdom || echo $3 > $dirsystem/wlanregdom
-	curlPage
+	pushRefresh
 elif [[ $1 == samba ]]; then
 	[[ $2 == true ]] && enable 'samba wsdd' $1 || disable 'samba wsdd' $1
 elif [[ $1 == sambaset ]]; then
@@ -183,14 +183,14 @@ elif [[ $1 == sambaset ]]; then
 		touch $dirsystem/samba-readonlyusb
 	fi
 	systemctl restart smb wsdd
-	curlPage
+	pushRefresh
 elif [[ $1 == snapcast ]]; then
 	[[ $2 == true ]] && enable snapserver $1 || disable snapserver $1
 	/srv/http/bash/mpd-conf.sh
 	/srv/http/bash/snapcast.sh serverstop
 elif [[ $1 == snapclient ]]; then
 	[[ $2 == true ]] && touch $dirsystem/snapclient || rm $dirsystem/snapclient
-	curlPage
+	pushRefresh
 elif [[ $1 == snapclientset ]]; then
 	sed -i '/OPTS=/ s/".*"/"--latency="'$2'"/' /etc/default/snapclient
 	changeSetting snapclient snapcast-latency $2
@@ -201,7 +201,7 @@ elif [[ $1 == soundprofile ]]; then
 		profile=default
 	fi
 	/srv/http/bash/system-soundprofile.sh $profile
-	curlPage
+	pushRefresh
 elif [[ $1 == soundprofileset ]]; then
 	if [[ $2 != [0-9]* ]]; then
 		/srv/http/bash/system-soundprofile.sh $2
@@ -210,19 +210,19 @@ elif [[ $1 == soundprofileset ]]; then
 		/srv/http/bash/system-soundprofile.sh $2 $3 $4 $5
 		echo $2 $3 $4 $5 > $dirsystem/soundprofile
 	fi
-	curlPage
+	pushRefresh
 elif [[ $1 == spotify ]]; then
 	[[ $2 == true ]] && enable spotifyd $1 || disable spotifyd $1
 elif [[ $1 == spotifyset ]]; then
 	changeSetting spotifyd spotify-device $2
 elif [[ $1 == streaming ]]; then
 	[[ $2 == true ]] && touch $dirsystem/streaming || rm $dirsystem/streaming
-	curlPage
+	pushRefresh
 	/srv/http/bash/mpd-conf.sh
 elif [[ $1 == timezone ]]; then
 	timedatectl set-timezone $2
 	echo $2 > $dirsystem/timezone
-	curlPage
+	pushRefresh
 elif [[ $1 == upnp ]]; then
 	[[ $2 == true ]] && enable upmpdcli $1 || disable upmpdcli $1
 elif [[ $1 == wlan ]]; then
@@ -233,5 +233,5 @@ elif [[ $1 == wlan ]]; then
 		enable netctl-auto@wlan0 onboard-wlan
 		rmmod brcmfmac
 	fi
-	curlPage
+	pushRefresh
 fi

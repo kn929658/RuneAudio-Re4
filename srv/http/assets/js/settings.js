@@ -116,9 +116,6 @@ function banner( title, message, icon ) {
 function codeToggle( target, id, fn ) {
 	if ( !$( target ).hasClass( 'help' ) ) $( '#code'+ id ).hasClass( 'hide' ) ? fn() : $( '#code'+ id ).addClass( 'hide' );
 }
-function curlPage( page ) {
-	return 'curl -s -X POST "http://127.0.0.1/pub?id=refresh" -d \'{ "page": "'+ page +'" }\''
-}
 function escapeString( str ) {
 	return str
 			.replace( /([&()\\])/g, '\$1' )

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-curlPage() {
+pushRefresh() {
 	curl -s -X POST 'http://127.0.0.1/pub?id=refresh' -d '{ "page": "network" }'
 }
 
@@ -16,7 +16,7 @@ if [[ $1 == accesspoint ]]; then
 		rm $dirsystem/accesspoint
 		ifconfig wlan0 0.0.0.0
 	fi
-	curlPage
+	pushRefresh
 elif [[ $1 == accesspointset ]]; then
 	sed -i -e "s/^\(dhcp-range=\).*/\1$1/
 	" -e "s/^\(.*option:router,\).*/\1$2/
@@ -37,22 +37,22 @@ elif [[ $1 == accesspointset ]]; then
 	else
 		echo $3 > $dirsystem/accesspoint-passphrase
 	fi
-	curlPage
+	pushRefresh
 elif [[ $1 == btconnect ]]; then
 	/srv/http/bash/network-btscan.sh disconnect
 	bluetoothctl trust $2
 	bluetoothctl pair $2
 	bluetoothctl connect $2
-	[[ $? != 0 ]] && echo -1 ||	curlPage
+	[[ $? != 0 ]] && echo -1 ||	pushRefresh
 elif [[ $1 == connect ]]; then
 	netctl stop-all
 	ifconfig $2 down
 	[[ -n $4 ]] && echo "$4" | tee "/srv/http/data/system/netctl-$3" > "/etc/netctl/$3"
 	netctl start "$3"
-	curlPage
+	pushRefresh
 elif [[ $1 == connectenable ]]; then
 	systemctl enable netctl-auto$2
-	curlPage
+	pushRefresh
 elif [[ $1 == disconnect ]]; then
 	netctl stop-all
 	killall wpa_supplicant
@@ -61,7 +61,7 @@ elif [[ $1 == disconnect ]]; then
 		systemctl disable netctl-auto@$2
 		rm "/etc/netctl/$3" "/srv/http/data/system/netctl-$3"
 	fi
-	curlPage
+	pushRefresh
 elif [[ $1 == editlan ]]; then
 	eth0="\
 [Match]
@@ -85,7 +85,7 @@ Gateway=$3
 	fi
 	echo "$eth0" > /etc/systemd/network/eth0.network
 	systemctl restart systemd-networkd
-	curlPage
+	pushRefresh
 elif [[ $1 == editwifidhcp ]]; then
 	file="/srv/http/data/system/netctl-$2"
 	netctl stop "$2"
@@ -94,7 +94,7 @@ elif [[ $1 == editwifidhcp ]]; then
 	' "$file"
 	cp "$file" "/etc/netctl/$2"
 	netctl start "$2"
-	curlPage
+	pushRefresh
 elif [[ $1 == ifconfig ]]; then
 	lines=$( ifconfig \
 		| sed -n '/^eth\|^wlan/,/ether/ p' \

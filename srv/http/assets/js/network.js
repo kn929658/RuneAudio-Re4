@@ -304,10 +304,7 @@ function connect( ssid, data, ip ) { // ip - static
 	$.post( 'commands.php', { bash0: settingbash +' connect '+ arg }, function( std ) {
 		if ( std != -1 ) {
 			G.wlconnected = G.wlcurrent;
-			$.post( 'commands.php', { bash0: [ 
-				  'systemctl enable netctl-auto@'+ G.wlcurrent
-				, curlPage( 'network' )
-			] }, refreshData );
+			$.post( 'commands.php', { bash0: settingbash +' connect '+ G.wlcurrent }, refreshData );
 		} else {
 			$( '#scanning-wifi' ).addClass( 'hide' );
 			G.wlconnected =  '';

@@ -40,14 +40,16 @@
 	<span class="help-block hide">Disable all software volume manipulations for bit-perfect stream from MPD to DAC and reset DAC hardware volume to 0dB to preserve full amplitude stream.</span>
 </div>
 
-<div class="col-l dop">DSD over PCM</div>
-<div class="col-r dop">
-	<input id="dop" type="checkbox">
-	<div class="switchlabel" for="dop"></div>
-	<span class="help-block hide">For DSD-capable devices without drivers dedicated for native DSD. Enable if there's no sound from the DAC.
-		<br>DoP will repack 16bit DSD stream into 24bit PCM frames and transmit to the DAC. 
-		Then PCM frames will be reassembled back to original DSD stream, COMPLETELY UNCHANGED, with expense of double bandwith.
-		<br>On-board audio and non-DSD devices will always get DSD converted to PCM stream, no bit-perfect</span>
+<div id="divdop">
+	<div class="col-l dop">DSD over PCM</div>
+	<div class="col-r dop">
+		<input id="dop" type="checkbox">
+		<div class="switchlabel" for="dop"></div>
+		<span class="help-block hide">For DSD-capable devices without drivers dedicated for native DSD. Enable if there's no sound from the DAC.
+			<br>DoP will repack 16bit DSD stream into 24bit PCM frames and transmit to the DAC. 
+			Then PCM frames will be reassembled back to original DSD stream, COMPLETELY UNCHANGED, with expense of double bandwith.
+			<br>On-board audio and non-DSD devices will always get DSD converted to PCM stream, no bit-perfect</span>
+	</div>
 </div>
 </div>
 

@@ -18,6 +18,7 @@ $( '#audiooutput' ).on( 'selectric-change', function() {
 	var hwmixer = $selected.data( 'hwmixer' );
 	banner( 'Audio Output Device', 'Change ...', 'mpd' );
 	$.post( 'commands.php', { bash0: settingbash +' audiooutput "'+ G.audioaplayname +'" '+ card +' "'+ G.audiooutput +'" '+ hwmixer }, refreshData );
+	$( '#divdop' ).toggleClass( 'hide', G.audioaplayname.slice( 0, 7 ) === 'bcm2835' );
 } );
 $( '#mixertype' ).on( 'selectric-change', function() {
 	var mixertype = $( this ).val();
@@ -93,9 +94,9 @@ $( '#novolume' ).click( function() {
 				G.crossfade === 0;
 				G.normalization === false;
 				G.replaygain === 'off';
-				var $output = $( '#audiooutput option:selected' );
+				var name = $( '#audiooutput option:selected' ).text();
 				banner( 'No Volume', 'Enable ...', 'mpd' );
-				$.post( 'commands.php', { bash0: settingbash +' dop '+ $output.text() }, refreshData );
+				$.post( 'commands.php', { bash0: settingbash +' novolume "'+ name +'"' }, refreshData );
 			}
 		} );
 	} else {
@@ -110,9 +111,10 @@ $( '#novolume' ).click( function() {
 $( '#dop' ).click( function() {
 	var checked = $( this ).prop( 'checked' );
 	var $selected = $( '#audiooutput option:selected' );
+	var name = $selected.text();
 	$selected.data( 'dop', 1 );
 	banner( 'DSP over PCM', checked, 'mpd' );
-	$.post( 'commands.php', { bash0: settingbash +' dop '+ checked }, refreshData );
+	$.post( 'commands.php', { bash0: settingbash +' dop '+ checked +' "'+ name +'"' }, refreshData );
 } );
 $( '#crossfade' ).click( function() {
 	if ( $( this ).prop( 'checked' ) ) {
@@ -150,7 +152,7 @@ $( '#setting-crossfade' ).click( function() {
 $( '#normalization' ).click( function() {
 	G.normalization = $( this ).prop( 'checked' );
 	banner( 'Normalization', G.normalization, 'mpd' );
-	$.post( 'commands.php', { bash0: settingbash +' replaygain '+ G.normalization }, refreshData );
+	$.post( 'commands.php', { bash0: settingbash +' normalization '+ G.normalization }, refreshData );
 } );
 $( '#replaygain' ).click( function() {
 	if ( $( this ).prop( 'checked' ) ) {
@@ -363,7 +365,7 @@ refreshData = function() {
 			G.novolume = false;
 		}
 		$( '#novolume' ).prop( 'checked', G.novolume );
-		$( '.dop' ).toggleClass( 'hide', $selected.val() === 'bcm2835 ALSA' );
+		$( '#divdop' ).toggleClass( 'hide', $selected.val().slice( 0, 7 ) === 'bcm2835' );
 		$( '#dop' ).prop( 'checked', $selected.data( 'dop' ) );
 		$( '#crossfade' ).prop( 'checked', G.crossfade > 0 );
 		$( '#setting-crossfade' ).toggleClass( 'hide', G.crossfade === 0 );

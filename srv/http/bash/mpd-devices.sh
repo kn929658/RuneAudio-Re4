@@ -68,7 +68,7 @@ for line in "${lines[@]}"; do
 		mixertype=software
 	fi
 	
-	[[ -e "/srv/http/data/system/mpd-dop-$aplayname" ]] && dop=1 || dop=0
+	[[ -e "/srv/http/data/system/mpd-dop-$name" ]] && dop=1 || dop=0
 	
 	Aaplayname+=( "$aplayname" )
 	Acard+=( "$card" )

@@ -55,7 +55,7 @@ audio_output {
 		fi
 	fi
 	
-	if [[ $dop == 1 && $aplayname != 'bcm2835 ALSA' ]]; then
+	if [[ $dop == 1 ]]; then
 ########
 		mpdconf+='
 	dop            "yes"'

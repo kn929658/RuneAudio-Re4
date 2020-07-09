@@ -3,6 +3,9 @@
 pushRefresh() {
 	curl -s -X POST 'http://127.0.0.1/pub?id=refresh' -d '{ "page": "mpd" }'
 }
+restartMPD() {
+	/srv/http/bash/mpd-conf.sh
+}
 
 dirsystem=/srv/http/data/system
 
@@ -25,7 +28,7 @@ elif [[ $1 == autoupdate ]]; then
 		sed -i '/^auto_update/ d' /etc/mpd.conf
 		rm $dirsystem/mpd-autoupdate
 	fi
-	systemctl restart mpd
+	restartMPD
 	pushRefresh
 elif [[ $1 == buffer ]]; then
 	if [[ -n $2 ]]; then
@@ -36,7 +39,7 @@ elif [[ $1 == buffer ]]; then
 		sed -i '/^audio_buffer/ d' /etc/mpd.conf
 		rm $dirsystem/mpd-buffer
 	fi
-	systemctl restart mpd
+	restartMPD
 	pushRefresh
 elif [[ $1 == crossfade ]]; then
 	if [[ -n $2 ]]; then
@@ -46,15 +49,14 @@ elif [[ $1 == crossfade ]]; then
 		mpc crossfade 0
 		rm $dirsystem/mpd-crossfade
 	fi
-	systemctl restart mpd
 	pushRefresh
 elif [[ $1 == dop ]]; then
 	if [[ $2 == true ]]; then
-		echo $2 > $dirsystem/mpd-dop
+		touch "$dirsystem/mpd-dop-$3"
 	else
-		rm $dirsystem/mpd-dop
+		rm "$dirsystem/mpd-dop-$3"
 	fi
-	systemctl restart mpd
+	restartMPD
 	pushRefresh
 elif [[ $1 == ffmpeg ]]; then
 	if [[ $2 == true ]]; then
@@ -64,19 +66,20 @@ elif [[ $1 == ffmpeg ]]; then
 		sed -i '/ffmpeg/ {n; s/".*"/"no"/}' /etc/mpd.conf
 		rm $dirsystem/mpd-ffmpeg
 	fi
-	systemctl restart mpd
+	restartMPD
 	pushRefresh
 elif [[ $1 == mixerhw ]]; then
-	sed -i '/'$2'/,/mixer_control/ s/\(mixer_control \+"\).*/\1"'$3'"/' /etc/mpd.conf
+	sed -i '/'$2'/,/}/ s/\(mixer_control \+"\).*/\1"'$3'"/' /etc/mpd.conf
 	sed -i '/mixer_control_name = / s/".*"/"'$3'"/' /etc/shairport-sync.conf
 	if [[ $4 == auto ]]; then
 		rm /srv/http/data/system/mpd-hwmixer-$5
 	else
 		echo $4 > /srv/http/data/system/mpd-hwmixer-$5
 	fi
-	systemctl try-restart mpd shairport-sync shairport-meta
+	systemctl try-restart shairport-sync shairport-meta
+	restartMPD
 	pushRefresh
-elif [[ $1 == mixerset ]]; then #none "On-board - HDMI" 0 HDMI
+elif [[ $1 == mixerset ]]; then
 	volumenone=0
 	if [[ $2 == none ]]; then
 		[[ -n $5 ]] && amixer -c $4 sset $5 0dB
@@ -87,7 +90,7 @@ elif [[ $1 == mixerset ]]; then #none "On-board - HDMI" 0 HDMI
 	else
 		echo $2 > "$dirsystem/mpd-mixertype-$3"
 	fi
-	systemctl restart mpd
+	restartMPD
 	pushRefresh
 	curl -s -X POST 'http://127.0.0.1/pub?id=volumenone' -d '{ "pvolumenone": "'$volumenone'" }'
 elif [[ $1 == normalization ]]; then
@@ -98,16 +101,16 @@ elif [[ $1 == normalization ]]; then
 		sed -i '/^volume_normalization/ d' /etc/mpd.conf
 		rm $dirsystem/mpd-normalization
 	fi
-	systemctl restart mpd
+	restartMPD
 	pushRefresh
 elif [[ $1 == novolume ]]; then
-	sed -i -e '/mixer_type/ s/".*"/"none"/
-	' -e '/mixer_control\|mixer_device\|volume_normalization/ d
-	' -e '/^replaygain/ s/".*"/"off"/' /etc/mpd.conf
+	sed -i -e '/volume_normalization/ d
+	' -e '/^replaygain/ s/".*"/"off"/
+	' /etc/mpd.conf
 	echo none > "$dirsystem/mpd-mixertype-$2"
-	rm $dirsystem/{mpd-replaygain,mpd-normalization}
 	mpc crossfade 0
-	systemctl restart mpd
+	rm $dirsystem/{mpd-crossfade,mpd-replaygain,mpd-normalization}
+	restartMPD
 	pushRefresh
 	curl -s -X POST 'http://127.0.0.1/pub?id=volumenone' -d '{ "pvolumenone": "1" }'
 elif [[ $1 == replaygain ]]; then
@@ -118,7 +121,7 @@ elif [[ $1 == replaygain ]]; then
 		sed -i '/^replaygain/ s/".*"/"off"/' /etc/mpd.conf
 		rm $dirsystem/mpd-replaygain
 	fi
-	systemctl restart mpd
+	restartMPD
 	pushRefresh
 elif [[ $1 == statusmpd ]]; then
 	systemctl status mpd \

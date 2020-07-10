@@ -74,7 +74,7 @@ $( '#spotify' ).click( function() {
 	$.post( 'cmd.php', { cmd: 'bash0', bash0: systemsh +' spotify '+ G.spotify }, resetLocal );
 } );
 $( '#setting-spotify' ).click( function() {
-	$.post( 'cmd.php', { cmd: 'bash', bash: "aplay -L | grep -v '^\\s\\|^null'" }, function( devices ) {
+	$.post( 'cmd.php', { cmd: 'exec', exec: "aplay -L | grep -v '^\\s\\|^null'" }, function( devices ) {
 		var select = {}
 		devices.forEach( function( val ) {
 			select[ val ] = val;

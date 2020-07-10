@@ -5,7 +5,7 @@ var intervalscan;
 var page = location.href.split( '=' ).pop();
 var reboot = '';
 
-$.post( 'cmd.php', { cmd: 'bash', bash: 'cat /srv/http/data/tmp/reboot' }, function( lines ) {
+$.post( 'cmd.php', { cmd: 'exec', exec: 'cat /srv/http/data/tmp/reboot' }, function( lines ) {
 	reboot = lines !== -1 ? lines : [];
 	G.reboot = lines; // credit page
 }, 'json' );

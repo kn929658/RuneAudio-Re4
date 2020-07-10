@@ -31,6 +31,7 @@ case 'backuprestore':
 	break;
 case 'bash0':
 	$cmd = $_POST[ 'bash0' ];
+	if ( is_array( $cmd ) ) $cmd = implode( ' ', $cmd );
 	echo shell_exec( $cmd[ 0 ] === '/' ? $sudo.$cmd : $sudobin.$cmd );
 	break;
 case 'exec':

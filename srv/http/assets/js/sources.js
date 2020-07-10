@@ -63,7 +63,7 @@ $( '#list' ).on( 'click', 'li', function() {
 			, okcolor : '#de810e'
 			, ok      : function() {
 				banner( 'Network Mount', 'Unmount ...', 'network' );
-				$.post( 'cmd.php', { cmd: 'bash0', bash0: sourcessh +' unmount "'+ mountescaped +'"' }, function() {
+				$.post( 'cmd.php', { cmd: 'bash0', bash0: [ sourcessh, 'unmount', mountescaped ] }, function() {
 					refreshData();
 					$( '#refreshing' ).addClass( 'hide' );
 				} );
@@ -80,7 +80,7 @@ $( '#list' ).on( 'click', 'li', function() {
 			, buttoncolor : '#bb2828'
 			, button      : function() {
 				banner( 'Network Mount', 'Remove ...', 'network' );
-				$.post( 'cmd.php', { cmd: 'bash0', bash0: sourcessh +' remove "'+ mountescaped +'"' }, function() {
+				$.post( 'cmd.php', { cmd: 'bash0', bash0: [ sourcessh, 'remove', mountescaped ] }, function() {
 					refreshData();
 					$( '#refreshing' ).addClass( 'hide' );
 				} );
@@ -89,7 +89,7 @@ $( '#list' ).on( 'click', 'li', function() {
 			, oklabel     : 'Remount'
 			, ok          : function() {
 				banner( 'Network Mount', 'Remount ...', 'network' );
-				$.post( 'cmd.php', { cmd: 'bash0', bash0: sourcessh +' remount "'+ mountescaped +'" '+ source }, function() {
+				$.post( 'cmd.php', { cmd: 'bash0', bash0: [ sourcessh, 'remount', mountescaped, source ] }, function() {
 					refreshData();
 					$( '#refreshing' ).addClass( 'hide' );
 				} );
@@ -201,7 +201,7 @@ function infoMount( formdata, cifs ) {
 			}
 			banner( 'Network Mount', 'Mount ...', 'network' );
 			$.post( 'cmd.php'
-				, { cmd: 'bash0', bash0: sourcessh +' mount '+ '"'+ escapeString( mountpoint ) +'" '+ data.ip +' '+ device +' '+ data.protocol +' '+ options }
+				, { cmd: 'bash0', bash0: [ sourcessh, 'mount', escapeString( mountpoint ), data.ip, device, data.protocol, options ] }
 				, function( std ) {
 				if ( std !== 0 ) {
 					formdata = data;

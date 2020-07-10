@@ -87,12 +87,9 @@ $( '.contextmenu a' ).click( function( e ) {
 		}, 'json' );
 	} else if ( cmd === 'exclude' ) {
 		var path = G.list.path.split( '/' );
-		var dir = path.pop();
-		var mpdpath = path.join( '/' );
-		var pathfile = '/mnt/MPD/'+ mpdpath +'/.mpdignore';
 		G.local = 1;
 		setTimeout( function() { G.local = 0 }, 2000 );
-		$.post( 'cmd.php', { cmd: 'bash', bash: cmdsh +' ignoredir "'+ escapePath( G.list.path ) +'"' }, function() {
+		$.post( 'cmd.php', { cmd: 'bash0', bash0: cmdsh +' ignoredir "'+ escapePath( G.list.path ) +'"' }, function() {
 			G.list.li.remove();
 		} );
 		notify( 'Exclude Directory', '<wh>'+ dir +'</wh> excluded from database.', 'folder' );

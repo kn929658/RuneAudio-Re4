@@ -24,6 +24,14 @@ colorreset )
 	/srv/http/bash/setcolor.sh
 	pushstream reload reload all
 	;;
+gpiotimerreset )
+	awk '/timer/ {print $NF}' /srv/http/data/system/gpio.json > /srv/http/data/tmp/gpiotimer
+	pushstream gpio state RESET
+	;;
+gpioset )
+	echo $2 | jq > /srv/http/data/system/gpio.json
+	[[ -e /srv/http/data/tmp/gpiotimer ]] && echo $3 > /srv/http/data/tmp/gpiotimer
+	;;
 ignoredir )
 	dir=$( basename "$2" )
 	mpdpath=$( dirname "$2" )
@@ -52,11 +60,6 @@ playstop )
 	touch /srv/http/data/tmp/nostatus
 	mpc play $2
 	mpc stop
-	;;
-gpiotimerreset )
-	killall -9 gpiotimer.py &> /dev/null
-	/usr/local/bin/gpiotimer.py &
-	pushstream gpio state RESET
 	;;
 plrandom )
 	if [[ $2 == 0 ]]; then
@@ -96,5 +99,8 @@ reboot )
 	mount | grep -q /mnt/MPD/NAS && umount -l /mnt/MPD/NAS/* &> /dev/null
 	sleep 3
 	[[ $2 == off ]] && shutdown -h now || shutdown -r now
+	;;
+tageditor )
+	kid3-cli -c "set $key '$value'"
 	;;
 esac

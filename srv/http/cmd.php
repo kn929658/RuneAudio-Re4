@@ -33,6 +33,10 @@ case 'bash0':
 	$cmd = $_POST[ 'bash0' ];
 	echo shell_exec( $cmd[ 0 ] === '/' ? $sudo.$cmd : $sudobin.$cmd );
 	break;
+case 'exec':
+	exec( $sudobin.$_POST[ 'exec' ], $output, $std );
+	echo json_encode( $output );
+	break;
 case 'bash':
 	$bash = $_POST[ 'bash' ];
 	$command = '';

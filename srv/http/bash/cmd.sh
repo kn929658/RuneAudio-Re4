@@ -54,6 +54,7 @@ plrandom )
 		mpc listall | shuf -n 3 | mpc add
 		mpc play $(( plL +1 ))
 		systemctl start libraryrandom
+	fi
 	pushstream playlist playlist playlist
 	pushstream mpdoptions librandom $2
 	;;

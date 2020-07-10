@@ -92,11 +92,7 @@ $( '.contextmenu a' ).click( function( e ) {
 		var pathfile = '/mnt/MPD/'+ mpdpath +'/.mpdignore';
 		G.local = 1;
 		setTimeout( function() { G.local = 0 }, 2000 );
-		$.post( 'cmd.php', { cmd: 'bash', bash: [
-			  "echo '"+ dir +"' | /usr/bin/sudo /usr/bin/tee -a '"+ pathfile +"'"
-			, 'mpc update "'+ mpdpath +'"' // get .mpdignore into database
-			, 'mpc update "'+ mpdpath +'"' // after .mpdignore was in databasep
-		] }, function() {
+		$.post( 'cmd.php', { cmd: 'bash', bash: cmdsh +' ignoredir "'+ escapePath( G.list.path ) +'"' }, function() {
 			G.list.li.remove();
 		} );
 		notify( 'Exclude Directory', '<wh>'+ dir +'</wh> excluded from database.', 'folder' );
@@ -198,7 +194,7 @@ $( '.contextmenu a' ).click( function( e ) {
 
 function addReplace( cmd, command, title ) {
 	var playbackswitch = G.display.playbackswitch && ( cmd === 'addplay' || cmd === 'replaceplay' );
-	$.post( 'cmd.php', { cmd: 'bash', bash: command }, function() {
+	$.post( 'cmd.php', { cmd: 'bash0', bash0: command }, function() {
 		if ( playbackswitch ) {
 			$( '#tab-playback' ).click();
 		} else {

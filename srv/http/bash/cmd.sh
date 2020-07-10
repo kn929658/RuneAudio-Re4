@@ -19,6 +19,14 @@ colorreset )
 	/srv/http/bash/setcolor.sh
 	pushstream reload reload all
 	;;
+ignoredir )
+	dir=$( basename "$2" )
+	mpdpath=$( dirname "$2" )
+	pathfile="/mnt/MPD/$mpdpath/.mpdignore"
+	echo $dir | /usr/bin/sudo /usr/bin/tee -a "$pathfile"
+	mpc update "$mpdpath" #1 get .mpdignore into database
+	mpc update "$mpdpath" #2 after .mpdignore was in databasep
+	;;
 packageenable )
 	systemctl start $2
 	pushstream $2 1 $3

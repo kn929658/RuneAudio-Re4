@@ -66,11 +66,7 @@ if ( $type !== 'coverart' ) {
 <script>
 $( '.close-root' ).click( function() { 
 	if ( $( '#wait' ).length ) {
-		$.post( 'commands.php', { bash: [
-			  "killall $installfile wget pacman &> /dev/null"
-			, "rm -f /var/lib/pacman/db.lck /srv/http/*.zip /usr/local/bin/uninstall_$alias.sh"
-			, "rm -f /srv/http/data/addons/$alias"
-		] }, function() {
+		$.post( 'commands.php', { bash: cmdsh +' '+ <?=$installfile?> +' '+ <?=$alias?> }, function() {
 			location.href = '<?=$href?>';
 		} );
 	} else {

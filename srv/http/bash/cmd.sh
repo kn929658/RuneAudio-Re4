@@ -6,6 +6,11 @@ pushstream() {
 
 case $1 in
 
+addonsclose )
+	killall $2 wget pacman &> /dev/null
+	rm -f /var/lib/pacman/db.lck /srv/http/*.zip /usr/local/bin/uninstall_$3.sh
+	rm -f /srv/http/data/addons/$3
+	;;
 addonslist )
 	wget -q --no-check-certificate https://github.com/rern/RuneAudio_Addons/raw/master/addons-list.php -O /srv/http/data/addons/addons-list.php && echo $?
 	;;

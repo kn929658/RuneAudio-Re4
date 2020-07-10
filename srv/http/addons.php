@@ -197,7 +197,7 @@ var addons = <?=json_encode( $addonslist )?>;
 var restart = '<?=$restart?>';
 if ( restart ) {
 	setTimeout( function() {
-		$.post( 'commands.php', { bash: 'systemctl restart '+ restart } );
+		$.post( 'cmd.php', { cmd: 'bash0', bash0: 'systemctl restart '+ restart } );
 	}, 1000 );
 }
 </script>

@@ -6,8 +6,11 @@ status=$( cat $playerfile )
 status+=', "webradio" : false'
 
 if [[ -e $playerfile-snapclient ]]; then
+	[[ ! -e /srv/http/data/tmp/snapserverpw ]] && snapserverpw=rune || snapserverpw=$( cat /srv/http/data/tmp/snapserverpw )
 ########
-	status+=', "snapserverip" : "'$( cat /srv/http/data/tmp/snapserverip )'"'
+	status+='
+		, "snapserverip" : "'$( cat /srv/http/data/tmp/snapserverip )'"
+		, "snapserverpw" : "'$snapserverpw'"'
 	echo {$status}
 	exit
 elif [[ -e $playerfile-spotify ]]; then

@@ -109,7 +109,7 @@ $selecttimezone.= '</select>';
 	<input id="snapcast" type="checkbox">
 	<div class="switchlabel" for="snapcast"></div>
 	<span class="help-block hide">
-		Synchronous streaming for multiroom audio
+		Snapcast server - Synchronous streaming for multiroom audio
 		<br>Clients can be either RPis with RuneAudio+R e or Snapcast capable devices.
 		<br>(Note: Enable Snapcast will disable SnapClient.)
 	</span>

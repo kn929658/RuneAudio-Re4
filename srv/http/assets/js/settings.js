@@ -1,3 +1,4 @@
+G = {}
 var local = 0;
 var intervalcputime;
 var intervalscan;
@@ -6,7 +7,7 @@ var reboot = '';
 
 $.post( 'cmd.php', { cmd: 'bash', bash: 'cat /srv/http/data/tmp/reboot' }, function( lines ) {
 	reboot = lines !== -1 ? lines : [];
-	G = { reboot: lines } // credit page
+	G.reboot = lines; // credit page
 }, 'json' );
 $( '#close' ).click( function() {
 	if ( G.reboot.length ) {

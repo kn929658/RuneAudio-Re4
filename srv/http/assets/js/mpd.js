@@ -301,7 +301,7 @@ function setMixerType( mixertype ) {
 }
 
 refreshData = function() {
-	$.post( 'cmd.php', { cmd: 'getjson', getjson: '/srv/http/bash/mpd-data.sh' }, function( list ) {
+	$.post( 'cmd.php', { cmd: 'bash0', bash0: '/srv/http/bash/mpd-data.sh' }, function( list ) {
 		G = list;
 		G.reboot = reboot;
 		restartmpd = G.mpd ? 'systemctl restart mpd' : '';

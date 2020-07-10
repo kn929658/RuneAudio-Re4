@@ -591,15 +591,16 @@ function getPlaybackStatus() {
 	}
 	G.local = 1;
 	setTimeout( function() { G.local = 0 }, 300 );
-	$.post( 'cmd.php', { cmd: 'getjson', getjson: '/srv/http/bash/status.sh' }, function( status ) {
+	$.post( 'cmd.php', { cmd: 'bash0', bash0: '/srv/http/bash/status.sh' }, function( status ) {
 		if ( !status ) return
 		
 		$.each( status, function( key, value ) {
 			G.status[ key ] = value;
 		} );
 		if ( G.status.snapclient ) {
-			$.post( 'cmd.php', { cmd: 'bash', bash: "sshpass -p rune ssh -q root@"+ status.snapserverip +" 'bash /srv/http/bash/status.sh'" }, function( status ) {
-				var status = JSON.parse( status[ 0 ] );
+			$.post( 'cmd.php'
+				, { cmd: 'bash0', bash0: 'sshpass -p '+ status.snapserverpw +' ssh -q root@'+ status.snapserverip +' /srv/http/bash/status.sh' }
+				, function( status ) {
 				$.each( status, function( key, value ) {
 					G.status[ key ] = value;
 				} );
@@ -671,19 +672,6 @@ function infoNoData() {
 		, autoclose : 10000
 	} );
 }
-function menuPackageSet( pkg, active, enable ) {
-	G.local = 1;
-	setTimeout( function() { G.local = 0 }, 1000 );
-	$.post( 'cmd.php', { cmd: 'bash', bash: [
-		  'systemctl '+ ( active ? 'start ' : 'stop ' ) + pkg
-		, 'systemctl '+ ( enable ? 'enable ' : 'disable ' ) + pkg
-		, curlPackage( pkg, active, enable )
-	] } );
-	$( '#'+ pkg )
-		.data( 'enabled', enable )
-		.data( 'active', active )
-		.find( 'img' ).toggleClass( 'on', active );
-}
 function menuPackage( $this, $target ) {
 	var id = $this.prop( 'id' );
 	var title = id.charAt( 0 ).toUpperCase() + id.slice( 1 );
@@ -721,12 +709,18 @@ function menuPackage( $this, $target ) {
 		if ( $this.data( 'active' ) ) {
 			window.open( url[ id ] );
 		} else {
-			$.post( 'cmd.php', { cmd: 'bash', bash: [
-				  'systemctl start '+ id
-				, curlPackage( id, 1, $this.data( 'enabled' ) )
-			] }, window.open( url[ id ] ) );
+			$.post( 'cmd.php', { cmd: 'bash0', bash0: cmdsh +' packageenable '+ id +' '+ $this.data( 'enabled' ) }, window.open( url[ id ] ) );
 		}
 	}
+}
+function menuPackageSet( pkg, active, enable ) {
+	G.local = 1;
+	setTimeout( function() { G.local = 0 }, 1000 );
+	$.post( 'cmd.php', { cmd: 'bash0', bash0: cmdsh +' packageset '+ pkg +' '+ active +' '+ enable } );
+	$( '#'+ pkg )
+		.data( 'enabled', enable )
+		.data( 'active', active )
+		.find( 'img' ).toggleClass( 'on', active );
 }
 function mpdSeek( seekto ) {
 	var seektime = Math.round( seekto / 1000 * G.status.Time );
@@ -741,7 +735,7 @@ function mpdSeek( seekto ) {
 		$( '#total' ).text( timehms );
 	}
 	if ( G.status.state === 'play' ) {
-		$.post( 'cmd.php', { cmd: 'bash', bash: 'mpc seek '+ seektime } );
+		$.post( 'cmd.php', { cmd: 'bash0', bash0: 'mpc seek '+ seektime } );
 	} else {
 		if ( G.bars ) {
 			$( '#playback-controls i' ).removeClass( 'active' );
@@ -750,13 +744,7 @@ function mpdSeek( seekto ) {
 		}
 		G.local = 1;
 		setTimeout( function() { G.local = 0 }, 300 );
-		$.post( 'cmd.php', { cmd: 'bash', bash: [
-			  'touch /srv/http/data/tmp/nostatus'
-			, 'mpc play'
-			, 'mpc pause'
-			, 'mpc seek '+ seektime
-			, curl( 'seek', 'elapsed', seektime )
-		] } );
+		$.post( 'cmd.php', { cmd: 'bash0', bash0: cmdsh +' playseek '+ seektime } );
 	}
 }
 function mpdSeekBar( pageX, set ) {
@@ -1498,7 +1486,7 @@ function setPlaylistScroll() {
 		$( '#menu-plaction' ).addClass( 'hide' );
 		$( '#pl-list li' ).removeClass( 'updn' );
 		setNameWidth();
-		$.post( 'cmd.php', { cmd: 'getjson', getjson: '/srv/http/bash/status.sh statusonly' }, function( status ) {
+		$.post( 'cmd.php', { cmd: 'bash0', bash0: '/srv/http/bash/status.sh statusonly' }, function( status ) {
 			$.each( status, function( key, value ) {
 				G.status[ key ] = value;
 			} );

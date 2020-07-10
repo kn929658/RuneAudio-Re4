@@ -278,7 +278,7 @@ function btRender( data ) {
 function btScan() {
 	clearTimeout( intervalscan );
 	$( '#scanning-bt' ).removeClass( 'hide' );
-	$.post( 'cmd.php', { cmd: 'getjson', getjson: '/srv/http/bash/network-btscan.sh' }, function( data ) {
+	$.post( 'cmd.php', { cmd: 'bash0', bash0: '/srv/http/bash/network-btscan.sh' }, function( data ) {
 		btRender( data );
 		intervalscan = setTimeout( btScan, 12000 );
 	}, 'json' );
@@ -286,7 +286,7 @@ function btScan() {
 function btStatus() {
 	$( '#divinterface, #divwebui, #divaccesspoint' ).addClass( 'hide' );
 	$( '#divbluetooth' ).removeClass( 'hide' );
-	$.post( 'cmd.php', { cmd: 'getjson', getjson: '/srv/http/bash/network-btscan.sh list' }, function( data ) {
+	$.post( 'cmd.php', { cmd: 'bash0', bash0: '/srv/http/bash/network-btscan.sh list' }, function( data ) {
 		if ( data.length ) btRender( data );
 		btScan();
 	}, 'json' );
@@ -502,7 +502,7 @@ function newWiFi( $this ) {
 	} );
 }
 function nicsStatus() {
-	$.post( 'cmd.php', { cmd: 'getjson', getjson: '/srv/http/bash/network-data.sh' }, function( list ) {
+	$.post( 'cmd.php', { cmd: 'bash0', bash0: '/srv/http/bash/network-data.sh' }, function( list ) {
 		var extra = list.pop();
 		$( '#divaccesspoint' ).toggleClass( 'hide', !extra.wlan );
 		if ( 'hostapd' in extra ) {
@@ -585,7 +585,7 @@ function renderQR() {
 function wlanScan() {
 	clearTimeout( intervalscan );
 	$( '#scanning-wifi' ).removeClass( 'hide' );
-	$.post( 'cmd.php', { cmd: 'getjson', getjson: '/srv/http/bash/network-wlanscan.sh '+ G.wlcurrent, nonumeric: 1 }, function( list ) {
+	$.post( 'cmd.php', { cmd: 'bash0', bash0: '/srv/http/bash/network-wlanscan.sh '+ G.wlcurrent, nonumeric: 1 }, function( list ) {
 		var good = -60;
 		var fair = -67;
 		var html = '';

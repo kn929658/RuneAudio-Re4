@@ -19,6 +19,22 @@ colorreset )
 	/srv/http/bash/setcolor.sh
 	pushstream reload reload all
 	;;
+packageenable )
+	systemctl start $2
+	pushstream $2 1 $3
+	;;
+packageset )
+	[[ $3 == true ]] && systemctl start $2 || systemctl start $2
+	[[ $4 == true ]] && systemctl enable $2 || systemctl disable $2
+	pushstream $2 $3 $4
+	;;
+playseek )
+	touch /srv/http/data/tmp/nostatus
+	mpc play
+	mpc pause
+	mpc seek $2
+	pushstream seek elapsed $2
+	;;
 playstop )
 	touch /srv/http/data/tmp/nostatus
 	mpc play $2
@@ -67,5 +83,4 @@ reboot )
 	sleep 3
 	[[ $2 == off ]] && shutdown -h now || shutdown -r now
 	;;
-	
 esac

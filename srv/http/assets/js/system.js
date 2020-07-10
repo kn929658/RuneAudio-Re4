@@ -27,7 +27,7 @@ $( '#refresh' ).click( function( e ) {
 		bannerHide();
 	} else {
 		intervalcputime = setInterval( function() {
-			$.post( 'cmd.php', { cmd: 'getjson', getjson: '/srv/http/bash/system-data.sh status' }, function( status ) {
+			$.post( 'cmd.php', { cmd: 'bash0', bash0: '/srv/http/bash/system-data.sh status' }, function( status ) {
 				$.each( status, function( key, val ) {
 					G[ key ] = val;
 				} );
@@ -50,12 +50,14 @@ $( '#snapclient' ).click( function( e ) {
 } );
 $( '#setting-snapclient' ).click( function() {
 	info( {
-		  icon      : 'snapcast'
-		, title     : 'SnapClient'
-		, message   : 'Sync client to server:'
-		, textlabel : 'Latency <gr>(ms)</gr>'
-		, textvalue : G.snaplatency
-		, ok        : function() {
+		  icon          : 'snapcast'
+		, title         : 'SnapClient'
+		, message       : 'Sync client to server:'
+		, textlabel     : 'Latency <gr>(ms)</gr>'
+		, textvalue     : G.snaplatency
+		, passwordlabel : 'Password'
+		, footer        : '<px60/>*Snapserver - if not <wh>rune</wh>'
+		, ok            : function() {
 			var latency = Math.abs( $( '#infoTextBox' ).val() );
 			if ( latency !== G.snaplatency ) {
 				G.snaplatency = latency;
@@ -672,7 +674,7 @@ function renderStatus() {
 }
 
 refreshData = function() { // system page: use resetLocal() to aviod delay
-	$.post( 'cmd.php', { cmd: 'getjson', getjson: '/srv/http/bash/system-data.sh' }, function( list ) {
+	$.post( 'cmd.php', { cmd: 'bash0', bash0: '/srv/http/bash/system-data.sh' }, function( list ) {
 		G = list;
 		G.sources.pop(); // remove 'reboot' from sources-data.sh
 		G.reboot = reboot;

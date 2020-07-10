@@ -3,7 +3,7 @@ $( function() { // document ready start >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 $( '#audiooutput, #mixertype' ).selectric();
 $( '.selectric-input' ).prop( 'readonly', 1 ); // fix - suppress screen keyboard
 var dirsystem = '/srv/http/data/system';
-var settingbash = '/srv/http/bash/mpd.sh';
+var mpdsh = '/srv/http/bash/mpd.sh';
 var restartmpd = '';
 var setmpdconf = '/srv/http/bash/mpd-conf.sh';
 var warning = '<wh><i class="fa fa-warning fa-lg"></i>&ensp;Lower amplifier volume.</wh>'
@@ -17,7 +17,7 @@ $( '#audiooutput' ).on( 'selectric-change', function() {
 	var card = $selected.data( 'card' );
 	var hwmixer = $selected.data( 'hwmixer' );
 	banner( 'Audio Output Device', 'Change ...', 'mpd' );
-	$.post( 'commands.php', { bash0: settingbash +' audiooutput "'+ G.audioaplayname +'" '+ card +' "'+ G.audiooutput +'" '+ hwmixer }, refreshData );
+	$.post( 'cmd.php', { cmd: 'bash0', bash0: mpdsh +' audiooutput "'+ G.audioaplayname +'" '+ card +' "'+ G.audiooutput +'" '+ hwmixer }, refreshData );
 	$( '#divdop' ).toggleClass( 'hide', G.audioaplayname.slice( 0, 7 ) === 'bcm2835' );
 } );
 $( '#mixertype' ).on( 'selectric-change', function() {
@@ -45,7 +45,7 @@ $( '#setting-mixertype' ).click( function() { // hardware mixer
 	var card = $selectedoutput.data( 'card' );
 	var hwmixer = $selectedoutput.data( 'hwmixer' );
 	var select = $selectedoutput.data( 'mixermanual' ) ? { 'Auto select': 'auto' } : {};
-	$.post( 'commands.php', { bash0: settingbash +' amixer '+ card }, function( data ) {
+	$.post( 'cmd.php', { cmd: 'bash0', bash0: mpdsh +' amixer '+ card }, function( data ) {
 		var devices = data.slice( 0, -1 ).split( '\n' );
 		devices.forEach( function( val ) {
 			select[ val ] = val;
@@ -72,7 +72,7 @@ $( '#setting-mixertype' ).click( function() { // hardware mixer
 				var mixerauto = mixermanual === 'auto';
 				var mixer = mixerauto ? hwmixer : mixermanual;
 				banner( 'Hardware Mixer', 'Change ...', 'mpd' );
-				$.post( 'commands.php', { bash0: settingbash +' mixerhw "'+ name +'" '+ mixer +' '+ mixermanual +' '+ card }, refreshData );
+				$.post( 'cmd.php', { cmd: 'bash0', bash0: mpdsh +' mixerhw "'+ name +'" '+ mixer +' '+ mixermanual +' '+ card }, refreshData );
 			}
 		} );
 	}, 'json' );
@@ -96,7 +96,7 @@ $( '#novolume' ).click( function() {
 				G.replaygain === 'off';
 				var name = $( '#audiooutput option:selected' ).text();
 				banner( 'No Volume', 'Enable ...', 'mpd' );
-				$.post( 'commands.php', { bash0: settingbash +' novolume "'+ name +'"' }, refreshData );
+				$.post( 'cmd.php', { cmd: 'bash0', bash0: mpdsh +' novolume "'+ name +'"' }, refreshData );
 			}
 		} );
 	} else {
@@ -114,14 +114,14 @@ $( '#dop' ).click( function() {
 	var name = $selected.text();
 	$selected.data( 'dop', 1 );
 	banner( 'DSP over PCM', checked, 'mpd' );
-	$.post( 'commands.php', { bash0: settingbash +' dop '+ checked +' "'+ name +'"' }, refreshData );
+	$.post( 'cmd.php', { cmd: 'bash0', bash0: mpdsh +' dop '+ checked +' "'+ name +'"' }, refreshData );
 } );
 $( '#crossfade' ).click( function() {
 	if ( $( this ).prop( 'checked' ) ) {
 		$( '#setting-crossfade' ).click();
 	} else {
 		banner( 'Crossfade', G.crossfade > 0, 'mpd' );
-		$.post( 'commands.php', { bash0: settingbash +' crossfade' }, refreshData );
+		$.post( 'cmd.php', { cmd: 'bash0', bash0: mpdsh +' crossfade' }, refreshData );
 	}
 } );
 $( '#setting-crossfade' ).click( function() {
@@ -144,7 +144,7 @@ $( '#setting-crossfade' ).click( function() {
 			if ( crossfade !== G.crossfade ) {
 				G.crossfade = crossfade;
 				banner( 'Crossfade', 'Change ...', 'mpd' );
-				$.post( 'commands.php', { bash0: settingbash +' crossfade '+ G.crossfade }, refreshData );
+				$.post( 'cmd.php', { cmd: 'bash0', bash0: mpdsh +' crossfade '+ G.crossfade }, refreshData );
 			}
 		}
 	} );
@@ -152,14 +152,14 @@ $( '#setting-crossfade' ).click( function() {
 $( '#normalization' ).click( function() {
 	G.normalization = $( this ).prop( 'checked' );
 	banner( 'Normalization', G.normalization, 'mpd' );
-	$.post( 'commands.php', { bash0: settingbash +' normalization '+ G.normalization }, refreshData );
+	$.post( 'cmd.php', { cmd: 'bash0', bash0: mpdsh +' normalization '+ G.normalization }, refreshData );
 } );
 $( '#replaygain' ).click( function() {
 	if ( $( this ).prop( 'checked' ) ) {
 		$( '#setting-replaygain' ).click();
 	} else {
 		banner( 'Replay Gain', G.replaygain !== 'off', 'mpd' );
-		$.post( 'commands.php', { bash0: settingbash +' replaygain' }, refreshData );
+		$.post( 'cmd.php', { cmd: 'bash0', bash0: mpdsh +' replaygain' }, refreshData );
 	}
 } );
 $( '#setting-replaygain' ).click( function() {
@@ -182,7 +182,7 @@ $( '#setting-replaygain' ).click( function() {
 			if ( replaygain !== G.replaygain ) {
 				G.replaygain = replaygain;
 				banner( 'Replay Gain', 'Change ...', 'mpd' );
-				$.post( 'commands.php', { bash0: settingbash +' replaygain '+ G.replaygain }, refreshData );
+				$.post( 'cmd.php', { cmd: 'bash0', bash0: mpdsh +' replaygain '+ G.replaygain }, refreshData );
 			}
 		}
 	} );
@@ -190,14 +190,14 @@ $( '#setting-replaygain' ).click( function() {
 $( '#autoupdate' ).click( function() {
 	G.autoupdate = $( this ).prop( 'checked' );
 	banner( 'Auto Update', G.autoupdate, 'mpd' );
-	$.post( 'commands.php', { bash0: settingbash +' autoupdate '+ G.autoupdate }, refreshData );
+	$.post( 'cmd.php', { cmd: 'bash0', bash0: mpdsh +' autoupdate '+ G.autoupdate }, refreshData );
 } );
 $( '#buffer' ).click( function() {
 	if ( $( this ).prop( 'checked' ) ) {
 		$( '#setting-buffer' ).click();
 	} else {
 		banner( 'Custom Buffer', 'Disable ...', 'mpd' );
-		$.post( 'commands.php', { bash0: settingbash +' buffer' }, refreshData );
+		$.post( 'cmd.php', { cmd: 'bash0', bash0: mpdsh +' buffer' }, refreshData );
 	}
 } );
 $( '#setting-buffer' ).click( function() {
@@ -226,7 +226,7 @@ $( '#setting-buffer' ).click( function() {
 			} else if ( buffer !== G.buffer ) {
 				G.buffer = buffer;
 				banner( 'Custom Buffer', 'Change ...', 'mpd' );
-				$.post( 'commands.php', { bash0: settingbash +' buffer '+ G.buffer }, refreshData );
+				$.post( 'cmd.php', { cmd: 'bash0', bash0: mpdsh +' buffer '+ G.buffer }, refreshData );
 			}
 		}
 	} );
@@ -234,7 +234,7 @@ $( '#setting-buffer' ).click( function() {
 $( '#ffmpeg' ).click( function() {
 	G.ffmpeg = $( this ).prop( 'checked' );
 	banner( 'FFmpeg Decoder', G.ffmpeg, 'mpd' );
-	$.post( 'commands.php', { bash0: settingbash +' ffmpeg '+ G.ffmpeg }, refreshData );
+	$.post( 'cmd.php', { cmd: 'bash0', bash0: mpdsh +' ffmpeg '+ G.ffmpeg }, refreshData );
 } );
 $( '#status' ).click( function( e ) {
 	if ( $( e.target ).hasClass( 'help' ) || $( e.target ).hasClass( 'fa-reboot' ) ) return
@@ -249,7 +249,7 @@ $( '#restart' ).click( function( e ) {
 		, message : 'Restart MPD?'
 		, ok      : function() {
 			banner( 'MPD', 'Restart ...', 'mpd' );
-			$.post( 'commands.php', { bash0: '/srv/http/bash/mpd-conf.sh' }, refreshData );
+			$.post( 'cmd.php', { cmd: 'bash0', bash0: '/srv/http/bash/mpd-conf.sh' }, refreshData );
 		}
 	} );
 } );
@@ -257,7 +257,7 @@ $( '#mpdconf' ).click( function( e ) {
 	codeToggle( e.target, this.id, getMpdconf );
 } );
 function getAplay() {
-	$.post( 'commands.php', { bash0: 'aplay -l' }, function( status ) {
+	$.post( 'cmd.php', { cmd: 'bash0', bash0: 'aplay -l' }, function( status ) {
 		$( '#codeaplay' )
 			.html( status )
 			.removeClass( 'hide' );
@@ -265,21 +265,21 @@ function getAplay() {
 }
 function getAmixer() {
 	var card = $( '#audiooutput option:selected' ).data( 'card' );
-	$.post( 'commands.php', { bash0: 'amixer -c '+ card }, function( status ) {
+	$.post( 'cmd.php', { cmd: 'bash0', bash0: 'amixer -c '+ card }, function( status ) {
 		$( '#codeamixer' )
 			.html( status || '(none)' )
 			.removeClass( 'hide' );
 	} );
 }
 function getMpdconf() {
-	$.post( 'commands.php', { bash0: 'cat /etc/mpd.conf' }, function( status ) {
+	$.post( 'cmd.php', { cmd: 'bash0', bash0: 'cat /etc/mpd.conf' }, function( status ) {
 		$( '#codempdconf' )
 			.html( status )
 			.removeClass( 'hide' );
 	} );
 }
 function getStatus() {
-	$.post( 'commands.php', { bash0: settingbash +' statusmpd' }, function( status ) {
+	$.post( 'cmd.php', { cmd: 'bash0', bash0: mpdsh +' statusmpd' }, function( status ) {
 		$( '#codestatus' )
 			.html( status )
 			.removeClass( 'hide' );
@@ -297,11 +297,11 @@ function setMixerType( mixertype ) {
 		var hwmixer = '';
 	}
 	banner( 'Mixer Control', 'Change ...', 'mpd' );
-	$.post( 'commands.php', { bash0: settingbash +' mixerset '+ mixertype +' "'+ name +'" '+ card +' '+ hwmixer }, refreshData );
+	$.post( 'cmd.php', { cmd: 'bash0', bash0: mpdsh +' mixerset '+ mixertype +' "'+ name +'" '+ card +' '+ hwmixer }, refreshData );
 }
 
 refreshData = function() {
-	$.post( 'commands.php', { getjson: '/srv/http/bash/mpd-data.sh' }, function( list ) {
+	$.post( 'cmd.php', { cmd: 'getjson', getjson: '/srv/http/bash/mpd-data.sh' }, function( list ) {
 		G = list;
 		G.reboot = reboot;
 		restartmpd = G.mpd ? 'systemctl restart mpd' : '';

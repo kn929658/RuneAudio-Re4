@@ -137,8 +137,9 @@ function coverartChange() {
 			var file = $( '#infoFileBox' )[ 0 ].files[ 0 ];
 			var imgnew = $( '#imgnew' ).prop( 'src' );
 			if ( file.name.slice( -4 ) !== '.gif' ) {
-				$.post( 'commands.php', {
-						  imagefile : '/mnt/MPD/'+ path +'/cover.jpg'
+				$.post( 'cmd.php', {
+						  cmd       : 'imagefile'
+						, imagefile : '/mnt/MPD/'+ path +'/cover.jpg'
 						, srcfile   : '/mnt/MPD/'+ path +'/'+ covername
 						, base64    : imgnew
 						, coverfile : 1
@@ -147,11 +148,12 @@ function coverartChange() {
 				} );
 			} else {
 				var formData = new FormData();
+				formData.append( 'cmd', 'imagefile' );
 				formData.append( 'imagefile', '/mnt/MPD/'+ path +'/cover.gif' );
 				formData.append( 'srcfile', '/mnt/MPD/'+ path +'/'+ covername );
 				formData.append( 'file', file );
 				$.ajax( {
-					  url         : 'commands.php'
+					  url         : 'cmd.php'
 					, type        : 'POST'
 					, data        : formData
 					, processData : false  // no - process the data
@@ -179,8 +181,9 @@ function coverartChange() {
 		jsoninfo.buttoncolor = '#bb2828';
 		jsoninfo.buttonwidth = 1;
 		jsoninfo.button      = function() {
-			$.post( 'commands.php', {
-				  imagefile : '/mnt/MPD/'+ path
+			$.post( 'cmd.php', {
+				  cmd       : 'imagefile'
+				, imagefile : '/mnt/MPD/'+ path
 				, srcfile   : '/mnt/MPD/'+ path +'/'+ covername
 				, remove    : 1
 			}, function( src ) {
@@ -294,7 +297,7 @@ function coverartSave() {
 					   +'<p class="imgname"><w>'+ album +'</w>'
 					   +'<br>'+ artist +'</p>'
 		, ok      : function() { 
-			$.post( 'commands.php', { imagefile: coverfile, base64: src.split( ',' ).pop() }, function( std ) {
+			$.post( 'cmd.php', { cmd: 'imagefile', imagefile: coverfile, base64: src.split( ',' ).pop() }, function( std ) {
 				coverartSuccess( 'Save', src, std );
 				$( '.cover-save' ).remove();
 			} );
@@ -425,7 +428,7 @@ function displaySave( page, thumbbyartist ) {
 	} );
 	G.local = 1;
 	setTimeout( function() { G.local = 0 }, 300 );
-	$.post( 'commands.php', { displayset: JSON.stringify( display ) }, function() {
+	$.post( 'cmd.php', { cmd: 'displayset', displayset: JSON.stringify( display ) }, function() {
 		if ( page === 'library' && G.display.thumbbyartist !== thumbbyartist ) location.reload();
 	} );
 }
@@ -588,14 +591,14 @@ function getPlaybackStatus() {
 	}
 	G.local = 1;
 	setTimeout( function() { G.local = 0 }, 300 );
-	$.post( 'commands.php', { getjson: '/srv/http/bash/status.sh' }, function( status ) {
+	$.post( 'cmd.php', { cmd: 'getjson', getjson: '/srv/http/bash/status.sh' }, function( status ) {
 		if ( !status ) return
 		
 		$.each( status, function( key, value ) {
 			G.status[ key ] = value;
 		} );
 		if ( G.status.snapclient ) {
-			$.post( 'commands.php', { bash: "sshpass -p rune ssh -q root@"+ status.snapserverip +" 'bash /srv/http/bash/status.sh'" }, function( status ) {
+			$.post( 'cmd.php', { cmd: 'bash', bash: "sshpass -p rune ssh -q root@"+ status.snapserverip +" 'bash /srv/http/bash/status.sh'" }, function( status ) {
 				var status = JSON.parse( status[ 0 ] );
 				$.each( status, function( key, value ) {
 					G.status[ key ] = value;
@@ -671,7 +674,7 @@ function infoNoData() {
 function menuPackageSet( pkg, active, enable ) {
 	G.local = 1;
 	setTimeout( function() { G.local = 0 }, 1000 );
-	$.post( 'commands.php', { bash: [
+	$.post( 'cmd.php', { cmd: 'bash', bash: [
 		  'systemctl '+ ( active ? 'start ' : 'stop ' ) + pkg
 		, 'systemctl '+ ( enable ? 'enable ' : 'disable ' ) + pkg
 		, curlPackage( pkg, active, enable )
@@ -718,7 +721,7 @@ function menuPackage( $this, $target ) {
 		if ( $this.data( 'active' ) ) {
 			window.open( url[ id ] );
 		} else {
-			$.post( 'commands.php', { bash: [
+			$.post( 'cmd.php', { cmd: 'bash', bash: [
 				  'systemctl start '+ id
 				, curlPackage( id, 1, $this.data( 'enabled' ) )
 			] }, window.open( url[ id ] ) );
@@ -738,7 +741,7 @@ function mpdSeek( seekto ) {
 		$( '#total' ).text( timehms );
 	}
 	if ( G.status.state === 'play' ) {
-		$.post( 'commands.php', { bash: 'mpc seek '+ seektime } );
+		$.post( 'cmd.php', { cmd: 'bash', bash: 'mpc seek '+ seektime } );
 	} else {
 		if ( G.bars ) {
 			$( '#playback-controls i' ).removeClass( 'active' );
@@ -747,7 +750,7 @@ function mpdSeek( seekto ) {
 		}
 		G.local = 1;
 		setTimeout( function() { G.local = 0 }, 300 );
-		$.post( 'commands.php', { bash: [
+		$.post( 'cmd.php', { cmd: 'bash', bash: [
 			  'touch /srv/http/data/tmp/nostatus'
 			, 'mpc play'
 			, 'mpc pause'
@@ -771,7 +774,10 @@ function mpdSeekBar( pageX, set ) {
 	if ( set ) mpdSeek( position );
 }
 function muteColor( volumemute ) {
-	$volumetooltip.text( volumemute ).addClass( 'bl' );
+	$volumetooltip
+		.text( volumemute )
+		.addClass( 'bl' )
+		.css( 'margin-left', '-23px' ); // fix - posistion
 	$volumehandle.addClass( 'bgr' );
 	$( '#volmute' ).addClass( 'active' )
 		.find( 'i' ).removeClass( 'fa-volume' ).addClass( 'fa-mute' );
@@ -1148,7 +1154,7 @@ function renderPlayback() {
 			$( '#coverart' ).prop( 'src', coverrune );
 			if ( 'file' in status ) {
 				setTimeout( function() {
-					$.post( 'commands.php', { coverart: escapePath( status.file ) }, function( coverart ) {
+					$.post( 'cmd.php', { cmd: 'coverart', coverart: escapePath( status.file ) }, function( coverart ) {
 						if ( !coverart ) {
 							$( '#divcover, #coverart' ).addClass( 'coverrune' );
 							$( '#coverart' ).prop( 'src', coverrune );
@@ -1492,7 +1498,7 @@ function setPlaylistScroll() {
 		$( '#menu-plaction' ).addClass( 'hide' );
 		$( '#pl-list li' ).removeClass( 'updn' );
 		setNameWidth();
-		$.post( 'commands.php', { getjson: '/srv/http/bash/status.sh statusonly' }, function( status ) {
+		$.post( 'cmd.php', { cmd: 'getjson', getjson: '/srv/http/bash/status.sh statusonly' }, function( status ) {
 			$.each( status, function( key, value ) {
 				G.status[ key ] = value;
 			} );
@@ -1593,7 +1599,7 @@ function volumeSet( pageX ) {
 		if ( !G.drag ) $( '#volume-bar' ).animate( { width: vol +'%' }, 600 );
 		G.local = 1;
 		$( '.volumeband' ).addClass( 'disabled' );
-		$.post( 'commands.php', { volume: vol, current: G.status.volume }, function() {
+		$.post( 'cmd.php', { cmd: 'volume', volume: vol, current: G.status.volume }, function() {
 			G.local = 0;
 			G.status.volume = vol;
 			$( '.volumeband' ).removeClass( 'disabled' );

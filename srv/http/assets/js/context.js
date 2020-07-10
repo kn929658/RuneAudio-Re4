@@ -29,11 +29,11 @@ $( '.contextmenu a' ).click( function( e ) {
 			.removeClass( 'fa-folder' )
 			.addClass( 'fa-refresh-library blink' );
 		if ( G.list.path.slice( -3 ) === 'cue' ) G.list.path = G.list.path.substr( 0, G.list.path.lastIndexOf( '/' ) )
-		$.post( 'commands.php', { bash0: 'mpc update "'+ G.list.path +'"' } );
+		$.post( 'cmd.php', { cmd: 'bash0', bash0: 'mpc update "'+ G.list.path +'"' } );
 	} else if ( cmd === 'remove' ) {
 		G.contextmenu = 1;
 		setTimeout( function() { G.contextmenu = 0 }, 500 );
-		$.post( 'commands.php', { bash0: 'mpc del '+ (  G.list.li.index() + 1 ) } );
+		$.post( 'cmd.php', { cmd: 'bash0', bash0: 'mpc del '+ (  G.list.li.index() + 1 ) } );
 	} if ( cmd === 'replace' ) {
 		G.plreplace = 1;
 	} else if ( cmd === 'savedpladd' ) {
@@ -74,13 +74,13 @@ $( '.contextmenu a' ).click( function( e ) {
 				G.local = 1;
 				var iL = val.length;
 				for ( i = 0; i < iL; i++ ) {
-					$.post( 'commands.php', { bash0: 'mpc findadd artist "'+ val[ i ].artist.name +'" title "'+ val[ i ].name +'"' } );
+					$.post( 'cmd.php', { cmd: 'bash0', bash0: 'mpc findadd artist "'+ val[ i ].artist.name +'" title "'+ val[ i ].name +'"' } );
 					if ( i === iL - 1 ) {
 						setTimeout( function() {
 							G.local = 0;
 							notify( title, 'Similar tracks added', 'list-ul' );
 							updatePlaylist();
-							if ( submenu ) $.post( 'commands.php', { bash0: 'mpc play'+ ( plL + 1 ) } );
+							if ( submenu ) $.post( 'cmd.php', { cmd: 'bash0', bash0: 'mpc play'+ ( plL + 1 ) } );
 						}, 600 );
 					}
 				}
@@ -92,7 +92,7 @@ $( '.contextmenu a' ).click( function( e ) {
 		var pathfile = '/mnt/MPD/'+ mpdpath +'/.mpdignore';
 		G.local = 1;
 		setTimeout( function() { G.local = 0 }, 2000 );
-		$.post( 'commands.php', { bash: [
+		$.post( 'cmd.php', { cmd: 'bash', bash: [
 			  "echo '"+ dir +"' | /usr/bin/sudo /usr/bin/tee -a '"+ pathfile +"'"
 			, 'mpc update "'+ mpdpath +'"' // get .mpdignore into database
 			, 'mpc update "'+ mpdpath +'"' // after .mpdignore was in databasep
@@ -198,7 +198,7 @@ $( '.contextmenu a' ).click( function( e ) {
 
 function addReplace( cmd, command, title ) {
 	var playbackswitch = G.display.playbackswitch && ( cmd === 'addplay' || cmd === 'replaceplay' );
-	$.post( 'commands.php', { bash: command }, function() {
+	$.post( 'cmd.php', { cmd: 'bash', bash: command }, function() {
 		if ( playbackswitch ) {
 			$( '#tab-playback' ).click();
 		} else {
@@ -234,7 +234,7 @@ function bookmarkDelete( path, name, $block ) {
 		, okcolor : '#bb2828'
 		, ok      : function() {
 			G.bookmarkedit = 1;
-			$.post( 'commands.php', { bookmarks: name, path: path, delete: 1 } );
+			$.post( 'cmd.php', { cmd: 'bookmarks', bookmarks: name, path: path, delete: 1 } );
 			$block.parent().remove();
 		}
 	} );
@@ -280,8 +280,9 @@ function bookmarkNew() {
 					, message : '<img src="'+ base64 +'">'
 							   +'<br><w>'+ path +'</w>'
 					, ok      : function() {
-						$.post( 'commands.php', {
-							  bookmarks : 1
+						$.post( 'cmd.php', {
+							  cmd       : 'bookmarks'
+							, bookmarks : 1
 							, path      : path
 							, base64    : base64
 							, new       : 1
@@ -300,8 +301,9 @@ function bookmarkNew() {
 						   +'<br><w>'+ path +'</w>'
 				, ok      : function() {
 					var img0 = $( '#infoMessage img' )[ 0 ];
-					$.post( 'commands.php', {
-						  bookmarks : 1
+					$.post( 'cmd.php', {
+						  cmd       : 'bookmarks'
+						, bookmarks : 1
 						, path      : path
 						, gif       : giffile
 						, new       : 1
@@ -313,7 +315,7 @@ function bookmarkNew() {
 		return
 	}
 	
-	$.post( 'commands.php', { bash0: '/srv/http/bash/getcover.sh "/mnt/MPD/'+ path +'" 200' }, function( base64img ) {
+	$.post( 'cmd.php', { cmd: 'bash0', bash0: '/srv/http/bash/getcover.sh "/mnt/MPD/'+ path +'" 200' }, function( base64img ) {
 		if ( base64img ) {
 			if ( base64img.slice( -3 ) !== 'gif' ) {
 				info( {
@@ -322,8 +324,9 @@ function bookmarkNew() {
 					, message : '<img src="'+ base64img +'">'
 							   +'<br><w>'+ path +'</w>'
 					, ok      : function() {
-						$.post( 'commands.php', {
-							  bookmarks : 1
+						$.post( 'cmd.php', {
+							  cmd       : 'bookmarks'
+							, bookmarks : 1
 							, path      : path
 							, base64    : 'tmp'
 							, new       : 1
@@ -341,8 +344,9 @@ function bookmarkNew() {
 							   +'<br><w>'+ path +'</w>'
 					, ok      : function() {
 						var img0 = $( '#infoMessage img' )[ 0 ];
-						$.post( 'commands.php', {
-							  bookmarks : 1
+						$.post( 'cmd.php', {
+							  cmd       : 'bookmarks'
+							, bookmarks : 1
 							, path      : path
 							, gif       : giffile
 							, new       : 1
@@ -364,7 +368,7 @@ function bookmarkNew() {
 				, textrequired : 0
 				, boxwidth     : 'max'
 				, ok           : function() {
-					$.post( 'commands.php', { bookmarks: $( '#infoTextBox' ).val(), path: path, new: 1 } );
+					$.post( 'cmd.php', { cmd: 'bookmarks', bookmarks: $( '#infoTextBox' ).val(), path: path, new: 1 } );
 					notify( 'Bookmark Added', path, 'bookmark' );
 				}
 			} );
@@ -385,7 +389,7 @@ function bookmarkRename( name, path, $block ) {
 		, oklabel      : '<i class="fa fa-flash"></i>Rename'
 		, ok           : function() {
 			var newname = $( '#infoTextBox' ).val();
-			$.post( 'commands.php', { bookmarks: newname, path: path, rename: 1 } );
+			$.post( 'cmd.php', { cmd: 'bookmarks', bookmarks: newname, path: path, rename: 1 } );
 			$block.find( '.bklabel' ).text( newname );
 		}
 	} );
@@ -395,7 +399,7 @@ function playlistAdd( name, oldname ) {
 		var path = '/srv/http/data/playlists/'
 		var oldfile = path + escapePath( oldname );
 		var newfile = path + escapePath( name );
-		$.post( 'commands.php', { bash0: 'mv "'+ oldfile +'" "'+ newfile +'"' } );
+		$.post( 'cmd.php', { cmd: 'bash0', bash0: 'mv "'+ oldfile +'" "'+ newfile +'"' } );
 	} else {
 		$.post( 'mpdplaylist.php', { save: escapePath( name ) }, function( data ) {
 			if ( data == -1 ) {
@@ -649,7 +653,7 @@ function tagEditor() {
 					cmd += " '/mnt/MPD/"+ file +"'";
 				}
 				notify( 'Library Update', 'Update ...', 'library blink', -1 );
-				$.post( 'commands.php', { bash: [ cmd, 'mpc update "'+ $( '.licover .lipath' ).text() +'"' ] } );
+				$.post( 'cmd.php', { cmd: 'bash', bash: [ cmd, 'mpc update "'+ $( '.licover .lipath' ).text() +'"' ] } );
 			}
 		} );
 	}, 'json' );
@@ -713,19 +717,21 @@ function webRadioCoverart() {
 			pica.resize( $imgnew[ 0 ], canvas, picaOption ).then( function() {
 				var thumb = canvas.toDataURL( 'image/jpeg', 1 );
 				if ( file.name.slice( -4 ) !== '.gif' ) {
-					$.post( 'commands.php', {
-						  imagefile      : urlname
+					$.post( 'cmd.php', {
+						  cmd            : 'imagefile'
+						, imagefile      : urlname
 						, base64webradio : name +'^^'+ $( '#sampling' ).text() + "\n"+ thumb +"\n"+ newimg
 					}, function() {
 						webRadioCoverartSet( newimg, thumb );
 					} );
 				} else {
 					var formData = new FormData();
+					formData.append( 'cmd', 'imagefile' );
 					formData.append( 'imagefile', urlname );
 					formData.append( 'base64webradio', name +'^^'+ $( '#sampling' ).text() + "\n"+ thumb +"\n" );
 					formData.append( 'file', file );
 					$.ajax( {
-						  url         : 'commands.php'
+						  url         : 'cmd.php'
 						, type        : 'POST'
 						, data        : formData
 						, processData : false  // no - process the data
@@ -744,7 +750,7 @@ function webRadioCoverart() {
 		infojson.buttonlabel = '<i class="fa fa-webradio"></i>Reset';
 		infojson.buttonwidth = 1;
 		infojson.button      = function() {
-			$.post( 'commands.php', { bash0: "sed -i '2,$ d' '/srv/http/data/webradios/"+ urlname +"'" } );
+			$.post( 'cmd.php', { cmd: 'bash0', bash0: "sed -i '2,$ d' '/srv/http/data/webradios/"+ urlname +"'" } );
 			if ( G.playback ) {
 				$( '.edit' ).remove();
 				$( '#coverart' )
@@ -757,8 +763,8 @@ function webRadioCoverart() {
 			}
 		}
 	}
-	$.post( 'commands.php'
-		, { bash0: "sed -n '3 p' '/srv/http/data/webradios/"+ urlname +"'" }
+	$.post( 'cmd.php'
+		, { cmd: 'bash0', bash0: "sed -n '3 p' '/srv/http/data/webradios/"+ urlname +"'" }
 		, function( base64 ) {
 		if ( base64 ) {
 			infojson.message = '<img class="imgold" src="'+ base64 +'">';
@@ -803,7 +809,7 @@ function webRadioDelete() {
 			count = ( Number( count ) - 1 ).toString().replace( /\B(?=(\d{3})+(?!\d))/g, ',' );
 			$( '#mode-webradio grl' ).text( count );
 			if ( !$( '#lib-list li' ).length ) $( '#button-library' ).click();
-			$.post( 'commands.php', { webradios: name, url: url, delete: 1 } );
+			$.post( 'cmd.php', { cmd: 'webradios', webradios: name, url: url, delete: 1 } );
 		}
 	} );
 }
@@ -825,7 +831,7 @@ function webRadioEdit() {
 		, ok           : function() {
 			var newname = $( '#infoTextBox' ).val();
 			var newurl = $( '#infoTextBox1' ).val().toString().replace( /\/\s*$/, '' ); // omit trailling / and space
-			if ( newname !== name || newurl !== url ) $.post( 'commands.php', { webradios: newname, newurl: newurl, url: url, edit: 1 }, function() {
+			if ( newname !== name || newurl !== url ) $.post( 'cmd.php', { cmd: 'webradios', webradios: newname, newurl: newurl, url: url, edit: 1 }, function() {
 				$( '#mode-webradio' ).click();
 			} );
 		}
@@ -845,7 +851,7 @@ function webRadioNew( name, url ) {
 		, ok           : function() {
 			var newname = $( '#infoTextBox' ).val().toString().replace( /\/\s*$/, '' ); // omit trailling / and space
 			var url = $( '#infoTextBox1' ).val();
-			$.post( 'commands.php', { webradios: newname, url: url, new: 1 }, function( data ) {
+			$.post( 'cmd.php', { cmd: 'webradios', webradios: newname, url: url, new: 1 }, function( data ) {
 				if ( data == -1 ) {
 					info( {
 						  icon    : 'webradio'
@@ -881,7 +887,7 @@ function webRadioNew( name, url ) {
 	var urlname = url.replace( /\//g, '|' );
 	var thumb = G.list.li.find( '.lithumb' ).text();
 	var img = G.list.li.find( '.liimg' ).text();
-	$.post( 'commands.php', { bash0: "test -e '/srv/http/data/webradios/"+ urlname +' && echo 0 || echo -1' }, function( data ) {
+	$.post( 'cmd.php', { cmd: 'bash0', bash0: "test -e '/srv/http/data/webradios/"+ urlname +' && echo 0 || echo -1' }, function( data ) {
 		if ( data != -1 ) {
 			info( {
 				  icon    : 'webradio'
@@ -908,7 +914,7 @@ function webRadioNew( name, url ) {
 		, ok           : function() {
 			var newname = $( '#infoTextBox' ).val();
 			if ( thumb ) newname += "\n"+ thumb +"\n"+ img;
-			$.post( 'commands.php', { webradios: newname, url: url, new: 1 } );
+			$.post( 'cmd.php', { cmd: 'webradios', webradios: newname, url: url, new: 1 } );
 			notify( 'WebRadio saved', newname, 'webradio' );
 			$( '.li1 .radioname' ).text( newname );
 			$( '.li2 .radioname' ).text( newname +' • ' );

@@ -1,7 +1,7 @@
 $( function() { // document ready start >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 var dirsystem = '/srv/http/data/system';
-var settingbash = '/srv/http/bash/sources.sh';
+var sourcessh = '/srv/http/bash/sources.sh';
 
 var formdata = {}
 var html = heredoc( function() { /*
@@ -63,7 +63,7 @@ $( '#list' ).on( 'click', 'li', function() {
 			, okcolor : '#de810e'
 			, ok      : function() {
 				banner( 'Network Mount', 'Unmount ...', 'network' );
-				$.post( 'commands.php', { bash0: settingbash +' unmount "'+ mountescaped +'"' }, function() {
+				$.post( 'cmd.php', { cmd: 'bash0', bash0: sourcessh +' unmount "'+ mountescaped +'"' }, function() {
 					refreshData();
 					$( '#refreshing' ).addClass( 'hide' );
 				} );
@@ -80,7 +80,7 @@ $( '#list' ).on( 'click', 'li', function() {
 			, buttoncolor : '#bb2828'
 			, button      : function() {
 				banner( 'Network Mount', 'Remove ...', 'network' );
-				$.post( 'commands.php', { bash0: settingbash +' remove "'+ mountescaped +'"' }, function() {
+				$.post( 'cmd.php', { cmd: 'bash0', bash0: sourcessh +' remove "'+ mountescaped +'"' }, function() {
 					refreshData();
 					$( '#refreshing' ).addClass( 'hide' );
 				} );
@@ -89,7 +89,7 @@ $( '#list' ).on( 'click', 'li', function() {
 			, oklabel     : 'Remount'
 			, ok          : function() {
 				banner( 'Network Mount', 'Remount ...', 'network' );
-				$.post( 'commands.php', { bash0: settingbash +' remount "'+ mountescaped +'" '+ source }, function() {
+				$.post( 'cmd.php', { cmd: 'bash0', bash0: sourcessh +' remount "'+ mountescaped +'" '+ source }, function() {
 					refreshData();
 					$( '#refreshing' ).addClass( 'hide' );
 				} );
@@ -103,7 +103,7 @@ $( '#list' ).on( 'click', 'li', function() {
 	
 	if ( $( this ).find( '.fa-search' ).length ) {
 		$( '#listshare' ).html( '<li><i class="fa fa-search blink"></i></li>' );
-		$.post( 'commands.php', { bash0: '/srv/http/bash/sources-sharescan.sh' }, function( list ) {
+		$.post( 'cmd.php', { cmd: 'bash0', bash0: '/srv/http/bash/sources-sharescan.sh' }, function( list ) {
 			var list = JSON.parse( list );
 			if ( list.length ) {
 				var html = '';
@@ -142,14 +142,14 @@ $( '#fstab' ).click( function( e ) {
 } );
 
 function getMounts() {
-	$.post( 'commands.php', { bash0: 'mount | grep " / \\|MPD"' }, function( status ) {
+	$.post( 'cmd.php', { cmd: 'bash0', bash0: 'mount | grep " / \\|MPD"' }, function( status ) {
 		$( '#codemount' )
 			.html( status )
 			.removeClass( 'hide' );
 	} );
 }
 function getFstab() {
-	$.post( 'commands.php', { bash0: 'cat /etc/fstab' }, function( status ) {
+	$.post( 'cmd.php', { cmd: 'bash0', bash0: 'cat /etc/fstab' }, function( status ) {
 		$( '#codefstab' )
 			.html( status )
 			.removeClass( 'hide' );
@@ -200,8 +200,8 @@ function infoMount( formdata, cifs ) {
 				var device = '"'+ data.ip +':/'+ directory +'"';
 			}
 			banner( 'Network Mount', 'Mount ...', 'network' );
-			$.post( 'commands.php'
-				, { bash0: settingbash +' mount '+ '"'+ escapeString( mountpoint ) +'" '+ data.ip +' '+ device +' '+ data.protocol +' '+ options }
+			$.post( 'cmd.php'
+				, { cmd: 'bash0', bash0: sourcessh +' mount '+ '"'+ escapeString( mountpoint ) +'" '+ data.ip +' '+ device +' '+ data.protocol +' '+ options }
 				, function( std ) {
 				if ( std !== 0 ) {
 					formdata = data;
@@ -226,7 +226,7 @@ function infoMount( formdata, cifs ) {
 
 refreshData = function() {
 	$( '#refreshing' ).removeClass( 'hide' );
-	$.post( 'commands.php', { getjson: '/srv/http/bash/sources-data.sh' }, function( list ) {
+	$.post( 'cmd.php', { cmd: 'getjson', getjson: '/srv/http/bash/sources-data.sh' }, function( list ) {
 		G.reboot = reboot;
 		var html = '';
 		$.each( list, function( i, val ) {

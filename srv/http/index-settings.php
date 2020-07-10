@@ -46,6 +46,7 @@ $icon = [
 ];
 $help = '<i class="help fa fa-question-circle"></i>';
 ?>
+<div id="loader"><svg viewBox="0 0 480.2 144.2"><?=$logo?></svg></div>
 <div class="head hide">
 	<i class="page-icon fa fa-<?=$icon[ $page ]?>"></i><span class='title'><?=( strtoupper( $page ) )?></span>
 	<i id="close" class="fa fa-times"></i><i id="help" class="fa fa-question-circle"></i>
@@ -59,7 +60,6 @@ include "settings/$page.php";
 <input class="input hide">
 <div id="keyboard" class="hide"><div class="simple-keyboard"></div></div>
 	<?php } ?>
-<div id="loader"><svg viewBox="0 0 480.2 144.2"><?=$logo?></svg></div>
 <script src="/assets/js/plugin/jquery-2.2.4.min.<?=$time?>.js"></script>
 <script src="/assets/js/plugin/pushstream.min.<?=$time?>.js"></script>
 <script src="/assets/js/info.<?=$time?>.js"></script>

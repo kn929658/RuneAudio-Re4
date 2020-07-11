@@ -475,11 +475,11 @@ function displayTopBottom() {
 	}
 	$( '.menu' ).addClass( 'hide' );
 }
-function flag( iso ) { // from: https://stackoverflow.com/a/11119265
+/*function flag( iso ) { // from: https://stackoverflow.com/a/11119265
 	var iso0 = ( iso.toLowerCase().charCodeAt( 0 ) - 97 ) * -15;
 	var iso1 = ( iso.toLowerCase().charCodeAt( 1 ) - 97 ) * -20;
 	return iso1 +'px '+ iso0 +'px';
-}
+}*/
 function getBio( artist ) {
 	if ( artist === $( '#biocontent .artist' ).text() ) {
 		$( '#bar-top, #bar-bottom' ).addClass( 'hide' );

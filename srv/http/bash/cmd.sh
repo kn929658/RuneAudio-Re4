@@ -9,11 +9,6 @@ pushstream() {
 
 case ${args[0]} in
 
-x )
-	echo 1 = ${args[1]}
-	echo 2 = ${args[2]}
-	echo 3 = ${args[3]}
-	;;
 addonsclose )
 	killall ${args[1]} wget pacman &> /dev/null
 	rm -f /var/lib/pacman/db.lck /srv/http/*.zip /usr/local/bin/uninstall_${args[2]}.sh

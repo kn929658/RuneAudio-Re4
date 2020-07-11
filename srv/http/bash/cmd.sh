@@ -139,6 +139,6 @@ refreshbrowser )
 	curl -s -X POST 'http://127.0.0.1/pub?id=reload' -d '{ "reload": 1 }'
 	;;
 tageditor )
-	kid3-cli -c "set $key '$value'"
+	/srv/http/bash/tageditor.sh "${args[1]}"
 	;;
 esac

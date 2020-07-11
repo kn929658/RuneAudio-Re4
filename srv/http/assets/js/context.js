@@ -485,7 +485,7 @@ function tagEditor() {
 	}
 	var query = {
 		  query  : 'track'
-		, file   : escapePath( file )
+		, file   : file
 		, format : format
 	}
 	if ( cue ) query.track = G.list.track || 'cover';
@@ -535,7 +535,7 @@ function tagEditor() {
 					var path = $( '#infoMessage .fa-folder' ).length ? file : file.substr( 0, file.lastIndexOf( '/' ) );
 					var query = {
 						  query  : 'ls'
-						, string : escapePath( path )
+						, string : path
 						, format : [ 'file' ]
 					}
 					$( '#tab-library' ).click();
@@ -604,7 +604,11 @@ function tagEditor() {
 			, nofocus      : 1
 			, ok           : function() {
 				var diff = 0;
-				var tag = {}
+				var tag = {
+					  cue    : cue
+					, file   : file
+					, single : !G.list.licover
+				}
 				var fL = format.length;
 				for ( i = 0; i < fL; i++ ) {
 					var val = $( '.infoinput:eq( '+ i +' )' ).val();;
@@ -613,38 +617,7 @@ function tagEditor() {
 				}
 				if ( !diff ) return
 				
-				file = escapePath( file );
-				if ( !cue ) {
-					var cmd = 'kid3-cli';
-					$.each( tag, function( key, val ) {
-						var value = val.replace( /(["'`])/g, '\\$1' )
-						cmd += " -c \"set "+ key +" '"+ value +'\'"';
-					} );
-					cmd += ' "/mnt/MPD/';
-					if ( G.list.licover ) {
-						cmd += file +'/"*.*';
-					} else {
-						cmd += file +'"';
-					}
-				} else {
-					var cmd = "sed -i"
-							 +" -e '/^PERFORMER\\|^REM COMPOSER\\|^REM GENRE/ d'"
-					if ( G.list.licover ) {
-						if ( tag.albumartist ) cmd += " -e '/^TITLE/ i\\PERFORMER \""+ tag.albumartist +"\"'"
-						if ( tag.composer ) cmd += " -e '1 i\\REM COMPOSER \""+ tag.composer +"\"'";
-						if ( tag.genre ) cmd += " -e '1 a\\REM GENRE \""+ tag.genre +"\"'";
-						if ( tag.album ) cmd += " -e 's/^\\s\\+PERFORMER.*/    PERFORMER \""+ tag.artist +"\"/'";
-						if ( tag.artist ) cmd += " -e 's/^TITLE.*/TITLE \""+ tag.album +"\"/'";
-					} else {
-						cmd += " -e '/^\\s\\+TRACK "+ tag.track +"/ {"
-								+' n;  s/^\\s\\+TITLE.*/    TITLE "'+ tag.title +'"/'
-								+';n;  s/^\\s\\+PERFORMER.*/    PERFORMER "'+ tag.artist +'"/'
-							  +"}'";
-					}
-					cmd += " '/mnt/MPD/"+ file +"'";
-				}
-				notify( 'Library Update', 'Update ...', 'library blink', -1 );
-				$.post( 'cmd.php', { cmd: 'bash', bash: [ cmd +' && mpc update "'+ $( '.licover .lipath' ).text() +'"' ] } );
+				$.post( 'cmd.php', { cmd: 'sh', sh: [ cmdsh, 'tageditor', JSON.stringify( tag ) ] } );
 			}
 		} );
 	}, 'json' );

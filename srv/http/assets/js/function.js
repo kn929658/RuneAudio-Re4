@@ -475,9 +475,6 @@ function displayTopBottom() {
 	}
 	$( '.menu' ).addClass( 'hide' );
 }
-function escapePath( path ) {
-	return path.toString().replace( /(["`])/g, '\\$1' )
-}
 function flag( iso ) { // from: https://stackoverflow.com/a/11119265
 	var iso0 = ( iso.toLowerCase().charCodeAt( 0 ) - 97 ) * -15;
 	var iso1 = ( iso.toLowerCase().charCodeAt( 1 ) - 97 ) * -20;

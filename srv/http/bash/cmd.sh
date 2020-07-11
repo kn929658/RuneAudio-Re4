@@ -52,17 +52,19 @@ packageset )
 	[[ ${args[3]} == true ]] && systemctl enable ${args[1]} || systemctl disable ${args[1]}
 	pushstream ${args[1]} ${args[2]} ${args[3]}
 	;;
+playpos )
+	mpc play ${args[1]}
+	;;
+playrandom )
+	plL=$( mpc playlist | wc -l )
+	mpc play $( shuf -i 0-$plL -n 1 )
+	;;
 playseek )
 	touch /srv/http/data/tmp/nostatus
 	mpc play
 	mpc pause
 	mpc seek ${args[1]}
 	pushstream seek elapsed ${args[1]}
-	;;
-playstop )
-	touch /srv/http/data/tmp/nostatus
-	mpc play ${args[1]}
-	mpc stop
 	;;
 plrandom )
 	if [[ ${args[1]} == 0 ]]; then
@@ -76,6 +78,9 @@ plrandom )
 	fi
 	pushstream playlist playlist playlist
 	pushstream mpdoptions librandom ${args[1]}
+	;;
+plrename )
+	mv "/srv/http/data/playlists/${args[1]}" "/srv/http/data/playlists/${args[2]}"
 	;;
 plshuffle )
 	mpc shuffle

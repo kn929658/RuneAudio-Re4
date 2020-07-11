@@ -37,7 +37,7 @@ if ( isset( $_POST[ 'current' ] ) || $argv[ 1 ] === 'current' ) {
 	pushstream( 'playlist', [ 'playlist' => $name ] );
 	
 } else if ( isset( $_POST[ 'get' ] ) ) {
-	$name = $_POST[ 'get' ];
+	$name = str_replace( '"', '\"', $_POST[ 'get' ] );
 	$lists = json_decode( file_get_contents( '/srv/http/data/playlists/'.$name ) );
 	$array = htmlPlaylist( $lists, $name );
 	echo json_encode( $array );

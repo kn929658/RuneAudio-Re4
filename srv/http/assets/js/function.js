@@ -279,14 +279,14 @@ function coverartSave() {
 		var src = $( '#coverart' ).prop( 'src' );
 		var file = G.status.file;
 		var path = '/mnt/MPD/'+ file.substr( 0, file.lastIndexOf( '/' ) );
-		var coverfile = escapePath( path ) +'/cover.jpg';
+		var coverfile = path +'/cover.jpg';
 		var artist = G.status.Artist;
 		var album = G.status.Album;
 	} else {
 		var src = $( '.licover img' ).prop( 'src' );
 		var path = '/mnt/MPD/'+ $( '.licover .lipath' ).text();
 		if ( path.slice( -4 ) === '.cue' ) path = path.substr( 0, path.lastIndexOf( '/' ) );
-		var coverfile = escapePath( path ) +'/cover.jpg';
+		var coverfile = path +'/cover.jpg';
 		var artist = $( '.licover .liartist' ).text();
 		var album = $( '.licover .lialbum' ).text();
 	}
@@ -709,14 +709,14 @@ function menuPackage( $this, $target ) {
 		if ( $this.data( 'active' ) ) {
 			window.open( url[ id ] );
 		} else {
-			$.post( 'cmd.php', { cmd: 'bash', bash: cmdsh +' packageenable '+ id +' '+ $this.data( 'enabled' ) }, window.open( url[ id ] ) );
+			$.post( 'cmd.php', { cmd: 'sh', sh: [ cmdsh, 'packageenable', id, $this.data( 'enabled' ) ] }, window.open( url[ id ] ) );
 		}
 	}
 }
 function menuPackageSet( pkg, active, enable ) {
 	G.local = 1;
 	setTimeout( function() { G.local = 0 }, 1000 );
-	$.post( 'cmd.php', { cmd: 'bash', bash: cmdsh +' packageset '+ pkg +' '+ active +' '+ enable } );
+	$.post( 'cmd.php', { cmd: 'sh', sh: [ cmdsh, 'packageset', pkg, active, enable ] } );
 	$( '#'+ pkg )
 		.data( 'enabled', enable )
 		.data( 'active', active )
@@ -744,7 +744,7 @@ function mpdSeek( seekto ) {
 		}
 		G.local = 1;
 		setTimeout( function() { G.local = 0 }, 300 );
-		$.post( 'cmd.php', { cmd: 'bash', bash: cmdsh +' playseek '+ seektime } );
+		$.post( 'cmd.php', { cmd: 'sh', sh: [ cmdsh, 'playseek', seektime ] } );
 	}
 }
 function mpdSeekBar( pageX, set ) {
@@ -784,9 +784,9 @@ function orderLibrary() {
 function playlistInsert( indextarget ) {
 	var plname = $( '#pl-path .lipath' ).text();
 	$.post( 'mpdplaylist.php', {
-			  edit : escapePath( plname )
-			, index        : G.pladd.index
-			, indextarget  : indextarget
+			  edit        : plname
+			, index       : G.pladd.index
+			, indextarget : indextarget
 	}, function() {
 		renderSavedPlaylist( plname );
 		if ( G.pladd.select === 'last' ) {
@@ -1142,7 +1142,7 @@ function renderPlayback() {
 			$( '#coverart' ).prop( 'src', coverrune );
 			if ( 'file' in status ) {
 				setTimeout( function() {
-					$.post( 'cmd.php', { cmd: 'coverart', coverart: escapePath( status.file ) }, function( coverart ) {
+					$.post( 'cmd.php', { cmd: 'coverart', coverart: status.file }, function( coverart ) {
 						if ( !coverart ) {
 							$( '#divcover, #coverart' ).addClass( 'coverrune' );
 							$( '#coverart' ).prop( 'src', coverrune );
@@ -1308,7 +1308,7 @@ function renderSavedPlaylist( name ) {
 	$( '.menu' ).addClass( 'hide' );
 	$( '#loader' ).removeClass( 'hide' );
 	$( '#pl-count' ).empty();
-	$.post( 'mpdplaylist.php', { get: escapePath( name ) }, function( data ) {
+	$.post( 'mpdplaylist.php', { get: name }, function( data ) {
 		$( '#pl-path' ).html( data.counthtml );
 		$( '#button-pl-back' ).css( 'float', G.display.backonleft ? 'left' : '' );
 		$( '#pl-path, #button-pl-back, #pl-savedlist' ).removeClass( 'hide' );

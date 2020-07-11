@@ -37,7 +37,7 @@ var picaOption = { // pica.js
 //	, quality          : 3    // 0...3 Default = 3 (Lanczos win=3)
 //	, alpha            : true // Default = false (black crop background)
 };
-var cmdsh = '/srv/http/bash/cmd.sh';
+var cmdsh = 'cmd.sh';
 var hash = Math.ceil( Date.now() / 1000 );
 var coverrune = '/assets/img/cover.'+ hash +'.svg';
 var vustop = '/assets/img/vustop.'+ hash +'.gif';
@@ -380,7 +380,7 @@ $( '#addons' ).click( function ( e ) {
 		return
 	}
 	
-	$.post( 'cmd.php', { cmd: 'bash', bash: cmdsh +' addonslist' }, function( std ) {
+	$.post( 'cmd.php', { cmd: 'sh', sh: [ cmdsh, 'addonslist' ] }, function( std ) {
 		if ( std != 0 ) {
 			info( {
 				  icon    : 'info-circle'
@@ -407,16 +407,20 @@ $( '#colorok' ).click( function() {
 	var L = ( 2 - s ) * v / 2;
 	if ( L && L < 1 ) {
 		S = L < 0.5 ? s * v / ( L * 2 ) : s * v / ( 2 - L * 2 );
-		var hsl = Math.round( 360 * hsv.h ) +' '+ Math.round( S * 100 ) +' '+ Math.round( L * 100 );
+		var h = Math.round( 360 * hsv.h );
+		var s = Math.round( S * 100 );
+		var l = Math.round( L * 100 );
 	} else {
-		var hsl = 0 +' '+ 0 +' '+ L * 100;
+		var h = 0;
+		var s = 0;
+		var l = L * 100;
 	}
 	if ( hsl !== G.display.color ) {
-		$.post( 'cmd.php', { cmd: 'bash', bash: cmdsh +' colorset '+ hsl } );
+		$.post( 'cmd.php', { cmd: 'sh', sh: [ cmdsh, 'colorset', h, s, l ] } );
 	}
 } );
 $( '#colorreset' ).click( function() {
-	$.post( 'cmd.php', { cmd: 'bash', bash: cmdsh +' colorreset' } );
+	$.post( 'cmd.php', { cmd: 'sh', sh: [ cmdsh, 'colorreset' ] } );
 } );
 $( '#colorcancel' ).click( function() {
 	G.color = 0;
@@ -992,10 +996,9 @@ $( '.btn-cmd' ).click( function() {
 				}
 			}
 			pos = pos || 1;
-			if ( G.status.state === 'play' ) {
-				command = 'mpc play '+ pos;
-			} else {
-				command = cmdsh +' playstop '+ pos;
+			command = 'mpc play '+ pos;
+			if ( G.status.state !== 'play' ) {
+				command += ' && mpc stop && touch /srv/http/data/tmp/nostatus';
 				var prevnext = setTimeout( function() {
 					$( '#loader' ).removeClass( 'hide' );
 				}, 300 );
@@ -1012,7 +1015,7 @@ $( '.btn-cmd' ).click( function() {
 	} );
 	// for gpio
 	if ( $( '#gpio' ).hasClass( 'on' ) && command === 'mpc play' ) {
-		$.post( 'cmd.php', { cmd: 'bash', bash: cmdsh +' gpiotimerreset' } );
+		$.post( 'cmd.php', { cmd: 'sh', sh: [ cmdsh, 'gpiotimerreset' ] } );
 	}
 } );
 $( '#biocontent' ).on( 'click', '.biosimilar', function() {
@@ -1028,7 +1031,7 @@ $( '#lib-breadcrumbs' ).on( 'click', 'a', function() {
 	var path = $( this ).find( '.lidir' ).text();
 	var query = {
 		  query  : 'ls'
-		, string : escapePath( path )
+		, string : path
 		, format : [ 'file' ]
 	}
 	$.post( 'mpdlibrary.php', query, function( data ) {
@@ -1161,7 +1164,7 @@ $( '.mode' ).click( function() {
 	if ( [ 'sd', 'nas', 'usb' ].indexOf( G.mode ) !== -1 ) { // browse by directory
 		var query = {
 			  query  : 'ls'
-			, string : escapePath( path )
+			, string : path
 			, format : [ 'file' ]
 		}
 	} else if ( G.mode === 'webradio' ) {
@@ -1286,7 +1289,7 @@ $( '#lib-mode-list' ).on( 'tap', '.mode-bookmark', function( e ) { // delegate -
 			, fileoklabel : '<i class="fa fa-flash"></i>Replace'
 			, filetype    : 'image/*'
 			, ok          : function() {
-				var bookmarkname = escapePath( path );
+				var bookmarkname = path;
 				var file = $( '#infoFileBox' )[ 0 ].files[ 0 ];
 				if ( file.name.slice( -4 ) !== '.gif' ) {
 					var newimg = $( '#imgnew' ).prop( 'src' );
@@ -1317,7 +1320,7 @@ $( '#lib-mode-list' ).on( 'tap', '.mode-bookmark', function( e ) { // delegate -
 			jsoninfo.buttonlabel = '<i class="fa fa-undo"></i>Reset';
 			jsoninfo.buttonwidth = 1;
 			jsoninfo.button      = function() {
-				var bookmarkname = escapePath( path );
+				var bookmarkname = path;
 				var label = bookmarkname.split( '/' ).pop();
 				bookmarkname = bookmarkname.replace( /\//g, '|' );
 				$.post( 'cmd.php', {
@@ -1343,7 +1346,7 @@ $( '#lib-mode-list' ).on( 'tap', '.mode-bookmark', function( e ) { // delegate -
 		var path = $( this ).find( '.lipath' ).text();
 		var query = {
 			  query  : 'ls'
-			, string : escapePath( path )
+			, string : path
 			, format : [ 'file' ]
 		}
 		$( '#loader' ).removeClass( 'hide' );
@@ -1506,7 +1509,7 @@ $( '.coverart' ).tap( function( e ) {
 		var query = {
 			  query  : 'ls'
 			, mode   : 'coverart'
-			, string : escapePath( path )
+			, string : path
 		}
 	} else {
 		var cv1 = $( this ).find( '.coverart1' ).text();
@@ -1687,7 +1690,7 @@ $( '#lib-list' ).on( 'taphold', '.licoverimg',  function() {
 		var modetitle = path;
 		var query = {
 			  query  : 'ls'
-			, string : escapePath( path )
+			, string : path
 			, format : [ 'file' ]
 		}
 	} else if ( mode !== 'album' ) { // list by mode (non-album)
@@ -1795,7 +1798,7 @@ $( '#button-pl-random' ).click( function() {
 		G.status.librandom = false;
 		$( this ).removeClass( 'bl' );
 		notify( 'Roll The Dice', 'Off ...', 'dice' );
-		$.post( 'cmd.php', { cmd: 'bash', bash: cmdsh +' plrandom 0' } );
+		$.post( 'cmd.php', { cmd: 'sh', sh: [ cmdsh, 'plrandom', 0 ] } );
 	} else {
 		info( {
 			  icon    : 'dice'
@@ -1805,7 +1808,7 @@ $( '#button-pl-random' ).click( function() {
 				G.status.librandom = true;
 				$( this ).addClass( 'bl' );
 				notify( 'Roll The Dice', 'Add+play ...', 'dice' );
-				$.post( 'cmd.php', { cmd: 'bash', bash: cmdsh +' plrandom 1' } );
+				$.post( 'cmd.php', { cmd: 'sh', sh: [ cmdsh, 'plrandom', 1 ] } );
 			}
 		} );
 	}
@@ -1818,7 +1821,7 @@ $( '#button-pl-shuffle' ).click( function() {
 		, title   : 'Shuffle Playlist'
 		, message : 'Shuffle all tracks in playlist?'
 		, ok      : function() {
-			$.post( 'cmd.php', { cmd: 'bash', bash: cmdsh +' plshuffle' } );
+			$.post( 'cmd.php', { cmd: 'sh', sh: [ cmdsh, 'plshuffle' ] } );
 		}
 	} );
 } );
@@ -1835,7 +1838,7 @@ $( '#button-pl-crop' ).click( function() {
 				G.local = 1;
 				setTimeout( function() { G.local = 0 }, 300 );
 			}
-			$.post( 'cmd.php', { cmd: 'bash', bash: cmdsh +' plcrop' } );
+			$.post( 'cmd.php', { cmd: 'sh', sh: [ cmdsh, 'plcrop' ] } );
 		}
 	} );
 } );
@@ -1901,7 +1904,7 @@ var sortableplaylist = new Sortable( document.getElementById( 'pl-list' ), {
 		}
 		G.sortable = 1;
 		setTimeout( function() { G.sortable = 0 }, 500 );
-		$.post( 'cmd.php', { cmd: 'bash', bash: cmdsh +' plorder '+ ( e.oldIndex + 1 ) +' '+ ( e.newIndex + 1 ) }, function() {
+		$.post( 'cmd.php', { cmd: 'sh', sh: [ cmdsh, 'plorder', ( e.oldIndex + 1 ), ( e.newIndex + 1 ) ] }, function() {
 			setTimeout( setPlaylistScroll, 600 );
 		} );
 	}

@@ -89,7 +89,7 @@ $( '.contextmenu a' ).click( function( e ) {
 		var path = G.list.path.split( '/' );
 		G.local = 1;
 		setTimeout( function() { G.local = 0 }, 2000 );
-		$.post( 'cmd.php', { cmd: 'bash', bash: cmdsh +' ignoredir "'+ escapePath( G.list.path ) +'"' }, function() {
+		$.post( 'cmd.php', { cmd: 'sh', sh: [ cmdsh, 'ignoredir', G.list.path ] }, function() {
 			G.list.li.remove();
 		} );
 		notify( 'Exclude Directory', '<wh>'+ dir +'</wh> excluded from database.', 'folder' );
@@ -389,12 +389,9 @@ function bookmarkRename( name, path, $block ) {
 }
 function playlistAdd( name, oldname ) {
 	if ( oldname ) {
-		var path = '/srv/http/data/playlists/'
-		var oldfile = path + escapePath( oldname );
-		var newfile = path + escapePath( name );
-		$.post( 'cmd.php', { cmd: 'bash', bash: 'mv "'+ oldfile +'" "'+ newfile +'"' } );
+		$.post( 'cmd.php', { cmd: 'sh', sh: [ 'plrename', oldname, name ] } );
 	} else {
-		$.post( 'mpdplaylist.php', { save: escapePath( name ) }, function( data ) {
+		$.post( 'mpdplaylist.php', { save: name }, function( data ) {
 			if ( data == -1 ) {
 				info( {
 					  icon        : 'list-ul'
@@ -428,7 +425,7 @@ function playlistDelete() {
 			G.status.playlists--;
 			if ( !G.status.playlists ) $( '#tab-playlist' ).click();
 			G.list.li.remove();
-			$.post( 'mpdplaylist.php', { delete: escapePath( G.list.name ) } );
+			$.post( 'mpdplaylist.php', { delete: G.list.name } );
 		}
 	} );
 }

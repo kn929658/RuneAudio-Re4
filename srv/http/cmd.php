@@ -35,8 +35,8 @@ case 'sh':
 	$cmd = implode( "\n", str_replace( '"', '\"', $sh ) ).'"';     // 3 - convert array to multi-line string with " escaped
 	echo shell_exec( $sudo.$script.$cmd ); // 4 - pass string to bash > convert each line to each args
 	break;
-case 'bash0':
-	$cmd = $_POST[ 'bash0' ];
+case 'bash':
+	$cmd = $_POST[ 'bash' ];
 	echo shell_exec( $cmd[ 0 ] === '/' ? $sudo.$cmd : $sudobin.$cmd );
 	break;
 case 'exec':

@@ -249,7 +249,7 @@ $( '#restart' ).click( function( e ) {
 		, message : 'Restart MPD?'
 		, ok      : function() {
 			banner( 'MPD', 'Restart ...', 'mpd' );
-			$.post( 'cmd.php', { cmd: 'bash0', bash0: '/srv/http/bash/mpd-conf.sh' }, refreshData );
+			$.post( 'cmd.php', { cmd: 'bash', bash: '/srv/http/bash/mpd-conf.sh' }, refreshData );
 		}
 	} );
 } );
@@ -257,7 +257,7 @@ $( '#mpdconf' ).click( function( e ) {
 	codeToggle( e.target, this.id, getMpdconf );
 } );
 function getAplay() {
-	$.post( 'cmd.php', { cmd: 'bash0', bash0: 'aplay -l' }, function( status ) {
+	$.post( 'cmd.php', { cmd: 'bash', bash: 'aplay -l' }, function( status ) {
 		$( '#codeaplay' )
 			.html( status )
 			.removeClass( 'hide' );
@@ -265,14 +265,14 @@ function getAplay() {
 }
 function getAmixer() {
 	var card = $( '#audiooutput option:selected' ).data( 'card' );
-	$.post( 'cmd.php', { cmd: 'bash0', bash0: 'amixer -c '+ card }, function( status ) {
+	$.post( 'cmd.php', { cmd: 'bash', bash: 'amixer -c '+ card }, function( status ) {
 		$( '#codeamixer' )
 			.html( status || '(none)' )
 			.removeClass( 'hide' );
 	} );
 }
 function getMpdconf() {
-	$.post( 'cmd.php', { cmd: 'bash0', bash0: 'cat /etc/mpd.conf' }, function( status ) {
+	$.post( 'cmd.php', { cmd: 'bash', bash: 'cat /etc/mpd.conf' }, function( status ) {
 		$( '#codempdconf' )
 			.html( status )
 			.removeClass( 'hide' );
@@ -301,7 +301,7 @@ function setMixerType( mixertype ) {
 }
 
 refreshData = function() {
-	$.post( 'cmd.php', { cmd: 'bash0', bash0: '/srv/http/bash/mpd-data.sh' }, function( list ) {
+	$.post( 'cmd.php', { cmd: 'bash', bash: '/srv/http/bash/mpd-data.sh' }, function( list ) {
 		G = list;
 		G.reboot = list.reboot ? list.reboot.split( '\n' ) : [];
 		restartmpd = G.mpd ? 'systemctl restart mpd' : '';

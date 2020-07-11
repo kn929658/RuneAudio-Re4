@@ -11,7 +11,7 @@ $( '.back' ).click( function() {
 	$( '#divwifi, #divbluetooth' ).addClass( 'hide' );
 	$( '#listwifi, #listbt' ).empty();
 	nicsStatus();
-	if ( 'bluetooth' in G ) $.post( 'cmd.php', { cmd: 'bash0', bash0: 'bluetoothctl scan off' } );
+	if ( 'bluetooth' in G ) $.post( 'cmd.php', { cmd: 'bash', bash: 'bluetoothctl scan off' } );
 } );
 $( '#listinterfaces' ).on( 'click', 'li', function() {
 	var $this = $( this );
@@ -29,7 +29,7 @@ $( '#listinterfaces' ).on( 'click', 'li', function() {
 				wlanStatus();
 			}
 		} else {
-			$.post( 'cmd.php', { cmd: 'bash0', bash0: 'bluetoothctl scan on' } );
+			$.post( 'cmd.php', { cmd: 'bash', bash: 'bluetoothctl scan on' } );
 			btStatus();
 		}
 	} else {
@@ -143,19 +143,19 @@ $( '#listbt' ).on( 'click', 'li', function( e ) {
 			, buttonwidth : 1
 			, button      : function() {
 				$this.remove();
-				$.post( 'cmd.php', { cmd: 'bash0', bash0: 'bluetoothctl remove '+ mac } );
+				$.post( 'cmd.php', { cmd: 'bash', bash: 'bluetoothctl remove '+ mac } );
 			}
 		}
 		if ( connected ) {
 			jsoninfo.oklabel = 'Disconnect';
 			jsoninfo.ok      = function() {
 				$this.find( 'grn' ).remove();
-				$.post( 'cmd.php', { cmd: 'bash0', bash0: 'bluetoothctl disconnect '+ mac } );
+				$.post( 'cmd.php', { cmd: 'bash', bash: 'bluetoothctl disconnect '+ mac } );
 			}
 		} else {
 			jsoninfo.oklabel = 'Connect';
 			jsoninfo.ok      = function() {
-				$.post( 'cmd.php', { cmd: 'bash0', bash0: 'bluetoothctl connect '+ mac }, btScan );
+				$.post( 'cmd.php', { cmd: 'bash', bash: 'bluetoothctl connect '+ mac }, btScan );
 			}
 		}
 		info( jsoninfo );
@@ -171,13 +171,13 @@ $( '#listbt' ).on( 'click', 'li', function( e ) {
 			, ok      : function() {
 				$this.find( 'grn' ).remove();
 				banner( 'Bluetooth', 'Disonnect ...', 'bluetooth' );
-				$.post( 'cmd.php', { cmd: 'bash0', bash0: 'bluetoothctl disconnect '+ mac } );
+				$.post( 'cmd.php', { cmd: 'bash', bash: 'bluetoothctl disconnect '+ mac } );
 			}
 		} );
 	} else {
 		if ( $this.find( 'fa-edit-circle' ).length ) {
 			banner( 'Bluetooth', 'Connect ...', 'bluetooth' );
-			$.post( 'cmd.php', { cmd: 'bash0', bash0: 'bluetoothctl connect '+ mac }, btScan );
+			$.post( 'cmd.php', { cmd: 'bash', bash: 'bluetoothctl connect '+ mac }, btScan );
 		} else {
 			banner( 'Bluetooth', 'Pair ...', 'bluetooth' );
 			$.post( 'cmd.php', { cmd: 'sh', sh: [ networksh, 'btconnect', mac ] }, function( data ) {
@@ -278,7 +278,7 @@ function btRender( data ) {
 function btScan() {
 	clearTimeout( intervalscan );
 	$( '#scanning-bt' ).removeClass( 'hide' );
-	$.post( 'cmd.php', { cmd: 'bash0', bash0: '/srv/http/bash/network-btscan.sh' }, function( data ) {
+	$.post( 'cmd.php', { cmd: 'bash', bash: '/srv/http/bash/network-btscan.sh' }, function( data ) {
 		btRender( data );
 		intervalscan = setTimeout( btScan, 12000 );
 	}, 'json' );
@@ -286,7 +286,7 @@ function btScan() {
 function btStatus() {
 	$( '#divinterface, #divwebui, #divaccesspoint' ).addClass( 'hide' );
 	$( '#divbluetooth' ).removeClass( 'hide' );
-	$.post( 'cmd.php', { cmd: 'bash0', bash0: '/srv/http/bash/network-btscan.sh list' }, function( data ) {
+	$.post( 'cmd.php', { cmd: 'bash', bash: '/srv/http/bash/network-btscan.sh list' }, function( data ) {
 		if ( data.length ) btRender( data );
 		btScan();
 	}, 'json' );
@@ -502,7 +502,7 @@ function newWiFi( $this ) {
 	} );
 }
 function nicsStatus() {
-	$.post( 'cmd.php', { cmd: 'bash0', bash0: '/srv/http/bash/network-data.sh' }, function( list ) {
+	$.post( 'cmd.php', { cmd: 'bash', bash: '/srv/http/bash/network-data.sh' }, function( list ) {
 		var extra = list.pop();
 		$( '#divaccesspoint' ).toggleClass( 'hide', !extra.wlan );
 		if ( extra.hostapd ) {
@@ -585,7 +585,7 @@ function renderQR() {
 function wlanScan() {
 	clearTimeout( intervalscan );
 	$( '#scanning-wifi' ).removeClass( 'hide' );
-	$.post( 'cmd.php', { cmd: 'bash0', bash0: '/srv/http/bash/network-wlanscan.sh '+ G.wlcurrent, nonumeric: 1 }, function( list ) {
+	$.post( 'cmd.php', { cmd: 'bash', bash: '/srv/http/bash/network-wlanscan.sh '+ G.wlcurrent, nonumeric: 1 }, function( list ) {
 		var good = -60;
 		var fair = -67;
 		var html = '';

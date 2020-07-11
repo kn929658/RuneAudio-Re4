@@ -270,9 +270,9 @@ function psSnapcast( data ) {
 	if ( data !== -1 ) {
 		var cmd = '/srv/http/bash/snapcast.sh ';
 		cmd += 'add' in data ? ' add '+ data.add : ' remove '+ data.remove;
-		$.post( 'cmd.php', { cmd: 'bash0', bash0: cmd } );
+		$.post( 'cmd.php', { cmd: 'bash', bash: cmd } );
 	} else {
-		$.post( 'cmd.php', { cmd: 'bash0', bash0: 'systemctl stop snapclient && systemctl start mpd' }, function() {
+		$.post( 'cmd.php', { cmd: 'bash', bash: 'systemctl stop snapclient && systemctl start mpd' }, function() {
 			getPlaybackStatus();
 		} );
 	}
@@ -318,7 +318,7 @@ function psVolumeNone( data ) {
 		if ( data.volumenone !== existing && G.playback ) displayPlayback();
 	} else {
 		G.display.volumenone = false;
-		$.post( 'cmd.php', { cmd: 'bash0', bash0: "awk '/volume/ {print $NF}' /srv/http/data/mpd/mpdstate" }, function( data ) {
+		$.post( 'cmd.php', { cmd: 'bash', bash: "awk '/volume/ {print $NF}' /srv/http/data/mpd/mpdstate" }, function( data ) {
 			G.status.volume = data;
 			if ( G.playback ) {
 				$volumeRS.setValue( G.status.volume );

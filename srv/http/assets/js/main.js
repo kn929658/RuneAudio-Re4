@@ -312,7 +312,7 @@ $( '#displayplayback' ).click( function( e ) {
 $( '.settings' ).click( function( e ) {
 	var id = e.target.id || e.currentTarget.id;
 	if ( id === 'snapclient' ) {
-		$.post( 'cmd.php', { cmd: 'bash0', bash0: '/srv/http/bash/snapcast.sh '+ ( G.status.snapclient ? 'stop' : 'start' ) }, function( data ) {
+		$.post( 'cmd.php', { cmd: 'bash', bash: '/srv/http/bash/snapcast.sh '+ ( G.status.snapclient ? 'stop' : 'start' ) }, function( data ) {
 			bannerHide();
 			if ( data != -1 ) {
 				getPlaybackStatus();
@@ -335,7 +335,7 @@ $( '.settings' ).click( function( e ) {
 			, radio   : { 'Only changed files' : 'update', 'Rebuild entire database': 'rescan' }
 			, ok      : function() {
 				G.status.updating_db = true;
-				$.post( 'cmd.php', { cmd: 'bash0', bash0: 'mpc '+ $( '#infoRadio input:checked' ).val() } );
+				$.post( 'cmd.php', { cmd: 'bash', bash: 'mpc '+ $( '#infoRadio input:checked' ).val() } );
 			}
 		} );
 	}
@@ -353,14 +353,14 @@ $( '#power' ).click( function( e ) {
 		, buttoncolor : '#de810e'
 		, button      : function() {
 			$( '#stop' ).click();
-			$.post( 'cmd.php', { cmd: 'bash0', bash0: '/srv/http/bash/cmd.sh reboot' } );
+			$.post( 'cmd.php', { cmd: 'bash', bash: '/srv/http/bash/cmd.sh reboot' } );
 			notify( 'Power', 'Reboot ...', 'reboot blink', -1 );
 		}
 		, oklabel     : '<i class="fa fa-power"></i>Off'
 		, okcolor     : '#bb2828'
 		, ok          : function() {
 			$( '#stop' ).click();
-			$.post( 'cmd.php', { cmd: 'bash0', bash0: '/srv/http/bash/cmd.sh reboot off' } );
+			$.post( 'cmd.php', { cmd: 'bash', bash: '/srv/http/bash/cmd.sh reboot off' } );
 			$( '#loader' )
 				.css( 'background', '#000000' )
 				.find( 'svg' ).css( 'animation', 'unset' );
@@ -380,7 +380,7 @@ $( '#addons' ).click( function ( e ) {
 		return
 	}
 	
-	$.post( 'cmd.php', { cmd: 'bash0', bash0: cmdsh +' addonslist' }, function( std ) {
+	$.post( 'cmd.php', { cmd: 'bash', bash: cmdsh +' addonslist' }, function( std ) {
 		if ( std != 0 ) {
 			info( {
 				  icon    : 'info-circle'
@@ -412,11 +412,11 @@ $( '#colorok' ).click( function() {
 		var hsl = 0 +' '+ 0 +' '+ L * 100;
 	}
 	if ( hsl !== G.display.color ) {
-		$.post( 'cmd.php', { cmd: 'bash0', bash0: cmdsh +' colorset '+ hsl } );
+		$.post( 'cmd.php', { cmd: 'bash', bash: cmdsh +' colorset '+ hsl } );
 	}
 } );
 $( '#colorreset' ).click( function() {
-	$.post( 'cmd.php', { cmd: 'bash0', bash0: cmdsh +' colorreset' } );
+	$.post( 'cmd.php', { cmd: 'bash', bash: cmdsh +' colorreset' } );
 } );
 $( '#colorcancel' ).click( function() {
 	G.color = 0;
@@ -876,7 +876,7 @@ $( '.map' ).tap( function( e ) {
 				setButtonToggle();
 				G.local = 1;
 				setTimeout( function() { G.local = 0 }, 600 );
-				$.post( 'cmd.php', { cmd: 'bash0', bash0: 'mpc repeat 0 && mpc single 0' } );
+				$.post( 'cmd.php', { cmd: 'bash', bash: 'mpc repeat 0 && mpc single 0' } );
 			} else {
 				$( '#single' ).click();
 			}
@@ -916,22 +916,22 @@ $( '.btn-cmd' ).click( function() {
 			}
 		} else if ( cmd === 'stop' ) {
 			if ( G.status.airplay ) {
-				$.post( 'cmd.php', { cmd: 'bash0', bash0: '/srv/http/bash/shairport.sh stop' } );
+				$.post( 'cmd.php', { cmd: 'bash', bash: '/srv/http/bash/shairport.sh stop' } );
 				return
 				
 			} else if ( G.status.snapclient ) {
 				clearIntervalAll();
-				$.post( 'cmd.php', { cmd: 'bash0', bash0: '/srv/http/bash/snapcast.sh stop' }, function() {
+				$.post( 'cmd.php', { cmd: 'bash', bash: '/srv/http/bash/snapcast.sh stop' }, function() {
 					getPlaybackStatus();
 				} );
 				return
 				
 			} else if ( G.status.spotify ) {
-				$.post( 'cmd.php', { cmd: 'bash0', bash0: '/srv/http/bash/spotifyd.sh stop' } );
+				$.post( 'cmd.php', { cmd: 'bash', bash: '/srv/http/bash/spotifyd.sh stop' } );
 				return
 				
 			} else if ( G.status.upnp ) {
-				$.post( 'cmd.php', { cmd: 'bash0', bash0: '/srv/http/bash/upnp-stop.sh' } );
+				$.post( 'cmd.php', { cmd: 'bash', bash: '/srv/http/bash/upnp-stop.sh' } );
 				return
 				
 			}
@@ -1006,13 +1006,13 @@ $( '.btn-cmd' ).click( function() {
 			$( '#'+ el ).toggleClass( 'active', el === cmd );
 		} );
 	}
-	$.post( 'cmd.php', { cmd: 'bash0', bash0: command }, function() {
+	$.post( 'cmd.php', { cmd: 'bash', bash: command }, function() {
 		clearTimeout( prevnext );
 		setTimeout( getPlaybackStatus, 600 );
 	} );
 	// for gpio
 	if ( $( '#gpio' ).hasClass( 'on' ) && command === 'mpc play' ) {
-		$.post( 'cmd.php', { cmd: 'bash0', bash0: cmdsh +' gpiotimerreset' } );
+		$.post( 'cmd.php', { cmd: 'bash', bash: cmdsh +' gpiotimerreset' } );
 	}
 } );
 $( '#biocontent' ).on( 'click', '.biosimilar', function() {
@@ -1783,11 +1783,11 @@ $( '#button-pl-consume' ).click( function() {
 	if ( G.status.consume ) {
 		$( this ).removeClass( 'bl' );
 		notify( 'Consume Mode', 'Off', 'list-ul' );
-		$.post( 'cmd.php', { cmd: 'bash0', bash0: 'mpc consume 0' } );
+		$.post( 'cmd.php', { cmd: 'bash', bash: 'mpc consume 0' } );
 	} else {
 		$( this ).addClass( 'bl' );
 		notify( 'Consume Mode', 'On - Remove each song after played.', 'list-ul' );
-		$.post( 'cmd.php', { cmd: 'bash0', bash0: 'mpc consume 1' } );
+		$.post( 'cmd.php', { cmd: 'bash', bash: 'mpc consume 1' } );
 	}
 } );
 $( '#button-pl-random' ).click( function() {
@@ -1795,7 +1795,7 @@ $( '#button-pl-random' ).click( function() {
 		G.status.librandom = false;
 		$( this ).removeClass( 'bl' );
 		notify( 'Roll The Dice', 'Off ...', 'dice' );
-		$.post( 'cmd.php', { cmd: 'bash0', bash0: cmdsh +' plrandom 0' } );
+		$.post( 'cmd.php', { cmd: 'bash', bash: cmdsh +' plrandom 0' } );
 	} else {
 		info( {
 			  icon    : 'dice'
@@ -1805,7 +1805,7 @@ $( '#button-pl-random' ).click( function() {
 				G.status.librandom = true;
 				$( this ).addClass( 'bl' );
 				notify( 'Roll The Dice', 'Add+play ...', 'dice' );
-				$.post( 'cmd.php', { cmd: 'bash0', bash0: cmdsh +' plrandom 1' } );
+				$.post( 'cmd.php', { cmd: 'bash', bash: cmdsh +' plrandom 1' } );
 			}
 		} );
 	}
@@ -1818,7 +1818,7 @@ $( '#button-pl-shuffle' ).click( function() {
 		, title   : 'Shuffle Playlist'
 		, message : 'Shuffle all tracks in playlist?'
 		, ok      : function() {
-			$.post( 'cmd.php', { cmd: 'bash0', bash0: cmdsh +' plshuffle' } );
+			$.post( 'cmd.php', { cmd: 'bash', bash: cmdsh +' plshuffle' } );
 		}
 	} );
 } );
@@ -1835,7 +1835,7 @@ $( '#button-pl-crop' ).click( function() {
 				G.local = 1;
 				setTimeout( function() { G.local = 0 }, 300 );
 			}
-			$.post( 'cmd.php', { cmd: 'bash0', bash0: cmdsh +' plcrop' } );
+			$.post( 'cmd.php', { cmd: 'bash', bash: cmdsh +' plcrop' } );
 		}
 	} );
 } );
@@ -1867,7 +1867,7 @@ $( '#button-pl-clear' ).click( function() {
 			$( '.cover-save' ).remove();
 			G.local = 1;
 			setTimeout( function() { G.local = 0 }, 1000 );
-			$.post( 'cmd.php', { cmd: 'bash0', bash0: 'mpc clear' } );
+			$.post( 'cmd.php', { cmd: 'bash', bash: 'mpc clear' } );
 		}
 		, buttonwidth : 1
 	} );
@@ -1901,7 +1901,7 @@ var sortableplaylist = new Sortable( document.getElementById( 'pl-list' ), {
 		}
 		G.sortable = 1;
 		setTimeout( function() { G.sortable = 0 }, 500 );
-		$.post( 'cmd.php', { cmd: 'bash0', bash0: cmdsh +' plorder '+ ( e.oldIndex + 1 ) +' '+ ( e.newIndex + 1 ) }, function() {
+		$.post( 'cmd.php', { cmd: 'bash', bash: cmdsh +' plorder '+ ( e.oldIndex + 1 ) +' '+ ( e.newIndex + 1 ) }, function() {
 			setTimeout( setPlaylistScroll, 600 );
 		} );
 	}
@@ -1954,7 +1954,7 @@ $( '#pl-list' ).on( 'click', 'li', function( e ) {
 		$( '#pl-list li.active .elapsed' ).empty();
 		$( '#pl-list li.active' ).removeClass( 'active' );
 		$this.addClass( 'active' );
-		$.post( 'cmd.php', { cmd: 'bash0', bash0: 'mpc play '+ listnumber } );
+		$.post( 'cmd.php', { cmd: 'bash', bash: 'mpc play '+ listnumber } );
 	} else {
 		if ( $this.hasClass( 'active' ) ) {
 			if ( G.status.state == 'play' ) {
@@ -1977,7 +1977,7 @@ $( '#pl-list' ).on( 'click', 'li', function( e ) {
 			$( '#pl-list li.active .elapsed' ).empty();
 			$( '#pl-list li.active' ).removeClass( 'active' );
 			$this.addClass( 'active' );
-			$.post( 'cmd.php', { cmd: 'bash0', bash0: 'mpc play '+ listnumber } );
+			$.post( 'cmd.php', { cmd: 'bash', bash: 'mpc play '+ listnumber } );
 			G.status.elapsed = 0;
 			if ( $this.find( '.fa-webradio' ).length ) G.status.Title = '';
 			playlistProgress();
@@ -2031,7 +2031,7 @@ $( '#pl-list' ).on( 'click', '.pl-icon', function( e ) {
 	if ( targetB > wH - ( G.bars ? 80 : 40 ) + $( window ).scrollTop() ) $( 'html, body' ).animate( { scrollTop: targetB - wH + 42 } );
 } );
 $( '#pl-list' ).on( 'click', '.pl-remove', function() { // remove from playlist
-	$.post( 'cmd.php', { cmd: 'bash0', bash0: 'mpc del '+ ( $( this ).parent().index() + 1 ) } );
+	$.post( 'cmd.php', { cmd: 'bash', bash: 'mpc del '+ ( $( this ).parent().index() + 1 ) } );
 } );
 $( '#pl-savedlist' ).on( 'click', 'li', function( e ) {
 	if ( G.swipe ) return

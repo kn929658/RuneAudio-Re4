@@ -27,7 +27,7 @@ $( '#refresh' ).click( function( e ) {
 		bannerHide();
 	} else {
 		intervalcputime = setInterval( function() {
-			$.post( 'cmd.php', { cmd: 'bash0', bash0: '/srv/http/bash/system-data.sh status' }, function( status ) {
+			$.post( 'cmd.php', { cmd: 'bash', bash: '/srv/http/bash/system-data.sh status' }, function( status ) {
 				$.each( status, function( key, val ) {
 					G[ key ] = val;
 				} );
@@ -622,7 +622,7 @@ $( '#backuprestore' ).click( function( e ) {
 	} );
 } );
 function getIwregget() {
-	$.post( 'cmd.php', { cmd: 'bash0', bash0: 'iw reg get' }, function( status ) {
+	$.post( 'cmd.php', { cmd: 'bash', bash: 'iw reg get' }, function( status ) {
 		$( '#codeiwregget' )
 			.html( status )
 			.removeClass( 'hide' );
@@ -646,7 +646,7 @@ function getJournalctl() {
 	}
 }
 function getConfigtxt() {
-	$.post( 'cmd.php', { cmd: 'bash0', bash0: 'cat /boot/config.txt' }, function( status ) {
+	$.post( 'cmd.php', { cmd: 'bash', bash: 'cat /boot/config.txt' }, function( status ) {
 		$( '#codeconfigtxt' )
 			.html( status )
 			.removeClass( 'hide' );
@@ -674,7 +674,7 @@ function renderStatus() {
 }
 
 refreshData = function() { // system page: use resetLocal() to aviod delay
-	$.post( 'cmd.php', { cmd: 'bash0', bash0: '/srv/http/bash/system-data.sh' }, function( list ) {
+	$.post( 'cmd.php', { cmd: 'bash', bash: '/srv/http/bash/system-data.sh' }, function( list ) {
 		G = list;
 		G.reboot = list.reboot ? list.reboot.split( '\n' ) : [];
 		G.sources.pop(); // remove 'reboot' from sources-data.sh

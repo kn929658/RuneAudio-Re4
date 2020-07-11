@@ -29,11 +29,11 @@ $( '.contextmenu a' ).click( function( e ) {
 			.removeClass( 'fa-folder' )
 			.addClass( 'fa-refresh-library blink' );
 		if ( G.list.path.slice( -3 ) === 'cue' ) G.list.path = G.list.path.substr( 0, G.list.path.lastIndexOf( '/' ) )
-		$.post( 'cmd.php', { cmd: 'bash0', bash0: 'mpc update "'+ G.list.path +'"' } );
+		$.post( 'cmd.php', { cmd: 'bash', bash: 'mpc update "'+ G.list.path +'"' } );
 	} else if ( cmd === 'remove' ) {
 		G.contextmenu = 1;
 		setTimeout( function() { G.contextmenu = 0 }, 500 );
-		$.post( 'cmd.php', { cmd: 'bash0', bash0: 'mpc del '+ (  G.list.li.index() + 1 ) } );
+		$.post( 'cmd.php', { cmd: 'bash', bash: 'mpc del '+ (  G.list.li.index() + 1 ) } );
 	} if ( cmd === 'replace' ) {
 		G.plreplace = 1;
 	} else if ( cmd === 'savedpladd' ) {
@@ -74,13 +74,13 @@ $( '.contextmenu a' ).click( function( e ) {
 				G.local = 1;
 				var iL = val.length;
 				for ( i = 0; i < iL; i++ ) {
-					$.post( 'cmd.php', { cmd: 'bash0', bash0: 'mpc findadd artist "'+ val[ i ].artist.name +'" title "'+ val[ i ].name +'"' } );
+					$.post( 'cmd.php', { cmd: 'bash', bash: 'mpc findadd artist "'+ val[ i ].artist.name +'" title "'+ val[ i ].name +'"' } );
 					if ( i === iL - 1 ) {
 						setTimeout( function() {
 							G.local = 0;
 							notify( title, 'Similar tracks added', 'list-ul' );
 							updatePlaylist();
-							if ( submenu ) $.post( 'cmd.php', { cmd: 'bash0', bash0: 'mpc play'+ ( plL + 1 ) } );
+							if ( submenu ) $.post( 'cmd.php', { cmd: 'bash', bash: 'mpc play'+ ( plL + 1 ) } );
 						}, 600 );
 					}
 				}
@@ -89,7 +89,7 @@ $( '.contextmenu a' ).click( function( e ) {
 		var path = G.list.path.split( '/' );
 		G.local = 1;
 		setTimeout( function() { G.local = 0 }, 2000 );
-		$.post( 'cmd.php', { cmd: 'bash0', bash0: cmdsh +' ignoredir "'+ escapePath( G.list.path ) +'"' }, function() {
+		$.post( 'cmd.php', { cmd: 'bash', bash: cmdsh +' ignoredir "'+ escapePath( G.list.path ) +'"' }, function() {
 			G.list.li.remove();
 		} );
 		notify( 'Exclude Directory', '<wh>'+ dir +'</wh> excluded from database.', 'folder' );
@@ -191,7 +191,7 @@ $( '.contextmenu a' ).click( function( e ) {
 
 function addReplace( cmd, command, title ) {
 	var playbackswitch = G.display.playbackswitch && ( cmd === 'addplay' || cmd === 'replaceplay' );
-	$.post( 'cmd.php', { cmd: 'bash0', bash0: command }, function() {
+	$.post( 'cmd.php', { cmd: 'bash', bash: command }, function() {
 		if ( playbackswitch ) {
 			$( '#tab-playback' ).click();
 		} else {
@@ -308,7 +308,7 @@ function bookmarkNew() {
 		return
 	}
 	
-	$.post( 'cmd.php', { cmd: 'bash0', bash0: '/srv/http/bash/getcover.sh "/mnt/MPD/'+ path +'" 200' }, function( base64img ) {
+	$.post( 'cmd.php', { cmd: 'bash', bash: '/srv/http/bash/getcover.sh "/mnt/MPD/'+ path +'" 200' }, function( base64img ) {
 		if ( base64img ) {
 			if ( base64img.slice( -3 ) !== 'gif' ) {
 				info( {
@@ -392,7 +392,7 @@ function playlistAdd( name, oldname ) {
 		var path = '/srv/http/data/playlists/'
 		var oldfile = path + escapePath( oldname );
 		var newfile = path + escapePath( name );
-		$.post( 'cmd.php', { cmd: 'bash0', bash0: 'mv "'+ oldfile +'" "'+ newfile +'"' } );
+		$.post( 'cmd.php', { cmd: 'bash', bash: 'mv "'+ oldfile +'" "'+ newfile +'"' } );
 	} else {
 		$.post( 'mpdplaylist.php', { save: escapePath( name ) }, function( data ) {
 			if ( data == -1 ) {
@@ -646,7 +646,7 @@ function tagEditor() {
 					cmd += " '/mnt/MPD/"+ file +"'";
 				}
 				notify( 'Library Update', 'Update ...', 'library blink', -1 );
-				$.post( 'cmd.php', { cmd: 'bash', bash: [ cmd, 'mpc update "'+ $( '.licover .lipath' ).text() +'"' ] } );
+				$.post( 'cmd.php', { cmd: 'bash', bash: [ cmd +' && mpc update "'+ $( '.licover .lipath' ).text() +'"' ] } );
 			}
 		} );
 	}, 'json' );
@@ -743,7 +743,7 @@ function webRadioCoverart() {
 		infojson.buttonlabel = '<i class="fa fa-webradio"></i>Reset';
 		infojson.buttonwidth = 1;
 		infojson.button      = function() {
-			$.post( 'cmd.php', { cmd: 'bash0', bash0: "sed -i '2,$ d' '/srv/http/data/webradios/"+ urlname +"'" } );
+			$.post( 'cmd.php', { cmd: 'bash', bash: "sed -i '2,$ d' '/srv/http/data/webradios/"+ urlname +"'" } );
 			if ( G.playback ) {
 				$( '.edit' ).remove();
 				$( '#coverart' )
@@ -757,7 +757,7 @@ function webRadioCoverart() {
 		}
 	}
 	$.post( 'cmd.php'
-		, { cmd: 'bash0', bash0: "sed -n '3 p' '/srv/http/data/webradios/"+ urlname +"'" }
+		, { cmd: 'bash', bash: "sed -n '3 p' '/srv/http/data/webradios/"+ urlname +"'" }
 		, function( base64 ) {
 		if ( base64 ) {
 			infojson.message = '<img class="imgold" src="'+ base64 +'">';
@@ -880,7 +880,7 @@ function webRadioNew( name, url ) {
 	var urlname = url.replace( /\//g, '|' );
 	var thumb = G.list.li.find( '.lithumb' ).text();
 	var img = G.list.li.find( '.liimg' ).text();
-	$.post( 'cmd.php', { cmd: 'bash0', bash0: "test -e '/srv/http/data/webradios/"+ urlname +' && echo 0 || echo -1' }, function( data ) {
+	$.post( 'cmd.php', { cmd: 'bash', bash: "test -e '/srv/http/data/webradios/"+ urlname +' && echo 0 || echo -1' }, function( data ) {
 		if ( data != -1 ) {
 			info( {
 				  icon    : 'webradio'

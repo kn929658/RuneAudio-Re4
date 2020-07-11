@@ -103,7 +103,7 @@ $( '#list' ).on( 'click', 'li', function() {
 	
 	if ( $( this ).find( '.fa-search' ).length ) {
 		$( '#listshare' ).html( '<li><i class="fa fa-search blink"></i></li>' );
-		$.post( 'cmd.php', { cmd: 'bash0', bash0: '/srv/http/bash/sources-sharescan.sh' }, function( list ) {
+		$.post( 'cmd.php', { cmd: 'bash', bash: '/srv/http/bash/sources-sharescan.sh' }, function( list ) {
 			var list = JSON.parse( list );
 			if ( list.length ) {
 				var html = '';
@@ -142,14 +142,14 @@ $( '#fstab' ).click( function( e ) {
 } );
 
 function getMounts() {
-	$.post( 'cmd.php', { cmd: 'bash0', bash0: 'mount | grep " / \\|MPD"' }, function( status ) {
+	$.post( 'cmd.php', { cmd: 'bash', bash: 'mount | grep " / \\|MPD"' }, function( status ) {
 		$( '#codemount' )
 			.html( status )
 			.removeClass( 'hide' );
 	} );
 }
 function getFstab() {
-	$.post( 'cmd.php', { cmd: 'bash0', bash0: 'cat /etc/fstab' }, function( status ) {
+	$.post( 'cmd.php', { cmd: 'bash', bash: 'cat /etc/fstab' }, function( status ) {
 		$( '#codefstab' )
 			.html( status )
 			.removeClass( 'hide' );
@@ -226,7 +226,7 @@ function infoMount( formdata, cifs ) {
 
 refreshData = function() {
 	$( '#refreshing' ).removeClass( 'hide' );
-	$.post( 'cmd.php', { cmd: 'bash0', bash0: '/srv/http/bash/sources-data.sh' }, function( list ) {
+	$.post( 'cmd.php', { cmd: 'bash', bash: '/srv/http/bash/sources-data.sh' }, function( list ) {
 		G.reboot = list.reboot ? list.reboot.split( '\n' ) : [];
 		var html = '';
 		$.each( list, function( i, val ) {

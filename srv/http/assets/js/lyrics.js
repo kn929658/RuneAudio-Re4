@@ -30,7 +30,7 @@ $( '#song, #guide-lyrics' ).tap( function() {
 	}
 	artist = artist.replace( /(["`])/g, '\\$1' );
 	title = title.replace( /(["`])/g, '\\$1' );
-	$.post( 'cmd.php', { cmd: 'bash0', bash0: '/srv/http/bash/lyrics.sh "'+ artist +'" "'+ title +'" local' }, function( data ) {
+	$.post( 'cmd.php', { cmd: 'bash', bash: '/srv/http/bash/lyrics.sh "'+ artist +'" "'+ title +'" local' }, function( data ) {
 		if ( data ) {
 			var lyrics_title = data.split( '^^' );
 			lyricsTitle = lyrics_title[ 0 ];
@@ -133,7 +133,7 @@ $( '#lyricssave' ).click( function() {
 			var newlyrics = $( '#lyricstextarea' ).val();
 			var artist = $( '#lyricsartist' ).text();
 			var title = $( '#lyricstitle' ).text();
-			$.post( 'cmd.php', { cmd: 'bash0', bash0: '/srv/http/bash/lyrics.sh "'+ artist +'" "'+ title +'" save "'+ newlyrics +'"' } );
+			$.post( 'cmd.php', { cmd: 'bash', bash: '/srv/http/bash/lyrics.sh "'+ artist +'" "'+ title +'" save "'+ newlyrics +'"' } );
 			lyricstop = $( '#lyricstextarea' ).scrollTop();
 			currentlyrics = newlyrics;
 			lyrics2html( newlyrics );
@@ -156,7 +156,7 @@ $( '#lyricsdelete' ).click( function() {
 		, ok      : function() {
 			var artist = $( '#lyricsartist' ).text();
 			var title = $( '#lyricstitle' ).text();
-			$.post( 'cmd.php', { cmd: 'bash0', bash0: '/srv/http/bash/lyrics.sh "'+ artist +'" "'+ title +'" delete' } );
+			$.post( 'cmd.php', { cmd: 'bash', bash: '/srv/http/bash/lyrics.sh "'+ artist +'" "'+ title +'" delete' } );
 			lyrics = '';
 			currentlyrics = '';
 			lyricsHide();
@@ -172,7 +172,7 @@ htmlEscape = function( str ) {
 		.replace( /'|"/g, '' );
 }
 getLyrics = function() {
-	$.post( 'cmd.php', { cmd: 'bash0', bash0: '/srv/http/bash/lyrics.sh "'+ lyricsArtist +'" "'+ lyricsTitle +'"' }, function( data ) {
+	$.post( 'cmd.php', { cmd: 'bash', bash: '/srv/http/bash/lyrics.sh "'+ lyricsArtist +'" "'+ lyricsTitle +'"' }, function( data ) {
 		if ( data ) {
 			lyrics = data;
 			lyrics2html( lyrics );

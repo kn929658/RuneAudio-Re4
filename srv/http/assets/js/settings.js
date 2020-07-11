@@ -19,7 +19,7 @@ $( '#close' ).click( function() {
 					   +'<br><br><w>'+ G.reboot.join( '<br>' ) +'</w>'
 			, cancel  : function() {
 				G.reboot = [];
-				$.post( 'cmd.php', { cmd: 'bash0', bash0: 'rm -f /srv/http/data/tmp/reboot' } );
+				$.post( 'cmd.php', { cmd: 'bash', bash: 'rm -f /srv/http/data/tmp/reboot' } );
 			}
 			, ok      : function() {
 				$.post( 'cmd.php', { cmd: 'sh', sh: [ 'cmd.sh', 'reboot' ] } );
@@ -28,9 +28,9 @@ $( '#close' ).click( function() {
 		} );
 	} else {
 		if ( page === 'system' ) {
-			$.post( 'cmd.php', { cmd: 'bash0', bash0: 'rm -f /srv/http/data/tmp/backup.*' } );
+			$.post( 'cmd.php', { cmd: 'bash', bash: 'rm -f /srv/http/data/tmp/backup.*' } );
 		} else if ( page === 'network' ) {
-			if ( $( '#listinterfaces li' ).hasClass( 'bt' ) ) $.post( 'cmd.php', { cmd: 'bash0', bash0: 'bluetoothctl scan off' } );
+			if ( $( '#listinterfaces li' ).hasClass( 'bt' ) ) $.post( 'cmd.php', { cmd: 'bash', bash: 'bluetoothctl scan off' } );
 		}
 		location.href = '/';
 	}

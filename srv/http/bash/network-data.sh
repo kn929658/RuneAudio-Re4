@@ -6,7 +6,11 @@ if [[ -e /usr/bin/hostapd ]]; then
 	ssid=$( grep ssid= /etc/hostapd/hostapd.conf | cut -d= -f2 )
 	passphrase=$( grep '^wpa_passphrase' /etc/hostapd/hostapd.conf | cut -d'=' -f2 )
 	hostapdip=$( grep router /etc/dnsmasq.conf | cut -d',' -f2 )
-	extra+=',"hostapd":{"ssid":"'${ssid//\"/\\\"}'","passphrase":"'${passphrase//\"/\\\"}'","hostapdip":"'$hostapdip'","hostapd":'$hostapd'}'
+	ap='
+	  "ssid"       : "'${ssid//\"/\\\"}'"
+	, "passphrase" : "'${passphrase//\"/\\\"}'"
+	, "hostapdip"  : "'$hostapdip'"
+	, "hostapd"    : '$hostapd
 fi
 
 lines=$( /srv/http/bash/network.sh ifconfig )
@@ -34,6 +38,11 @@ for line in "${lines[@]}"; do
 	data+='{"dhcp":"'$dhcp'","mac":"'$mac'","gateway":"'$gateway'","interface":"'$interface'","ip":"'$ip'","ssid":"'$ssid'"},'
 done
 
+extra='
+	  "hostapd"  : {'$ap'}
+	, "hostname" : "'$( hostname )'"
+	, "reboot"   : "'$( cat /srv/http/data/tmp/reboot 2> /dev/null )'"
+	, "wlan"     : '$( lsmod | grep -q ^brcmfmac && echo true || echo false )
 # bluetooth
 if systemctl -q is-active bluetooth; then
 	paired=$( bluetoothctl paired-devices )
@@ -51,9 +60,7 @@ if systemctl -q is-active bluetooth; then
 	fi
 	extra+=',"bluetooth":'$btlist
 fi
-extra+=',"hostname":"'$( hostname )'"
-	    ,"wlan":'$( lsmod | grep -q ^brcmfmac && echo true || echo false )
 		
-data+={${extra:1}}
+data+={${extra}}
 
 echo [${data}]

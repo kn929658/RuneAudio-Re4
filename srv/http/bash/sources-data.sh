@@ -41,4 +41,6 @@ if [[ -n $targets ]]; then
 	done
 fi
 
-echo [${data:0:-1}]
+data+='"'$( cat /srv/http/data/tmp/reboot 2> /dev/null )'"'
+
+echo [${data}]

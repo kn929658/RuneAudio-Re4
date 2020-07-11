@@ -1,19 +1,22 @@
 #!/bin/bash
 
+dirsystem=/srv/http/data/system
+
+# convert each line to each args
+readarray -t args <<< "$1"
+
 pushRefresh() {
 	curl -s -X POST 'http://127.0.0.1/pub?id=refresh' -d '{ "page": "sources" }'
 }
 
-dirsystem=/srv/http/data/system
-
-case $1 in
+case ${args[0]} in
 
 mount )
-	mountpoint=$2
-	ip=$3
-	source=$4
-	cifsnfs=$5
-	options=$6
+	mountpoint=${args[1]}
+	ip=${args[2]}
+	source=${args[3]}
+	cifsnfs=${args[4]}
+	options=${args[5]}
 
 	! ping -c 1 -w 1 $ip &> /dev/null && echo 'IP not found.' && exit
 
@@ -37,24 +40,24 @@ mount )
 	;;
 remount )
 	if [[ ${2:9:3} == NAS ]]; then
-		mount "$2"
+		mount "${args[1]}"
 	else
-		udevil mount "$3"
+		udevil mount "${args[2]}"
 	fi
 	pushRefresh
 	;;
 remove )
-	umount -l "$2"
+	umount -l "${args[1]}"
 	sed -i "\|${2// /.040}| d" /etc/fstab
-	rmdir "$2" &> /dev/null
+	rmdir "${args[1]}" &> /dev/null
 	rm "$dirsystem/fstab-${2/*\/}"
 	pushRefresh
 	;;
 unmount )
 	if [[ ${2:9:3} == NAS ]]; then
-		umount -l "$2"
+		umount -l "${args[1]}"
 	else
-		udevil umount -l "$2"
+		udevil umount -l "${args[1]}"
 	fi
 	pushRefresh
 	;;

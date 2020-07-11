@@ -1,16 +1,19 @@
 #!/bin/bash
 
+dirsystem=/srv/http/data/system
+
+# convert each line to each args
+readarray -t args <<< "$1"
+
 pushRefresh() {
 	curl -s -X POST 'http://127.0.0.1/pub?id=refresh' -d '{ "page": "network" }'
 }
 
-dirsystem=/srv/http/data/system
-
-case $1 in
+case ${args[0]} in
 
 accesspoint )
-	if [[ $2 == true ]]; then
-		ifconfig wlan0 $3
+	if [[ ${args[1]} == true ]]; then
+		ifconfig wlan0 ${args[2]}
 		systemctl enable --now hostapd dnsmasq
 		touch $dirsystem/accesspoint
 	else
@@ -21,52 +24,52 @@ accesspoint )
 	pushRefresh
 	;;
 accesspointset )
-	sed -i -e "s/^\(dhcp-range=\).*/\1$1/
-	" -e "s/^\(.*option:router,\).*/\1$2/
-	" -e "s/^\(.*option:dns-server,\).*/\1$2
+	sed -i -e "s/^\(dhcp-range=\).*/\1${args[1]}/
+	" -e "s/^\(.*option:router,\).*/\1${args[2]}/
+	" -e "s/^\(.*option:dns-server,\).*/\1${args[2]}
 	" /etc/dnsmasq.conf
 	sed -i -e '/wpa\|rsn_pairwise/ s/^#\+//
-	' -e "s/\(wpa_passphrase=\).*/\1$3/
+	' -e "s/\(wpa_passphrase=\).*/\1${args[3]}/
 	" /etc/hostapd/hostapd.conf
 	systemctl restart hostapd dnsmasq
-	if [[ $2 == 192.168.5.1 ]]; then
+	if [[ ${args[2]} == 192.168.5.1 ]]; then
 		rm $dirsystem/accesspoint-ip*
 	else
-		echo $2 > $dirsystem/accesspoint-ip
-		echo $1 > $dirsystem/accesspoint-iprange
+		echo ${args[2]} > $dirsystem/accesspoint-ip
+		echo ${args[1]} > $dirsystem/accesspoint-iprange
 	fi
-	if [[ $3 == RuneAudio ]]; then
+	if [[ ${args[3]} == RuneAudio ]]; then
 		rm $dirsystem/accesspoint-passphrase
 	else
-		echo $3 > $dirsystem/accesspoint-passphrase
+		echo ${args[3]} > $dirsystem/accesspoint-passphrase
 	fi
 	pushRefresh
 	;;
 btconnect )
 	/srv/http/bash/network-btscan.sh disconnect
-	bluetoothctl trust $2
-	bluetoothctl pair $2
-	bluetoothctl connect $2
+	bluetoothctl trust ${args[1]}
+	bluetoothctl pair ${args[1]}
+	bluetoothctl connect ${args[1]}
 	[[ $? != 0 ]] && echo -1 ||	pushRefresh
 	;;
 connect )
-	ifconfig $2 down
-	[[ -n $4 ]] && echo "$4" | tee "/srv/http/data/system/netctl-$3" > "/etc/netctl/$3"
-	netctl switch-to "$3"
-	ifconfig $2 up
+	ifconfig ${args[1]} down
+	[[ -n ${args[3]} ]] && echo "${args[3]}" | tee "/srv/http/data/system/netctl-${args[2]}" > "/etc/netctl/${args[2]}"
+	netctl switch-to "${args[2]}"
+	ifconfig ${args[1]} up
 	pushRefresh
 	;;
 connectenable )
-	systemctl enable netctl-auto$2
+	systemctl enable netctl-auto${args[1]}
 	pushRefresh
 	;;
 disconnect )
 	netctl stop-all
 	killall wpa_supplicant
-	ifconfig $2 up
-	if [[ -n $3 ]]; then
-		systemctl disable netctl-auto@$2
-		rm "/etc/netctl/$3" "/srv/http/data/system/netctl-$3"
+	ifconfig ${args[1]} up
+	if [[ -n ${args[2]} ]]; then
+		systemctl disable netctl-auto@${args[1]}
+		rm "/etc/netctl/${args[2]}" "/srv/http/data/system/netctl-${args[2]}"
 	fi
 	pushRefresh
 	;;
@@ -77,17 +80,17 @@ Name=eth0
 [Network]
 DNSSEC=no
 "
-	if [[ -z $2 ]];then
+	if [[ -z ${args[1]} ]];then
 		eth0+="\
 DHCP=yes
 "
 		rm /srv/http/data/system/eth0.network
 	else
-		arp -n | grep -q ^$2 && echo -1 && exit
+		arp -n | grep -q ^${args[1]} && echo -1 && exit
 		
 		eth0+="\
-Address=$2/24
-Gateway=$3
+Address=${args[1]}/24
+Gateway=${args[2]}
 "
 		echo "$eth0" > /srv/http/data/system/eth0.network
 	fi
@@ -96,13 +99,13 @@ Gateway=$3
 	pushRefresh
 	;;
 editwifidhcp )
-	file="/srv/http/data/system/netctl-$2"
-	netctl stop "$2"
+	file="/srv/http/data/system/netctl-${args[1]}"
+	netctl stop "${args[1]}"
 	sed -i -e '/^Address\|^Gateway/ d
 	' -e 's/^IP.*/IP=dhcp/
 	' "$file"
-	cp "$file" "/etc/netctl/$2"
-	netctl start "$2"
+	cp "$file" "/etc/netctl/${args[1]}"
+	netctl start "${args[1]}"
 	pushRefresh
 	;;
 ifconfig )
@@ -115,7 +118,7 @@ ifconfig )
 	echo "$lines"
 	;;
 ipused )
-	arp -n | grep -q ^$2 && echo 1 || echo 0
+	arp -n | grep -q ^${args[1]} && echo 1 || echo 0
 	;;
 statusifconfig )
 	ifconfig
@@ -136,7 +139,7 @@ statusnetctl )
 	echo "$profiles"
 	;;
 statuswifi )
-	value=$( grep '^Address\|^Gateway\|^IP\|^Key\|^Security' "/etc/netctl/$2" \
+	value=$( grep '^Address\|^Gateway\|^IP\|^Key\|^Security' "/etc/netctl/${args[1]}" \
 				| tr -d '"' \
 				| sed 's/^/"/ ;s/=/":"/; s/$/",/' )
 	echo {${value:0:-1}}

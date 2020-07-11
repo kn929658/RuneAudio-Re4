@@ -10,6 +10,20 @@ $dirwebradios = $dirdata.'webradios/';
 
 switch( $_POST[ 'cmd' ] ) {
 
+case 'bash': // single command
+	$cmd = $_POST[ 'bash' ];
+	echo shell_exec( $cmd[ 0 ] === '/' ? $sudo.$cmd : $sudobin.$cmd );
+	break;
+case 'sh': // multiple commands: no escaped characters - js > php > bash
+	$sh = $_POST[ 'sh' ];                                      // 1 - get js array
+	$script = '/srv/http/bash/'.array_shift( $sh ).' "';       // 2 - extract script from 1st element
+	$cmd = implode( "\n", str_replace( '"', '\"', $sh ) ).'"'; // 3 - convert array to multi-line string with " escaped
+	echo shell_exec( $sudo.$script.$cmd );                     // 4 - pass string to bash > convert each line to each args
+	break;
+case 'exec': // return array to js
+	exec( $sudobin.$_POST[ 'exec' ], $output, $std );
+	echo json_encode( $output );
+	break;
 case 'backuprestore':
 	$type = $_POST[ 'backuprestore' ];
 	$scriptfile = $dirbash.'backup-restore.sh ';
@@ -28,35 +42,6 @@ case 'backuprestore':
 	} else {
 		exec( $sudo.$scriptfile.$type );
 	}
-	break;
-case 'sh': // no escaped characters - js > php > bash
-	$sh = $_POST[ 'sh' ];                                      // 1 - get js array
-	$script = '/srv/http/bash/'.array_shift( $sh ).' "';       // 2 - extract script from 1st element
-	$cmd = implode( "\n", str_replace( '"', '\"', $sh ) ).'"'; // 3 - convert array to multi-line string with " escaped
-	echo shell_exec( $sudo.$script.$cmd );                     // 4 - pass string to bash > convert each line to each args
-	break;
-case 'bash':
-	$cmd = $_POST[ 'bash' ];
-	echo shell_exec( $cmd[ 0 ] === '/' ? $sudo.$cmd : $sudobin.$cmd );
-	break;
-case 'exec':
-	exec( $sudobin.$_POST[ 'exec' ], $output, $std );
-	echo json_encode( $output );
-	break;
-case 'bash':
-	$bash = $_POST[ 'bash' ];
-	$command = '';
-	if ( !is_array( $bash ) ) $bash = [ $bash ];
-	foreach( $bash as $cmd ) {
-		$command.= $cmd[ 0 ] === '/' ? $sudo.$cmd.';' : $sudobin.$cmd.';';
-	}
-	exec( $command, $output, $std );
-	if ( $std !== 0 && $std !== 3 ) { // systemctl status: inactive $std = 3
-		echo -1;
-	} else {
-		echo json_encode( $output, JSON_NUMERIC_CHECK );
-	}
-	if ( isset( $_POST[ 'pushstream' ] ) ) pushstream( 'notify', $_POST[ 'pushstream' ] );
 	break;
 case 'bookmarks':
 	$name = $_POST[ 'bookmarks' ];

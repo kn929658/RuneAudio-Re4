@@ -94,7 +94,7 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 			  function() {
 				clearTimeout( intervalscan );
 				banner( ssid, 'Forget ...', 'wifi-3' );
-				$.post( 'cmd.php', { cmd: 'sh', sh: [ networksh, 'disconnect', G.wlcurrent, escapeString( ssid ) ] }, refreshData );
+				$.post( 'cmd.php', { cmd: 'sh', sh: [ networksh, 'disconnect', G.wlcurrent, ssid ] }, refreshData );
 			}
 			, function() {
 				if ( connected ) {
@@ -251,7 +251,7 @@ $( '#settings-accesspoint' ).click( function() {
 			var ip012 = ips.join( '.' );
 			var iprange = ip012 +'.'+ ( +ip3 + 1 ) +','+ ip012 +'.254,24h';
 			banner( 'RPi Access Point', 'Change ...', 'wifi-3' );
-			$.post( 'cmd.php', { cmd: 'sh', sh: [ networksh, 'accesspointset', iprange, ip, escapeString( passphrase ) ] }, refreshData );
+			$.post( 'cmd.php', { cmd: 'sh', sh: [ networksh, 'accesspointset', iprange, ip, passphrase ] }, refreshData );
 		}
 	} );
 } );
@@ -294,7 +294,7 @@ function btStatus() {
 function connect( ssid, data, ip ) { // ip - static
 	clearTimeout( intervalscan );
 	$( '#scanning-wifi' ).removeClass( 'hide' );
-	var arg = G.wlcurrent +' "'+ escapeString( ssid ) +'"';
+	var arg = G.wlcurrent +' "'+ ssid +'"';
 	if ( data ) arg += ' "'+ data +'"';
 	if ( ip ) {
 		$( '#loader' ).removeClass( 'hide' );
@@ -380,7 +380,7 @@ function editWiFi( ssid, data ) {
 				if ( data ) {
 					editWiFiSet( ssid, data );
 				} else {
-					$.post( 'cmd.php', { cmd: 'sh', sh: [ networksh, 'statuswifi', escapeString( ssid ) ] }, function( data ) {
+					$.post( 'cmd.php', { cmd: 'sh', sh: [ networksh, 'statuswifi', ssid ] }, function( data ) {
 						data.dhcp = data.IP === 'static' ? 'Static IP' : 'DHCP';
 						data.Address = 'Address' in data ? data.Address.replace( '/24', '' ) : '';
 						editWiFiSet( ssid, data );
@@ -400,11 +400,11 @@ function editWiFi( ssid, data ) {
 			
 			var data =   'Interface='+ G.wlcurrent
 						+'\nConnection=wireless'
-						+'\nESSID="'+ escapeString( ssid || ssidadd ) +'"'
+						+'\nESSID="'+ ( ssid || ssidadd ) +'"'
 						+'\nIP='+ ( static ? 'static' : 'dhcp' );
 			if ( password ) {
 				data +=  '\nSecurity='+ ( security ?  'wep' : 'wpa' )
-						+'\nKey="'+ escapeString( password ) +'"';
+						+'\nKey="'+ password +'"';
 			} else {
 				data +=  '\nSecurity=none'
 			}
@@ -463,7 +463,7 @@ function editWiFiSet( ssid, data ) {
 			$( '#loader' ).removeClass( 'hide' );
 			banner( ssid, 'DHCP ...', 'wifi-3' );
 			location.href = 'http://'+ G.hostname +'.local/index-settings.php?p=network';
-			$.post( 'cmd.php', { cmd: 'sh', sh: [ networksh, 'editwifidhcp', escapeString( ssid ) ] } );
+			$.post( 'cmd.php', { cmd: 'sh', sh: [ networksh, 'editwifidhcp', ssid ] } );
 		} );
 	}
 }
@@ -494,9 +494,9 @@ function newWiFi( $this ) {
 			var data = 'Interface='+ G.wlcurrent
 					  +'\nConnection=wireless'
 					  +'\nIP=dhcp'
-					  +'\nESSID="'+ escapeString( ssid ) +'"'
+					  +'\nESSID="'+ ssid +'"'
 					  +'\nSecurity='+ ( wpa || 'wep' )
-					  +'\nKey="'+ escapeString( password ) +'"';
+					  +'\nKey="'+ password +'"';
 			connect( ssid, data );
 		}
 	} );
@@ -576,7 +576,7 @@ function renderQR() {
 	if ( !accesspoint || !G.hostapd ) return
 	
 	$( '#qraccesspoint, #qrwebuiap' ).empty();
-	qroptions.text = 'WIFI:S:'+ escapeString( G.ssid ) +';T:WPA;P:'+ escapeString( G.passphrase ) +';';
+	qroptions.text = 'WIFI:S:'+ G.ssid +';T:WPA;P:'+ G.passphrase +';';
 	$( '#qraccesspoint' ).qrcode( qroptions );
 	qroptions.text = 'http://'+ G.hostapdip;
 	$( '#qrwebuiap' ).qrcode( qroptions );

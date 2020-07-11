@@ -118,11 +118,6 @@ function banner( title, message, icon ) {
 function codeToggle( target, id, fn ) {
 	if ( !$( target ).hasClass( 'help' ) ) $( '#code'+ id ).hasClass( 'hide' ) ? fn() : $( '#code'+ id ).addClass( 'hide' );
 }
-function escapeString( str ) {
-	return str
-			.replace( /([&()])/g, '\$1' )
-			.replace( /"/g, '\\\"' );
-}
 function onVisibilityChange( callback ) {
     var visible = 1;
     function focused() {

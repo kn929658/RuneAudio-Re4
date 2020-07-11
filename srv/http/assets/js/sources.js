@@ -51,7 +51,6 @@ $( '#list' ).on( 'click', 'li', function() {
 	var mountpoint = $this.find( '.mountpoint' ).text();
 	if ( mountpoint === '/' ) return
 	
-	var mountescaped = escapeString( mountpoint );
 	var nas = mountpoint.slice( 9, 12 ) === 'NAS';
 	var source = $this.find( '.source' ).text();
 	if ( !$this.data( 'unmounted' ) ) {
@@ -63,7 +62,7 @@ $( '#list' ).on( 'click', 'li', function() {
 			, okcolor : '#de810e'
 			, ok      : function() {
 				banner( 'Network Mount', 'Unmount ...', 'network' );
-				$.post( 'cmd.php', { cmd: 'sh', sh: [ sourcessh, 'unmount', mountescaped ] }, function() {
+				$.post( 'cmd.php', { cmd: 'sh', sh: [ sourcessh, 'unmount', mountpoint ] }, function() {
 					refreshData();
 					$( '#refreshing' ).addClass( 'hide' );
 				} );
@@ -80,7 +79,7 @@ $( '#list' ).on( 'click', 'li', function() {
 			, buttoncolor : '#bb2828'
 			, button      : function() {
 				banner( 'Network Mount', 'Remove ...', 'network' );
-				$.post( 'cmd.php', { cmd: 'sh', sh: [ sourcessh, 'remove', mountescaped ] }, function() {
+				$.post( 'cmd.php', { cmd: 'sh', sh: [ sourcessh, 'remove', mountpoint ] }, function() {
 					refreshData();
 					$( '#refreshing' ).addClass( 'hide' );
 				} );
@@ -89,7 +88,7 @@ $( '#list' ).on( 'click', 'li', function() {
 			, oklabel     : 'Remount'
 			, ok          : function() {
 				banner( 'Network Mount', 'Remount ...', 'network' );
-				$.post( 'cmd.php', { cmd: 'sh', sh: [ sourcessh, 'remount', mountescaped, source ] }, function() {
+				$.post( 'cmd.php', { cmd: 'sh', sh: [ sourcessh, 'remount', mountpoint, source ] }, function() {
 					refreshData();
 					$( '#refreshing' ).addClass( 'hide' );
 				} );
@@ -201,7 +200,7 @@ function infoMount( formdata, cifs ) {
 			}
 			banner( 'Network Mount', 'Mount ...', 'network' );
 			$.post( 'cmd.php'
-				, { cmd: 'sh', sh: [ sourcessh, 'mount', escapeString( mountpoint ), data.ip, device, data.protocol, options ] }
+				, { cmd: 'sh', sh: [ sourcessh, 'mount', mountpoint, data.ip, device, data.protocol, options ] }
 				, function( std ) {
 				if ( std !== 0 ) {
 					formdata = data;

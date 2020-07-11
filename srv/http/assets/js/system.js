@@ -109,7 +109,7 @@ $( '#setting-spotify' ).click( function() {
 } );
 $( '#upnp' ).click( function( e ) {
 	G.upnp = $( this ).prop( 'checked' );
-	banner( 'UPnP Renderer', G.upnp, 'upnp' );
+	banner( 'UPnP Renderer', G.upnp, 'upnp fa-s' );
 	$.post( 'cmd.php', { cmd: 'sh', sh: [ systemsh, 'upnp', G.upnp ] }, resetLocal );
 } );
 $( '#snapcast' ).click( function( e ) {

@@ -615,8 +615,7 @@ function tagEditor() {
 					tag[ format[ i ] ] = val;
 					if ( val !== value[ i ] ) diff++;
 				}
-				if ( !diff ) return
-				
+				notify( 'Tag Editor', 'Change ...', 'tag blink', -1 );
 				$.post( 'cmd.php', { cmd: 'sh', sh: [ cmdsh, 'tageditor', JSON.stringify( tag ) ] } );
 			}
 		} );

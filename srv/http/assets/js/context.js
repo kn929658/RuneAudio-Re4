@@ -113,33 +113,34 @@ $( '.contextmenu a' ).click( function( e ) {
 	
 	// replaceplay|replace|addplay|add //////////////////////////////////////////
 	var webradio = G.list.path.slice( 0, 4 ) === 'http';
-	var path = escapePath( G.list.path );
+	var path = G.list.path;
 	var mpccmd;
 	// must keep order otherwise replaceplay -> play, addplay -> play
 	var mode = cmd.replace( /replaceplay|replace|addplay|add/, '' );
 	if ( [ 'album', 'artist', 'composer', 'genre' ].indexOf( G.list.mode ) !== -1 ) {
 		var artist = G.list.artist;
-		mpccmd = 'mpc findadd '+ G.list.mode +' "'+ path +'"'+ ( artist ? ' artist "'+ artist +'"' : '' );
+		mpccmd = [ cmdsh, 'mpcfindadd', G.list.mode, path ];
+		if ( artist ) mpccmd.push( artist );
 	} else if ( !mode ) {
 		if ( path.slice( -4 ) === '.cue' ) {
 			if ( G.list.track ) { // only cue has data-track
 				// individual with 'mpc --range=N load file.cue'
-				mpccmd = 'mpc --range='+ ( G.list.track - 1 ) +' load "'+ path +'"';
+				mpccmd = [ cmdsh, 'mpcloadrange', ( G.list.track - 1 ), path ];
 			} else {
-				mpccmd = 'mpc load "'+ path +'"';
+				mpccmd = [ cmdsh, 'mpcload', path ];
 			}
 		} else if ( G.list.singletrack || webradio ) { // single track
-			mpccmd = 'mpc add "'+ path +'"';
+			mpccmd = [ cmdsh, 'mpcadd', path ];
 		} else { // directory or album
-			mpccmd = '/srv/http/bash/mpdls.sh "'+ path +'"'; // both 'mpc ls dir' and mpc load file.cue'
+			mpccmd = [ cmdsh, 'mpcls', path ];
 		}
 	} else if ( mode === 'wr' ) {
 		cmd = cmd.slice( 2 );
-		mpccmd = 'mpc add "'+ path +'"';
+		mpccmd = [ cmdsh, 'mpcadd', path ];
 	} else if ( mode === 'pl' ) {
 		cmd = cmd.slice( 2 );
 		if ( G.library ) {
-			mpccmd = 'mpc load "'+ path +'"';
+			mpccmd = [ cmdsh, 'mpcload', path ];
 		} else { // saved playlist
 			var play = cmd.slice( -1 ) === 'y' ? 1 : 0;
 			var replace = cmd.slice( 0, 1 ) === 'r' ? 1 : 0;
@@ -163,9 +164,9 @@ $( '.contextmenu a' ).click( function( e ) {
 	var sleep = webradio ? 1 : 0.2;
 	var contextCommand = {
 		  add         : mpccmd
-		, addplay     : [ mpccmd, 'sleep '+ sleep, 'mpc play '+ ( G.status.playlistlength + 1 ) ]
-		, replace     : [ 'mpc clear', mpccmd ]
-		, replaceplay : [ 'mpc clear', mpccmd, 'sleep '+ sleep, 'mpc play' ]
+		, addplay     : mpccmd.concat( [ 'addplay', sleep ] )
+		, replace     : mpccmd.concat(  'replace' )
+		, replaceplay : mpccmd.concat( [ 'replaceplay', sleep ] )
 	}
 	if ( cmd in contextCommand ) {
 		var command = contextCommand[ cmd ];
@@ -191,7 +192,7 @@ $( '.contextmenu a' ).click( function( e ) {
 
 function addReplace( cmd, command, title ) {
 	var playbackswitch = G.display.playbackswitch && ( cmd === 'addplay' || cmd === 'replaceplay' );
-	$.post( 'cmd.php', { cmd: 'bash', bash: command }, function() {
+	$.post( 'cmd.php', { cmd: 'sh', sh: command }, function() {
 		if ( playbackswitch ) {
 			$( '#tab-playback' ).click();
 		} else {

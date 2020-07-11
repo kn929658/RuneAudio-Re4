@@ -43,6 +43,33 @@ ignoredir )
 	mpc update "$mpdpath" #1 get .mpdignore into database
 	mpc update "$mpdpath" #2 after .mpdignore was in databasep
 	;;
+mpcadd )
+	[[ ${args[2]} == replace || ${args[2]} == replaceplay ]] && mpc clear
+	mpc add "${args[1]}"
+	if [[ ${args[2]} == addplay ]]; then
+		sleep ${args[3]}
+		mpc play $( mpc playlist | wc -l )
+	elif [[ ${args[2]} == replaceplay ]]; then
+		sleep ${args[3]}
+		mpc play
+	fi
+	;;
+mpcfindadd )
+	if [[ -z ${args[3]} ]]; then
+		mpc findadd ${args[1]} "${args[2]}"
+	else
+		mpc findadd ${args[1]} "${args[2]}" artist "${args[3]}"
+	fi
+	;;
+mpcload )
+	mpc load "${args[1]}"
+	;;
+mpcloadrange )
+	mpc --range=${args[1]} load "${args[2]}"
+	;;
+mpcls )
+	/srv/http/bash/mpdls.sh "${args[1]}"
+	;;
 packageenable )
 	systemctl start ${args[1]}
 	pushstream ${args[1]} 1 ${args[2]}

@@ -5,10 +5,11 @@ var intervalscan;
 var page = location.href.split( '=' ).pop();
 var reboot = '';
 
-$.post( 'cmd.php', { cmd: 'exec', exec: 'cat /srv/http/data/tmp/reboot' }, function( lines ) {
-	reboot = lines !== -1 ? lines : [];
-	G.reboot = lines; // credit page
-}, 'json' );
+if ( page === 'credits' ) {
+	$.post( 'cmd.php', { cmd: 'exec', exec: 'cat /srv/http/data/tmp/reboot' }, function( lines ) {
+		G = { reboot: lines || [] }
+	}, 'json' );
+}
 $( '#close' ).click( function() {
 	if ( G.reboot.length ) {
 		info( {
@@ -21,7 +22,7 @@ $( '#close' ).click( function() {
 				$.post( 'cmd.php', { cmd: 'bash0', bash0: 'rm -f /srv/http/data/tmp/reboot' } );
 			}
 			, ok      : function() {
-				$.post( 'cmd.php', { cmd: 'bash0', bash0: '/srv/http/bash/cmd.sh reboot' } );
+				$.post( 'cmd.php', { cmd: 'sh', sh: [ 'cmd.sh', 'reboot' ] } );
 				notify( 'Rebooting ...', '', 'reboot blink', -1 );
 			}
 		} );

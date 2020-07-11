@@ -29,11 +29,11 @@ case 'backuprestore':
 		exec( $sudo.$scriptfile.$type );
 	}
 	break;
-case 'sh':
-	$sh = $_POST[ 'sh' ];                                              // 1 - get array from js
-	$script = '/srv/http/bash/'.array_shift( $sh ).' "';                    // 2 - extract script - 1st element
-	$cmd = implode( "\n", str_replace( '"', '\"', $sh ) ).'"';     // 3 - convert array to multi-line string with " escaped
-	echo shell_exec( $sudo.$script.$cmd ); // 4 - pass string to bash > convert each line to each args
+case 'sh': // no escaped characters - js > php > bash
+	$sh = $_POST[ 'sh' ];                                      // 1 - get js array
+	$script = '/srv/http/bash/'.array_shift( $sh ).' "';       // 2 - extract script from 1st element
+	$cmd = implode( "\n", str_replace( '"', '\"', $sh ) ).'"'; // 3 - convert array to multi-line string with " escaped
+	echo shell_exec( $sudo.$script.$cmd );                     // 4 - pass string to bash > convert each line to each args
 	break;
 case 'bash':
 	$cmd = $_POST[ 'bash' ];

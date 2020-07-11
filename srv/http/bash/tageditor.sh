@@ -1,33 +1,40 @@
 #!/bin/bash
 
-cue=$( jq '.cue' <<< $1 )
-single=$( jq '.single' <<< $1 )
-file=$( jq '.file' <<< $1 )
-[[ $single == true ]] && path="/mnt/MPD/$file" || path="/mnt/MPD/$file/*.*"
+declare -A keyval
+while IFS="=" read -r key value; do
+    keyval[$key]="$value"
+done < <( jq -r 'to_entries|map("\(.key)=\(.value)")|.[]' <<< $1 )
 
-keyval=$( jq 'del(.["cue", "file", "single"])' <<< $1 )
+cue=${keyval[cue]}
+file=${keyval[file]}
+single=${keyval[single]}
+[[ $single == true ]] && path="/mnt/MPD/$file" || path="/mnt/MPD/$file/"*.*
 
-keys=$( jq 'keys' <<< "$keyval" )
+unset keyval[cue]
+unset keyval[file]
+unset keyval[single]
 
 if [[ $cue == false ]]; then
-	for key in "${keys[@]}"; do
-		val=$( jq ".$key" <<< "$keyval" )
-		kid3-cli -c $key "$val" "$path"
+	for i in "${!keyval[@]}"; do
+		key=$i
+		val=${keyval[$i]}
+		[[ -n $val ]] && kid3-cli -c "set $key '$val'" "$path"
 	done
 else
-	sed -i '/^PERFORMER\\|^REM COMPOSER\\|^REM GENRE/ d' "$path"
 	if [[ $single == true ]]; then
-		$track=$( jq '.track' <<< $1 )
-		$title=$( jq '.title' <<< $1 )
-		$artist=$( jq '.artist' <<< $1 )
+		$track=${keyval[file]}
+		$title=${keyval[title]}
+		$artist=${keyval[artist]}
 		sed -i '/^\s\+TRACK "'$track'"/ {
-n; s/^\(\s\+TITLE\).*/\1"'$title'"/
+n; s/^\(\s\+TITLE\).*/\1 "'$title'"/
 n; s/^\(\s\+PERFORMER\).*/\1 "'$artist'"/
 }
 ' "$path"
 	else
-		for key in "${keys[@]}"; do
-			val=$( jq ".$key" <<< "$keyval" )
+		sed -i '/^PERFORMER\|^REM COMPOSER\|^REM GENRE/ d' "$path"
+		for i in "${!keyval[@]}"; do
+			key=$i
+			val=${keyval[$i]}
 			case $key in
 				albumartist ) sed -i '/^TITLE/ i\PERFORMER "'$val'"' "$path";;
 				composer )    sed -i '1 i\REM COMPOSER "'$val'"' "$path";;

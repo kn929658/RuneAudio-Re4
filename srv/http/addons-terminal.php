@@ -66,7 +66,7 @@ if ( $type !== 'coverart' ) {
 <script>
 $( '.close-root' ).click( function() { 
 	if ( $( '#wait' ).length ) {
-		$.post( 'cmd.php', { cmd: 'bash', bash: cmdsh +' '+ <?=$installfile?> +' '+ <?=$alias?> }, function() {
+		$.post( 'cmd.php', { cmd: 'sh', sh: [ cmdsh, <?=$installfile?>, <?=$alias?> ] }, function() {
 			location.href = '<?=$href?>';
 		} );
 	} else {

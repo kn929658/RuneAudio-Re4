@@ -10,17 +10,17 @@ $dirwebradios = $dirdata.'webradios/';
 
 switch( $_POST[ 'cmd' ] ) {
 
-case 'bash': // single command
-	$cmd = $_POST[ 'bash' ];
-	echo shell_exec( $cmd[ 0 ] === '/' ? $sudo.$cmd : $sudobin.$cmd );
-	break;
-case 'sh': // multiple commands: no escaped characters - js > php > bash
+case 'sh': // multiple commands / scripts: no escaped characters - js > php > bash
 	$sh = $_POST[ 'sh' ];                                      // 1 - get js array
 	$script = '/srv/http/bash/'.array_shift( $sh ).' "';       // 2 - extract script from 1st element
 	$cmd = implode( "\n", str_replace( '"', '\"', $sh ) ).'"'; // 3 - convert array to multi-line string with " escaped
 	echo shell_exec( $sudo.$script.$cmd );                     // 4 - pass string to bash > convert each line to each args
 	break;
-case 'exec': // return array to js
+case 'bash': // single / one-line command - return string
+	$cmd = $_POST[ 'bash' ];
+	echo shell_exec( $cmd[ 0 ] === '/' ? $sudo.$cmd : $sudobin.$cmd );
+	break;
+case 'exec': // single / one-line command - return array of lines to js
 	exec( $sudobin.$_POST[ 'exec' ], $output, $std );
 	echo json_encode( $output );
 	break;

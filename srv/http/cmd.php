@@ -10,11 +10,11 @@ $dirwebradios = $dirdata.'webradios/';
 
 switch( $_POST[ 'cmd' ] ) {
 
-case 'sh': // multiple commands / scripts: no escaped characters - js > php > bash
-	$sh = $_POST[ 'sh' ];                                           // 1 - get js array
-	$script = '/srv/http/bash/'.array_shift( $sh );                 // 2 - extract script from 1st element
-	$cmd = ' "'.implode( "\n", str_replace( '"', '\"', $sh ) ).'"'; // 3 - convert array to multi-line string with " escaped
-	echo shell_exec( $sudo.$script.$cmd );                          // 4 - pass string to bash > convert each line to each args
+case 'sh': // multiple commands / scripts: no pre-escaped characters - js > php > bash
+	$sh = $_POST[ 'sh' ];                                // 1 - get js array
+	$script = '/srv/http/bash/'.array_shift( $sh ).' "'; // 2 - extract script from 1st element
+	$script.= escape( implode( "\n", $sh ) ).'"';        // 3 - convert array to multi-line string and escape ` "
+	echo shell_exec( $sudo.$script );                    // 4 - pass string to bash > convert each line to each args
 	break;
 case 'bash': // single / one-line command - return string
 	$cmd = $_POST[ 'bash' ];
@@ -68,7 +68,7 @@ case 'bookmarks':
 				rename( $dirtmp.'base64', $file );
 				$html.='<img class="bkcoverart" src="'.file_get_contents( $file ).'">';
 			} else if ( $base64 === 1 ) {
-				$cover = exec( $sudo.$dirbash.'getcover.sh "/mnt/MPD/'.$path.'" 200' );
+				$cover = cmdsh( [ 'coverartthumb', $path, 200 ] );
 				file_put_contents( $file, $cover );
 				$html.='<img class="bkcoverart" src="'.$cover.'">';
 			} else {
@@ -100,19 +100,12 @@ case 'bookmarks':
 	}
 	pushstream( 'bookmark', $data );
 	break;
-case 'coverart':
-	$coverart = exec( $sudo.$dirbash.'getcover.sh "/mnt/MPD/'.$_POST[ 'coverart' ].'"' );
-	if ( $coverart ) {
-		echo $coverart;
-		pushstream( 'coverart', [ 'coverart' => $coverart ] );
-	}
-	break;
 case 'displayget':
 	$data = json_decode( file_get_contents( $dirsystem.'display' ) );
 	$data->color = rtrim( @file_get_contents( $dirsystem.'color' ) ) ?: '200 100 35';
 	$data->order = json_decode( file_get_contents( $dirsystem.'order' ) );
-	$audiooutputfile = $dirsystem.( file_exists( $dirsystem.'usbdac' ) ? 'usbdac' : 'audio-output' );
-	$data->volumenone = exec( $sudobin.'sed -n "/$( cat '.$audiooutputfile." )/,/^}/ p\" /etc/mpd.conf | awk -F '\"' '/mixer_type/ {print $2}'" ) === 'none' ? true : false;
+	$audiooutputfile = file_exists( $dirsystem.'usbdac' ) ? 'usbdac' : 'audio-output';
+	$data->volumenone = cmdsh( [ 'volumenone', $audiooutputfile ] ) === 'none';
 	echo json_encode( $data );
 	break;
 case 'displayset':
@@ -174,7 +167,7 @@ case 'imagefile':
 		exit;
 	} else if ( isset( $_POST[ 'bookmarkfile' ] ) ) { // # bookmark thumbnail
 		$bookmarkfile = $_POST[ 'bookmarkfile' ];
-		$thumbnail = exec( $sudo.$dirbash.'getcover.sh "'.$imagefile.'" 200' );
+		$thumbnail = cmdsh( [ 'coverartthumb', $imagefile, 200 ] );
 		file_put_contents( $bookmarkfile, $thumbnail ? $thumbnail : $_POST[ 'label' ] );
 		echo $thumbnail;
 		exit;
@@ -184,9 +177,9 @@ case 'imagefile':
 	$coverfile = isset( $_POST[ 'coverfile' ] );
 	$srcfile = $_POST[ 'srcfile' ] ?? '';
 	if ( $srcfile ) {
-		exec( $sudobin.'mv -f "'.$srcfile.'"{,.backup}', $output, $std );
+		cmdsh( [ 'filemove', $srcfile, $srcfile.'.backup' ] );
 		if ( isset( $_POST[ 'remove' ] ) ) {
-			echo exec( $sudo.$dirbash.'getcover.sh "'.$imagefile.'"' );
+			echo cmdsh( [ 'coverartget', $imagefile ] );
 			exit;
 		}
 	} else {
@@ -197,7 +190,7 @@ case 'imagefile':
 			$tmpfile = $dirtmp.'tmp.jpg';
 			file_put_contents( $tmpfile, base64_decode( preg_replace( '/^.*,/', '', $_POST[ 'base64' ] ) ) ) || exit( '-1' );
 			if ( !$coverfile ) $imagefile = substr( $imagefile, 0, -3 ).'jpg'; // if existing is 'cover.svg'
-			exec( $sudobin.'mv -f "'.$tmpfile.'" "'.$imagefile.'"', $output, $std );
+			cmdsh( [ 'filemove', $tmpfile, $imagefile ] );
 			if ( substr( $imagefile, -3 ) === 'gif' ) unlink( substr( $imagefile, 0, -3 ).'gif' );
 		} else {
 			if ( $_FILES[ 'file' ][ 'error' ] != UPLOAD_ERR_OK ) exit( '-1' );
@@ -208,13 +201,9 @@ case 'imagefile':
 				, $_POST[ 'resize' ] ?? false
 			);
 		}
-	} else if ( isset( $_FILES[ 'file' ] ) ) {
-		if ( $_FILES[ 'file' ][ 'error' ] == UPLOAD_ERR_OK ) {
-			// fix: "move_uploaded_file" permission
-			exec( $sudobin.'mv -f "'.$_FILES[ 'file' ][ 'tmp_name' ].'" "'.$imagefile.'"', $output, $std );
-		}
+	} else if ( isset( $_FILES[ 'file' ] ) && $_FILES[ 'file' ][ 'error' ] == UPLOAD_ERR_OK ) {
+		cmdsh( [ 'filemove', $_FILES[ 'file' ][ 'tmp_name' ], $imagefile ] );
 	}
-	echo $std;
 	break;
 case 'login':
 	$passwordfile = $dirsystem.'password';
@@ -246,6 +235,9 @@ case 'status': // for previous/next
 	$output = exec( $sudo.$dirbash.'status.sh' );
 	$array = json_decode( $output, true );
 	pushstream( 'mpdplayer', $array );
+	break;
+case 'update':
+	cmdsh( [ 'mpcupdate', $_POST[ 'update' ] ] );
 	break;
 case 'volume':
 	$volume = $_POST[ 'volume' ];
@@ -310,6 +302,9 @@ case 'webradios':
 	break;
 }
 
+function escape( $string ) {
+	return preg_replace( '/(["`])/', '\\\\\1', $string );
+}
 function gifSave( $imagefile, $tmpfile, $resize ) {
 	$type = explode( '/', $imagefile )[ 4 ];
 	if ( $type === 'coverart' ) {
@@ -325,7 +320,7 @@ function gifSave( $imagefile, $tmpfile, $resize ) {
 			, 'icon'  => 'coverart blink'
 			, 'delay' => -1
 		] );
-		exec( $sudobin.'convert "'.$tmpfile.'" -coalesce -resize 200x200 "'.$imagefile.'"' );
+		cmdsh( [ 'imageresize', $tmpfile, $imagefile ] );
 		if ( $type === 'bookmarks' ) {
 			$img = file_get_contents( $imagefile );
 			file_put_contents( $imagefile, 'data:image/gif;base64,'.base64_encode( $img ) );
@@ -339,12 +334,13 @@ function gifSave( $imagefile, $tmpfile, $resize ) {
 		move_uploaded_file( $tmpfile, $imagefile );
 	}
 }
+function cmdsh( $sh ) {
+	$script = '/usr/bin/sudo /srv/http/bash/cmd.sh "'; // no $sudo inside function
+	$script.= escape( implode( "\n", $sh ) ).'"';
+	return shell_exec( $script );
+}
 function pushstream( $channel, $data ) {
-	$ch = curl_init( 'http://127.0.0.1/pub?id='.$channel );
-	curl_setopt( $ch, CURLOPT_HTTPHEADER, [ 'Content-Type:application/json' ] );
-	curl_setopt( $ch, CURLOPT_POSTFIELDS, json_encode( $data, JSON_NUMERIC_CHECK ) );
-	curl_exec( $ch );
-	curl_close( $ch );
+	exec( $sudobin.'curl -s -X POST http://127.0.0.1/pub?id='.$channel." -d '".json_encode( $data, JSON_NUMERIC_CHECK )."'" );
 }
 function volumeIncrement( $volume, $current = '' ) {
 	if ( !$current || abs( $volume - $current ) < 10 ) {

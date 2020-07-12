@@ -15,7 +15,8 @@ addonsclose )
 	rm -f /srv/http/data/addons/${args[2]}
 	;;
 addonslist )
-	wget -q --no-check-certificate https://github.com/rern/RuneAudio_Addons/raw/master/addons-list.php -O /srv/http/data/addons/addons-list.php && echo $?
+	wget -q --no-check-certificate https://github.com/rern/RuneAudio_Addons/raw/master/addons-list.php -O /srv/http/data/addons/addons-list.php
+	[[ $? != 0 ]] && echo -n -1
 	;;
 colorset )
 	/srv/http/bash/setcolor.sh ${args[1]} ${args[2]} ${args[3]}
@@ -26,6 +27,17 @@ colorreset )
 	rm /srv/http/data/system/color
 	/srv/http/bash/setcolor.sh
 	pushstream reload reload all
+	;;
+coverartget )
+	coverart=$( /srv/http/bash/getcover.sh "/mnt/MPD/${args[1]}" )
+	echo -n $coverart
+	[[ -n ${args[2]} ]] && pushstream coverart coverart $coverart
+	;;
+coverartthumb )
+	/srv/http/bash/getcover.sh "/mnt/MPD/${args[1]}" ${args[2]}
+	;;
+filemove )
+	mv -f "${args[1]}" "${args[2]}"
 	;;
 gpiotimerreset )
 	awk '/timer/ {print $NF}' /srv/http/data/system/gpio.json > /srv/http/data/tmp/gpiotimer
@@ -38,10 +50,12 @@ gpioset )
 ignoredir )
 	dir=$( basename "${args[1]}" )
 	mpdpath=$( dirname "${args[1]}" )
-	pathfile="/mnt/MPD/$mpdpath/.mpdignore"
-	echo $dir | /usr/bin/sudo /usr/bin/tee -a "$pathfile"
+	echo $dir >> "/mnt/MPD/$mpdpath/.mpdignore"
 	mpc update "$mpdpath" #1 get .mpdignore into database
 	mpc update "$mpdpath" #2 after .mpdignore was in databasep
+	;;
+imageresize )
+	convert "${args[1]}" -coalesce -resize 200x200 "${args[2]}"
 	;;
 mpcadd )
 	[[ ${args[2]} == replace || ${args[2]} == replaceplay ]] && mpc clear
@@ -69,6 +83,9 @@ mpcloadrange )
 	;;
 mpcls )
 	/srv/http/bash/mpdls.sh "${args[1]}"
+	;;
+mpcupdate )
+	mpc update "${args[1]}"
 	;;
 packageenable )
 	systemctl start ${args[1]}
@@ -141,4 +158,11 @@ refreshbrowser )
 tageditor )
 	/srv/http/bash/tageditor.sh "${args[1]}"
 	;;
+volumenone )
+	output=$( cat "/srv/http/data/system/${args[1]}" )
+	mixer=$( sed -n "/$output/,/^}/ p" /etc/mpd.conf \
+		| awk -F '\"' '/mixer_type/ {print $2}' )
+	echo -n $mixer
+	;;
+	
 esac

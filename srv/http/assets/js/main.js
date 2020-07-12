@@ -37,6 +37,7 @@ var picaOption = { // pica.js
 //	, quality          : 3    // 0...3 Default = 3 (Lanczos win=3)
 //	, alpha            : true // Default = false (black crop background)
 };
+var cmdphp = 'cmd.php';
 var cmdsh = 'cmd.sh';
 var hash = Math.ceil( Date.now() / 1000 );
 var coverrune = '/assets/img/cover.'+ hash +'.svg';
@@ -50,7 +51,7 @@ if ( G.localhost ) {
 }
 
 // get mpd status with passive.js on pushstream connect
-$.post( 'cmd.php', { cmd: 'displayget' }, function( data ) {
+$.post( cmdphp, { cmd: 'displayget' }, function( data ) {
 	G.display = data;
 	G.bars = data.bars;
 	$.event.special.tap.emitTapOnTaphold = false; // suppress tap on taphold
@@ -143,7 +144,7 @@ $( '#displaylibrary' ).click( function( e ) {
 	var options = $( e.target ).hasClass( 'submenu' );
 	var checklist = !options ? chklibrary : chklibrary2;
 	var thumbbyartist = G.display.thumbbyartist;
-	$.post( 'cmd.php', { cmd: 'displayget' }, function( data ) {
+	$.post( cmdphp, { cmd: 'displayget' }, function( data ) {
 		G.display = data;
 		info( {
 			  icon     : 'library'
@@ -233,7 +234,7 @@ $( '#displayplayback' ).click( function( e ) {
 	}
 	
 	if ( 'coverTL' in G ) $( '#coverTL' ).tap();
-	$.post( 'cmd.php', { cmd: 'displayget' }, function( data ) {
+	$.post( cmdphp, { cmd: 'displayget' }, function( data ) {
 		G.display = data;
 		info( {
 			  icon     : 'play-circle'
@@ -312,7 +313,7 @@ $( '#displayplayback' ).click( function( e ) {
 $( '.settings' ).click( function( e ) {
 	var id = e.target.id || e.currentTarget.id;
 	if ( id === 'snapclient' ) {
-		$.post( 'cmd.php', { cmd: 'bash', bash: '/srv/http/bash/snapcast.sh '+ ( G.status.snapclient ? 'stop' : 'start' ) }, function( data ) {
+		$.post( cmdphp, cmdbash( '/srv/http/bash/snapcast.sh '+ ( G.status.snapclient ? 'stop' : 'start' ) ), function( data ) {
 			bannerHide();
 			if ( data != -1 ) {
 				getPlaybackStatus();
@@ -335,14 +336,14 @@ $( '.settings' ).click( function( e ) {
 			, radio   : { 'Only changed files' : 'update', 'Rebuild entire database': 'rescan' }
 			, ok      : function() {
 				G.status.updating_db = true;
-				$.post( 'cmd.php', { cmd: 'bash', bash: 'mpc '+ $( '#infoRadio input:checked' ).val() } );
+				$.post( cmdphp, cmdbash( 'mpc '+ $( '#infoRadio input:checked' ).val() ) );
 			}
 		} );
 	}
 } );
 $( '#power' ).click( function( e ) {
 	if ( $( e.target ).hasClass( 'submenu' ) ) {
-		$.post( 'cmd.php', { cmd: 'screenoff' } );
+		$.post( cmdphp, { cmd: 'screenoff' } );
 		return
 	}
 	
@@ -353,14 +354,14 @@ $( '#power' ).click( function( e ) {
 		, buttoncolor : '#de810e'
 		, button      : function() {
 			$( '#stop' ).click();
-			$.post( 'cmd.php', { cmd: 'bash', bash: '/srv/http/bash/cmd.sh reboot' } );
+			$.post( cmdphp, cmdbash( '/srv/http/bash/cmd.sh reboot' ) );
 			notify( 'Power', 'Reboot ...', 'reboot blink', -1 );
 		}
 		, oklabel     : '<i class="fa fa-power"></i>Off'
 		, okcolor     : '#bb2828'
 		, ok          : function() {
 			$( '#stop' ).click();
-			$.post( 'cmd.php', { cmd: 'bash', bash: '/srv/http/bash/cmd.sh reboot off' } );
+			$.post( cmdphp, cmdbash( '/srv/http/bash/cmd.sh reboot off' ) );
 			$( '#loader' )
 				.css( 'background', '#000000' )
 				.find( 'svg' ).css( 'animation', 'unset' );
@@ -370,7 +371,7 @@ $( '#power' ).click( function( e ) {
 	} );
 } );
 $( '#logout' ).click( function( e ) {
-	$.post( 'cmd.php', { cmd: 'logout' }, function() {
+	$.post( cmdphp, { cmd: 'logout' }, function() {
 		location.reload();
 	} );
 } );
@@ -380,7 +381,7 @@ $( '#addons' ).click( function ( e ) {
 		return
 	}
 	
-	$.post( 'cmd.php', { cmd: 'sh', sh: [ cmdsh, 'addonslist' ] }, function( std ) {
+	$.post( cmdphp, cmdsh( [ cmdsh, 'addonslist' ] ), function( std ) {
 		if ( std != 0 ) {
 			info( {
 				  icon    : 'info-circle'
@@ -416,11 +417,11 @@ $( '#colorok' ).click( function() {
 		var l = L * 100;
 	}
 	if ( hsl !== G.display.color ) {
-		$.post( 'cmd.php', { cmd: 'sh', sh: [ cmdsh, 'colorset', h, s, l ] } );
+		$.post( cmdphp, cmdsh( [ cmdsh, 'colorset', h, s, l ] ) );
 	}
 } );
 $( '#colorreset' ).click( function() {
-	$.post( 'cmd.php', { cmd: 'sh', sh: [ cmdsh, 'colorreset' ] } );
+	$.post( cmdphp, cmdsh( [ cmdsh, 'colorreset' ] ) );
 } );
 $( '#colorcancel' ).click( function() {
 	G.color = 0;
@@ -611,7 +612,11 @@ $( '#volume' ).roundSlider( {
 			G.local = 1;
 			$( '#volume' ).addClass( 'disabled' );
 			//setTimeout( function() { G.local = 0 }, 300 );
-			$.post( 'cmd.php', { cmd: 'volume', volume: e.value, current: G.status.volume }, function() {
+			$.post( cmdphp, {
+				  cmd     : 'volume'
+				, volume  : e.value
+				, current : G.status.volume
+			}, function() {
 				G.local = 0;
 				G.status.volume = e.value;
 				$( '#volume' ).removeClass( 'disabled' );
@@ -641,7 +646,11 @@ $( '#volmute' ).click( function() {
 	}
 	G.local = 1;
 	$( '#vol-group .btn, .volmap' ).addClass( 'disabled' );
-	$.post( 'cmd.php', { cmd: 'volume', volume: 'setmute', current: vol }, function() {
+	$.post( cmdphp, {
+		  cmd     : 'volume'
+		, volume  : 'setmute'
+		, current : vol
+	}, function() {
 		G.local = 0;
 		$( '#vol-group .btn, .volmap' ).removeClass( 'disabled' );
 	} );
@@ -653,7 +662,10 @@ $( '#volup, #voldn' ).click( function() {
 
 	vol = ( thisid === 'volup' ) ? vol + 1 : vol - 1;
 	$volumeRS.setValue( vol );
-	$.post( 'cmd.php', { cmd: 'volume', volume: vol } );
+	$.post( cmdphp, {
+		  cmd    : 'volume'
+		, volume : vol
+	} );
 } );
 $( '#coverTL, #timeTL' ).tap( function() {
 	var list = [ 'time', 'cover', 'coversmall', 'volume', 'buttons', 'progressbar' ];
@@ -880,7 +892,7 @@ $( '.map' ).tap( function( e ) {
 				setButtonToggle();
 				G.local = 1;
 				setTimeout( function() { G.local = 0 }, 600 );
-				$.post( 'cmd.php', { cmd: 'bash', bash: 'mpc repeat 0 && mpc single 0' } );
+				$.post( cmdphp, cmdbash( 'mpc repeat 0 && mpc single 0' ) );
 			} else {
 				$( '#single' ).click();
 			}
@@ -920,22 +932,22 @@ $( '.btn-cmd' ).click( function() {
 			}
 		} else if ( cmd === 'stop' ) {
 			if ( G.status.airplay ) {
-				$.post( 'cmd.php', { cmd: 'bash', bash: '/srv/http/bash/shairport.sh stop' } );
+				$.post( cmdphp, cmdbash( '/srv/http/bash/shairport.sh stop' ) );
 				return
 				
 			} else if ( G.status.snapclient ) {
 				clearIntervalAll();
-				$.post( 'cmd.php', { cmd: 'bash', bash: '/srv/http/bash/snapcast.sh stop' }, function() {
+				$.post( cmdphp, cmdbash( '/srv/http/bash/snapcast.sh stop' ), function() {
 					getPlaybackStatus();
 				} );
 				return
 				
 			} else if ( G.status.spotify ) {
-				$.post( 'cmd.php', { cmd: 'bash', bash: '/srv/http/bash/spotifyd.sh stop' } );
+				$.post( cmdphp, cmdbash( '/srv/http/bash/spotifyd.sh stop' ) );
 				return
 				
 			} else if ( G.status.upnp ) {
-				$.post( 'cmd.php', { cmd: 'bash', bash: '/srv/http/bash/upnp-stop.sh' } );
+				$.post( cmdphp, cmdbash( '/srv/http/bash/upnp-stop.sh' ) );
 				return
 				
 			}
@@ -1009,13 +1021,13 @@ $( '.btn-cmd' ).click( function() {
 			$( '#'+ el ).toggleClass( 'active', el === cmd );
 		} );
 	}
-	$.post( 'cmd.php', { cmd: 'bash', bash: command }, function() {
+	$.post( cmdphp, cmdbash( command ), function() {
 		clearTimeout( prevnext );
 		setTimeout( getPlaybackStatus, 600 );
 	} );
 	// for gpio
 	if ( $( '#gpio' ).hasClass( 'on' ) && command === 'mpc play' ) {
-		$.post( 'cmd.php', { cmd: 'sh', sh: [ cmdsh, 'gpiotimerreset' ] } );
+		$.post( cmdphp, cmdsh( [ cmdsh, 'gpiotimerreset' ] ) );
 	}
 } );
 $( '#biocontent' ).on( 'click', '.biosimilar', function() {
@@ -1293,7 +1305,11 @@ $( '#lib-mode-list' ).on( 'tap', '.mode-bookmark', function( e ) { // delegate -
 				var file = $( '#infoFileBox' )[ 0 ].files[ 0 ];
 				if ( file.name.slice( -4 ) !== '.gif' ) {
 					var newimg = $( '#imgnew' ).prop( 'src' );
-					$.post( 'cmd.php', { cmd: 'imagefile', imagefile: bookmarkname, base64bookmark: newimg }, bookmarkThumbReplace( $this, newimg ) );
+					$.post( cmdphp, {
+						  cmd            : 'imagefile'
+						, imagefile      : bookmarkname
+						, base64bookmark : newimg
+					}, bookmarkThumbReplace( $this, newimg ) );
 				} else {
 					var newimg = URL.createObjectURL( file );
 					var img = $( '#infoMessage img' )[ 0 ];
@@ -1304,7 +1320,7 @@ $( '#lib-mode-list' ).on( 'tap', '.mode-bookmark', function( e ) { // delegate -
 					formData.append( 'file', file );
 					formData.append( 'resize', img.naturalWidth > 200 || img.naturalHeight > 200 );
 					$.ajax( {
-						  url         : 'cmd.php'
+						  url         : cmdphp
 						, type        : 'POST'
 						, data        : formData
 						, processData : false
@@ -1323,7 +1339,7 @@ $( '#lib-mode-list' ).on( 'tap', '.mode-bookmark', function( e ) { // delegate -
 				var bookmarkname = path;
 				var label = bookmarkname.split( '/' ).pop();
 				bookmarkname = bookmarkname.replace( /\//g, '|' );
-				$.post( 'cmd.php', {
+				$.post( cmdphp, {
 					  cmd          : 'imagefile'
 					, imagefile    : '/mnt/MPD/'+ path
 					, bookmarkfile : '/srv/http/data/bookmarks/'+ bookmarkname
@@ -1394,7 +1410,10 @@ var sortablelibrary = new Sortable( document.getElementById( 'lib-mode-list' ), 
 			order.push( $( this ).find( '.lipath' ).text() );
 		} );
 		G.display.order = order;
-		$.post( 'cmd.php', { cmd: 'setorder', setorder: order } );
+		$.post( cmdphp, {
+			  cmd      : 'setorder'
+			, setorder : order
+		} );
 	}
 } );
 $( '#mode-coverart' ).click( function() { // fix - 'tap' also fire .coverart click here
@@ -1559,7 +1578,10 @@ $( '#lib-cover-list' ).on( 'tap', '.coverart-remove', function() {
 			var count = $( '#mode-coverart grl' ).text().replace( /,/g, '' );
 			count = ( Number( count ) - 1 ).toString().replace( /\B(?=(\d{3})+(?!\d))/g, ',' );
 			$( '#mode-coverart grl' ).text( count );
-			$.post( 'cmd.php', { cmd: 'imagefile', imagefile: thumbfile } );
+			$.post( cmdphp, {
+				  cmd       : 'imagefile'
+				, imagefile : thumbfile
+			} );
 		}
 	} );
 } );
@@ -1580,7 +1602,11 @@ $( '#lib-cover-list' ).on( 'tap', '.coverart-cover', function() {
 			var file = $( '#infoFileBox' )[ 0 ].files[ 0 ];
 			if ( file.name.slice( -4 ) !== '.gif' ) {
 				var newimg = $( '#imgnew' ).prop( 'src' );
-				$.post( 'cmd.php', { cmd: 'imagefile', imagefile: thumbfile.replace( /%22/g, '\\"' ), base64: newimg }, function() {
+				$.post( cmdphp, {
+					  cmd       : 'imagefile'
+					, imagefile : thumbfile.replace( /%22/g, '\\"' )
+					, base64    : newimg
+				}, function() {
 					$img
 						.removeAttr( 'data-src' ) // lazyload 'data-src'
 						.prop( 'src', newimg );
@@ -1595,7 +1621,7 @@ $( '#lib-cover-list' ).on( 'tap', '.coverart-cover', function() {
 				formData.append( 'file', file );
 				formData.append( 'resize', img.naturalWidth > 200 || img.naturalHeight > 200 );
 				$.ajax( {
-					  url         : 'cmd.php'
+					  url         : cmdphp
 					, type        : 'POST'
 					, data        : formData
 					, processData : false
@@ -1786,11 +1812,11 @@ $( '#button-pl-consume' ).click( function() {
 	if ( G.status.consume ) {
 		$( this ).removeClass( 'bl' );
 		notify( 'Consume Mode', 'Off', 'list-ul' );
-		$.post( 'cmd.php', { cmd: 'bash', bash: 'mpc consume 0' } );
+		$.post( cmdphp, cmdbash( 'mpc consume 0' ) );
 	} else {
 		$( this ).addClass( 'bl' );
 		notify( 'Consume Mode', 'On - Remove each song after played.', 'list-ul' );
-		$.post( 'cmd.php', { cmd: 'bash', bash: 'mpc consume 1' } );
+		$.post( cmdphp, cmdbash( 'mpc consume 1' ) );
 	}
 } );
 $( '#button-pl-random' ).click( function() {
@@ -1798,7 +1824,7 @@ $( '#button-pl-random' ).click( function() {
 		G.status.librandom = false;
 		$( this ).removeClass( 'bl' );
 		notify( 'Roll The Dice', 'Off ...', 'dice' );
-		$.post( 'cmd.php', { cmd: 'sh', sh: [ cmdsh, 'plrandom', 0 ] } );
+		$.post( cmdphp, cmdsh( [ cmdsh, 'plrandom', 0 ] ) );
 	} else {
 		info( {
 			  icon    : 'dice'
@@ -1808,7 +1834,7 @@ $( '#button-pl-random' ).click( function() {
 				G.status.librandom = true;
 				$( this ).addClass( 'bl' );
 				notify( 'Roll The Dice', 'Add+play ...', 'dice' );
-				$.post( 'cmd.php', { cmd: 'sh', sh: [ cmdsh, 'plrandom', 1 ] } );
+				$.post( cmdphp, cmdsh( [ cmdsh, 'plrandom', 1 ] ) );
 			}
 		} );
 	}
@@ -1821,7 +1847,7 @@ $( '#button-pl-shuffle' ).click( function() {
 		, title   : 'Shuffle Playlist'
 		, message : 'Shuffle all tracks in playlist?'
 		, ok      : function() {
-			$.post( 'cmd.php', { cmd: 'sh', sh: [ cmdsh, 'plshuffle' ] } );
+			$.post( cmdphp, cmdsh( [ cmdsh, 'plshuffle' ] ) );
 		}
 	} );
 } );
@@ -1838,7 +1864,7 @@ $( '#button-pl-crop' ).click( function() {
 				G.local = 1;
 				setTimeout( function() { G.local = 0 }, 300 );
 			}
-			$.post( 'cmd.php', { cmd: 'sh', sh: [ cmdsh, 'plcrop' ] } );
+			$.post( cmdphp, cmdsh( [ cmdsh, 'plcrop' ] ) );
 		}
 	} );
 } );
@@ -1870,7 +1896,7 @@ $( '#button-pl-clear' ).click( function() {
 			$( '.cover-save' ).remove();
 			G.local = 1;
 			setTimeout( function() { G.local = 0 }, 1000 );
-			$.post( 'cmd.php', { cmd: 'bash', bash: 'mpc clear' } );
+			$.post( cmdphp, cmdbash( 'mpc clear' ) );
 		}
 		, buttonwidth : 1
 	} );
@@ -1904,7 +1930,7 @@ var sortableplaylist = new Sortable( document.getElementById( 'pl-list' ), {
 		}
 		G.sortable = 1;
 		setTimeout( function() { G.sortable = 0 }, 500 );
-		$.post( 'cmd.php', { cmd: 'sh', sh: [ cmdsh, 'plorder', ( e.oldIndex + 1 ), ( e.newIndex + 1 ) ] }, function() {
+		$.post( cmdphp, cmdsh( [ cmdsh, 'plorder', ( e.oldIndex + 1 ), ( e.newIndex + 1 ) ] ), function() {
 			setTimeout( setPlaylistScroll, 600 );
 		} );
 	}
@@ -1919,7 +1945,11 @@ var sortablesavedplaylist = new Sortable( document.getElementById( 'pl-savedlist
 		setTimeout( function() { G.sortable = 0 }, 500 );
 		
 		var plname = $( '#pl-path .lipath' ).text();
-		$.post( 'mpdplaylist.php', { edit: plname, old: e.oldIndex, new: e.newIndex } );
+		$.post( 'mpdplaylist.php', {
+			  edit : plname
+			, old  : e.oldIndex
+			, new  : e.newIndex
+		} );
 	}
 } );
 $( '#pl-list, #pl-savedlist' ).on( 'swipeleft', 'li', function() {
@@ -1957,7 +1987,7 @@ $( '#pl-list' ).on( 'click', 'li', function( e ) {
 		$( '#pl-list li.active .elapsed' ).empty();
 		$( '#pl-list li.active' ).removeClass( 'active' );
 		$this.addClass( 'active' );
-		$.post( 'cmd.php', { cmd: 'bash', bash: 'mpc play '+ listnumber } );
+		$.post( cmdphp, cmdbash( 'mpc play '+ listnumber ) );
 	} else {
 		if ( $this.hasClass( 'active' ) ) {
 			if ( G.status.state == 'play' ) {
@@ -1980,7 +2010,7 @@ $( '#pl-list' ).on( 'click', 'li', function( e ) {
 			$( '#pl-list li.active .elapsed' ).empty();
 			$( '#pl-list li.active' ).removeClass( 'active' );
 			$this.addClass( 'active' );
-			$.post( 'cmd.php', { cmd: 'bash', bash: 'mpc play '+ listnumber } );
+			$.post( cmdphp, cmdbash( 'mpc play '+ listnumber ) );
 			G.status.elapsed = 0;
 			if ( $this.find( '.fa-webradio' ).length ) G.status.Title = '';
 			playlistProgress();
@@ -2034,7 +2064,7 @@ $( '#pl-list' ).on( 'click', '.pl-icon', function( e ) {
 	if ( targetB > wH - ( G.bars ? 80 : 40 ) + $( window ).scrollTop() ) $( 'html, body' ).animate( { scrollTop: targetB - wH + 42 } );
 } );
 $( '#pl-list' ).on( 'click', '.pl-remove', function() { // remove from playlist
-	$.post( 'cmd.php', { cmd: 'bash', bash: 'mpc del '+ ( $( this ).parent().index() + 1 ) } );
+	$.post( cmdphp, cmdbash( 'mpc del '+ ( $( this ).parent().index() + 1 ) ) );
 } );
 $( '#pl-savedlist' ).on( 'click', 'li', function( e ) {
 	if ( G.swipe ) return

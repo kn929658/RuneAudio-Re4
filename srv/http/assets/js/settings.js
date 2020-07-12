@@ -6,7 +6,7 @@ var page = location.href.split( '=' ).pop();
 var reboot = '';
 
 if ( page === 'credits' ) {
-	$.post( 'cmd.php', { cmd: 'exec', exec: 'cat /srv/http/data/tmp/reboot' }, function( lines ) {
+	$.post( cmdphp, { cmd: 'exec', exec: 'cat /srv/http/data/tmp/reboot' }, function( lines ) {
 		G = { reboot: lines || [] }
 	}, 'json' );
 }
@@ -19,18 +19,18 @@ $( '#close' ).click( function() {
 					   +'<br><br><w>'+ G.reboot.join( '<br>' ) +'</w>'
 			, cancel  : function() {
 				G.reboot = [];
-				$.post( 'cmd.php', { cmd: 'bash', bash: 'rm -f /srv/http/data/tmp/reboot' } );
+				$.post( cmdphp, cmdbash( 'rm -f /srv/http/data/tmp/reboot' ) );
 			}
 			, ok      : function() {
-				$.post( 'cmd.php', { cmd: 'sh', sh: [ 'cmd.sh', 'reboot' ] } );
+				$.post( cmdphp, cmdsh( [ 'cmd.sh', 'reboot' ] ) );
 				notify( 'Rebooting ...', '', 'reboot blink', -1 );
 			}
 		} );
 	} else {
 		if ( page === 'system' ) {
-			$.post( 'cmd.php', { cmd: 'bash', bash: 'rm -f /srv/http/data/tmp/backup.*' } );
+			$.post( cmdphp, cmdbash( 'rm -f /srv/http/data/tmp/backup.*' ) );
 		} else if ( page === 'network' ) {
-			if ( $( '#listinterfaces li' ).hasClass( 'bt' ) ) $.post( 'cmd.php', { cmd: 'bash', bash: 'bluetoothctl scan off' } );
+			if ( $( '#listinterfaces li' ).hasClass( 'bt' ) ) $.post( cmdphp, cmdbash( 'bluetoothctl scan off' ) );
 		}
 		location.href = '/';
 	}
@@ -90,6 +90,18 @@ pushstream.onmessage = function( data, id, channel ) {
 		case 'refresh': psRefresh( data ); break;
 		case 'reload':  psReload();        break;
 		case 'restore': psRestore( data ); break;
+	}
+}
+function cmdbash( command ) {
+	return {
+		  cmd  : 'bash'
+		, bash : command
+	}
+}
+function cmdsh( array ) {
+	return {
+		  cmd  : 'sh'
+		, sh : array
 	}
 }
 function psRefresh( data ) {

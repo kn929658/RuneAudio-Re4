@@ -32,32 +32,17 @@ function bookmarkThumbReplace( $this, newimg ) {
 		$( '.mode-bookmark img' ).css( 'opacity', 0.33 );
 	}
 }
-function colorSet() {
-	$( '#lib-list li:eq( 1 )' ).tap();
-	$( '.licover' ).toggleClass( 'hide', window.innerHeight < 590 );
-	colorpicker = new KellyColorPicker( {
-		  place  : 'canvascolor'
-		, size   : 230
-		, color  : $( '#button-library' ).css( 'background-color' )
-		, userEvents : {
-			change : function( e ) {
-				var hex = e.getCurColorHex();
-				var h = Math.round( 360 * e.getCurColorHsv().h );
-				var hsg = 'hsl('+ h +',3%,';
-				$( '#bar-top, #playback-controls i, #tab-playlist, .menu a, .submenu, #colorcancel' ).css( 'background-color', hsg +'30%)' );
-				$( '.content-top, #tab-playback' ).css( 'background', hsg +'20%)' );
-				$( '.licover i, .lidir, .lib-icon, gr' ).css( 'cssText', 'color: '+ hsg +'60%) !important;' );
-				$( '#lib-list li.active i, #lib-list li.active .time, #lib-list li.active .li2' ).css( 'color', hsg +'30%)' );
-				$( '.menu a' ).css( 'border-top', '1px solid '+ hsg +'20%)' );
-				$( '#lib-list li' ).css( 'border-bottom', '1px solid '+ hsg +'20%)' );
-				$( '#playback-controls .active, #tab-library, #button-library, #lib-list li.active, #colorok' ).css( 'background-color', hex );
-				$( '#button-lib-back, .lialbum' ).css( 'color', hex );
-				$( '.logo path.st0' ).css( 'fill', hex )
-			}
-		}
-	} );
-	$( '#colorpicker' ).removeClass( 'hide' );
-	$( 'body' ).addClass( 'disablescroll' );
+function cmdbash( command ) {
+	return {
+		  cmd  : 'bash'
+		, bash : command
+	}
+}
+function cmdsh( array ) {
+	return {
+		  cmd  : 'sh'
+		, sh : array
+	}
 }
 function clearIntervalAll() {
 	clearInterval( G.intKnob );
@@ -104,6 +89,33 @@ function contextmenuLibrary( $li, $target ) {
 	var wH = window.innerHeight;
 	if ( targetB > wH - ( G.bars ? 80 : 40 ) + $( window ).scrollTop() ) $( 'html, body' ).animate( { scrollTop: targetB - wH + 42 } );
 }
+function colorSet() {
+	$( '#lib-list li:eq( 1 )' ).tap();
+	$( '.licover' ).toggleClass( 'hide', window.innerHeight < 590 );
+	colorpicker = new KellyColorPicker( {
+		  place  : 'canvascolor'
+		, size   : 230
+		, color  : $( '#button-library' ).css( 'background-color' )
+		, userEvents : {
+			change : function( e ) {
+				var hex = e.getCurColorHex();
+				var h = Math.round( 360 * e.getCurColorHsv().h );
+				var hsg = 'hsl('+ h +',3%,';
+				$( '#bar-top, #playback-controls i, #tab-playlist, .menu a, .submenu, #colorcancel' ).css( 'background-color', hsg +'30%)' );
+				$( '.content-top, #tab-playback' ).css( 'background', hsg +'20%)' );
+				$( '.licover i, .lidir, .lib-icon, gr' ).css( 'cssText', 'color: '+ hsg +'60%) !important;' );
+				$( '#lib-list li.active i, #lib-list li.active .time, #lib-list li.active .li2' ).css( 'color', hsg +'30%)' );
+				$( '.menu a' ).css( 'border-top', '1px solid '+ hsg +'20%)' );
+				$( '#lib-list li' ).css( 'border-bottom', '1px solid '+ hsg +'20%)' );
+				$( '#playback-controls .active, #tab-library, #button-library, #lib-list li.active, #colorok' ).css( 'background-color', hex );
+				$( '#button-lib-back, .lialbum' ).css( 'color', hex );
+				$( '.logo path.st0' ).css( 'fill', hex )
+			}
+		}
+	} );
+	$( '#colorpicker' ).removeClass( 'hide' );
+	$( 'body' ).addClass( 'disablescroll' );
+}
 function coverartChange() {
 	if ( G.playback ) {
 		var src = $( '#coverart' ).prop( 'src' );
@@ -137,12 +149,12 @@ function coverartChange() {
 			var file = $( '#infoFileBox' )[ 0 ].files[ 0 ];
 			var imgnew = $( '#imgnew' ).prop( 'src' );
 			if ( file.name.slice( -4 ) !== '.gif' ) {
-				$.post( 'cmd.php', {
-						  cmd       : 'imagefile'
-						, imagefile : '/mnt/MPD/'+ path +'/cover.jpg'
-						, srcfile   : '/mnt/MPD/'+ path +'/'+ covername
-						, base64    : imgnew
-						, coverfile : 1
+				$.post( cmdphp, {
+					  cmd       : 'imagefile'
+					, imagefile : '/mnt/MPD/'+ path +'/cover.jpg'
+					, srcfile   : '/mnt/MPD/'+ path +'/'+ covername
+					, base64    : imgnew
+					, coverfile : 1
 				}, function( std ) {
 					coverartSuccess( 'Replace', imgnew, std );
 				} );
@@ -153,7 +165,7 @@ function coverartChange() {
 				formData.append( 'srcfile', '/mnt/MPD/'+ path +'/'+ covername );
 				formData.append( 'file', file );
 				$.ajax( {
-					  url         : 'cmd.php'
+					  url         : cmdphp
 					, type        : 'POST'
 					, data        : formData
 					, processData : false  // no - process the data
@@ -181,7 +193,7 @@ function coverartChange() {
 		jsoninfo.buttoncolor = '#bb2828';
 		jsoninfo.buttonwidth = 1;
 		jsoninfo.button      = function() {
-			$.post( 'cmd.php', {
+			$.post( cmdphp, {
 				  cmd       : 'imagefile'
 				, imagefile : '/mnt/MPD/'+ path
 				, srcfile   : '/mnt/MPD/'+ path +'/'+ covername
@@ -297,7 +309,11 @@ function coverartSave() {
 					   +'<p class="imgname"><w>'+ album +'</w>'
 					   +'<br>'+ artist +'</p>'
 		, ok      : function() { 
-			$.post( 'cmd.php', { cmd: 'imagefile', imagefile: coverfile, base64: src.split( ',' ).pop() }, function( std ) {
+			$.post( cmdphp, {
+				  cmd       : 'imagefile'
+				, imagefile : coverfile
+				, base64    : src.split( ',' ).pop()
+			}, function( std ) {
 				coverartSuccess( 'Save', src, std );
 				$( '.cover-save' ).remove();
 			} );
@@ -428,7 +444,10 @@ function displaySave( page, thumbbyartist ) {
 	} );
 	G.local = 1;
 	setTimeout( function() { G.local = 0 }, 300 );
-	$.post( 'cmd.php', { cmd: 'displayset', displayset: JSON.stringify( display ) }, function() {
+	$.post( cmdphp, {
+		  cmd        : 'displayset'
+		, displayset : JSON.stringify( display )
+	}, function() {
 		if ( page === 'library' && G.display.thumbbyartist !== thumbbyartist ) location.reload();
 	} );
 }
@@ -492,7 +511,13 @@ function getBio( artist ) {
 	setTimeout( function() { // suppress hide by info
 		$( '#loader' ).removeClass( 'hide' );
 	}, 0 );
-	$.post( 'http://ws.audioscrobbler.com/2.0/?autocorrect=1&format=json&method=artist.getinfo&api_key='+ G.apikeylastfm +'&artist='+ encodeURI( artist ), function( data ) {
+	var url = 'http://ws.audioscrobbler.com/2.0/'
+			+'?autocorrect=1'
+			+'&format=json'
+			+'&method=artist.getinfo'
+			+'&api_key='+ G.apikeylastfm
+			+'&artist='+ encodeURI( artist )
+	$.post( url, function( data ) {
 		if ( 'error' in data || ( !data.artist.bio.content ) ) {
 			info( {
 				  icon    : 'bio'
@@ -588,16 +613,14 @@ function getPlaybackStatus() {
 	}
 	G.local = 1;
 	setTimeout( function() { G.local = 0 }, 300 );
-	$.post( 'cmd.php', { cmd: 'bash', bash: '/srv/http/bash/status.sh' }, function( status ) {
+	$.post( cmdphp, cmdbash( '/srv/http/bash/status.sh' ), function( status ) {
 		if ( !status ) return
 		
 		$.each( status, function( key, value ) {
 			G.status[ key ] = value;
 		} );
 		if ( G.status.snapclient ) {
-			$.post( 'cmd.php'
-				, { cmd: 'bash', bash: 'sshpass -p '+ status.snapserverpw +' ssh -q root@'+ status.snapserverip +' /srv/http/bash/status.sh' }
-				, function( status ) {
+			$.post( cmdphp, cmdbash( 'sshpass -p '+ status.snapserverpw +' ssh -q root@'+ status.snapserverip +' /srv/http/bash/status.sh' ), function( status ) {
 				$.each( status, function( key, value ) {
 					G.status[ key ] = value;
 				} );
@@ -706,14 +729,14 @@ function menuPackage( $this, $target ) {
 		if ( $this.data( 'active' ) ) {
 			window.open( url[ id ] );
 		} else {
-			$.post( 'cmd.php', { cmd: 'sh', sh: [ cmdsh, 'packageenable', id, $this.data( 'enabled' ) ] }, window.open( url[ id ] ) );
+			$.post( cmdphp, cmdsh( [ cmdsh, 'packageenable', id, $this.data( 'enabled' ) ] ), window.open( url[ id ] ) );
 		}
 	}
 }
 function menuPackageSet( pkg, active, enable ) {
 	G.local = 1;
 	setTimeout( function() { G.local = 0 }, 1000 );
-	$.post( 'cmd.php', { cmd: 'sh', sh: [ cmdsh, 'packageset', pkg, active, enable ] } );
+	$.post( cmdphp, cmdsh( [ cmdsh, 'packageset', pkg, active, enable ] ) );
 	$( '#'+ pkg )
 		.data( 'enabled', enable )
 		.data( 'active', active )
@@ -732,7 +755,7 @@ function mpdSeek( seekto ) {
 		$( '#total' ).text( timehms );
 	}
 	if ( G.status.state === 'play' ) {
-		$.post( 'cmd.php', { cmd: 'bash', bash: 'mpc seek '+ seektime } );
+		$.post( cmdphp, cmdbash( 'mpc seek '+ seektime ) );
 	} else {
 		if ( G.bars ) {
 			$( '#playback-controls i' ).removeClass( 'active' );
@@ -741,7 +764,7 @@ function mpdSeek( seekto ) {
 		}
 		G.local = 1;
 		setTimeout( function() { G.local = 0 }, 300 );
-		$.post( 'cmd.php', { cmd: 'sh', sh: [ cmdsh, 'playseek', seektime ] } );
+		$.post( cmdphp, cmdsh( [ cmdsh, 'playseek', seektime ] ) );
 	}
 }
 function mpdSeekBar( pageX, set ) {
@@ -781,9 +804,9 @@ function orderLibrary() {
 function playlistInsert( indextarget ) {
 	var plname = $( '#pl-path .lipath' ).text();
 	$.post( 'mpdplaylist.php', {
-			  edit        : plname
-			, index       : G.pladd.index
-			, indextarget : indextarget
+		  edit        : plname
+		, index       : G.pladd.index
+		, indextarget : indextarget
 	}, function() {
 		renderSavedPlaylist( plname );
 		if ( G.pladd.select === 'last' ) {
@@ -1137,9 +1160,9 @@ function renderPlayback() {
 			$( '#coverart' ).prop( 'src', status.coverart );
 		} else {
 			$( '#coverart' ).prop( 'src', coverrune );
-			if ( 'file' in status ) {
+			if ( 'file' in status ) { // retry
 				setTimeout( function() {
-					$.post( 'cmd.php', { cmd: 'coverart', coverart: status.file }, function( coverart ) {
+					$.post( cmdphp, cmdsh( [ cmdsh, 'coverartget', status.file, 'pushstream' ] ), function( coverart ) {
 						if ( !coverart ) {
 							$( '#divcover, #coverart' ).addClass( 'coverrune' );
 							$( '#coverart' ).prop( 'src', coverrune );
@@ -1483,7 +1506,7 @@ function setPlaylistScroll() {
 		$( '#menu-plaction' ).addClass( 'hide' );
 		$( '#pl-list li' ).removeClass( 'updn' );
 		setNameWidth();
-		$.post( 'cmd.php', { cmd: 'bash', bash: '/srv/http/bash/status.sh statusonly' }, function( status ) {
+		$.post( cmdphp, cmdbash( '/srv/http/bash/status.sh statusonly' ), function( status ) {
 			$.each( status, function( key, value ) {
 				G.status[ key ] = value;
 			} );
@@ -1584,7 +1607,11 @@ function volumeSet( pageX ) {
 		if ( !G.drag ) $( '#volume-bar' ).animate( { width: vol +'%' }, 600 );
 		G.local = 1;
 		$( '.volumeband' ).addClass( 'disabled' );
-		$.post( 'cmd.php', { cmd: 'volume', volume: vol, current: G.status.volume }, function() {
+		$.post( cmdphp, {
+			  cmd     : 'volume'
+			, volume  : vol
+			, current : G.status.volume
+		}, function() {
 			G.local = 0;
 			G.status.volume = vol;
 			$( '.volumeband' ).removeClass( 'disabled' );

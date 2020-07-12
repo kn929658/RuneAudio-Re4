@@ -72,7 +72,7 @@ mpcfindadd )
 	if [[ -z ${args[3]} ]]; then
 		mpc findadd ${args[1]} "${args[2]}"
 	else
-		mpc findadd ${args[1]} "${args[2]}" artist "${args[3]}"
+		mpc findadd ${args[1]} "${args[2]}" ${args[3]} "${args[4]}"
 	fi
 	;;
 mpcload )

@@ -27,7 +27,7 @@ $( '#refresh' ).click( function( e ) {
 		bannerHide();
 	} else {
 		intervalcputime = setInterval( function() {
-			$.post( 'cmd.php', { cmd: 'bash', bash: '/srv/http/bash/system-data.sh status' }, function( status ) {
+			$.post( cmdphp, cmdbash( '/srv/http/bash/system-data.sh status' ), function( status ) {
 				$.each( status, function( key, val ) {
 					G[ key ] = val;
 				} );
@@ -40,13 +40,13 @@ $( '#refresh' ).click( function( e ) {
 $( '#airplay' ).click( function( e ) {
 	G.airplay = $( this ).prop( 'checked' );
 	banner( 'AirPlay Renderer', G.airplay, 'airplay' );
-	$.post( 'cmd.php', { cmd: 'sh', sh: [ systemsh, 'airplay', G.airplay ] }, resetLocal );
+	$.post( cmdphp, cmdsh( [ systemsh, 'airplay', G.airplay ] ), resetLocal );
 } );
 $( '#snapclient' ).click( function( e ) {
 	G.snapclient = $( this ).prop( 'checked' );
 	$( '#setting-snapclient' ).toggleClass( 'hide', !G.snapclient );
 	banner( 'SnapClient Renderer', G.snapclient, 'snapcast' );
-	$.post( 'cmd.php', { cmd: 'sh', sh: [ systemsh, 'snapclient', G.snapclient ] }, resetLocal );
+	$.post( cmdphp, cmdsh( [ systemsh, 'snapclient', G.snapclient ] ), resetLocal );
 } );
 $( '#setting-snapclient' ).click( function() {
 	info( {
@@ -62,7 +62,7 @@ $( '#setting-snapclient' ).click( function() {
 			if ( latency !== G.snaplatency ) {
 				G.snaplatency = latency;
 				banner( 'Snapclient Latency', 'Change ...', 'snapcast' );
-				$.post( 'cmd.php', { cmd: 'sh', sh: [ systemsh, 'snapclientset', G.snaplatency ] }, resetLocal );
+				$.post( cmdphp, cmdsh( [ systemsh, 'snapclientset', G.snaplatency ] ), resetLocal );
 			}
 		}
 	} );
@@ -71,10 +71,10 @@ $( '#spotify' ).click( function() {
 	G.spotify = $( this ).prop( 'checked' );
 	$( '#setting-spotify' ).toggleClass( 'hide', !G.spotify );
 	banner( 'Spotify Connect', G.spotify, 'spotify' );
-	$.post( 'cmd.php', { cmd: 'sh', sh: [ systemsh, 'spotify', G.spotify ] }, resetLocal );
+	$.post( cmdphp, cmdsh( [ systemsh, 'spotify', G.spotify ] ), resetLocal );
 } );
 $( '#setting-spotify' ).click( function() {
-	$.post( 'cmd.php', { cmd: 'exec', exec: "aplay -L | grep -v '^\\s\\|^null'" }, function( devices ) {
+	$.post( cmdphp, { cmd: 'exec', exec: "aplay -L | grep -v '^\\s\\|^null'" }, function( devices ) {
 		var select = {}
 		devices.forEach( function( val ) {
 			select[ val ] = val;
@@ -101,7 +101,7 @@ $( '#setting-spotify' ).click( function() {
 				if ( device !== G.spotifydevice ) {
 					G.spotifydevice = device;
 					banner( 'Spotify Renderer', 'Change ...', 'spotify' );
-					$.post( 'cmd.php', { cmd: 'sh', sh: [ systemsh, 'spotifyset', device ] }, resetLocal );
+					$.post( cmdphp, cmdsh( [ systemsh, 'spotifyset', device ] ), resetLocal );
 				}
 			}
 		} );
@@ -110,7 +110,7 @@ $( '#setting-spotify' ).click( function() {
 $( '#upnp' ).click( function( e ) {
 	G.upnp = $( this ).prop( 'checked' );
 	banner( 'UPnP Renderer', G.upnp, 'upnp fa-s' );
-	$.post( 'cmd.php', { cmd: 'sh', sh: [ systemsh, 'upnp', G.upnp ] }, resetLocal );
+	$.post( cmdphp, cmdsh( [ systemsh, 'upnp', G.upnp ] ), resetLocal );
 } );
 $( '#snapcast' ).click( function( e ) {
 	G.snapcast = $( this ).prop( 'checked' );
@@ -121,18 +121,18 @@ $( '#snapcast' ).click( function( e ) {
 		$( '#divsnapclient' ).removeClass( 'hide' );
 	}
 	banner( 'Snapcast - Sync Streaming Server', G.snapcast, 'snapcast' );
-	$.post( 'cmd.php', { cmd: 'sh', sh: [ systemsh, 'snapcast', G.snapcast ] }, resetLocal );
+	$.post( cmdphp, cmdsh( [ systemsh, 'snapcast', G.snapcast ] ), resetLocal );
 } );
 $( '#streaming' ).click( function( e ) {
 	G.streaming = $( this ).prop( 'checked' );
 	banner( 'HTTP Streaming', G.streaming, 'mpd' );
-	$.post( 'cmd.php', { cmd: 'sh', sh: [ systemsh, 'streaming', G.streaming ] }, resetLocal );
+	$.post( cmdphp, cmdsh( [ systemsh, 'streaming', G.streaming ] ), resetLocal );
 } );
 $( '#localbrowser' ).click( function( e ) {
 	G.localbrowser = $( this ).prop( 'checked' );
 	$( '#setting-localbrowser' ).toggleClass( 'hide', !G.localbrowser );
 	banner( 'Chromium - Browser on RPi', G.localbrowser, 'chromium blink' );
-	$.post( 'cmd.php', { cmd: 'sh', sh: [ systemsh, 'localbrowser', G.localbrowser ] }, resetLocal( 7000 ) );
+	$.post( cmdphp, cmdsh( [ systemsh, 'localbrowser', G.localbrowser ] ), resetLocal( 7000 ) );
 } );
 var localbrowserinfo = heredoc( function() { /*
 	<div id="infoText" class="infocontent">
@@ -176,7 +176,7 @@ $( '#setting-localbrowser' ).click( function( e ) {
 		, buttonlabel : '<i class="fa fa-refresh"></i>Refresh'
 		, buttoncolor : '#de810e'
 		, button      : function() {
-			$.post( 'cmd.php', { cmd: 'sh', sh: [ systemsh, 'refreshbrowser' ] } );
+			$.post( cmdphp, cmdsh( [ systemsh, 'refreshbrowser' ] ) );
 		}
 		, buttonwidth : 1
 		, ok          : function() {
@@ -193,7 +193,7 @@ $( '#setting-localbrowser' ).click( function( e ) {
 			G.screenoff = screenoff;
 			G.zoom      = zoom;
 			banner( 'Chromium - Browser on RPi', 'Change ...', 'chromium blink' );
-			$.post( 'cmd.php', { cmd: 'sh', sh: [ systemsh, 'localbrowserset', rotate, cursor, ( screenoff * 60 ), zoom ] }, function() {
+			$.post( cmdphp, cmdsh( [ systemsh, 'localbrowserset', rotate, cursor, ( screenoff * 60 ), zoom ] ), function() {
 				resetLocal( 7000 );
 			} );
 		}
@@ -203,7 +203,7 @@ $( '#samba' ).click( function( e ) {
 	G.samba = $( this ).prop( 'checked' );
 	$( '#setting-samba' ).toggleClass( 'hide', !G.samba );
 	banner( 'Samba - File Sharing', G.samba, 'network blink' );
-	$.post( 'cmd.php', { cmd: 'sh', sh: [ systemsh, 'samba', G.samba ] }, resetLocal );
+	$.post( cmdphp, cmdsh( [ systemsh, 'samba', G.samba ] ), resetLocal );
 } );
 $( '#setting-samba' ).click( function() {
 	info( {
@@ -222,7 +222,7 @@ $( '#setting-samba' ).click( function() {
 				G.writesd = writesd;
 				G.writeusb = writeusb;
 				banner( 'Samba - File Sharing', 'Change ...', 'network blink' );
-				$.post( 'cmd.php', { cmd: 'sh', sh: [ systemsh, 'sambaset', G.writesd, G.writeusb ] }, resetLocal );
+				$.post( cmdphp, cmdsh( [ systemsh, 'sambaset', G.writesd, G.writeusb ] ), resetLocal );
 			}
 		}
 	} );
@@ -233,7 +233,7 @@ $( '#mpdscribble' ).click( function() {
 		$( '#setting-mpdscribble' ).click();
 	} else {
 		banner( 'Scrobbler', mpdscribble, 'lastfm' );
-		$.post( 'cmd.php', { cmd: 'sh', sh: [ systemsh, 'mpdscribble', mpdscribble ] }, function( std ) {
+		$.post( cmdphp, cmdsh( [ systemsh, 'mpdscribble', mpdscribble ] ), function( std ) {
 			G.mpdscribble = std == 0 ? true : false;
 			$( '#setting-mpdscribble' ).toggleClass( 'hide', !G.mpdscribble );
 			resetLocal();
@@ -254,7 +254,7 @@ $( '#setting-mpdscribble' ).click( function() {
 			G.mpdscribbleuser = $( '#infoTextBox' ).val().replace( /(["&()\\])/g, '\$1' );
 			var password = $( '#infoPasswordBox' ).val().replace( /(["&()\\])/g, '\$1' );
 			banner( 'Scrobbler', G.mpdscribble ? 'Change ...' : 'Enable ...', 'lastfm' );
-			$.post( 'cmd.php', { cmd: 'sh', sh: [ systemsh, 'mpdscribbleset', G.mpdscribbleuser, password ] }, function( std ) {
+			$.post( cmdphp, cmdsh( [ systemsh, 'mpdscribbleset', G.mpdscribbleuser, password ] ), function( std ) {
 				G.mpdscribble = std == 0 ? true : false;
 				$( '#setting-mpdscribble' ).toggleClass( 'hide', !G.mpdscribble );
 				resetLocal();
@@ -266,7 +266,7 @@ $( '#login' ).click( function( e ) {
 	G.login = $( this ).prop( 'checked' );
 	$( '#setting-login' ).toggleClass( 'hide', !G.login );
 	banner( 'Password Login', G.login, 'lock' );
-	$.post( 'cmd.php', { cmd: 'sh', sh: [ systemsh, 'login', G.login ] }, resetLocal );
+	$.post( cmdphp, cmdsh( [ systemsh, 'login', G.login ] ), resetLocal );
 	if ( G.login && G.passworddefault ) {
 		info( {
 			  icon    : 'lock'
@@ -281,7 +281,7 @@ $( '#setting-login' ).click( function() {
 		, title         : 'Change Password'
 		, passwordlabel : [ 'Existing', 'New' ]
 		, ok            : function() {
-			$.post( 'cmd.php', {
+			$.post( cmdphp, {
 				  cmd    : 'login'
 				, login  : $( '#infoPasswordBox' ).val()
 				, pwdnew : $( '#infoPasswordBox1' ).val()
@@ -299,7 +299,7 @@ $( '#setting-login' ).click( function() {
 $( '#autoplay' ).click( function() {
 	G.autoplay = $( this ).prop( 'checked' );
 	banner( 'Play on Startup', G.autoplay, 'refresh-play' );
-	$.post( 'cmd.php', { cmd: 'sh', sh: [ systemsh, 'autoplay', G.autoplay ] }, resetLocal );
+	$.post( cmdphp, cmdsh( [ systemsh, 'autoplay', G.autoplay ] ), resetLocal );
 } );
 $( '#onboardaudio' ).click( function( e ) {
 	var onboardaudio = $( this ).prop( 'checked' );
@@ -314,19 +314,19 @@ $( '#onboardaudio' ).click( function( e ) {
 		G.onboardaudio = onboardaudio;
 		rebootText( onboardaudio ? 'Enable' : 'Disable', 'on-board audio' );
 		local = 1;
-		$.post( 'cmd.php', { cmd: 'sh', sh: [ systemsh, 'onboardaudio', G.onboardaudio, G.reboot.join( '\n' ) ] }, resetLocal );
+		$.post( cmdphp, cmdsh( [ systemsh, 'onboardaudio', G.onboardaudio, G.reboot.join( '\n' ) ] ), resetLocal );
 	}
 } );
 $( '#bluetooth' ).click( function( e ) {
 	G.bluetooth = $( this ).prop( 'checked' );
 	rebootText( G.bluetooth ? 'Enable' : 'Disable', 'on-board Bluetooth' );
 	banner( 'On-board Bluetooth', G.bluetooth, 'bluetooth' );
-	$.post( 'cmd.php', { cmd: 'sh', sh: [ systemsh, 'bluetooth', G.bluetooth, G.reboot.join( '\n' ) ] }, resetLocal );
+	$.post( cmdphp, cmdsh( [ systemsh, 'bluetooth', G.bluetooth, G.reboot.join( '\n' ) ] ), resetLocal );
 } );
 $( '#wlan' ).click( function( e ) {
 	G.wlan = $( this ).prop( 'checked' );
 	banner( 'On-board Wi-Fi', G.wlan, 'wifi-3' );
-	$.post( 'cmd.php', { cmd: 'sh', sh: [ systemsh, 'wlan', G.wlan ] }, resetLocal );
+	$.post( cmdphp, cmdsh( [ systemsh, 'wlan', G.wlan ] ), resetLocal );
 } );
 $( '#i2smodulesw' ).click( function() {
 	// delay to show switch sliding
@@ -368,9 +368,7 @@ $( '#i2smodule' ).on( 'selectric-change', function( e ) {
 		rebootText( 'Disable', 'I&#178;S Module' );
 		banner( 'I&#178;S Module', 'Disable ...', 'volume' );
 	}
-	$.post( 'cmd.php'
-		, { cmd: 'sh', sh: [ systemsh, 'i2smodule', G.audioaplayname, G.audiooutput, G.reboot.join( '\n' ) ] }
-		, function() {
+	$.post( cmdphp, cmdsh( [ systemsh, 'i2smodule', G.audioaplayname, G.audiooutput, G.reboot.join( '\n' ) ] ), function() {
 			resetLocal();
 			getConfigtxt();
 		} );
@@ -380,7 +378,7 @@ $( '#soundprofile' ).click( function( e ) {
 	var checked = $( this ).prop( 'checked' );
 	rebootText( checked ? 'Enable' : 'Disable', 'sound profile' );
 	banner( 'Sound Profile', checked, 'volume' );
-	$.post( 'cmd.php', { cmd: 'sh', sh: [ systemsh, 'soundprofile', checked ] }, resetLocal );
+	$.post( cmdphp, cmdsh( [ systemsh, 'soundprofile', checked ] ), resetLocal );
 	$( '#setting-soundprofile' ).toggleClass( 'hide', !checked );
 	G.soundprofile = checked ? 'RuneAudio' : '';
 } );
@@ -424,7 +422,7 @@ $( '#setting-soundprofile' ).click( function() {
 						if ( soundprofile != G.soundprofile ) {
 							G.soundprofile = soundprofile;
 							banner( 'Sound Profile', 'Change ...', 'volume' );
-							$.post( 'cmd.php', { cmd: 'sh', sh: [ systemsh, 'soundprofileset', soundprofile ] }, resetLocal );
+							$.post( cmdphp, cmdsh( [ systemsh, 'soundprofileset', soundprofile ] ), resetLocal );
 						}
 					}
 				} );
@@ -442,7 +440,7 @@ $( '#setting-soundprofile' ).click( function() {
 				rebootText( G.soundprofile ? 'Change' : 'Enable', 'sound profile' );
 				G.soundprofile = soundprofile;
 				banner( 'Sound Profile', 'Change ...', 'volume' );
-				$.post( 'cmd.php', { cmd: 'sh', sh: [ systemsh, 'soundprofileset', soundprofile ] }, resetLocal );
+				$.post( cmdphp, cmdsh( [ systemsh, 'soundprofileset', soundprofile ] ), resetLocal );
 			}
 		}
 	} );
@@ -459,7 +457,7 @@ $( '#hostname' ).click( function() {
 				G.hostname = hostname;
 				$( '#hostname' ).val( hostname );
 				banner( 'Name', 'Change ...', 'sliders' );
-				$.post( 'cmd.php', { cmd: 'sh', sh: [ systemsh, 'hostname', hostname ] }, resetLocal );
+				$.post( cmdphp, cmdsh( [ systemsh, 'hostname', hostname ] ), resetLocal );
 			}
 		}
 	} );
@@ -478,14 +476,14 @@ $( '#setting-regional' ).click( function() {
 				G.ntp = ntp;
 				G.regdom = regdom;
 				banner( 'Regional Settings', 'Change ...', 'gear' );
-				$.post( 'cmd.php', { cmd: 'sh', sh: [ systemsh, 'regional', ntp, regdom ] }, resetLocal );
+				$.post( cmdphp, cmdsh( [ systemsh, 'regional', ntp, regdom ] ), resetLocal );
 			}
 		}
 	} );
 } );
 $( '#timezone' ).on( 'selectric-change', function( e ) {
 	G.timezone = $( this ).val();
-	$.post( 'cmd.php', { cmd: 'sh', sh: [ systemsh, 'timezone', G.timezone ] } );
+	$.post( cmdphp, cmdsh( [ systemsh, 'timezone', G.timezone ] ) );
 } );
 $( '#journalctl' ).click( function( e ) {
 	codeToggle( e.target, this.id, getJournalctl );
@@ -517,7 +515,7 @@ $( '#backuprestore' ).click( function( e ) {
 		, buttoncolor : '#0a8c68'
 		, button      : function() {
 			notify( backuptitle, 'Backup ...', 'sd blink', -1 );
-			$.post( 'cmd.php', { cmd: 'backuprestore', backuprestore: 'backup' }, function( data ) {
+			$.post( cmdphp, { cmd: 'backuprestore', backuprestore: 'backup' }, function( data ) {
 				if ( data === 'ready' ) {
 					notify( backuptitle, 'Download ...', 'sd blink' );
 					fetch( '/data/tmp/backup.gz' )
@@ -585,7 +583,7 @@ $( '#backuprestore' ).click( function( e ) {
 					notify( restoretitle, 'Restore ...', 'sd blink', -1 );
 					var checked = $( '#infoRadio input:checked' ).val();
 					if ( checked !== 'restore' ) { // directly restore from directory
-						$.post( 'cmd.php', { cmd: 'backuprestore', backuprestore: checked }, bannerHide );
+						$.post( cmdphp, { cmd: 'backuprestore', backuprestore: checked }, bannerHide );
 					} else {
 						var file = $( '#infoFileBox' )[ 0 ].files[ 0 ];
 						var formData = new FormData();
@@ -593,7 +591,7 @@ $( '#backuprestore' ).click( function( e ) {
 						formData.append( 'backuprestore', 'restore' );
 						formData.append( 'file', file );
 						$.ajax( {
-							  url         : 'cmd.php'
+							  url         : cmdphp
 							, type        : 'POST'
 							, data        : formData
 							, processData : false  // no - process the data
@@ -622,7 +620,7 @@ $( '#backuprestore' ).click( function( e ) {
 	} );
 } );
 function getIwregget() {
-	$.post( 'cmd.php', { cmd: 'bash', bash: 'iw reg get' }, function( status ) {
+	$.post( cmdphp, cmdbash( 'iw reg get' ), function( status ) {
 		$( '#codeiwregget' )
 			.html( status )
 			.removeClass( 'hide' );
@@ -632,7 +630,7 @@ function getJournalctl() {
 	if ( $( '#codejournalctl' ).text() ) {
 		$( '#codejournalctl' ).removeClass( 'hide' );
 	} else {
-		$.post( 'cmd.php', { cmd: 'sh', sh: [ systemsh, 'statusbootlog' ] }, function( data ) {
+		$.post( cmdphp, cmdsh( [ systemsh, 'statusbootlog' ] ), function( data ) {
 			$( '#codejournalctl' )
 				.html( data )
 				.removeClass( 'hide' );
@@ -646,7 +644,7 @@ function getJournalctl() {
 	}
 }
 function getConfigtxt() {
-	$.post( 'cmd.php', { cmd: 'bash', bash: 'cat /boot/config.txt' }, function( status ) {
+	$.post( cmdphp, cmdbash( 'cat /boot/config.txt' ), function( status ) {
 		$( '#codeconfigtxt' )
 			.html( status )
 			.removeClass( 'hide' );
@@ -674,7 +672,7 @@ function renderStatus() {
 }
 
 refreshData = function() { // system page: use resetLocal() to aviod delay
-	$.post( 'cmd.php', { cmd: 'bash', bash: '/srv/http/bash/system-data.sh' }, function( list ) {
+	$.post( cmdphp, cmdbash( '/srv/http/bash/system-data.sh' ), function( list ) {
 		G = list;
 		G.reboot = list.reboot ? list.reboot.split( '\n' ) : [];
 		G.sources.pop(); // remove 'reboot' from sources-data.sh

@@ -381,7 +381,7 @@ $( '#addons' ).click( function ( e ) {
 		return
 	}
 	
-	sh( [ cmdsh, 'addonslist' ], function( std ) {
+	sh( [ 'addonslist' ], function( std ) {
 		if ( std != 0 ) {
 			info( {
 				  icon    : 'info-circle'
@@ -416,10 +416,10 @@ $( '#colorok' ).click( function() {
 		var s = 0;
 		var l = L * 100;
 	}
-	if ( hsl !== G.display.color ) sh( [ cmdsh, 'colorset', h, s, l ] );
+	if ( hsl !== G.display.color ) sh( [ 'colorset', h, s, l ] );
 } );
 $( '#colorreset' ).click( function() {
-	sh( [ cmdsh, 'colorreset' ] );
+	sh( [ 'colorreset' ] );
 } );
 $( '#colorcancel' ).click( function() {
 	G.color = 0;
@@ -916,7 +916,7 @@ $( '.btn-cmd' ).click( function() {
 		
 		if ( cmd !== 'play' ) clearIntervalAll();
 		if ( cmd === 'play' ) {
-			var command = 'mpc play';
+			bash( 'mpc play' );
 			$( '#song' ).removeClass( 'gr' );
 			if ( G.display.time ) {
 				$( '#elapsed' ).removeClass( 'bl' );
@@ -931,27 +931,22 @@ $( '.btn-cmd' ).click( function() {
 		} else if ( cmd === 'stop' ) {
 			if ( G.status.airplay ) {
 				bash( '/srv/http/bash/shairport.sh stop' );
-				return
-				
 			} else if ( G.status.snapclient ) {
 				clearIntervalAll();
 				bash( '/srv/http/bash/snapcast.sh stop', function() {
 					getPlaybackStatus();
 				} );
-				return
-				
 			} else if ( G.status.spotify ) {
 				bash( '/srv/http/bash/spotifyd.sh stop' );
-				return
-				
 			} else if ( G.status.upnp ) {
 				bash( '/srv/http/bash/upnp-stop.sh' );
-				return
-				
 			}
+			if ( !G.status.mpd ) return
+			
 			$( '#song' ).removeClass( 'gr' );
 			if ( !G.status.playlistlength ) return
-			var command = 'mpc stop';
+			
+			bash( 'mpc stop' );
 			$( '#pl-list .elapsed' ).empty();
 			$( '#total' ).empty();
 			if ( !G.status.webradio ) {
@@ -978,7 +973,7 @@ $( '.btn-cmd' ).click( function() {
 		} else if ( cmd === 'pause' ) {
 			if ( G.status.state === 'stop' ) return
 			
-			var command = 'mpc pause';
+			bash( 'mpc pause' );
 			$( '#song' ).addClass( 'gr' );
 			if ( G.display.time && !$( '#time-knob' ).hasClass( 'hide' ) ) {
 				$( '#elapsed' ).addClass( 'bl' );
@@ -989,48 +984,25 @@ $( '.btn-cmd' ).click( function() {
 				$( '#progress' ).html( '<i class="fa fa-pause"></i><bl>'+ elapsedhms +'</bl> / <w>'+ timehms +'</w>' );
 			}
 		} else if ( cmd === 'previous' || cmd === 'next' ) {
-			// enable previous / next while stop
-			var current = G.status.song + 1;
-			var last = G.status.playlistlength;
-			if ( last === 1 ) return
+			var length = G.status.playlistlength;
+			if ( length === 1 ) return
 			
-			if ( G.status.random ) {
-				// improve: repeat pattern of mpd random
-				var pos = Math.floor( Math.random() * last ); // Math.floor( Math.random() * ( max - min + 1 ) ) + min;
-				if ( pos === current ) pos = ( pos === last ) ? pos - 1 : pos + 1; // avoid same pos ( no pos-- or pos++ in ternary )
-			} else {
-				if ( cmd === 'previous' ) {
-					var pos = current !== 1 ? current - 1 : last;
-				} else {
-					var pos = current !== last ? current + 1 : 1;
-				}
-			}
-			pos = pos || 1;
-			command = 'mpc play '+ pos;
 			if ( G.status.state !== 'play' ) {
-				command += ' && mpc stop && touch /srv/http/data/tmp/nostatus';
 				var prevnext = setTimeout( function() {
 					$( '#loader' ).removeClass( 'hide' );
 				}, 300 );
 			}
+			sh( [ 'mpcprevnext', cmd, G.status.song + 1, length ], function() {
+				clearTimeout( prevnext );
+			} );
 		}
 		G.status.state = cmd;
 		[ 'previous', 'stop', 'play', 'pause', 'next' ].forEach( function( el ) {
 			$( '#'+ el ).toggleClass( 'active', el === cmd );
 		} );
 	}
-/*	bash( command, function() {
-		clearTimeout( prevnext );
-		setTimeout( getPlaybackStatus, 600 );
-	} );*/
-	bash( command, function() {
-		clearTimeout( prevnext );
-		setTimeout( getPlaybackStatus, 600 );
-	} );
 	// for gpio
-	if ( $( '#gpio' ).hasClass( 'on' ) && command === 'mpc play' ) {
-		sh( [ cmdsh, 'gpiotimerreset' ] );
-	}
+	if ( $( '#gpio' ).hasClass( 'on' ) && command === 'mpc play' ) sh( [ 'gpiotimerreset' ] );
 } );
 $( '#biocontent' ).on( 'click', '.biosimilar', function() {
 	getBio( $( this ).text() );
@@ -1826,7 +1798,7 @@ $( '#button-pl-random' ).click( function() {
 		G.status.librandom = false;
 		$( this ).removeClass( 'bl' );
 		notify( 'Roll The Dice', 'Off ...', 'dice' );
-		sh( [ cmdsh, 'plrandom', 0 ] );
+		sh( [ 'plrandom', 0 ] );
 	} else {
 		info( {
 			  icon    : 'dice'
@@ -1836,7 +1808,7 @@ $( '#button-pl-random' ).click( function() {
 				G.status.librandom = true;
 				$( this ).addClass( 'bl' );
 				notify( 'Roll The Dice', 'Add+play ...', 'dice' );
-				sh( [ cmdsh, 'plrandom', 1 ] );
+				sh( [ 'plrandom', 1 ] );
 			}
 		} );
 	}
@@ -1849,7 +1821,7 @@ $( '#button-pl-shuffle' ).click( function() {
 		, title   : 'Shuffle Playlist'
 		, message : 'Shuffle all tracks in playlist?'
 		, ok      : function() {
-			sh( [ cmdsh, 'plshuffle' ] );
+			sh( [ 'plshuffle' ] );
 		}
 	} );
 } );
@@ -1866,7 +1838,7 @@ $( '#button-pl-crop' ).click( function() {
 				G.local = 1;
 				setTimeout( function() { G.local = 0 }, 300 );
 			}
-			sh( [ cmdsh, 'plcrop' ] );
+			sh( [ 'plcrop' ] );
 		}
 	} );
 } );
@@ -1932,7 +1904,7 @@ var sortableplaylist = new Sortable( document.getElementById( 'pl-list' ), {
 		}
 		G.sortable = 1;
 		setTimeout( function() { G.sortable = 0 }, 500 );
-		sh( [ cmdsh, 'plorder', ( e.oldIndex + 1 ), ( e.newIndex + 1 ) ], function() {
+		sh( [ 'plorder', ( e.oldIndex + 1 ), ( e.newIndex + 1 ) ], function() {
 			setTimeout( setPlaylistScroll, 600 );
 		} );
 	}

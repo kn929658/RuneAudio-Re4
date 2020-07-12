@@ -43,7 +43,7 @@ function bash( command, callback, json ) {
 function sh( array, callback, json ) {
 	$.post( 
 		  cmdphp
-		, { cmd  : 'sh', sh : array }
+		, { cmd  : 'sh', sh : [ cmdsh ].concat( array ) }
 		, callback || null
 		, json || null
 	);
@@ -732,14 +732,14 @@ function menuPackage( $this, $target ) {
 		if ( $this.data( 'active' ) ) {
 			window.open( url[ id ] );
 		} else {
-			sh( [ cmdsh, 'packageenable', id, $this.data( 'enabled' ) ], window.open( url[ id ] ) );
+			sh( [ 'packageenable', id, $this.data( 'enabled' ) ], window.open( url[ id ] ) );
 		}
 	}
 }
 function menuPackageSet( pkg, active, enable ) {
 	G.local = 1;
 	setTimeout( function() { G.local = 0 }, 1000 );
-	sh( [ cmdsh, 'packageset', pkg, active, enable ] );
+	sh( [ 'packageset', pkg, active, enable ] );
 	$( '#'+ pkg )
 		.data( 'enabled', enable )
 		.data( 'active', active )
@@ -767,7 +767,7 @@ function mpdSeek( seekto ) {
 		}
 		G.local = 1;
 		setTimeout( function() { G.local = 0 }, 300 );
-		sh( [ cmdsh, 'playseek', seektime ] );
+		sh( [ 'playseek', seektime ] );
 	}
 }
 function mpdSeekBar( pageX, set ) {
@@ -1165,7 +1165,7 @@ function renderPlayback() {
 			$( '#coverart' ).prop( 'src', coverrune );
 			if ( 'file' in status ) { // retry
 				setTimeout( function() {
-					sh( [ cmdsh, 'coverartget', status.file, 'pushstream' ], function( coverart ) {
+					sh( [ 'coverartget', status.file, 'pushstream' ], function( coverart ) {
 						if ( !coverart ) {
 							$( '#divcover, #coverart' ).addClass( 'coverrune' );
 							$( '#coverart' ).prop( 'src', coverrune );

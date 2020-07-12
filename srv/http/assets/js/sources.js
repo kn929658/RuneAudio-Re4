@@ -62,7 +62,7 @@ $( '#list' ).on( 'click', 'li', function() {
 			, okcolor : '#de810e'
 			, ok      : function() {
 				banner( 'Network Mount', 'Unmount ...', 'network' );
-				sh( [ sourcessh, 'unmount', mountpoint ], function() {
+				sh( [ 'unmount', mountpoint ], function() {
 					refreshData();
 					$( '#refreshing' ).addClass( 'hide' );
 				} );
@@ -79,7 +79,7 @@ $( '#list' ).on( 'click', 'li', function() {
 			, buttoncolor : '#bb2828'
 			, button      : function() {
 				banner( 'Network Mount', 'Remove ...', 'network' );
-				sh( [ sourcessh, 'remove', mountpoint ], function() {
+				sh( [ 'remove', mountpoint ], function() {
 					refreshData();
 					$( '#refreshing' ).addClass( 'hide' );
 				} );
@@ -88,7 +88,7 @@ $( '#list' ).on( 'click', 'li', function() {
 			, oklabel     : 'Remount'
 			, ok          : function() {
 				banner( 'Network Mount', 'Remount ...', 'network' );
-				sh( [ sourcessh, 'remount', mountpoint, source ], function() {
+				sh( [ 'remount', mountpoint, source ], function() {
 					refreshData();
 					$( '#refreshing' ).addClass( 'hide' );
 				} );
@@ -199,7 +199,7 @@ function infoMount( formdata, cifs ) {
 				var device = '"'+ data.ip +':/'+ directory +'"';
 			}
 			banner( 'Network Mount', 'Mount ...', 'network' );
-			sh( [ sourcessh, 'mount', mountpoint, data.ip, device, data.protocol, options ], function( std ) {
+			sh( [ 'mount', mountpoint, data.ip, device, data.protocol, options ], function( std ) {
 				if ( std !== 0 ) {
 					formdata = data;
 					info( {

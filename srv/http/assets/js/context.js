@@ -81,7 +81,7 @@ $( '.contextmenu a' ).click( function( e ) {
 			G.local = 1;
 			var iL = val.length;
 			for ( i = 0; i < iL; i++ ) {
-				sh( [ cmdsh, 'mpcfindadd', 'artist', val[ i ].artist.name, 'title', val[ i ].name ] );
+				sh( [ 'mpcfindadd', 'artist', val[ i ].artist.name, 'title', val[ i ].name ] );
 				if ( i === iL - 1 ) {
 					setTimeout( function() {
 						G.local = 0;
@@ -97,7 +97,7 @@ $( '.contextmenu a' ).click( function( e ) {
 		var path = G.list.path.split( '/' );
 		G.local = 1;
 		setTimeout( function() { G.local = 0 }, 2000 );
-		sh( [ cmdsh, 'ignoredir', G.list.path ], function() {
+		sh( [ 'ignoredir', G.list.path ], function() {
 			G.list.li.remove();
 		} );
 		notify( 'Exclude Directory', '<wh>'+ dir +'</wh> excluded from database.', 'folder' );
@@ -127,28 +127,28 @@ $( '.contextmenu a' ).click( function( e ) {
 	var mode = cmd.replace( /replaceplay|replace|addplay|add/, '' );
 	if ( [ 'album', 'artist', 'composer', 'genre' ].indexOf( G.list.mode ) !== -1 ) {
 		var artist = G.list.artist;
-		mpccmd = [ cmdsh, 'mpcfindadd', G.list.mode, path ];
+		mpccmd = [ 'mpcfindadd', G.list.mode, path ];
 		if ( artist ) mpccmd.push( 'artist', artist );
 	} else if ( !mode ) {
 		if ( path.slice( -4 ) === '.cue' ) {
 			if ( G.list.track ) { // only cue has data-track
 				// individual with 'mpc --range=N load file.cue'
-				mpccmd = [ cmdsh, 'mpcloadrange', ( G.list.track - 1 ), path ];
+				mpccmd = [ 'mpcloadrange', ( G.list.track - 1 ), path ];
 			} else {
-				mpccmd = [ cmdsh, 'mpcload', path ];
+				mpccmd = [ 'mpcload', path ];
 			}
 		} else if ( G.list.singletrack || webradio ) { // single track
-			mpccmd = [ cmdsh, 'mpcadd', path ];
+			mpccmd = [ 'mpcadd', path ];
 		} else { // directory or album
-			mpccmd = [ cmdsh, 'mpcls', path ];
+			mpccmd = [ 'mpcls', path ];
 		}
 	} else if ( mode === 'wr' ) {
 		cmd = cmd.slice( 2 );
-		mpccmd = [ cmdsh, 'mpcadd', path ];
+		mpccmd = [ 'mpcadd', path ];
 	} else if ( mode === 'pl' ) {
 		cmd = cmd.slice( 2 );
 		if ( G.library ) {
-			mpccmd = [ cmdsh, 'mpcload', path ];
+			mpccmd = [ 'mpcload', path ];
 		} else { // saved playlist
 			var play = cmd.slice( -1 ) === 'y' ? 1 : 0;
 			var replace = cmd.slice( 0, 1 ) === 'r' ? 1 : 0;
@@ -322,7 +322,7 @@ function bookmarkNew() {
 		return
 	}
 	
-	sh( [ cmdsh, 'coverartthumb', path, 200 ], function( base64img ) {
+	sh( [ 'coverartthumb', path, 200 ], function( base64img ) {
 		if ( base64img ) {
 			if ( base64img.slice( -3 ) !== 'gif' ) {
 				info( {
@@ -643,7 +643,7 @@ function tagEditor() {
 					if ( val !== value[ i ] ) diff++;
 				}
 				notify( 'Tag Editor', 'Change ...', 'tag blink', -1 );
-				sh( [ cmdsh, 'tageditor', JSON.stringify( tag ) ] );
+				sh( [ 'tageditor', JSON.stringify( tag ) ] );
 			}
 		} );
 	}, 'json' );
@@ -782,6 +782,7 @@ function webRadioDelete() {
 	var img = G.list.li.find( 'img' ).prop( 'src' );
 	var url = G.list.path;
 	var urlname = url.toString().replace( /\//g, '|' );
+	alert($( '#mode-webradio grl' ).text())
 	info( {
 		  icon    : 'webradio'
 		, title   : 'Delete WebRadio'
@@ -793,9 +794,6 @@ function webRadioDelete() {
 		, okcolor : '#bb2828'
 		, ok      : function() {
 			G.list.li.remove();
-			var count = $( '#mode-webradio grl' ).text().replace( /,/g, '' );
-			count = ( Number( count ) - 1 ).toString().replace( /\B(?=(\d{3})+(?!\d))/g, ',' );
-			$( '#mode-webradio grl' ).text( count );
 			if ( !$( '#lib-list li' ).length ) $( '#button-library' ).click();
 			$.post( cmdphp, {
 				  cmd       : 'webradios'

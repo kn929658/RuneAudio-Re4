@@ -94,7 +94,7 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 			  function() {
 				clearTimeout( intervalscan );
 				banner( ssid, 'Forget ...', 'wifi-3' );
-				sh( [ networksh, 'disconnect', G.wlcurrent, ssid ], refreshData );
+				sh( [ 'disconnect', G.wlcurrent, ssid ], refreshData );
 			}
 			, function() {
 				if ( connected ) {
@@ -121,7 +121,7 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 			
 			clearTimeout( intervalscan );
 			banner( ssid, 'Disconnect ...', 'wifi-3' );
-			sh( [ networksh, 'disconnect', G.wlcurrent ], refreshData );
+			sh( [ 'disconnect', G.wlcurrent ], refreshData );
 		}
 	} );
 } );
@@ -180,7 +180,7 @@ $( '#listbt' ).on( 'click', 'li', function( e ) {
 			bash( 'bluetoothctl connect '+ mac, btScan );
 		} else {
 			banner( 'Bluetooth', 'Pair ...', 'bluetooth' );
-			sh( [ networksh, 'btconnect', mac ], function( data ) {
+			sh( [ 'btconnect', mac ], function( data ) {
 				if ( data != -1 ) {
 					notify( 'Bluetooth', name +' paired', 'bluetooth' );
 				} else {
@@ -224,7 +224,7 @@ $( '#accesspoint' ).change( function() {
 	}
 	G.hostapd = hostapd;
 	banner( 'RPi Access Point', G.hostapd, 'wifi-3' );
-	sh( [ networksh, 'accesspoint', G.hostapd, G.hostapdip ], refreshData );
+	sh( [ 'accesspoint', G.hostapd, G.hostapdip ], refreshData );
 } );
 $( '#settings-accesspoint' ).click( function() {
 	info( {
@@ -251,7 +251,7 @@ $( '#settings-accesspoint' ).click( function() {
 			var ip012 = ips.join( '.' );
 			var iprange = ip012 +'.'+ ( +ip3 + 1 ) +','+ ip012 +'.254,24h';
 			banner( 'RPi Access Point', 'Change ...', 'wifi-3' );
-			sh( [ networksh, 'accesspointset', iprange, ip, passphrase ], refreshData );
+			sh( [ 'accesspointset', iprange, ip, passphrase ], refreshData );
 		}
 	} );
 } );
@@ -304,10 +304,10 @@ function connect( ssid, data, ip ) { // ip - static
 	} else {
 		banner( ssid, 'Connect ...', 'wifi-3' );
 	}
-	sh( [ networksh, 'connect', arg ], function( std ) {
+	sh( [ 'connect', arg ], function( std ) {
 		if ( std != -1 ) {
 			G.wlconnected = G.wlcurrent;
-			sh( [ networksh, 'connect', G.wlcurrent ], refreshData );
+			sh( [ 'connect', G.wlcurrent ], refreshData );
 		} else {
 			$( '#scanning-wifi' ).addClass( 'hide' );
 			G.wlconnected =  '';
@@ -337,7 +337,7 @@ function editLAN( data ) {
 			banner( 'LAN IP Address', 'Change URL to '+ G.hostname +'.local ...', 'lan' );
 			$( '#loader' ).removeClass( 'hide' );
 			location.href = 'http://'+ G.hostname +'.local/index-settings.php?p=network';
-			sh( [ networksh, 'editlan' ] );
+			sh( [ 'editlan' ] );
 		}
 		, ok           : function() {
 			var data1 = {}
@@ -346,7 +346,7 @@ function editLAN( data ) {
 			if ( data1.ip === data.ip && data1.gateway === data.gateway ) return
 			
 			banner( 'LAN IP Address', 'Change ip to '+ data1.ip, 'lan' );
-			sh( [ networksh, 'editlan', data1.ip, data1.gateway ], function( used ) {
+			sh( [ 'editlan', data1.ip, data1.gateway ], function( used ) {
 				if ( used == -1 ) {
 					info( {
 						  icon    : 'lan'
@@ -380,7 +380,7 @@ function editWiFi( ssid, data ) {
 				if ( data ) {
 					editWiFiSet( ssid, data );
 				} else {
-					sh( [ networksh, 'statuswifi', ssid ], function( data ) {
+					sh( [ 'statuswifi', ssid ], function( data ) {
 						data.dhcp = data.IP === 'static' ? 'Static IP' : 'DHCP';
 						data.Address = 'Address' in data ? data.Address.replace( '/24', '' ) : '';
 						editWiFiSet( ssid, data );
@@ -416,7 +416,7 @@ function editWiFi( ssid, data ) {
 						+'\nGateway='+ gw;
 			}
 			if ( ssid ) {
-				sh( [ networksh, 'ipused', ip ], function( used ) {
+				sh( [ 'ipused', ip ], function( used ) {
 					if ( used == 1 ) {
 						info( {
 							  icon    : 'wifi-3'
@@ -463,19 +463,19 @@ function editWiFiSet( ssid, data ) {
 			$( '#loader' ).removeClass( 'hide' );
 			banner( ssid, 'DHCP ...', 'wifi-3' );
 			location.href = 'http://'+ G.hostname +'.local/index-settings.php?p=network';
-			sh( [ networksh, 'editwifidhcp', ssid ] );
+			sh( [ 'editwifidhcp', ssid ] );
 		} );
 	}
 }
 function getIfconfig() {
-	sh( [ networksh, 'statusifconfig' ], function( status ) {
+	sh( [ 'statusifconfig' ], function( status ) {
 		$( '#codeifconfig' )
 			.html( status )
 			.removeClass( 'hide' );
 	} );
 }
 function getNetctl() {
-	sh( [ networksh, 'statusnetctl' ], function( data ) {
+	sh( [ 'statusnetctl' ], function( data ) {
 		$( '#codenetctl' )
 			.html( data )
 			.removeClass( 'hide' );

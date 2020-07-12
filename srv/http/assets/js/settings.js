@@ -104,7 +104,7 @@ function bash( command, callback, json ) {
 function sh( array, callback, json ) {
 	$.post( 
 		  cmdphp
-		, { cmd  : 'sh', sh : array }
+		, { cmd  : 'sh', sh : [ page +'.sh' ].concat( array ) }
 		, callback || null
 		, json || null
 	);
@@ -152,7 +152,7 @@ function onVisibilityChange( callback ) {
 function resetLocal( ms ) {
 	local = 0;
 	setTimeout( function() {
-		$( '#bannerTitle i' ).removeClass( 'blink' );
+		$( '#bannerIcon i' ).removeClass( 'blink' );
 		$( '#bannerMessage' ).text( 'Done' );
 	}, ms ? ms - 2000 : 0 );
 	setTimeout( bannerHide, ms || 2000 );

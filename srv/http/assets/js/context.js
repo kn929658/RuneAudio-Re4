@@ -782,6 +782,7 @@ function webRadioDelete() {
 	var img = G.list.li.find( 'img' ).prop( 'src' );
 	var url = G.list.path;
 	var urlname = url.toString().replace( /\//g, '|' );
+	alert($( '#mode-webradio grl' ).text())
 	info( {
 		  icon    : 'webradio'
 		, title   : 'Delete WebRadio'
@@ -793,9 +794,6 @@ function webRadioDelete() {
 		, okcolor : '#bb2828'
 		, ok      : function() {
 			G.list.li.remove();
-			var count = $( '#mode-webradio grl' ).text().replace( /,/g, '' );
-			count = ( Number( count ) - 1 ).toString().replace( /\B(?=(\d{3})+(?!\d))/g, ',' );
-			$( '#mode-webradio grl' ).text( count );
 			if ( !$( '#lib-list li' ).length ) $( '#button-library' ).click();
 			$.post( cmdphp, {
 				  cmd       : 'webradios'

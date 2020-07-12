@@ -36,7 +36,7 @@ $( '.contextmenu a' ).click( function( e ) {
 	} else if ( cmd === 'remove' ) {
 		G.contextmenu = 1;
 		setTimeout( function() { G.contextmenu = 0 }, 500 );
-		$.post( cmdphp, cmdbash( 'mpc del '+ (  G.list.li.index() + 1 ) ) );
+		bash( 'mpc del '+ (  G.list.li.index() + 1 ) );
 	} if ( cmd === 'replace' ) {
 		G.plreplace = 1;
 	} else if ( cmd === 'savedpladd' ) {
@@ -81,14 +81,14 @@ $( '.contextmenu a' ).click( function( e ) {
 			G.local = 1;
 			var iL = val.length;
 			for ( i = 0; i < iL; i++ ) {
-				$.post( cmdphp, cmdsh( [ cmdsh, 'mpcfindadd', 'artist', val[ i ].artist.name, 'title', val[ i ].name ] ) );
+				sh( [ cmdsh, 'mpcfindadd', 'artist', val[ i ].artist.name, 'title', val[ i ].name ] );
 				if ( i === iL - 1 ) {
 					setTimeout( function() {
 						G.local = 0;
 						notify( title, 'Similar tracks added', 'list-ul' );
 						updatePlaylist();
 						if ( submenu ) 
-							$.post( cmdphp, cmdbash( 'mpc play'+ ( plL + 1 ) ) );
+							bash( 'mpc play'+ ( plL + 1 ) );
 					}, 600 );
 				}
 			}
@@ -97,7 +97,7 @@ $( '.contextmenu a' ).click( function( e ) {
 		var path = G.list.path.split( '/' );
 		G.local = 1;
 		setTimeout( function() { G.local = 0 }, 2000 );
-		$.post( cmdphp, cmdsh( [ cmdsh, 'ignoredir', G.list.path ] ), function() {
+		sh( [ cmdsh, 'ignoredir', G.list.path ], function() {
 			G.list.li.remove();
 		} );
 		notify( 'Exclude Directory', '<wh>'+ dir +'</wh> excluded from database.', 'folder' );
@@ -200,7 +200,7 @@ $( '.contextmenu a' ).click( function( e ) {
 
 function addReplace( cmd, command, title ) {
 	var playbackswitch = G.display.playbackswitch && ( cmd === 'addplay' || cmd === 'replaceplay' );
-	$.post( cmdphp, cmdsh( command ), function() {
+	sh( command, function() {
 		if ( playbackswitch ) {
 			$( '#tab-playback' ).click();
 		} else {
@@ -322,7 +322,7 @@ function bookmarkNew() {
 		return
 	}
 	
-	$.post( cmdphp, cmdsh( [ cmdsh, 'coverartthumb', path, 200 ] ), function( base64img ) {
+	sh( [ cmdsh, 'coverartthumb', path, 200 ], function( base64img ) {
 		if ( base64img ) {
 			if ( base64img.slice( -3 ) !== 'gif' ) {
 				info( {
@@ -413,7 +413,7 @@ function bookmarkRename( name, path, $block ) {
 }
 function playlistAdd( name, oldname ) {
 	if ( oldname ) {
-		$.post( cmdphp, cmdsh( [ 'plrename', oldname, name ] ) );
+		sh( [ 'plrename', oldname, name ] );
 	} else {
 		$.post( 'mpdplaylist.php', { save: name }, function( data ) {
 			if ( data == -1 ) {
@@ -643,7 +643,7 @@ function tagEditor() {
 					if ( val !== value[ i ] ) diff++;
 				}
 				notify( 'Tag Editor', 'Change ...', 'tag blink', -1 );
-				$.post( cmdphp, cmdsh( [ cmdsh, 'tageditor', JSON.stringify( tag ) ] ) );
+				sh( [ cmdsh, 'tageditor', JSON.stringify( tag ) ] );
 			}
 		} );
 	}, 'json' );
@@ -740,7 +740,7 @@ function webRadioCoverart() {
 		infojson.buttonlabel = '<i class="fa fa-webradio"></i>Reset';
 		infojson.buttonwidth = 1;
 		infojson.button      = function() {
-			$.post( cmdphp, cmdbash( "sed -i '2,$ d' '/srv/http/data/webradios/"+ urlname +"'" ) );
+			bash( "sed -i '2,$ d' '/srv/http/data/webradios/"+ urlname +"'" );
 			if ( G.playback ) {
 				$( '.edit' ).remove();
 				$( '#coverart' )
@@ -753,7 +753,7 @@ function webRadioCoverart() {
 			}
 		}
 	}
-	$.post( cmdphp, cmdbash( "sed -n '3 p' '/srv/http/data/webradios/"+ urlname +"'" ), function( base64 ) {
+	bash( "sed -n '3 p' '/srv/http/data/webradios/"+ urlname +"'", function( base64 ) {
 		if ( base64 ) {
 			infojson.message = '<img class="imgold" src="'+ base64 +'">';
 		} else {
@@ -892,7 +892,7 @@ function webRadioNew( name, url ) {
 	var urlname = url.replace( /\//g, '|' );
 	var thumb = G.list.li.find( '.lithumb' ).text();
 	var img = G.list.li.find( '.liimg' ).text();
-	$.post( cmdphp, cmdbash( "test -e '/srv/http/data/webradios/"+ urlname +' && echo 0 || echo -1' ), function( data ) {
+	bash( "test -e '/srv/http/data/webradios/"+ urlname +' && echo 0 || echo -1', function( data ) {
 		if ( data != -1 ) {
 			info( {
 				  icon    : 'webradio'

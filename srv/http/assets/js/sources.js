@@ -62,7 +62,7 @@ $( '#list' ).on( 'click', 'li', function() {
 			, okcolor : '#de810e'
 			, ok      : function() {
 				banner( 'Network Mount', 'Unmount ...', 'network' );
-				$.post( cmdphp, cmdsh( [ sourcessh, 'unmount', mountpoint ] ), function() {
+				sh( [ sourcessh, 'unmount', mountpoint ], function() {
 					refreshData();
 					$( '#refreshing' ).addClass( 'hide' );
 				} );
@@ -79,7 +79,7 @@ $( '#list' ).on( 'click', 'li', function() {
 			, buttoncolor : '#bb2828'
 			, button      : function() {
 				banner( 'Network Mount', 'Remove ...', 'network' );
-				$.post( cmdphp, cmdsh( [ sourcessh, 'remove', mountpoint ] ), function() {
+				sh( [ sourcessh, 'remove', mountpoint ], function() {
 					refreshData();
 					$( '#refreshing' ).addClass( 'hide' );
 				} );
@@ -88,7 +88,7 @@ $( '#list' ).on( 'click', 'li', function() {
 			, oklabel     : 'Remount'
 			, ok          : function() {
 				banner( 'Network Mount', 'Remount ...', 'network' );
-				$.post( cmdphp, cmdsh( [ sourcessh, 'remount', mountpoint, source ] ), function() {
+				sh( [ sourcessh, 'remount', mountpoint, source ], function() {
 					refreshData();
 					$( '#refreshing' ).addClass( 'hide' );
 				} );
@@ -102,7 +102,7 @@ $( '#list' ).on( 'click', 'li', function() {
 	
 	if ( $( this ).find( '.fa-search' ).length ) {
 		$( '#listshare' ).html( '<li><i class="fa fa-search blink"></i></li>' );
-		$.post( cmdphp, cmdbash( '/srv/http/bash/sources-sharescan.sh' ), function( list ) {
+		bash( '/srv/http/bash/sources-sharescan.sh', function( list ) {
 			var list = JSON.parse( list );
 			if ( list.length ) {
 				var html = '';
@@ -141,14 +141,14 @@ $( '#fstab' ).click( function( e ) {
 } );
 
 function getMounts() {
-	$.post( cmdphp, cmdbash( 'mount | grep " / \\|MPD"' ), function( status ) {
+	bash( 'mount | grep " / \\|MPD"', function( status ) {
 		$( '#codemount' )
 			.html( status )
 			.removeClass( 'hide' );
 	} );
 }
 function getFstab() {
-	$.post( cmdphp, cmdbash( 'cat /etc/fstab' ), function( status ) {
+	bash( 'cat /etc/fstab', function( status ) {
 		$( '#codefstab' )
 			.html( status )
 			.removeClass( 'hide' );
@@ -199,7 +199,7 @@ function infoMount( formdata, cifs ) {
 				var device = '"'+ data.ip +':/'+ directory +'"';
 			}
 			banner( 'Network Mount', 'Mount ...', 'network' );
-			$.post( cmdphp, cmdsh( [ sourcessh, 'mount', mountpoint, data.ip, device, data.protocol, options ] ), function( std ) {
+			sh( [ sourcessh, 'mount', mountpoint, data.ip, device, data.protocol, options ], function( std ) {
 				if ( std !== 0 ) {
 					formdata = data;
 					info( {
@@ -223,8 +223,9 @@ function infoMount( formdata, cifs ) {
 
 refreshData = function() {
 	$( '#refreshing' ).removeClass( 'hide' );
-	$.post( cmdphp, cmdbash( '/srv/http/bash/sources-data.sh' ), function( list ) {
-		G.reboot = list.reboot ? list.reboot.split( '\n' ) : [];
+	bash( '/srv/http/bash/sources-data.sh', function( list ) {
+		reboot = list.pop();
+		G.reboot = reboot ? reboot.split( '\n' ) : [];
 		var html = '';
 		$.each( list, function( i, val ) {
 			if ( val.mounted ) {

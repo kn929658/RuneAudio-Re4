@@ -11,7 +11,7 @@ $( '.back' ).click( function() {
 	$( '#divwifi, #divbluetooth' ).addClass( 'hide' );
 	$( '#listwifi, #listbt' ).empty();
 	nicsStatus();
-	if ( 'bluetooth' in G ) $.post( cmdphp, cmdbash( 'bluetoothctl scan off' ) );
+	if ( 'bluetooth' in G ) bash( 'bluetoothctl scan off' );
 } );
 $( '#listinterfaces' ).on( 'click', 'li', function() {
 	var $this = $( this );
@@ -29,7 +29,7 @@ $( '#listinterfaces' ).on( 'click', 'li', function() {
 				wlanStatus();
 			}
 		} else {
-			$.post( cmdphp, cmdbash( 'bluetoothctl scan on' ) );
+			bash( 'bluetoothctl scan on' );
 			btStatus();
 		}
 	} else {
@@ -94,7 +94,7 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 			  function() {
 				clearTimeout( intervalscan );
 				banner( ssid, 'Forget ...', 'wifi-3' );
-				$.post( cmdphp, cmdsh( [ networksh, 'disconnect', G.wlcurrent, ssid ] ), refreshData );
+				sh( [ networksh, 'disconnect', G.wlcurrent, ssid ], refreshData );
 			}
 			, function() {
 				if ( connected ) {
@@ -121,7 +121,7 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 			
 			clearTimeout( intervalscan );
 			banner( ssid, 'Disconnect ...', 'wifi-3' );
-			$.post( cmdphp, cmdsh( [ networksh, 'disconnect', G.wlcurrent ] ), refreshData );
+			sh( [ networksh, 'disconnect', G.wlcurrent ], refreshData );
 		}
 	} );
 } );
@@ -143,19 +143,19 @@ $( '#listbt' ).on( 'click', 'li', function( e ) {
 			, buttonwidth : 1
 			, button      : function() {
 				$this.remove();
-				$.post( cmdphp, cmdbash( 'bluetoothctl remove '+ mac ) );
+				bash( 'bluetoothctl remove '+ mac );
 			}
 		}
 		if ( connected ) {
 			jsoninfo.oklabel = 'Disconnect';
 			jsoninfo.ok      = function() {
 				$this.find( 'grn' ).remove();
-				$.post( cmdphp, cmdbash( 'bluetoothctl disconnect '+ mac ) );
+				bash( 'bluetoothctl disconnect '+ mac );
 			}
 		} else {
 			jsoninfo.oklabel = 'Connect';
 			jsoninfo.ok      = function() {
-				$.post( cmdphp, cmdbash( 'bluetoothctl connect '+ mac ), btScan );
+				bash( 'bluetoothctl connect '+ mac, btScan );
 			}
 		}
 		info( jsoninfo );
@@ -171,16 +171,16 @@ $( '#listbt' ).on( 'click', 'li', function( e ) {
 			, ok      : function() {
 				$this.find( 'grn' ).remove();
 				banner( 'Bluetooth', 'Disonnect ...', 'bluetooth' );
-				$.post( cmdphp, cmdbash( 'bluetoothctl disconnect '+ mac ) );
+				bash( 'bluetoothctl disconnect '+ mac );
 			}
 		} );
 	} else {
 		if ( $this.find( 'fa-edit-circle' ).length ) {
 			banner( 'Bluetooth', 'Connect ...', 'bluetooth' );
-			$.post( cmdphp, cmdbash( 'bluetoothctl connect '+ mac ), btScan );
+			bash( 'bluetoothctl connect '+ mac, btScan );
 		} else {
 			banner( 'Bluetooth', 'Pair ...', 'bluetooth' );
-			$.post( cmdphp, cmdsh( [ networksh, 'btconnect', mac ] ), function( data ) {
+			sh( [ networksh, 'btconnect', mac ], function( data ) {
 				if ( data != -1 ) {
 					notify( 'Bluetooth', name +' paired', 'bluetooth' );
 				} else {
@@ -224,7 +224,7 @@ $( '#accesspoint' ).change( function() {
 	}
 	G.hostapd = hostapd;
 	banner( 'RPi Access Point', G.hostapd, 'wifi-3' );
-	$.post( cmdphp, cmdsh( [ networksh, 'accesspoint', G.hostapd, G.hostapdip ] ), refreshData );
+	sh( [ networksh, 'accesspoint', G.hostapd, G.hostapdip ], refreshData );
 } );
 $( '#settings-accesspoint' ).click( function() {
 	info( {
@@ -251,7 +251,7 @@ $( '#settings-accesspoint' ).click( function() {
 			var ip012 = ips.join( '.' );
 			var iprange = ip012 +'.'+ ( +ip3 + 1 ) +','+ ip012 +'.254,24h';
 			banner( 'RPi Access Point', 'Change ...', 'wifi-3' );
-			$.post( cmdphp, cmdsh( [ networksh, 'accesspointset', iprange, ip, passphrase ] ), refreshData );
+			sh( [ networksh, 'accesspointset', iprange, ip, passphrase ], refreshData );
 		}
 	} );
 } );
@@ -278,7 +278,7 @@ function btRender( data ) {
 function btScan() {
 	clearTimeout( intervalscan );
 	$( '#scanning-bt' ).removeClass( 'hide' );
-	$.post( cmdphp, cmdbash( '/srv/http/bash/network-btscan.sh' ), function( data ) {
+	bash( '/srv/http/bash/network-btscan.sh', function( data ) {
 		btRender( data );
 		intervalscan = setTimeout( btScan, 12000 );
 	}, 'json' );
@@ -286,7 +286,7 @@ function btScan() {
 function btStatus() {
 	$( '#divinterface, #divwebui, #divaccesspoint' ).addClass( 'hide' );
 	$( '#divbluetooth' ).removeClass( 'hide' );
-	$.post( cmdphp, cmdbash( '/srv/http/bash/network-btscan.sh list' ), function( data ) {
+	bash( '/srv/http/bash/network-btscan.sh list', function( data ) {
 		if ( data.length ) btRender( data );
 		btScan();
 	}, 'json' );
@@ -304,10 +304,10 @@ function connect( ssid, data, ip ) { // ip - static
 	} else {
 		banner( ssid, 'Connect ...', 'wifi-3' );
 	}
-	$.post( cmdphp, cmdsh( [ networksh, 'connect', arg ] ), function( std ) {
+	sh( [ networksh, 'connect', arg ], function( std ) {
 		if ( std != -1 ) {
 			G.wlconnected = G.wlcurrent;
-			$.post( cmdphp, cmdsh( [ networksh, 'connect', G.wlcurrent ] ), refreshData );
+			sh( [ networksh, 'connect', G.wlcurrent ], refreshData );
 		} else {
 			$( '#scanning-wifi' ).addClass( 'hide' );
 			G.wlconnected =  '';
@@ -337,7 +337,7 @@ function editLAN( data ) {
 			banner( 'LAN IP Address', 'Change URL to '+ G.hostname +'.local ...', 'lan' );
 			$( '#loader' ).removeClass( 'hide' );
 			location.href = 'http://'+ G.hostname +'.local/index-settings.php?p=network';
-			$.post( cmdphp, cmdsh( [ networksh, 'editlan' ] ) );
+			sh( [ networksh, 'editlan' ] );
 		}
 		, ok           : function() {
 			var data1 = {}
@@ -346,7 +346,7 @@ function editLAN( data ) {
 			if ( data1.ip === data.ip && data1.gateway === data.gateway ) return
 			
 			banner( 'LAN IP Address', 'Change ip to '+ data1.ip, 'lan' );
-			$.post( cmdphp, cmdsh( [ networksh, 'editlan', data1.ip, data1.gateway ] ), function( used ) {
+			sh( [ networksh, 'editlan', data1.ip, data1.gateway ], function( used ) {
 				if ( used == -1 ) {
 					info( {
 						  icon    : 'lan'
@@ -380,7 +380,7 @@ function editWiFi( ssid, data ) {
 				if ( data ) {
 					editWiFiSet( ssid, data );
 				} else {
-					$.post( cmdphp, cmdsh( [ networksh, 'statuswifi', ssid ] ), function( data ) {
+					sh( [ networksh, 'statuswifi', ssid ], function( data ) {
 						data.dhcp = data.IP === 'static' ? 'Static IP' : 'DHCP';
 						data.Address = 'Address' in data ? data.Address.replace( '/24', '' ) : '';
 						editWiFiSet( ssid, data );
@@ -416,7 +416,7 @@ function editWiFi( ssid, data ) {
 						+'\nGateway='+ gw;
 			}
 			if ( ssid ) {
-				$.post( cmdphp, cmdsh( [ networksh, 'ipused', ip ] ), function( used ) {
+				sh( [ networksh, 'ipused', ip ], function( used ) {
 					if ( used == 1 ) {
 						info( {
 							  icon    : 'wifi-3'
@@ -463,19 +463,19 @@ function editWiFiSet( ssid, data ) {
 			$( '#loader' ).removeClass( 'hide' );
 			banner( ssid, 'DHCP ...', 'wifi-3' );
 			location.href = 'http://'+ G.hostname +'.local/index-settings.php?p=network';
-			$.post( cmdphp, cmdsh( [ networksh, 'editwifidhcp', ssid ] ) );
+			sh( [ networksh, 'editwifidhcp', ssid ] );
 		} );
 	}
 }
 function getIfconfig() {
-	$.post( cmdphp, cmdsh( [ networksh, 'statusifconfig' ] ), function( status ) {
+	sh( [ networksh, 'statusifconfig' ], function( status ) {
 		$( '#codeifconfig' )
 			.html( status )
 			.removeClass( 'hide' );
 	} );
 }
 function getNetctl() {
-	$.post( cmdphp, cmdsh( [ networksh, 'statusnetctl' ] ), function( data ) {
+	sh( [ networksh, 'statusnetctl' ], function( data ) {
 		$( '#codenetctl' )
 			.html( data )
 			.removeClass( 'hide' );
@@ -502,7 +502,7 @@ function newWiFi( $this ) {
 	} );
 }
 function nicsStatus() {
-	$.post( cmdphp, cmdbash( '/srv/http/bash/network-data.sh' ), function( list ) {
+	bash( '/srv/http/bash/network-data.sh', function( list ) {
 		var extra = list.pop();
 		$( '#divaccesspoint' ).toggleClass( 'hide', !extra.wlan );
 		if ( extra.hostapd ) {
@@ -585,7 +585,7 @@ function renderQR() {
 function wlanScan() {
 	clearTimeout( intervalscan );
 	$( '#scanning-wifi' ).removeClass( 'hide' );
-	$.post( cmdphp, cmdbash( '/srv/http/bash/network-wlanscan.sh '+ G.wlcurrent ), function( list ) {
+	bash( '/srv/http/bash/network-wlanscan.sh '+ G.wlcurrent, function( list ) {
 		var good = -60;
 		var fair = -67;
 		var html = '';

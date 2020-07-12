@@ -270,9 +270,9 @@ function psSnapcast( data ) {
 	if ( data !== -1 ) {
 		var cmd = '/srv/http/bash/snapcast.sh ';
 		cmd += 'add' in data ? ' add '+ data.add : ' remove '+ data.remove;
-		$.post( cmdphp, cmdbash( cmd ) );
+		bash( cmd );
 	} else {
-		$.post( cmdphp, cmdbash( 'systemctl stop snapclient && systemctl start mpd' ), function() {
+		bash( 'systemctl stop snapclient && systemctl start mpd', function() {
 			getPlaybackStatus();
 		} );
 	}
@@ -318,7 +318,7 @@ function psVolumeNone( data ) {
 		if ( data.volumenone !== existing && G.playback ) displayPlayback();
 	} else {
 		G.display.volumenone = false;
-		$.post( cmdphp, cmdbash( "awk '/volume/ {print $NF}' /srv/http/data/mpd/mpdstate" ), function( data ) {
+		bash( "awk '/volume/ {print $NF}' /srv/http/data/mpd/mpdstate", function( data ) {
 			G.status.volume = data;
 			if ( G.playback ) {
 				$volumeRS.setValue( G.status.volume );

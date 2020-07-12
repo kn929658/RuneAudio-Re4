@@ -4,6 +4,7 @@ var intervalcputime;
 var intervalscan;
 var page = location.href.split( '=' ).pop();
 var reboot = '';
+var cmdphp = 'cmd.php';
 
 if ( page === 'credits' ) {
 	$.post( cmdphp, { cmd: 'exec', exec: 'cat /srv/http/data/tmp/reboot' }, function( lines ) {
@@ -19,18 +20,18 @@ $( '#close' ).click( function() {
 					   +'<br><br><w>'+ G.reboot.join( '<br>' ) +'</w>'
 			, cancel  : function() {
 				G.reboot = [];
-				$.post( cmdphp, cmdbash( 'rm -f /srv/http/data/tmp/reboot' ) );
+				bash( 'rm -f /srv/http/data/tmp/reboot' );
 			}
 			, ok      : function() {
-				$.post( cmdphp, cmdsh( [ 'cmd.sh', 'reboot' ] ) );
+				sh( [ 'cmd.sh', 'reboot' ] );
 				notify( 'Rebooting ...', '', 'reboot blink', -1 );
 			}
 		} );
 	} else {
 		if ( page === 'system' ) {
-			$.post( cmdphp, cmdbash( 'rm -f /srv/http/data/tmp/backup.*' ) );
+			bash( 'rm -f /srv/http/data/tmp/backup.*' );
 		} else if ( page === 'network' ) {
-			if ( $( '#listinterfaces li' ).hasClass( 'bt' ) ) $.post( cmdphp, cmdbash( 'bluetoothctl scan off' ) );
+			if ( $( '#listinterfaces li' ).hasClass( 'bt' ) ) bash( 'bluetoothctl scan off' );
 		}
 		location.href = '/';
 	}
@@ -92,17 +93,21 @@ pushstream.onmessage = function( data, id, channel ) {
 		case 'restore': psRestore( data ); break;
 	}
 }
-function cmdbash( command ) {
-	return {
-		  cmd  : 'bash'
-		, bash : command
-	}
+function bash( command, callback, json ) {
+	$.post( 
+		  cmdphp
+		, { cmd  : 'bash', bash : command }
+		, callback || null
+		, json || null
+	);
 }
-function cmdsh( array ) {
-	return {
-		  cmd  : 'sh'
-		, sh : array
-	}
+function sh( array, callback, json ) {
+	$.post( 
+		  cmdphp
+		, { cmd  : 'sh', sh : array }
+		, callback || null
+		, json || null
+	);
 }
 function psRefresh( data ) {
 	if ( data.page === page ) refreshData();

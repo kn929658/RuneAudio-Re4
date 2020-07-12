@@ -32,17 +32,21 @@ function bookmarkThumbReplace( $this, newimg ) {
 		$( '.mode-bookmark img' ).css( 'opacity', 0.33 );
 	}
 }
-function cmdbash( command ) {
-	return {
-		  cmd  : 'bash'
-		, bash : command
-	}
+function bash( command, callback, json ) {
+	$.post( 
+		  cmdphp
+		, { cmd  : 'bash', bash : command }
+		, callback || null
+		, json || null
+	);
 }
-function cmdsh( array ) {
-	return {
-		  cmd  : 'sh'
-		, sh : array
-	}
+function sh( array, callback, json ) {
+	$.post( 
+		  cmdphp
+		, { cmd  : 'sh', sh : array }
+		, callback || null
+		, json || null
+	);
 }
 function clearIntervalAll() {
 	clearInterval( G.intKnob );
@@ -613,14 +617,13 @@ function getPlaybackStatus() {
 	}
 	G.local = 1;
 	setTimeout( function() { G.local = 0 }, 300 );
-	$.post( cmdphp, cmdbash( '/srv/http/bash/status.sh' ), function( status ) {
+	bash( '/srv/http/bash/status.sh', function( status ) {
 		if ( !status ) return
-		
 		$.each( status, function( key, value ) {
 			G.status[ key ] = value;
 		} );
 		if ( G.status.snapclient ) {
-			$.post( cmdphp, cmdbash( 'sshpass -p '+ status.snapserverpw +' ssh -q root@'+ status.snapserverip +' /srv/http/bash/status.sh' ), function( status ) {
+			bash( 'sshpass -p '+ status.snapserverpw +' ssh -q root@'+ status.snapserverip +' /srv/http/bash/status.sh', function( status ) {
 				$.each( status, function( key, value ) {
 					G.status[ key ] = value;
 				} );
@@ -729,14 +732,14 @@ function menuPackage( $this, $target ) {
 		if ( $this.data( 'active' ) ) {
 			window.open( url[ id ] );
 		} else {
-			$.post( cmdphp, cmdsh( [ cmdsh, 'packageenable', id, $this.data( 'enabled' ) ] ), window.open( url[ id ] ) );
+			sh( [ cmdsh, 'packageenable', id, $this.data( 'enabled' ) ], window.open( url[ id ] ) );
 		}
 	}
 }
 function menuPackageSet( pkg, active, enable ) {
 	G.local = 1;
 	setTimeout( function() { G.local = 0 }, 1000 );
-	$.post( cmdphp, cmdsh( [ cmdsh, 'packageset', pkg, active, enable ] ) );
+	sh( [ cmdsh, 'packageset', pkg, active, enable ] );
 	$( '#'+ pkg )
 		.data( 'enabled', enable )
 		.data( 'active', active )
@@ -755,7 +758,7 @@ function mpdSeek( seekto ) {
 		$( '#total' ).text( timehms );
 	}
 	if ( G.status.state === 'play' ) {
-		$.post( cmdphp, cmdbash( 'mpc seek '+ seektime ) );
+		bash( 'mpc seek '+ seektime );
 	} else {
 		if ( G.bars ) {
 			$( '#playback-controls i' ).removeClass( 'active' );
@@ -764,7 +767,7 @@ function mpdSeek( seekto ) {
 		}
 		G.local = 1;
 		setTimeout( function() { G.local = 0 }, 300 );
-		$.post( cmdphp, cmdsh( [ cmdsh, 'playseek', seektime ] ) );
+		sh( [ cmdsh, 'playseek', seektime ] );
 	}
 }
 function mpdSeekBar( pageX, set ) {
@@ -1162,7 +1165,7 @@ function renderPlayback() {
 			$( '#coverart' ).prop( 'src', coverrune );
 			if ( 'file' in status ) { // retry
 				setTimeout( function() {
-					$.post( cmdphp, cmdsh( [ cmdsh, 'coverartget', status.file, 'pushstream' ] ), function( coverart ) {
+					sh( [ cmdsh, 'coverartget', status.file, 'pushstream' ], function( coverart ) {
 						if ( !coverart ) {
 							$( '#divcover, #coverart' ).addClass( 'coverrune' );
 							$( '#coverart' ).prop( 'src', coverrune );
@@ -1506,7 +1509,7 @@ function setPlaylistScroll() {
 		$( '#menu-plaction' ).addClass( 'hide' );
 		$( '#pl-list li' ).removeClass( 'updn' );
 		setNameWidth();
-		$.post( cmdphp, cmdbash( '/srv/http/bash/status.sh statusonly' ), function( status ) {
+		bash( '/srv/http/bash/status.sh statusonly', function( status ) {
 			$.each( status, function( key, value ) {
 				G.status[ key ] = value;
 			} );

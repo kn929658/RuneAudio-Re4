@@ -30,7 +30,7 @@ $( '#song, #guide-lyrics' ).tap( function() {
 	}
 	artist = artist.replace( /(["`])/g, '\\$1' );
 	title = title.replace( /(["`])/g, '\\$1' );
-	bash( '/srv/http/bash/lyrics.sh "'+ artist +'" "'+ title +'" local', function( data ) {
+	sh( [ 'lyrics', artist, title, 'local' ], function( data ) {
 		if ( data ) {
 			var lyrics_title = data.split( '^^' );
 			lyricsTitle = lyrics_title[ 0 ];
@@ -133,7 +133,7 @@ $( '#lyricssave' ).click( function() {
 			var newlyrics = $( '#lyricstextarea' ).val();
 			var artist = $( '#lyricsartist' ).text();
 			var title = $( '#lyricstitle' ).text();
-			bash( '/srv/http/bash/lyrics.sh "'+ artist +'" "'+ title +'" save "'+ newlyrics +'"' );
+			sh( [ 'lyrics', artist, title, 'save', newlyrics.replace( /\n/g, '^' ) ] ); // keep lirics single line
 			lyricstop = $( '#lyricstextarea' ).scrollTop();
 			currentlyrics = newlyrics;
 			lyrics2html( newlyrics );
@@ -153,10 +153,12 @@ $( '#lyricsdelete' ).click( function() {
 		  icon    : 'lyrics'
 		, title   : 'Lyrics'
 		, message : 'Delete this lyrics?'
+		, oklabel : '<i class="fa fa-minus-circle"></i>Delete'
+		, okcolor : '#bb2828'
 		, ok      : function() {
 			var artist = $( '#lyricsartist' ).text();
 			var title = $( '#lyricstitle' ).text();
-			bash( '/srv/http/bash/lyrics.sh "'+ artist +'" "'+ title +'" delete' );
+			sh( [ 'lyrics', artist, title, 'delete' ] );
 			lyrics = '';
 			currentlyrics = '';
 			lyricsHide();
@@ -172,7 +174,7 @@ htmlEscape = function( str ) {
 		.replace( /'|"/g, '' );
 }
 getLyrics = function() {
-	bash( '/srv/http/bash/lyrics.sh "'+ lyricsArtist +'" "'+ lyricsTitle +'"', function( data ) {
+	sh( [ 'lyrics', lyricsArtist, lyricsTitle ], function( data ) {
 		if ( data ) {
 			lyrics = data;
 			lyrics2html( lyrics );

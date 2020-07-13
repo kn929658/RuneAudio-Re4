@@ -57,6 +57,38 @@ ignoredir )
 imageresize )
 	convert "${args[1]}" -coalesce -resize 200x200 "${args[2]}"
 	;;
+lyrics )
+	artist=${args[1]}
+	title=${args[2]}
+	cmd=${args[3]}
+	lyrics=${args[4]}
+	name="$artist - $title"
+	name=${name//\/}
+	
+	lyricsfile="/srv/http/data/lyrics/${name,,}.txt"
+	if [[ $cmd == local ]]; then
+		[[ -e $lyricsfile ]] && echo "$title^^$( cat "$lyricsfile" )" # return with title for display
+	elif [[ $cmd == save ]]; then
+		echo -e "${lyrics//^/\\n}" > "$lyricsfile" # split at ^ delimiter to lines
+	elif [[ $cmd == delete ]]; then
+		rm "$lyricsfile"
+	else
+		artist=$( echo $artist | sed 's/^A \|^The \|\///g' )
+		title=${title//\/}
+		query=$( echo $artist/$title \
+					| tr -d " '\-\"\!*\(\);:@&=+$,?#[]." )
+		lyrics=$( curl -s -A firefox https://www.azlyrics.com/lyrics/${query,,}.html )
+		if [[ -n $lyrics ]]; then
+			echo "$lyrics" \
+				| sed -n '/id="cf_text_top"/,/id="azmxmbanner"/ p' \
+				| sed '/^\s*$/ d' \
+				| sed '/\/div>/,/<br>/ {N;d}' \
+				| sed 's/<br>//' \
+				| grep -v '^<' \
+				> "$lyricsfile"
+		fi
+	fi
+	;;
 mpcadd )
 	[[ ${args[2]} == replace || ${args[2]} == replaceplay ]] && mpc clear
 	mpc add "${args[1]}"
@@ -102,10 +134,12 @@ mpcprevnext )
 			(( $current != 1 )) && pos=$(( current - 1 )) || pos=$length
 		fi
 	fi
-	mpc play $pos
-	if [[ -z $playing ]]; then
-		mpc stop
+	if [[ -n $playing ]]; then
+		mpc play $pos
+	else
 		touch /srv/http/data/tmp/nostatus
+		mpc play $pos
+		mpc stop
 	fi
 	;;
 mpcupdate )

@@ -30,7 +30,6 @@ $( '.contextmenu a' ).click( function( e ) {
 			.addClass( 'fa-refresh-library blink' );
 		if ( G.list.path.slice( -3 ) === 'cue' ) G.list.path = G.list.path.substr( 0, G.list.path.lastIndexOf( '/' ) )
 		sh( [ 'mpcupdate', G.list.path ] );
-		} );
 	} else if ( cmd === 'remove' ) {
 		G.contextmenu = 1;
 		setTimeout( function() { G.contextmenu = 0 }, 500 );

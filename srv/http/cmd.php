@@ -231,11 +231,6 @@ case 'setorder':
 	file_put_contents( $dirsystem.'order', json_encode( $order, JSON_PRETTY_PRINT ) );
 	pushstream( 'order', $order );
 	break;
-case 'status': // for previous/next
-	$output = exec( $sudo.$dirbash.'status.sh' );
-	$array = json_decode( $output, true );
-	pushstream( 'mpdplayer', $array );
-	break;
 case 'volume':
 	$volume = $_POST[ 'volume' ];
 	$current = $_POST[ 'current' ] ?? '';

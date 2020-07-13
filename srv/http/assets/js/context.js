@@ -628,19 +628,18 @@ function tagEditor() {
 			, nofocus      : 1
 			, ok           : function() {
 				var diff = 0;
-				var tag = {
-					  cue    : cue
-					, file   : file
-					, single : !G.list.licover
-				}
 				var fL = format.length;
+				var tag = [ 'tageditor' ];
 				for ( i = 0; i < fL; i++ ) {
-					var val = $( '.infoinput:eq( '+ i +' )' ).val();;
-					tag[ format[ i ] ] = val;
+					var val = $( '.infoinput:eq( '+ i +' )' ).val();
+					tag.push( val );
 					if ( val !== value[ i ] ) diff++;
 				}
+				if ( diff === 0 ) return
+				
+				tag.push( file, G.list.licover, cue );
 				notify( 'Tag Editor', 'Change ...', 'tag blink', -1 );
-				sh( [ 'tageditor', JSON.stringify( tag ) ] );
+				sh( tag );
 			}
 		} );
 	}, 'json' );

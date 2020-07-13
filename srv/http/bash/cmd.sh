@@ -180,7 +180,50 @@ refreshbrowser )
 	curl -s -X POST 'http://127.0.0.1/pub?id=reload' -d '{ "reload": 1 }'
 	;;
 tageditor )
-	/srv/http/bash/tageditor.sh "${args[1]}"
+	cue=${args[-1]} && unset args[-1]
+	album=${args[-1]} && unset args[-1]
+	file=${args[-1]} && unset args[-1]
+	path="/mnt/MPD/$file"
+	count=${#args[@]}
+	keys=( 'tageditor' album albumartist artist composer genre date )
+	if (( $count == 9 )); then
+		keys+=( title track )
+	elif (( $count == 4 )); then
+		keys=( 'tageditor' artist title track )
+	fi
+	if [[ $cue == false ]]; then
+		[[ $album == true ]] && path="/mnt/MPD/$file/"*.*
+		for (( i=1; i < $count; i++ )); do
+			key=${keys[$i]}
+			val=${args[$i]}
+			kid3-cli -c "set $key \"$val\"" "$path"
+		done
+	else
+		if [[ $album == false ]]; then
+			sed -i '/^\s\+TRACK '${args[2]}'/ {
+	n; s/^\(\s\+TITLE\).*/\1 "'${args[1]}'"/
+	n; s/^\(\s\+PERFORMER\).*/\1 "'${args[0]}'"/
+	}
+	' "$path"
+		else
+			sed -i '/^PERFORMER\|^REM COMPOSER\|^REM DATE\|^REM GENRE/ d' "$path"
+			for (( i=0; i < $count; i++ )); do
+				key=${keys[$i]}
+				val=${args[$i]}
+				[[ -z $val ]] && continue
+				
+				case $key in
+					albumartist ) sed -i '/^TITLE/ i\PERFORMER "'$val'"' "$path";;
+					composer )    sed -i '1 i\REM COMPOSER "'$val'"' "$path";;
+					date )        sed -i '1 i\REM DATE "'$val'"' "$path";;
+					genre )       sed -i '1 a\REM GENRE "'$val'"' "$path";;
+					album )       sed -i 's/^\(\s\+PERFORMER \).*/\1 "'$val'"/' "$path";;
+					artist )      sed -i 's/^\(TITLE\).*/\1 "'$val'"/' "$path";;
+				esac
+			done
+		fi
+	fi
+	mpc update "$file"
 	;;
 volumenone )
 	output=$( cat "/srv/http/data/system/${args[1]}" )

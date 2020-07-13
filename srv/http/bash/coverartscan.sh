@@ -52,6 +52,13 @@ createThumbnail() {
 		return
 	fi
 	
+	if [[ $( echo "$mpdpath" | grep '  ' ) ]]; then
+		(( doublespaces++ ))
+		echo -e "$padR Skip - Path contains double spaces."
+		echo $mpdpath >> $doublespaceslog
+		return
+	fi
+	
 	cuefile=$( find "$dir" -maxdepth 1 -type f -name '*.cue' | head -1 )
 	if [[ -z $cuefile ]]; then
 		albumartist=$( mpc ls -f "[%album%^[%albumartist%|%artist%]]" "$mpdpath" 2> /dev/null \
@@ -229,17 +236,15 @@ padY=$( tcolor '.' 3 3 )
 padG=$( tcolor '.' 2 2 )
 padR=$( tcolor '.' 1 1 )
 nonutf8=0
+doublespaces=0
 longname=0
 dup=0
 permission=0
 nonutf8log=$dirtmp/list-nonutf8.log
+doublespaceslog=$dirtmp/list-doublespaceslog
 longnamelog=$dirtmp/list-longnames.log
 duplog=$dirtmp/list-duplicates.log
 permissionlog=$dirtmp/list-permissions.log
-echo -e "Non-UTF8 Named Files - $( date +"%D %T" )\n" > $nonutf8log
-echo -e "Too Long Named Files - $( date +"%D %T" )\n" > $longnamelog
-echo -e "Duplicate Artist-Album - $( date +"%D %T" )\n" > $duplog
-echo -e "No Write Permission Directories - $( date +"%D %T" )\n" > $permissionlog
 
 [[ -n $( ls $dircoverarts ) ]] && update=Update || update=Create
 coloredname=$( tcolor 'Browse By CoverArt' )
@@ -281,23 +286,32 @@ echo -e               "\n\n$padC New thumbnails       : $( tcolor $( numfmt --g 
 (( $copy )) && echo -e    "$padM Copy embedded        : $( tcolor $( numfmt --g $copy ) )"
 if (( $nonutf8 )); then
 	echo -e               "$padR Non UTF-8 path       : $( tcolor $( numfmt --g $nonutf8 ) )  (See list in $( tcolor "$nonutf8log" ))"
+	echo -e "Non-UTF8 Named Files - $( date +"%D %T" )\n" > $nonutf8log
 else
 	rm $nonutf8log
 fi
+if (( $doublespaces )); then
+	echo -e               "$padR Double-Spaces Named  : $( tcolor $( numfmt --g $doublespaces ) )  (See list in $( tcolor "$doublespaceslog" ))"
+	echo -e "Double-Spaces Named Files - $( date +"%D %T" )\n" > $doublespaceslog
+else
+	rm $doublespaceslog
+fi
 if (( $longname )); then
-	echo -e              "$padR Too long named       : $( tcolor $( numfmt --g $longname ) )  (See list in $( tcolor "$longnamelog" ))"
+	echo -e              "$padR Too long named        : $( tcolor $( numfmt --g $longname ) )  (See list in $( tcolor "$longnamelog" ))"
+	echo -e "Too Long Named Files - $( date +"%D %T" )\n" > $longnamelog
 else
 	rm $longnamelog
 fi
 if (( $dup )); then
 	echo "$( awk '!NF || !seen[$0]++' $duplog | cat -s )" > $duplog # remove duplicate files
 	dup=$(( $( grep -cve '^\s*$' $duplog ) - 1 )) # count without blank lines and less header
-	echo -e              "$padY Duplicate albums     : $( tcolor $( numfmt --g $dup ) )  (See list in $( tcolor "$duplog" ))"
+	echo -e              "$padY Duplicate albums      : $( tcolor $( numfmt --g $dup ) )  (See list in $( tcolor "$duplog" ))"
 else
 	rm $duplog
 fi
 if (( $permission )); then
-	echo -e               "$padR No Write Permission : $( tcolor $( numfmt --g $permission ) )  (See list in $( tcolor "$permissionlog" ))"
+	echo -e               "$padR No Write Permission  : $( tcolor $( numfmt --g $permission ) )  (See list in $( tcolor "$permissionlog" ))"
+	echo -e "No Write Permission Directories - $( date +"%D %T" )\n" > $permissionlog
 else
 	rm $permissionlog
 fi

@@ -45,14 +45,14 @@ createThumbnail() {
 	elapse=$( formatTime $elapse )
 	echo ${percent}% $( tcolor "$elapse/$total $i/$count" 8 ) $( tcolor "$mpdpath" )
 	# skip if non utf-8 name
-	if [[ $( echo $mpdpath | grep -axv '.*' ) ]]; then
+	if echo $mpdpath | grep -axvq '.*'; then
 		(( nonutf8++ ))
 		echo -e "$padR Skip - Path contains non UTF-8 characters."
 		echo $mpdpath >> $nonutf8log
 		return
 	fi
 	
-	if [[ $( echo "$mpdpath" | grep '  ' ) ]]; then
+	if echo "$mpdpath" | grep -q '  '; then
 		(( doublespaces++ ))
 		echo -e "$padR Skip - Path contains double spaces."
 		echo $mpdpath >> $doublespaceslog

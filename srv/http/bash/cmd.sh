@@ -18,14 +18,34 @@ addonslist )
 	wget -q --no-check-certificate https://github.com/rern/RuneAudio_Addons/raw/master/addons-list.php -O /srv/http/data/addons/addons-list.php
 	[[ $? != 0 ]] && echo -n -1
 	;;
-colorset )
-	/srv/http/bash/setcolor.sh ${args[1]} ${args[2]} ${args[3]}
-	echo ${args[1]} ${args[2]} ${args[3]} > /srv/http/data/system/color
-	pushstream reload reload all
-	;;
-colorreset )
-	rm /srv/http/data/system/color
-	/srv/http/bash/setcolor.sh
+color )
+	file=/srv/http/data/system/color
+	if [[ ${args[1]} == reset ]]; then
+		rm $file
+	elif [[ -n {args[1]} ]]; then
+		echo ${args[1]} > $file
+	fi
+	if [[ -e $file ]]; then
+		hsl=( $( cat $file ) )
+		h=${hsl[0]}; s=${hsl[1]}; l=${hsl[2]}
+	else
+		h=200; s=100; l=35
+	fi
+	hs="$h,$s%,"
+	hsg="$h,3%,"
+
+sed -i "
+ s|\(--cml: *hsl\).*;|\1(${hs}$(( l + 5 ))%);|
+  s|\(--cm: *hsl\).*;|\1(${hs}$l%);|
+ s|\(--cma: *hsl\).*;|\1(${hs}$(( l - 5 ))%);|
+ s|\(--cmd: *hsl\).*;|\1(${hs}$(( l - 15 ))%);|
+s|\(--cg75: *hsl\).*;|\1(${hsg}75%);|
+s|\(--cg60: *hsl\).*;|\1(${hsg}60%);|
+ s|\(--cgl: *hsl\).*;|\1(${hsg}40%);|
+  s|\(--cg: *hsl\).*;|\1(${hsg}30%);|
+ s|\(--cga: *hsl\).*;|\1(${hsg}20%);|
+ s|\(--cgd: *hsl\).*;|\1(${hsg}10%);|
+" /srv/http/assets/css/colors.css
 	pushstream reload reload all
 	;;
 coverartget )

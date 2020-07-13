@@ -416,10 +416,10 @@ $( '#colorok' ).click( function() {
 		var s = 0;
 		var l = L * 100;
 	}
-	if ( hsl !== G.display.color ) sh( [ 'colorset', h, s, l ] );
+	if ( hsl !== G.display.color ) sh( [ 'color', h +' '+ s +' '+ l ] );
 } );
 $( '#colorreset' ).click( function() {
-	sh( [ 'colorreset' ] );
+	sh( [ 'color', 'reset' ] );
 } );
 $( '#colorcancel' ).click( function() {
 	G.color = 0;

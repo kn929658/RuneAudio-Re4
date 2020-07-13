@@ -66,7 +66,7 @@ if [[ -e /usr/bin/chromium ]]; then
 	fi
 fi
 # color
-[[ -e $dirsystem/color ]] && color=1 && /srv/http/bash/setcolor.sh
+[[ -e $dirsystem/color ]] && color=1 && /srv/http/bash/cmd.sh color
 # fstab
 if ls $dirsystem/fstab-* &> /dev/null; then
 	sed -i '\|/mnt/MPD/NAS| d' /etc/fstab

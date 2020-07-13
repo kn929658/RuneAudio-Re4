@@ -59,6 +59,7 @@ elif [[ -e $playerfile-airplay ]]; then
 	status+='
 		, "coverart"       : "'$coverart'"
 		, "elapsed"        : '$elapsed'
+		, "file"           : ""
 		, "playlistlength" : 1
 		, "sampling"       : "16 bit 44.1 kHz 1.41 Mbit/s • AirPlay"
 		, "state"          : "play"

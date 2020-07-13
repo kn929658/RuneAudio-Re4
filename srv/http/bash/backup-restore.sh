@@ -40,6 +40,11 @@ rm $diraddons/rre*
 echo $version > $dirsystem/version
 echo $versionrr > $diraddons/rr$version
 
+chown -R http:http /srv/http
+chown -R mpd:audio /srv/http/data/mpd /mnt/MPD
+chmod 755 /srv/http/* /srv/http/bash/* /srv/http/settings/* /usr/local/bin/*
+chmod 777 /srv/http/data/tmp
+
 # hostname
 if [[ $( cat $dirsystem/hostname ) != RuneAudio ]]; then
 	hostname=$( cat $dirsystem/hostname )

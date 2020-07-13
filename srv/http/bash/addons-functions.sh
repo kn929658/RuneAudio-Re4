@@ -165,8 +165,9 @@ getinstallzip() {
 	cp -r $tmpdir/* /
 	rm -r $tmpdir
 	chown -R http:http /srv/http
-	chown -R mpd:audio /srv/http/data/mpd
+	chown -R mpd:audio /srv/http/data/mpd /mnt/MPD
 	chmod 755 /srv/http/* /srv/http/bash/* /srv/http/settings/* /usr/local/bin/*
+	chmod 777 /srv/http/data/tmp
 	[[ -e /srv/http/data/system/color ]] && /srv/http/bash/cmd.sh color
 }
 getuninstall() {

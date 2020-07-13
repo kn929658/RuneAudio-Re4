@@ -201,10 +201,10 @@ tageditor )
 	else
 		if [[ $album == false ]]; then
 			sed -i '/^\s\+TRACK '${args[2]}'/ {
-	n; s/^\(\s\+TITLE\).*/\1 "'${args[1]}'"/
-	n; s/^\(\s\+PERFORMER\).*/\1 "'${args[0]}'"/
-	}
-	' "$path"
+n; s/^\(\s\+TITLE\).*/\1 "'${args[1]}'"/
+n; s/^\(\s\+PERFORMER\).*/\1 "'${args[0]}'"/
+}
+' "$path"
 		else
 			sed -i '/^PERFORMER\|^REM COMPOSER\|^REM DATE\|^REM GENRE/ d' "$path"
 			for (( i=0; i < $count; i++ )); do

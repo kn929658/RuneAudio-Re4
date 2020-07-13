@@ -231,6 +231,9 @@ case 'setorder':
 	file_put_contents( $dirsystem.'order', json_encode( $order, JSON_PRETTY_PRINT ) );
 	pushstream( 'order', $order );
 	break;
+case 'similar':
+	echo shell_exec( '/srv/http/bash/mpdsimilar.sh "'.escape( $_POST[ 'similar' ] ).'"' );
+	break;
 case 'volume':
 	$volume = $_POST[ 'volume' ];
 	$current = $_POST[ 'current' ] ?? '';
@@ -294,6 +297,11 @@ case 'webradios':
 	break;
 }
 
+function cmdsh( $sh ) {
+	$script = '/usr/bin/sudo /srv/http/bash/cmd.sh "';
+	$script.= escape( implode( "\n", $sh ) ).'"';
+	return shell_exec( $script );
+}
 function escape( $string ) {
 	return preg_replace( '/(["`])/', '\\\\\1', $string );
 }
@@ -325,11 +333,6 @@ function gifSave( $imagefile, $tmpfile, $resize ) {
 	} else {
 		move_uploaded_file( $tmpfile, $imagefile );
 	}
-}
-function cmdsh( $sh ) {
-	$script = '/usr/bin/sudo /srv/http/bash/cmd.sh "';
-	$script.= escape( implode( "\n", $sh ) ).'"';
-	return shell_exec( $script );
 }
 function pushstream( $channel, $data ) {
 	exec( $sudobin.'curl -s -X POST http://127.0.0.1/pub?id='.$channel." -d '".json_encode( $data, JSON_NUMERIC_CHECK )."'" );

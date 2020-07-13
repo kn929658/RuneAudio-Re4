@@ -60,9 +60,14 @@ function contextmenuLibrary( $li, $target ) {
 	G.list.li = $li; // for contextmenu
 	G.list.licover = $li.hasClass( 'licover' );
 	G.list.singletrack = !G.list.licover && $li.find( '.lib-icon' ).hasClass( 'fa-music' );
-	G.list.path = $li.find( '.lipath' ).text().trim() || '';
-	G.list.name = $li.find( '.liname' ).text().trim() || '';
-	G.list.artist = $li.find( '.liartist' ).text().trim() || '';
+	G.list.path = $li.find( '.lipath' ).text() || '';
+	if ( G.playlist ) {
+		G.list.name = $li.find( '.liname' ).text() || '';
+		G.list.artist = $li.find( '.liartist' ).text() || '';
+	} else if ( $( '.licover' ).length ) {
+		G.list.name = $li.find( '.li1' ).html().replace( /<span.*/, '' ) || '';
+		G.list.artist = $( '.licover .liartist' ).text() || '';
+	}
 	G.list.track = $li.data( 'track' ) || '';  // cue - in contextmenu
 	if ( ( G.display.tapaddplay || G.display.tapreplaceplay )
 		&& !$target.hasClass( 'lib-icon' )

@@ -69,25 +69,19 @@ $( '.contextmenu a' ).click( function( e ) {
 			var title = 'Playlist - Add Similar';
 			if ( 'error' in data || !data.similartracks.track.length ) {
 				notify( title, 'Track not found.', 'lastfm' );
-				return
-			}
-			
-			var plL = G.status.playlistlength;
-			notify( title, 'Add similar tracks from Library ...', 'library blink',  -1 );
-			var val = data.similartracks.track;
-			G.local = 1;
-			var iL = val.length;
-			for ( i = 0; i < iL; i++ ) {
-				sh( [ 'mpcfindadd', 'artist', val[ i ].artist.name, 'title', val[ i ].name ] );
-				if ( i === iL - 1 ) {
-					setTimeout( function() {
-						G.local = 0;
-						notify( title, 'Similar tracks added', 'list-ul' );
-						updatePlaylist();
-						if ( submenu ) 
-							bash( 'mpc play'+ ( plL + 1 ) );
-					}, 600 );
+			} else {
+				var val = data.similartracks.track;
+				var iL = val.length;
+				var similar = '';
+				for ( i = 0; i < iL; i++ ) {
+					similar += val[ i ].artist.name +'\n'+ val[ i ].name +'\n';
 				}
+				notify( title, 'Find similar tracks from Library ...', 'library blink',  -1 );
+				$.post( cmdphp, { cmd: 'similar', similar: similar }, function( count ) {
+					updatePlaylist();
+					setButton()
+					notify( title, count +' tracks added.', 'library' );
+				} );
 			}
 		}, 'json' );
 	} else if ( cmd === 'exclude' ) {
@@ -197,6 +191,7 @@ $( '.contextmenu a' ).click( function( e ) {
 
 function addReplace( cmd, command, title ) {
 	var playbackswitch = G.display.playbackswitch && ( cmd === 'addplay' || cmd === 'replaceplay' );
+	console.log(command);
 	sh( command, function() {
 		if ( playbackswitch ) {
 			$( '#tab-playback' ).click();

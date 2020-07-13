@@ -111,31 +111,60 @@ lyrics )
 	fi
 	;;
 mpcadd )
-	[[ ${args[2]} == replace || ${args[2]} == replaceplay ]] && mpc clear
-	mpc add "${args[1]}"
-	if [[ ${args[2]} == addplay ]]; then
-		sleep ${args[3]}
-		mpc play $( mpc playlist | wc -l )
-	elif [[ ${args[2]} == replaceplay ]]; then
-		sleep ${args[3]}
-		mpc play
-	fi
+	item=${args[1]}
+	cmd=${args[2]}
+	sleep=${args[3]}
+	[[ ${cmd: -4} == play ]] && play=1 && pos=$(( $( mpc playlist | wc -l ) + 1 ))
+	[[ ${cmd:0:7} == replace ]] && mpc clear && pos=1
+	mpc add "$item"
+	[[ -z $play ]] && exit
+	
+	sleep $sleep
+	mpc play $pos
 	;;
 mpcfindadd )
-	if [[ -z ${args[3]} ]]; then
-		mpc findadd ${args[1]} "${args[2]}"
-	else
-		mpc findadd ${args[1]} "${args[2]}" ${args[3]} "${args[4]}"
-	fi
+	cmd=${args[3]}
+	sleep=${args[4]}
+	[[ ${cmd: -4} == play ]] && play=1 && pos=$(( $( mpc playlist | wc -l ) + 1 ))
+	[[ ${cmd:0:7} == replace ]] && mpc clear && pos=1
+	mpc findadd ${args[1]} "${args[2]}"
+	[[ -z $play ]] && exit
+	
+	sleep $sleep
+	mpc play $pos
 	;;
 mpcload )
+	cmd=${args[2]}
+	sleep=${args[3]}
+	[[ ${cmd: -4} == play ]] && play=1 && pos=$(( $( mpc playlist | wc -l ) + 1 ))
+	[[ ${cmd:0:7} == replace ]] && mpc clear && pos=1
 	mpc load "${args[1]}"
+	[[ -z $play ]] && exit
+	
+	sleep $sleep
+	mpc play $pos
 	;;
 mpcloadrange )
+	cmd=${args[3]}
+	sleep=${args[4]}
+	[[ ${cmd: -4} == play ]] && play=1 && pos=$(( $( mpc playlist | wc -l ) + 1 ))
+	[[ ${cmd:0:7} == replace ]] && mpc clear && pos=1
 	mpc --range=${args[1]} load "${args[2]}"
+	[[ -z $play ]] && exit
+	
+	sleep $sleep
+	mpc play $pos
 	;;
 mpcls )
+	cmd=${args[2]}
+	sleep=${args[3]}
+	[[ ${cmd: -4} == play ]] && play=1 && pos=$(( $( mpc playlist | wc -l ) + 1 ))
+	[[ ${cmd:0:7} == replace ]] && mpc clear && pos=1
 	/srv/http/bash/mpdls.sh "${args[1]}"
+	[[ -z $play ]] && exit
+	
+	sleep $sleep
+	mpc play $pos
 	;;
 mpcprevnext )
 	dir=${args[1]}

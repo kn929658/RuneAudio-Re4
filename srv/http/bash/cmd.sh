@@ -291,7 +291,7 @@ n; s/^\(\s\+PERFORMER\).*/\1 "'${args[0]}'"/
 ' "$path"
 		else
 			sed -i '/^PERFORMER\|^REM COMPOSER\|^REM DATE\|^REM GENRE/ d' "$path"
-			for (( i=0; i < $count; i++ )); do
+			for (( i=0; i < count; i++ )); do
 				key=${keys[$i]}
 				val=${args[$i]}
 				[[ -z $val ]] && continue

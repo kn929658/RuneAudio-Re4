@@ -9,7 +9,7 @@ mixerdevices=${mixerdevices:0:-1}
 
 . /srv/http/bash/mpd-devices.sh
 
-for (( i=0; i < $cardL; i++ )); do
+for (( i=0; i < cardL; i++ )); do
 	# json inside array needs "escaped double quotes"
 	devices+='{
 		  "aplayname"   : "'${Aaplayname[i]}'"

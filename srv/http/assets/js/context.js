@@ -29,9 +29,7 @@ $( '.contextmenu a' ).click( function( e ) {
 			.removeClass( 'fa-folder' )
 			.addClass( 'fa-refresh-library blink' );
 		if ( G.list.path.slice( -3 ) === 'cue' ) G.list.path = G.list.path.substr( 0, G.list.path.lastIndexOf( '/' ) )
-		$.post( cmdphp, {
-			  cmd    : 'update'
-			, update : G.list.path
+		sh( [ 'mpcupdate', G.list.path ] );
 		} );
 	} else if ( cmd === 'remove' ) {
 		G.contextmenu = 1;

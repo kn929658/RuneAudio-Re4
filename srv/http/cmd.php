@@ -236,9 +236,6 @@ case 'status': // for previous/next
 	$array = json_decode( $output, true );
 	pushstream( 'mpdplayer', $array );
 	break;
-case 'update':
-	cmdsh( [ 'mpcupdate', $_POST[ 'update' ] ] );
-	break;
 case 'volume':
 	$volume = $_POST[ 'volume' ];
 	$current = $_POST[ 'current' ] ?? '';
@@ -335,7 +332,7 @@ function gifSave( $imagefile, $tmpfile, $resize ) {
 	}
 }
 function cmdsh( $sh ) {
-	$script = '/usr/bin/sudo /srv/http/bash/cmd.sh "'; // no $sudo inside function
+	$script = '/usr/bin/sudo /srv/http/bash/cmd.sh "';
 	$script.= escape( implode( "\n", $sh ) ).'"';
 	return shell_exec( $script );
 }

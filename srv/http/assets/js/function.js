@@ -64,7 +64,7 @@ function contextmenuLibrary( $li, $target ) {
 	if ( G.playlist ) {
 		G.list.name = $li.find( '.liname' ).text() || '';
 		G.list.artist = $li.find( '.liartist' ).text() || '';
-	} else if ( $( '.licover' ).length ) {
+	} else if ( $( '.licover' ).length && !$li.hasClass( 'licover' ) ) {
 		G.list.name = $li.find( '.li1' ).html().replace( /<span.*/, '' ) || '';
 		G.list.artist = $( '.licover .liartist' ).text() || '';
 	}

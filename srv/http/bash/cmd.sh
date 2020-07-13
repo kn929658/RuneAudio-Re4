@@ -19,10 +19,11 @@ addonslist )
 	[[ $? != 0 ]] && echo -n -1
 	;;
 color )
+	cmd=${args[1]}
 	file=/srv/http/data/system/color
-	if [[ ${args[1]} == reset ]]; then
+	if [[ $cmd == reset ]]; then
 		rm $file
-	elif [[ -n {args[1]} ]]; then
+	elif [[ -n $cmd && $cmd != color ]]; then # omit call from addons-functions.sh / backup-restore.sh
 		echo ${args[1]} > $file
 	fi
 	if [[ -e $file ]]; then

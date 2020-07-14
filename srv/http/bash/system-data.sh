@@ -98,9 +98,7 @@ data+='
 	, "streaming"       : '$( grep -q 'type.*"httpd"' /etc/mpd.conf && echo true || echo false )'
 	, "timezone"        : "'$timezone'"
 	, "version"         : "'$version'"
-	, "versionui"       : '$( cat /srv/http/data/addons/rr$version )'
-	, "soundprofile"    : "'$( cat $dirsystem/soundprofile 2> /dev/null )'"
-	, "soundprofileval" : "'$( /srv/http/bash/system-soundprofile.sh $profile getvalue )'"'
+	, "versionui"       : '$( cat /srv/http/data/addons/rr$version )
 [[ -e /usr/bin/bluetoothctl  ]] && data+='
 	, "bluetooth"       : '$( grep -q dtoverlay=bcmbt /boot/config.txt && echo true || echo false )'
 	, "bluetoothon"     : '$( [[ $( systemctl is-active bluetooth ) == active ]] && echo true || echo false )
@@ -119,7 +117,10 @@ data+='
 	, "writeusb"        : '$( grep -A1 /mnt/MPD/USB /etc/samba/smb.conf | grep -q 'read only = no' && echo true || echo false )
 [[ ${hwcode:3:2} =~ ^(08|0c|0d|0e|11)$ ]] && data+='
 	, "wlan"            : '$( lsmod | grep -q '^brcmfmac ' && echo true || echo false )
-
+profile=$( cat $dirsystem/soundprofile 2> /dev/null )
+data+='
+	, "soundprofile"    : "'$profile'"
+	, "soundprofileval" : "'$( /srv/http/bash/system-soundprofile.sh $profile getvalue )'"'
 xinitrc=/etc/X11/xinit/xinitrc
 if [[ -e $xinitrc ]]; then
 	file='/etc/X11/xorg.conf.d/99-raspi-rotate.conf'

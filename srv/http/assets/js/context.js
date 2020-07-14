@@ -144,13 +144,8 @@ $( '.contextmenu a' ).click( function( e ) {
 			var play = cmd.slice( -1 ) === 'y' ? 1 : 0;
 			var replace = cmd.slice( 0, 1 ) === 'r' ? 1 : 0;
 			if ( replace && G.display.plclear && G.status.playlistlength ) {
-				info( {
-					  icon    : 'list-ul'
-					, title   : 'Playlist Replace'
-					, message : 'Replace current playlist?'
-					, ok      : function() {
-						playlistLoad( path, play, replace );
-					}
+				infoReplace( function() {
+					playlistLoad( path, play, replace );
 				} );
 			} else {
 				playlistLoad( path, play, replace );
@@ -175,12 +170,8 @@ $( '.contextmenu a' ).click( function( e ) {
 		} else {
 			var msg = 'Replace playlist'+ ( cmd === 'replace' ? '' : ' and play' );
 			if ( G.display.plclear && G.status.playlistlength ) {
-				info( {
-					  title   : 'Playlist'
-					, message : 'Replace current Playlist?'
-					, ok      : function() {
-						addReplace( cmd, command, msg );
-					}
+				infoReplace( function() {
+					addReplace( cmd, command, msg );
 				} );
 			} else {
 				addReplace( cmd, command, msg );
@@ -189,9 +180,16 @@ $( '.contextmenu a' ).click( function( e ) {
 	}
 } );
 
+function infoReplace( callback ) {
+	info( {
+		  icon    : 'list-ul'
+		, title   : 'Playlist Replace'
+		, message : 'Replace current playlist?'
+		, ok      : callback
+	} );
+}
 function addReplace( cmd, command, title ) {
 	var playbackswitch = G.display.playbackswitch && ( cmd === 'addplay' || cmd === 'replaceplay' );
-	console.log(command);
 	sh( command, function() {
 		if ( playbackswitch ) {
 			$( '#tab-playback' ).click();

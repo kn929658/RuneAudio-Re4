@@ -354,14 +354,14 @@ $( '#power' ).click( function( e ) {
 		, buttoncolor : '#de810e'
 		, button      : function() {
 			$( '#stop' ).click();
-			bash( '/srv/http/bash/cmd.sh reboot' );
+			sh( [ 'reboot' ] );
 			notify( 'Power', 'Reboot ...', 'reboot blink', -1 );
 		}
 		, oklabel     : '<i class="fa fa-power"></i>Off'
 		, okcolor     : '#bb2828'
 		, ok          : function() {
 			$( '#stop' ).click();
-			bash( '/srv/http/bash/cmd.sh reboot off' );
+			sh( [ 'reboot', 'off' ] );
 			$( '#loader' )
 				.css( 'background', '#000000' )
 				.find( 'svg' ).css( 'animation', 'unset' );

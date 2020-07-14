@@ -24,6 +24,10 @@ $( '#close' ).click( function() {
 			}
 			, ok      : function() {
 				sh( [ 'cmd.sh', 'reboot' ] );
+				$.post( cmdphp, {
+					  cmd : 'sh'
+					, sh  : [ 'cmd.sh', 'reboot' ]
+				} );
 				notify( 'Rebooting ...', '', 'reboot blink', -1 );
 			}
 		} );

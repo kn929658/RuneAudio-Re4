@@ -235,7 +235,7 @@ pre.scrollTop = pre.scrollHeight;
 $( '#wait' ).remove();
 $( '#hidescrollv' ).css( 'max-height', ( $( '#hidescrollv' ).height() + 30 ) +'px' );
 info( {
-	  icon    : 'info-circle'
+	  icon    : 'addons'
 	, title   : '<?=$title?>'
 	, message : 'Please see result information on screen.'
 } );

@@ -221,6 +221,13 @@ function psMpdUpdate( data ) {
 	}
 }
 function psNotify( data ) {
+	if ( $( '#bannerTitle' ).text() == 'Power' ) { // gpio switch output
+		var txt = $( '#bannerMessage' ).text();
+		var icon = $( '#bannerIcon i' ).prop( 'class' );
+		setTimeout( function() {
+			notify( 'Power', txt, icon, -1 );
+		}, 4000 );
+	}
 	notify( data.title, data.text, data.icon, data.delay );
 	if ( data.title === 'AirPlay' && data.text === 'Stop ...' ) $( '#loader' ).removeClass( 'hide' );
 }

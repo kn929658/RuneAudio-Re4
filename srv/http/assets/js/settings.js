@@ -7,7 +7,10 @@ var reboot = '';
 var cmdphp = 'cmd.php';
 
 if ( page === 'credits' ) {
-	$.post( cmdphp, { cmd: 'exec', exec: 'cat /srv/http/data/tmp/reboot' }, function( lines ) {
+	$.post( cmdphp, {
+		  cmd  : 'exec'
+		, exec : 'cat /srv/http/data/tmp/reboot'
+	}, function( lines ) {
 		G = { reboot: lines || [] }
 	}, 'json' );
 }
@@ -100,7 +103,7 @@ pushstream.onmessage = function( data, id, channel ) {
 function bash( command, callback, json ) {
 	$.post( 
 		  cmdphp
-		, { cmd  : 'bash', bash : command }
+		, { cmd: 'bash', bash: command }
 		, callback || null
 		, json || null
 	);
@@ -108,7 +111,7 @@ function bash( command, callback, json ) {
 function sh( array, callback, json ) {
 	$.post( 
 		  cmdphp
-		, { cmd  : 'sh', sh : [ page +'.sh' ].concat( array ) }
+		, { cmd: 'sh', sh: [ page +'.sh' ].concat( array ) }
 		, callback || null
 		, json || null
 	);

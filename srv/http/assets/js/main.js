@@ -666,7 +666,7 @@ $( '#volup, #voldn' ).click( function() {
 	} );
 } );
 $( '#coverTL, #timeTL' ).tap( function() {
-	var list = [ 'time', 'cover', 'coversmall', 'volume', 'buttons', 'progressbar' ];
+	var list = [ 'bars', 'time', 'cover', 'coversmall', 'volume', 'buttons', 'progressbar' ];
 	if ( 'coverTL' in G ) {
 		list.forEach( function( el ) {
 			G.display[ el ] = G.coverTL[ el ];
@@ -687,6 +687,7 @@ $( '#coverTL, #timeTL' ).tap( function() {
 		} else {
 			G.display.time = G.display.cover = G.display.coversmall = G.display.volume = G.display.buttons = true;
 		}
+		G.display.bars = false;
 	}
 	$( '.band, #swipebar' ).addClass( 'transparent' );
 	$( '#volume-bar, #volume-text' ).addClass( 'hide' );

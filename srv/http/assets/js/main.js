@@ -50,7 +50,7 @@ if ( G.localhost ) {
 }
 
 // get mpd status with passive.js on pushstream connect
-$.post( cmdphp, { cmd: 'displayget' }, function( data ) {
+displayGet( function( data ) {
 	G.display = data;
 	G.bars = data.bars;
 	$.event.special.tap.emitTapOnTaphold = false; // suppress tap on taphold
@@ -70,7 +70,7 @@ $.post( cmdphp, { cmd: 'displayget' }, function( data ) {
 			swipeleft ? $( '#tab-library' ).click()  : $( '#tab-playback' ).click();
 		}
 	} );
-}, 'json' );
+} );
 
 $( function() { // document ready start >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
@@ -143,7 +143,7 @@ $( '#displaylibrary' ).click( function( e ) {
 	var options = $( e.target ).hasClass( 'submenu' );
 	var checklist = !options ? chklibrary : chklibrary2;
 	var thumbbyartist = G.display.thumbbyartist;
-	$.post( cmdphp, { cmd: 'displayget' }, function( data ) {
+	displayGet( function( data ) {
 		G.display = data;
 		info( {
 			  icon     : 'library'
@@ -202,7 +202,7 @@ $( '#displaylibrary' ).click( function( e ) {
 				}
 			}
 		} );
-	}, 'json' );
+	} );
 } );
 var chkplayback = {
 	  bars         : 'Top-Bottom bars'
@@ -233,7 +233,7 @@ $( '#displayplayback' ).click( function( e ) {
 	}
 	
 	if ( 'coverTL' in G ) $( '#coverTL' ).tap();
-	$.post( cmdphp, { cmd: 'displayget' }, function( data ) {
+	displayGet( function( data ) {
 		G.display = data;
 		info( {
 			  icon     : 'play-circle'
@@ -307,7 +307,7 @@ $( '#displayplayback' ).click( function( e ) {
 				}
 			}
 		} );
-	}, 'json' );
+	} );
 } );
 $( '.settings' ).click( function( e ) {
 	var id = e.target.id || e.currentTarget.id;

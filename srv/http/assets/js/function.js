@@ -443,6 +443,11 @@ function displayPlayback() {
 	$( '#timemap' ).toggleClass( 'hide', G.display.cover );
 	displayTopBottom();
 }
+function displayGet( callback ) {
+	$.post( cmdphp, { cmd: 'displayget' }, function( data ) {
+		callback( data );
+	}, 'json' );
+}
 function displaySave( page, thumbbyartist ) {
 	$( '#displaysave'+ page +' input' ).each( function() {
 		G.display[ this.name ] = $( this ).prop( 'checked' );
@@ -1444,8 +1449,6 @@ function setButtonToggle() {
 		$( '#'+ prefix +'-update' ).toggleClass( 'hide', !G.status.updating_db );
 		$( '#'+ prefix +'-addons' ).toggleClass( 'hide', !$( '#badge' ).length );
 	}
-	$( '#'+ prefix +'-gpio' ).toggleClass( 'hide', !G.gpio );
-	$( '#gpio .fa-gpio' ).toggleClass( 'on', G.gpio );
 	if ( G.status.updating_db ) {
 		$( '#tab-library, #button-library' ).addClass( 'blink' );
 	} else {

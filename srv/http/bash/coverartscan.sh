@@ -245,6 +245,11 @@ doublespaceslog=$dirtmp/list-doublespaceslog
 longnamelog=$dirtmp/list-longnames.log
 duplog=$dirtmp/list-duplicates.log
 permissionlog=$dirtmp/list-permissions.log
+echo -e "Non-UTF8 Named Files - $( date +"%D %T" )\n" > $nonutf8log
+echo -e "Double-Spaces Named Files - $( date +"%D %T" )\n" > $doublespaceslog
+echo -e "Too Long Named Files - $( date +"%D %T" )\n" > $longnamelog
+echo -e "Duplicate Name - $( date +"%D %T" )\n" > $duplog
+echo -e "No Write Permission Directories - $( date +"%D %T" )\n" > $permissionlog
 
 [[ -n $( ls $dircoverarts ) ]] && update=Update || update=Create
 coloredname=$( tcolor 'Browse By CoverArt' )
@@ -286,34 +291,30 @@ echo -e               "\n\n$padC New thumbnails       : $( tcolor $( numfmt --g 
 (( $copy )) && echo -e    "$padM Copy embedded        : $( tcolor $( numfmt --g $copy ) )"
 if (( $nonutf8 )); then
 	echo -e               "$padR Non UTF-8 path       : $( tcolor $( numfmt --g $nonutf8 ) )  (See list in $( tcolor "$nonutf8log" ))"
-	echo -e "Non-UTF8 Named Files - $( date +"%D %T" )\n" > $nonutf8log
 else
-	rm -f $nonutf8log
+	rm $nonutf8log
 fi
 if (( $doublespaces )); then
 	echo -e               "$padR Double-Spaces Named  : $( tcolor $( numfmt --g $doublespaces ) )  (See list in $( tcolor "$doublespaceslog" ))"
-	echo -e "Double-Spaces Named Files - $( date +"%D %T" )\n" > $doublespaceslog
 else
-	rm -f $doublespaceslog
+	rm $doublespaceslog
 fi
 if (( $longname )); then
 	echo -e              "$padR Too long named        : $( tcolor $( numfmt --g $longname ) )  (See list in $( tcolor "$longnamelog" ))"
-	echo -e "Too Long Named Files - $( date +"%D %T" )\n" > $longnamelog
 else
-	rm -f $longnamelog
+	rm $longnamelog
 fi
 if (( $dup )); then
 	echo "$( awk '!NF || !seen[$0]++' $duplog | cat -s )" > $duplog # remove duplicate files
 	dup=$(( $( grep -cve '^\s*$' $duplog ) - 1 )) # count without blank lines and less header
 	echo -e              "$padY Duplicate albums      : $( tcolor $( numfmt --g $dup ) )  (See list in $( tcolor "$duplog" ))"
 else
-	rm -f $duplog
+	rm $duplog
 fi
 if (( $permission )); then
 	echo -e               "$padR No Write Permission  : $( tcolor $( numfmt --g $permission ) )  (See list in $( tcolor "$permissionlog" ))"
-	echo -e "No Write Permission Directories - $( date +"%D %T" )\n" > $permissionlog
 else
-	rm -f $permissionlog
+	rm $permissionlog
 fi
 echo
 echo -e                       "      Total thumbnails : $( tcolor $( numfmt --g $( ls -1 $dircoverarts | wc -l ) ) )"

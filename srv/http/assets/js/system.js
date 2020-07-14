@@ -399,6 +399,9 @@ $( '#setting-soundprofile' ).click( function() {
 		, radio   : radio
 		, preshow : function() {
 			var values = G.soundprofileval.split( ' ' );
+			for ( i = 0; i < 4; i++ ) {
+				if ( values[ i ] === "''" ) values[ i ] = '';
+			}
 			$( 'input[value='+ G.soundprofile +']' ).prop( 'checked', 1 )
 			$( '#infoRadio input[value=custom]' ).click( function() {
 				var textlabel = [ 'vm.swappiness (0-100)', 'kernel.sched_latency_ns (ns)' ];

@@ -516,7 +516,7 @@ function tagEditor() {
 		var filepath = '<ib>'+ file.replace( /\//g, '</ib>/<ib>' ) +'</ib>';
 		var fileicon = cue ? 'list-ul' : ( G.list.licover ? 'folder' : 'file-music' );
 		var message = '<img src="'+ src +'"><br>'
-					 +'<i class="fa fa-'+ fileicon +' wh"></i>'+ filepath;
+					 +'<i class="fa fa-'+ fileicon +' wh"></i>&ensp;'+ filepath;
 		var footer = 'Tap icons: Browse by that mode - value';
 		if ( G.list.licover ) footer += '<br>* Changes: All tracks in this directory';
 		info( {

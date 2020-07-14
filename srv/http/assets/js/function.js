@@ -43,7 +43,7 @@ function bash( command, callback, json ) {
 function sh( array, callback, json ) {
 	$.post( 
 		  cmdphp
-		, { cmd  : 'sh', sh : [ cmdsh ].concat( array ) }
+		, { cmd  : 'sh', sh : [ 'cmd.sh' ].concat( array ) }
 		, callback || null
 		, json || null
 	);

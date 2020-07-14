@@ -38,7 +38,6 @@ var picaOption = { // pica.js
 //	, alpha            : true // Default = false (black crop background)
 };
 var cmdphp = 'cmd.php';
-var cmdsh = 'cmd.sh';
 var hash = Math.ceil( Date.now() / 1000 );
 var coverrune = '/assets/img/cover.'+ hash +'.svg';
 var vustop = '/assets/img/vustop.'+ hash +'.gif';

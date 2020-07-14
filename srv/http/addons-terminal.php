@@ -66,7 +66,7 @@ if ( $type !== 'coverart' ) {
 <script>
 $( '.close-root' ).click( function() { 
 	if ( $( '#wait' ).length ) {
-		$.post( 'cmd.php', { cmd: 'sh', sh: [ cmdsh, <?=$installfile?>, <?=$alias?> ] }, function() {
+		$.post( 'cmd.php', { cmd: 'sh', sh: [ 'cmd.sh', <?=$installfile?>, <?=$alias?> ] }, function() {
 			location.href = '<?=$href?>';
 		} );
 	} else {
@@ -235,7 +235,7 @@ pre.scrollTop = pre.scrollHeight;
 $( '#wait' ).remove();
 $( '#hidescrollv' ).css( 'max-height', ( $( '#hidescrollv' ).height() + 30 ) +'px' );
 info( {
-	  icon    : 'addons'
+	  icon    : 'info-circle'
 	, title   : '<?=$title?>'
 	, message : 'Please see result information on screen.'
 } );

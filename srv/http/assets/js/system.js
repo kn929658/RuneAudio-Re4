@@ -74,7 +74,10 @@ $( '#spotify' ).click( function() {
 	sh( [ 'spotify', G.spotify ], resetLocal );
 } );
 $( '#setting-spotify' ).click( function() {
-	$.post( cmdphp, { cmd: 'exec', exec: "aplay -L | grep -v '^\\s\\|^null'" }, function( devices ) {
+	$.post( cmdphp, {
+		  cmd  : 'exec'
+		, exec : "aplay -L | grep -v '^\\s\\|^null'"
+	}, function( devices ) {
 		var select = {}
 		devices.forEach( function( val ) {
 			select[ val ] = val;
@@ -518,7 +521,10 @@ $( '#backuprestore' ).click( function( e ) {
 		, buttoncolor : '#0a8c68'
 		, button      : function() {
 			notify( backuptitle, 'Backup ...', 'sd blink', -1 );
-			$.post( cmdphp, { cmd: 'backuprestore', backuprestore: 'backup' }, function( data ) {
+			$.post( cmdphp, {
+				  cmd           : 'backuprestore'
+				, backuprestore : 'backup'
+			}, function( data ) {
 				if ( data === 'ready' ) {
 					notify( backuptitle, 'Download ...', 'sd blink' );
 					fetch( '/data/tmp/backup.gz' )
@@ -586,7 +592,10 @@ $( '#backuprestore' ).click( function( e ) {
 					notify( restoretitle, 'Restore ...', 'sd blink', -1 );
 					var checked = $( '#infoRadio input:checked' ).val();
 					if ( checked !== 'restore' ) { // directly restore from directory
-						$.post( cmdphp, { cmd: 'backuprestore', backuprestore: checked }, bannerHide );
+						$.post( cmdphp, {
+							  cmd           : 'backuprestore'
+							, backuprestore : checked
+						}, bannerHide );
 					} else {
 						var file = $( '#infoFileBox' )[ 0 ].files[ 0 ];
 						var formData = new FormData();

@@ -35,7 +35,7 @@ function bookmarkThumbReplace( $this, newimg ) {
 function bash( command, callback, json ) {
 	$.post( 
 		  cmdphp
-		, { cmd  : 'bash', bash : command }
+		, { cmd: 'bash', bash : command }
 		, callback || null
 		, json || null
 	);
@@ -43,7 +43,7 @@ function bash( command, callback, json ) {
 function sh( array, callback, json ) {
 	$.post( 
 		  cmdphp
-		, { cmd  : 'sh', sh : [ 'cmd.sh' ].concat( array ) }
+		, { cmd: 'sh', sh: [ 'cmd.sh' ].concat( array ) }
 		, callback || null
 		, json || null
 	);

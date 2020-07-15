@@ -165,11 +165,6 @@ function psMpdOptions( data ) {
 	if ( G.local ) return
 	
 	$.each( data, function( key, value ) {
-		if ( value == 1 || value === 'true' ) {
-			value = true;
-		} else if ( value == 0 || value === 'false' ) {
-			value = false;
-		}
 		G.status[ key ] = value;
 	} );
 	if ( G.playback ) setButtonToggle();
@@ -221,8 +216,6 @@ function psMpdUpdate( data ) {
 	}
 }
 function psNotify( data ) {
-	if ( $( '#bannerTitle' ).text() == 'Power' ) return
-	
 	notify( data.title, data.text, data.icon, data.delay );
 	if ( data.title === 'AirPlay' && data.text === 'Stop ...' ) $( '#loader' ).removeClass( 'hide' );
 }
@@ -272,9 +265,12 @@ function psSnapcast( data ) {
 	if ( data !== -1 ) {
 		var cmd = '/srv/http/bash/snapcast.sh ';
 		cmd += 'add' in data ? ' add '+ data.add : ' remove '+ data.remove;
-		bash( cmd );
+		$.post( 'commands.php', { bash: cmd } );
 	} else {
-		bash( 'systemctl stop snapclient && systemctl start mpd', function() {
+		$.post( 'commands.php', { bash: [
+			  'systemctl stop snapclient'
+			, 'systemctl start mpd'
+		] }, function() {
 			getPlaybackStatus();
 		} );
 	}
@@ -320,7 +316,7 @@ function psVolumeNone( data ) {
 		if ( data.volumenone !== existing && G.playback ) displayPlayback();
 	} else {
 		G.display.volumenone = false;
-		bash( "awk '/volume/ {print $NF}' /srv/http/data/mpd/mpdstate", function( data ) {
+		$.post( 'commands.php', { bash: "grep volume /srv/http/data/mpd/mpdstate | cut -d' ' -f2", string: 1 }, function( data ) {
 			G.status.volume = data;
 			if ( G.playback ) {
 				$volumeRS.setValue( G.status.volume );

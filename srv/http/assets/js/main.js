@@ -416,7 +416,11 @@ $( '#colorok' ).click( function() {
 		var l = L * 100;
 	}
 	var hsl = h +' '+ s +' '+ l;
-	if ( hsl !== G.display.color ) sh( [ 'color', hsl ] );
+	if ( hsl === G.display.color ) {
+		$( '#colorcancel' ).click();
+	} else {
+		sh( [ 'color', hsl ] );
+	}
 } );
 $( '#colorreset' ).click( function() {
 	sh( [ 'color', 'reset' ] );

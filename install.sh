@@ -4,10 +4,13 @@ alias=rre4
 
 . /srv/http/bash/addons-functions.sh
 
-sed -i 's|usr/local/bin|srv/http/bash|' /etc/systemd/system/bootsplash.service 2> /dev/null
+if [[ -e /etc/systemd/system/bootsplash.service ]]; then
+	sed -i 's|usr/local/bin|srv/http/bash|' /etc/systemd/system/bootsplash.service
+	systemctl try-restart bootsplash wsdd
+fi
 sed -i 's|usr/local/bin|srv/http/bash|' /etc/systemd/system/wsdd.service
 systemctl daemon-reload
-systemctl try-restart bootsplash wsdd
+systemctl try-restart wsdd
 
 dirsystem=/srv/http/data/system
 

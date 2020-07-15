@@ -85,7 +85,7 @@ foreach( $arrayalias as $alias ) {
 		$installed = ' class="installed"';
 		$check = '<grn>&bull;</grn> ';
 		if ( $nouninstall ) {
-			$taphold = ' alias="'.$alias.'" style="pointer-events: unset"';
+			$taphold = ' style="pointer-events: unset"';
 			$hide = ' hide';
 		} else {
 			$taphold = '';
@@ -148,8 +148,7 @@ foreach( $arrayalias as $alias ) {
 				<p class="detailtext">'.$description.$detail.'</p>';
 	if ( $alias !== 'addo' ) $blocks .= $version ? $btnin.' &nbsp; '.$btnun : $btnin;
 	$blocks .= '
-			</form>
-			<a class="hide">'.$addon[ 'postinfo' ].'</a>';
+			</form>';
 	if ( $thumbnail ) $blocks .= '
 		</div>
 		<img src="'.preg_replace( '/\.(.*)$/', '.'.$time.'.$1', $thumbnail ).'" class="thumbnail">
@@ -175,7 +174,7 @@ echo $blocks;
 <p id="bottom"></p> <!-- for bottom padding -->
 
 <?php
-$keepkey = [ 'title', 'installurl', 'rollback', 'option' ];
+$keepkey = [ 'title', 'installurl', 'rollback', 'option', 'postinfo' ];
 foreach( $arrayalias as $alias ) {
 	if ( $alias === 'addo' ) continue;
 	$addonslist[ $alias ] = array_intersect_key( $addons[ $alias ], array_flip( $keepkey ) );

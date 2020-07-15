@@ -46,7 +46,7 @@ $( '.boxed-group .btn' ).on( 'taphold', function () {
 	alias = $this.attr( 'alias' );
 	title = addons[ alias ].title.replace( / *\**$/, '' );
 	type = $this.text();
-	postinfo = $this.parent().next().html();
+	postinfo = $this.parent().next().text();
 	if ( !postinfo ) postinfo = type.replace( /e*$/, 'ed successfully.' );
 	rollback = addons[ alias ].rollback || '';
 	opt = '';

@@ -68,6 +68,7 @@ done
 dirsystem=/srv/http/data/system
 version=$( cat $dirsystem/version )
 mpdstats=$( systemctl -q is-active mpd && mpc stats | head -3 | awk '{print $NF}' | tr '\n' ',' | head -c -1 )
+soundprofile=$( cat $dirsystem/soundprofile 2> /dev/null )
 snaplatency=$( grep OPTS= /etc/default/snapclient | sed 's/.*latency=\(.*\)"/\1/' )
 [[ -n $mpdstats ]] && mpdstats=[$mpdstats] || mpdstats=false
 [[ -z $snaplatency ]] && snaplatency=0
@@ -76,6 +77,7 @@ data+='
 	, "audioaplayname"  : "'$( cat $dirsystem/audio-aplayname 2> /dev/null )'"
 	, "audiooutput"     : "'$( cat $dirsystem/audio-output )'"
 	, "autoplay"        : '$( [[ -e $dirsystem/autoplay ]] && echo true || echo false )'
+	, "gpio"            : '$( [[ -e $dirsystem/gpio ]] && echo true || echo false )'
 	, "hardware"        : "'$( awk '/Model/ {$1=$2=""; print}' <<< "$cpuinfo" )'"
 	, "hostname"        : "'$( cat $dirsystem/hostname )'"
 	, "ip"              : "'${iplist:1}'"
@@ -94,6 +96,8 @@ data+='
 	, "snapclient"      : '$( [[ -e $dirsystem/snapclient ]] && echo true || echo false )'
 	, "snaplatency"     : '$snaplatency'
 	, "soc"             : "'$soc'"
+	, "soundprofile"    : "'$soundprofile'"
+	, "soundprofileval" : "'$( /srv/http/bash/system-soundprofile.sh $soundprofile getvalue )'"
 	, "sources"         : '$( /srv/http/bash/sources-data.sh )'
 	, "streaming"       : '$( grep -q 'type.*"httpd"' /etc/mpd.conf && echo true || echo false )'
 	, "timezone"        : "'$timezone'"
@@ -117,10 +121,6 @@ data+='
 	, "writeusb"        : '$( grep -A1 /mnt/MPD/USB /etc/samba/smb.conf | grep -q 'read only = no' && echo true || echo false )
 [[ ${hwcode:3:2} =~ ^(08|0c|0d|0e|11)$ ]] && data+='
 	, "wlan"            : '$( lsmod | grep -q '^brcmfmac ' && echo true || echo false )
-profile=$( cat $dirsystem/soundprofile 2> /dev/null )
-data+='
-	, "soundprofile"    : "'$profile'"
-	, "soundprofileval" : "'$( /srv/http/bash/system-soundprofile.sh $profile getvalue )'"'
 xinitrc=/etc/X11/xinit/xinitrc
 if [[ -e $xinitrc ]]; then
 	file='/etc/X11/xorg.conf.d/99-raspi-rotate.conf'

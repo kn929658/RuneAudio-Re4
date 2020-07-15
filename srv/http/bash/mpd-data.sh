@@ -37,7 +37,6 @@ data='
 	, "crossfade"      : '$( ( mpc crossfade 2> /dev/null || grep crossfade /srv/http/data/mpd/mpdstate ) | cut -d' ' -f2 )'
 	, "ffmpeg"         : '$( grep -A1 ffmpeg /etc/mpd.conf | grep -q yes && echo true || echo false )'
 	, "mixertype"      : "'$( grep mixer_type /etc/mpd.conf | cut -d'"' -f2 )'"
-	, "mpd"            : '$( systemctl -q is-active mpd && echo true || echo false )'
 	, "normalization"  : '$( grep -q 'volume_normalization.*yes' /etc/mpd.conf && echo true || echo false )'
 	, "reboot"          : "'$( cat /srv/http/data/tmp/reboot 2> /dev/null )'"
 	, "replaygain"     : "'$( grep replaygain /etc/mpd.conf | cut -d'"' -f2 )'"

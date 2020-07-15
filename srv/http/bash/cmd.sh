@@ -65,8 +65,7 @@ gpiotimerreset )
 	pushstream gpio state RESET
 	;;
 gpioset )
-	echo ${args[1]} | jq > /srv/http/data/system/gpio.json
-	[[ -e /srv/http/data/tmp/gpiotimer ]] && echo ${args[2]} > /srv/http/data/tmp/gpiotimer
+	echo ${args[1]} | jq . > /srv/http/data/system/gpio.json
 	;;
 ignoredir )
 	dir=$( basename "${args[1]}" )
@@ -254,7 +253,7 @@ plorder )
 	pushstream playlist playlist playlist
 	;;
 reboot )
-	/usr/local/bin/gpiooff.py &> /dev/null
+	/srv/http/bash/gpiooff.py &> /dev/null
 	/usr/local/bin/ply-image /srv/http/assets/img/splash.png &> /dev/null
 	mount | grep -q /mnt/MPD/NAS && umount -l /mnt/MPD/NAS/* &> /dev/null
 	sleep 3

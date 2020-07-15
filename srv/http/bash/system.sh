@@ -166,7 +166,7 @@ onboardaudio )
 	;;
 reboot )
 	rm -f $filereboot
-	/usr/local/bin/gpiooff.py &> /dev/null
+	/srv/http/bash/gpiooff.py &> /dev/null
 	/usr/local/bin/ply-image /srv/http/assets/img/splash.png
 	umount -l /mnt/MPD/NAS/* &> /dev/null
 	sleep 3

@@ -89,6 +89,35 @@ echo RuneAudio | tee $dirsystem/{hostname,soundprofile} > /dev/null
 echo 0 0 0 > $dirsystem/mpddb
 echo '$2a$12$rNJSBU0FOJM/jP98tA.J7uzFWAnpbXFYx5q1pmNhPnXnUu3L1Zz6W' > $dirsystem/password
 [[ -n $1 ]] && echo $1 > $dirsystem/version
+# gpio
+ls /usr/lib/python*/site-packages/RPi.GPIO* &> /dev/null && echo '{
+  "name": {
+    "11": "DAC",
+    "13": "PreAmp",
+    "15": "Amp",
+    "16": "Subwoofer"
+  },
+  "on": {
+    "on1": 11,
+    "ond1": 2,
+    "on2": 13,
+    "ond2": 2,
+    "on3": 15,
+    "ond3": 2,
+    "on4": 16
+  },
+  "off": {
+    "off1": 16,
+    "offd1": 2,
+    "off2": 15,
+    "offd2": 2,
+    "off3": 13,
+    "offd3": 2,
+    "off4": 11
+  },
+  "timer": 5
+}' > $dirsystem/gpio.json
+usermod -a -G root http # add user http to group root to allow /dev/gpiomem access
 
 # mpd - music directories
 mkdir -p /mnt/MPD/{NAS,SD,USB}

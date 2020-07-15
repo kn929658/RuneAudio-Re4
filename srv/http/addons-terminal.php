@@ -7,8 +7,9 @@ $alias = $_POST[ 'alias' ] ?? '';
 $type = $_POST[ 'type' ];
 $opt = $_POST[ 'opt' ];
 $addon = $addons[ $alias ];
-$postinfo = $addon[ 'postinfo' ] ?? preg_replace( '/e*$/', 'ed successfully.', $type, 1 );
-$installurl = $addon[ 'installurl' ] ?? '';
+$postinfo = preg_replace( '/e*$/', 'ed successfully.', $type, 1 );
+$postinfo.= $addon[ 'postinfo' ] ?? '<br><br>'.$addon[ 'postinfo' ];
+$installurl = $addon[ 'installurl' ];
 
 $optarray = explode( ' ', $opt );
 if ( end( $optarray ) === '-b' ) $installurl = str_replace( 'raw/master', 'raw/'.prev( $optarray ), $installurl );

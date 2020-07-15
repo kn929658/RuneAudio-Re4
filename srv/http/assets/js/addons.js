@@ -43,11 +43,9 @@ function branchtest( message, install ) {
 }
 $( '.boxed-group .btn' ).on( 'taphold', function () {
 	$this = $( this );
-	alias = $this.attr( 'alias' );
+	alias = $this.parent().attr( 'alias' );
 	title = addons[ alias ].title.replace( / *\**$/, '' );
 	type = $this.text();
-	postinfo = $this.parent().next().text();
-	if ( !postinfo ) postinfo = type.replace( /e*$/, 'ed successfully.' );
 	rollback = addons[ alias ].rollback || '';
 	opt = '';
 	branch = '';
@@ -76,10 +74,9 @@ $( '.boxed-group .btn' ).on( 'taphold', function () {
 	$this = $( this );
 	if ( $this.hasClass( 'disabled' ) ) return
 	
-	alias = $this.attr( 'alias' );
+	alias = $this.parent().attr( 'alias' );
 	title = addons[ alias ].title.replace( / *\**$/, '' );
 	type = $this.text();
-	postinfo = $this.parent().next().text();
 	opt = '';
 	branch = '';
 	if ( $this.attr( 'warning' ) ) {
@@ -318,7 +315,6 @@ function formtemp() {
 			+'<input type="hidden" name="alias" value="'+ alias +'">'
 			+'<input type="hidden" name="type" value="'+ type +'">'
 			+'<input type="hidden" name="opt" value="'+ opt +'">'
-			+'<input type="hidden" name="postinfo" value="'+ postinfo +'">'
 		+'</form>' );
 	$( '#formtemp' ).submit();
 }

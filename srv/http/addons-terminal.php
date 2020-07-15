@@ -5,9 +5,9 @@ include '/srv/http/data/addons/addons-list.php';
 $time = time();
 $alias = $_POST[ 'alias' ] ?? '';
 $type = $_POST[ 'type' ];
-$postinfo = $_POST[ 'postinfo' ];
 $opt = $_POST[ 'opt' ];
 $addon = $addons[ $alias ];
+$postinfo = $addon[ 'postinfo' ];
 $installurl = $addon[ 'installurl' ] ?? '';
 
 $optarray = explode( ' ', $opt );

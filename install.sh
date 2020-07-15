@@ -6,7 +6,8 @@ alias=rre4
 
 dirsystem=/srv/http/data/system
 
-[[ ! -e $dirsystem/gpio.json ]] && echo '{
+if [[ ! -e $dirsystem/gpio.json ]]; then
+	echo '{
   "name": {
     "11": "DAC",
     "13": "PreAmp",
@@ -33,6 +34,8 @@ dirsystem=/srv/http/data/system
   },
   "timer": 5
 }' > $dirsystem/gpio.json
+	usermod -a -G root http
+fi
 
 if [[ -e $dirsystem/sound-eth0mtu ]]; then
 	echo \

@@ -101,14 +101,14 @@ foreach( $arrayalias as $alias ) {
 			$update = 1;
 			$installed = ' class="installed update"';
 			$check = '<grn class="blink">&bull;</grn> ';
-			$btnin = '<a class="btn btn-primary" alias="'.$alias.'"'.$warning.'><i class="fa fa-folder-refresh"></i>Update</a>';
+			$btnin = '<a class="btn btn-primary" '.$warning.'><i class="fa fa-folder-refresh"></i>Update</a>';
 		}
 		$btnunattr = isset( $addon[ 'rollback' ] ) ? ' rollback="'.$addon[ 'rollback' ].'"' : '';
-		$btnun = '<a class="btn btn-primary red'.$hide.'" alias="'.$alias.'"'.$btnunattr.'><i class="fa fa-minus-circle"></i>Uninstall</a>';
+		$btnun = '<a class="btn btn-primary red'.$hide.'" '.$btnunattr.'><i class="fa fa-minus-circle"></i>Uninstall</a>';
 	} else {
 		$installed = '';
 		$check = '';
-		$btnin = '<a class="btn btn-primary" alias="'.$alias.'">'.$buttonlabel.'</a>';
+		$btnin = '<a class="btn btn-primary">'.$buttonlabel.'</a>';
 		$btnun = '<a class="btn btn-default disabled"><i class="fa fa-minus-circle"></i>Uninstall</a>';
 	}
 	
@@ -148,7 +148,8 @@ foreach( $arrayalias as $alias ) {
 				<p class="detailtext">'.$description.$detail.'</p>';
 	if ( $alias !== 'addo' ) $blocks .= $version ? $btnin.' &nbsp; '.$btnun : $btnin;
 	$blocks .= '
-			</form>';
+			</form>
+			<a class="hide">'.$addon[ 'postinfo' ].'</a>';
 	if ( $thumbnail ) $blocks .= '
 		</div>
 		<img src="'.preg_replace( '/\.(.*)$/', '.'.$time.'.$1', $thumbnail ).'" class="thumbnail">

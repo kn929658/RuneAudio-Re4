@@ -5,6 +5,7 @@ include '/srv/http/data/addons/addons-list.php';
 $time = time();
 $alias = $_POST[ 'alias' ] ?? '';
 $type = $_POST[ 'type' ];
+$postinfo = $_POST[ 'postinfo' ];
 $opt = $_POST[ 'opt' ];
 $addon = $addons[ $alias ];
 $installurl = $addon[ 'installurl' ] ?? '';
@@ -240,7 +241,7 @@ $( '#hidescrollv' ).css( 'max-height', ( $( '#hidescrollv' ).height() + 30 ) +'p
 info( {
 	  icon    : 'addons'
 	, title   : '<?=$title?>'
-	, message : 'Please see result information on screen.'
+	, message : '<?=$postinfo?>'
 } );
 </script>
 

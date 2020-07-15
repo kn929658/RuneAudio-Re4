@@ -2,9 +2,6 @@ $( function() { // document ready start >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 $( '#audiooutput, #mixertype' ).selectric();
 $( '.selectric-input' ).prop( 'readonly', 1 ); // fix - suppress screen keyboard
-var dirsystem = '/srv/http/data/system';
-var mpdsh = 'mpd.sh';
-var restartmpd = '';
 var setmpdconf = '/srv/http/bash/mpd-conf.sh';
 var warning = '<wh><i class="fa fa-warning fa-lg"></i>&ensp;Lower amplifier volume.</wh>'
 			 +'<br>(If current level in MPD is not 100%.)'
@@ -304,7 +301,6 @@ refreshData = function() {
 	bash( '/srv/http/bash/mpd-data.sh', function( list ) {
 		G = list;
 		G.reboot = list.reboot ? list.reboot.split( '\n' ) : [];
-		restartmpd = G.mpd ? 'systemctl restart mpd' : '';
 		var htmldevices = '';
 		$.each( G.devices, function() {
 			htmldevices += '<option '

@@ -132,12 +132,15 @@ $( '#gpiosave' ).click( function() {
 		}
 		var timer = Number( $( '#timer' ).val() )
 		var gpiojson = {
-			  name : pinname
-			, on   : on
-			, off  : off
+			  name  : pinname
+			, on    : on
+			, off   : off
 			, timer : timer
 		}
-		sh( [ 'gpioset', JSON.stringify( gpiojson ), timer ] );
+		$.post( 'cmd.php', {
+			  cmd : 'sh'
+			, sh  : [ 'cmd.sh', 'gpioset', JSON.stringify( gpiojson ) ]
+		} );
 		info( {
 			  icon    : 'gpio'
 			, title   : 'RuneUI GPIO'

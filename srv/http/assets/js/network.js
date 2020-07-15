@@ -1,8 +1,6 @@
 $( function() { // document ready start >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-var dirsystem = '/srv/http/data/system';
 var accesspoint = $( '#accesspoint' ).length;
-var networksh = 'network.sh';
 
 $( '.back' ).click( function() {
 	G.wlcurrent = '';

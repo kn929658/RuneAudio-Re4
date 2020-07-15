@@ -3,9 +3,7 @@ $( function() { // document ready start >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 $( '#timezone, #i2smodule' ).selectric( { maxHeight: 400 } );
 $( '.selectric-input' ).prop( 'readonly', 1 ); // fix - suppress screen keyboard
 
-var dirsystem = '/srv/http/data/system';
 var filereboot = '/srv/http/data/tmp/reboot';
-var systemsh = 'system.sh';
 
 $( '.container' ).on( 'click', '.settings', function() {
 	location.href = 'index-settings.php?p='+ this.id
@@ -229,6 +227,12 @@ $( '#setting-samba' ).click( function() {
 			}
 		}
 	} );
+} );
+$( '#gpio' ).click( function() {
+	G.gpio = $( this ).prop( 'checked' );
+	$( '#setting-gpio' ).toggleClass( 'hide', !G.gpio );
+	banner( 'GPIO Relay', G.gpio, 'gpio blink' );
+	bash( ( G.gpio ? 'touch ' : 'rm ' ) + dirsystem +'/gpio', resetLocal );
 } );
 $( '#mpdscribble' ).click( function() {
 	var mpdscribble = $( this ).prop( 'checked' );
@@ -766,6 +770,7 @@ refreshData = function() { // system page: use resetLocal() to aviod delay
 		}
 		$( '#streaming' ).prop( 'checked', G.streaming );
 		$( '#ip' ).text( G.streamingip +':8000' );
+		$( '#gpio' ).prop( 'checked', G.gpio );
 		$( '#mpdscribble' ).prop( 'checked', G.mpdscribble );
 		$( '#setting-mpdscribble' ).toggleClass( 'hide', !G.mpdscribble );
 		$( '#login' ).prop( 'checked', G.login );

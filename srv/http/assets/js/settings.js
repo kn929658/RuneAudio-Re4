@@ -5,6 +5,7 @@ var intervalscan;
 var page = location.href.split( '=' ).pop();
 var reboot = '';
 var cmdphp = 'cmd.php';
+var dirsystem = '/srv/http/data/system';
 
 if ( page === 'credits' ) {
 	$.post( cmdphp, {

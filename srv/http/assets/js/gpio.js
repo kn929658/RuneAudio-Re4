@@ -8,7 +8,7 @@ $( '#gpio' ).click( function( e ) {
 	if ( $( e.target ).hasClass( 'submenu' ) ) {
 		location.href = 'gpiosettings.php';
 	} else {
-		bash( '/usr/local/bin/'+ ( G.gpio ? 'gpiooff.py' : 'gpioon.py' ) );
+		bash( G.gpio ? '/srv/http/bash/gpiooff.py' : '/srv/http/bash/gpioon.py' );
 	}
 } );
 

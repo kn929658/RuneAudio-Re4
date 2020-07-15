@@ -1,8 +1,5 @@
 $( function() { // document ready start >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-var dirsystem = '/srv/http/data/system';
-var sourcessh = 'sources.sh';
-
 var formdata = {}
 var html = heredoc( function() { /*
 	<form id="formmount">

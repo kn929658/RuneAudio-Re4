@@ -7,7 +7,7 @@ $alias = $_POST[ 'alias' ] ?? '';
 $type = $_POST[ 'type' ];
 $opt = $_POST[ 'opt' ];
 $addon = $addons[ $alias ];
-$postinfo = $addon[ 'postinfo' ];
+$postinfo = $addon[ 'postinfo' ] ?? preg_replace( '/e$/', '', $type ).'ed successfully.';
 $installurl = $addon[ 'installurl' ] ?? '';
 
 $optarray = explode( ' ', $opt );

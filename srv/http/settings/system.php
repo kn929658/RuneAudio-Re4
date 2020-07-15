@@ -54,7 +54,8 @@ $selecttimezone.= '</select>';
 <div class="col-r">
 	<input id="airplay" type="checkbox">
 	<div class="switchlabel" for="airplay"></div>
-	<span class="help-block hide">RuneAudio as AirPlay rendering device.
+	<span class="help-block hide">
+		<a href="https://github.com/mikebrady/shairport-sync">Shairport-sync</a> - RuneAudio as AirPlay rendering device.
 		<br>(Note: Enable AirPlay will also enable URL by Name.)</span>
 </div>
 	<?php }
@@ -66,7 +67,8 @@ $selecttimezone.= '</select>';
 		<div class="switchlabel" for="snapclient"></div>
 		<i id="setting-snapclient" class="setting fa fa-gear hide"></i>
 		<span class="help-block hide">
-			Connect: Menu >&ensp;<i class="fa fa-folder-cascade"></i>&ensp;Sources |&ensp;<i class="fa fa-snapcast"></i>
+			<a href="https://github.com/badaix/snapcast">Snapcast</a> - Multiroom client-server audio player
+			<br>SnapClient - Connect: Menu >&ensp;<i class="fa fa-folder-cascade"></i>&ensp;Sources |&ensp;<i class="fa fa-snapcast"></i>
 			<br>(Note: Not available while Snapcast server enabled.)
 		</span>
 	</div>
@@ -79,7 +81,7 @@ $selecttimezone.= '</select>';
 	<div class="switchlabel" for="spotify"></div>
 	<i id="setting-spotify" class="setting fa fa-gear hide"></i>
 	<span class="help-block hide">
-		RuneAudio as Spotify Connect device.(For Premium account only)
+		<a href="https://github.com/Spotifyd/spotifyd">Spotifyd</a> - RuneAudio as Spotify Connect device.(For Premium account only)
 		<br><i class="fa fa-gear"></i>&ensp;Manually select audio output (when default not working only)
 	</span>
 </div>
@@ -90,7 +92,9 @@ $selecttimezone.= '</select>';
 	<input id="upnp" type="checkbox">
 	<div class="switchlabel" for="upnp"></div>
 	<i id="setting-upnp" class="setting fa fa-gear hide"></i>
-	<span class="help-block hide">RuneAudio as UPnP / DLNA rendering device.</span>
+	<span class="help-block hide">
+		<a href="https://www.lesbonscomptes.com/upmpdcli/">upmpdcli</a> - RuneAudio as UPnP / DLNA rendering device.
+	</span>
 </div>
 	<?php } ?>
 </div>
@@ -109,8 +113,8 @@ $selecttimezone.= '</select>';
 	<input id="snapcast" type="checkbox">
 	<div class="switchlabel" for="snapcast"></div>
 	<span class="help-block hide">
-		Snapcast server - Synchronous streaming for multiroom audio
-		<br>Clients can be either RPis with RuneAudio+R e or Snapcast capable devices.
+		<a href="https://github.com/badaix/snapcast">Snapcast</a> - Multiroom client-server audio player
+		<br>SnapServer - Clients can be either RPis with RuneAudio+R e or Snapcast capable devices.
 		<br>(Note: Enable Snapcast will disable SnapClient.)
 	</span>
 </div>
@@ -128,7 +132,9 @@ $selecttimezone.= '</select>';
 	<input id="localbrowser" type="checkbox">
 	<div class="switchlabel" for="localbrowser"></div>
 	<i id="setting-localbrowser" class="setting fa fa-gear"></i>
-	<span class="help-block hide">Browser on RPi connected screen. (Overscan change needs reboot.)</span>
+	<span class="help-block hide">
+		<a href="https://github.com/chromium/chromium">Chromium</a> - Browser on RPi connected screen. (Overscan change needs reboot.)
+	</span>
 </div>
 	<?php } 
 		  if ( file_exists( '/usr/bin/smbd' ) ) { ?>
@@ -140,7 +146,7 @@ $selecttimezone.= '</select>';
 	<div class="switchlabel" for="samba"></div>
 	<i id="setting-samba" class="setting fa fa-gear"></i>
 	<span class="help-block hide">
-		Share files on RuneAudio.
+		<a href="https://www.samba.org">Samba</a> - Share files on RuneAudio.
 		<br>Set sources permissions for read+write - directory: <code>0777</code> file: <code>0555</code>
 		<br><i class="fa fa-gear"></i>&ensp;Enable/disable write.
 	</span>
@@ -164,7 +170,8 @@ $selecttimezone.= '</select>';
 	<input id="mpdscribble" type="checkbox">
 	<div class="switchlabel" for="mpdscribble"></div>
 	<i id="setting-mpdscribble" class="setting fa fa-gear"></i>
-	<span class="help-block hide">Automatically send listened music data to Last.fm for tracking.
+	<span class="help-block hide">
+		<a href="https://github.com/MusicPlayerDaemon/mpdscribble">mpdscribble</a> - Automatically send listened music data to Last.fm for tracking.
 	</span>
 </div>
 <div class="col-l double">

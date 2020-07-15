@@ -32,6 +32,7 @@ search
 $query = $_POST[ 'query' ];
 $mode = $_POST[ 'mode' ] ?? null;
 $string = $_POST[ 'string' ] ?? null;
+$string = escape( $string );
 $formatall = [ 'album', 'albumartist', 'artist', 'composer', 'date', 'file', 'genre', 'time', 'title', 'track' ];
 $f = $_POST[ 'format' ] ?? $formatall;
 $format = '%'.implode( '%^^%', $f ).'%';
@@ -136,7 +137,7 @@ if ( $query === 'find' ) {
 	
 } else if ( $query === 'track' ) { // for tag editor
 	$track = $_POST[ 'track' ] ?? '';
-	$file = $_POST[ 'file' ];
+	$file = escape( $_POST[ 'file' ] );
 	if ( $track ) { // cue
 		if ( $track === 'cover' ) {
 			$filter = 'head -1';
@@ -216,6 +217,9 @@ if ( $query === 'find' ) {
 echo json_encode( $array );
 
 //-------------------------------------------------------------------------------------
+function escape( $string ) {
+	return preg_replace( '/(["`])/', '\\\\\1', $string );
+}
 function htmlFind( $mode, $lists, $f ) { // non-file 'find' command
 	if ( !count( $lists ) ) exit( '-1' );
 	
@@ -357,7 +361,7 @@ function htmlTracks( $lists, $f, $filemode = '', $string = '' ) { // track list 
 		$icon = 'artist';
 	}
 	$dir = dirname( $file0 );
-	$coverart = htmlspecialchars( exec( '/srv/http/bash/getcover.sh "/mnt/MPD/'.str_replace( '"', '\"', $file0 ).'"' ) );
+	$coverart = exec( '/srv/http/bash/getcover.sh "/mnt/MPD/'.escape( $file0 ).'"' );
 	$nocover = '';
 	if ( !$coverart ) {
 		$coverart = '/assets/img/cover.'.( time() ).'.svg';

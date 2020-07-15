@@ -131,7 +131,7 @@ $selecttimezone.= '</select>';
 	<span class="help-block hide">Browser on RPi connected screen. (Overscan change needs reboot.)</span>
 </div>
 	<?php } 
-		if ( file_exists( '/usr/bin/smbd' ) ) { ?>
+		  if ( file_exists( '/usr/bin/smbd' ) ) { ?>
 <div class="col-l double">
 	<a>File Sharing<br><gr>Samba</gr></a><i class="fa fa-network fa-lg"></i>
 </div>
@@ -143,6 +143,18 @@ $selecttimezone.= '</select>';
 		Share files on RuneAudio.
 		<br>Set sources permissions for read+write - directory: <code>0777</code> file: <code>0555</code>
 		<br><i class="fa fa-gear"></i>&ensp;Enable/disable write.
+	</span>
+</div>
+	<?php }
+		  if ( file_exists( '/srv/http/data/system/gpio.json' ) ) { ?>
+<div class="col-l double">
+	<a>GPIO Relay<br><gr>RPI.GPIO</gr></a><i class="fa fa-gpio fa-lg"></i>
+</div>
+<div class="col-r">
+	<input id="gpio" type="checkbox">
+	<div class="switchlabel" for="gpio"></div>
+	<span class="help-block hide">
+		<a href="https://github.com/rern/RuneUI_GPIO/blob/master/README.md">RuneUI - GPIO</a> - Control GPIO-connected relay module for power on / off equipments.
 	</span>
 </div>
 	<?php } ?>

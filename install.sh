@@ -4,6 +4,11 @@ alias=rre4
 
 . /srv/http/bash/addons-functions.sh
 
+sed -i 's|usr/local/bin|srv/http/bash|' /etc/systemd/system/bootsplash.service
+sed -i 's|usr/local/bin|srv/http/bash|' /etc/systemd/system/wsdd.service
+systemctl daemon-reload
+systemctl try-restart bootsplash wsdd
+
 dirsystem=/srv/http/data/system
 
 if [[ ! -e $dirsystem/gpio.json ]]; then
@@ -85,6 +90,7 @@ SystemCallFilter=@system-service\
 SystemCallFilter=~@mount\
 SystemCallErrorNumber=EPERM
 ' /usr/lib/systemd/system/haveged.service
+	systemctl daemon-reload
 	systemctl -q enable --now haveged
 	rm -f /etc/haveged.service
 	

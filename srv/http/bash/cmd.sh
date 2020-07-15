@@ -254,9 +254,10 @@ plorder )
 	;;
 reboot )
 	/srv/http/bash/gpiooff.py &> /dev/null
-	/usr/local/bin/ply-image /srv/http/assets/img/splash.png &> /dev/null
+	/srv/http/bash/ply-image /srv/http/assets/img/splash.png &> /dev/null
 	mount | grep -q /mnt/MPD/NAS && umount -l /mnt/MPD/NAS/* &> /dev/null
 	sleep 3
+	rm -f /srv/http/data/tmp/*
 	[[ ${args[1]} == off ]] && shutdown -h now || shutdown -r now
 	;;
 refreshbrowser )

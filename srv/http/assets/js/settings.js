@@ -27,7 +27,6 @@ $( '#close' ).click( function() {
 				bash( 'rm -f /srv/http/data/tmp/reboot' );
 			}
 			, ok      : function() {
-				sh( [ 'cmd.sh', 'reboot' ] );
 				$.post( cmdphp, {
 					  cmd : 'sh'
 					, sh  : [ 'cmd.sh', 'reboot' ]

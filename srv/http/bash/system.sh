@@ -91,7 +91,7 @@ localbrowser )
 		disable localbrowser $1
 		systemctl enable getty@tty1
 		sed -i 's/\(console=\).*/\1tty1/' /boot/cmdline.txt
-		/usr/local/bin/ply-image /srv/http/assets/img/splash.png
+		/srv/http/bash/ply-image /srv/http/assets/img/splash.png
 	fi
 	pushRefresh
 	;;
@@ -163,15 +163,6 @@ onboardaudio )
 	sed -i "s/\(dtparam=audio=\).*/\1$onoff/" /boot/config.txt
 	echo "${args[2]}" > $filereboot
 	pushRefresh
-	;;
-reboot )
-	rm -f $filereboot
-	/srv/http/bash/gpiooff.py &> /dev/null
-	/usr/local/bin/ply-image /srv/http/assets/img/splash.png
-	umount -l /mnt/MPD/NAS/* &> /dev/null
-	sleep 3
-	rm -f /srv/http/data/tmp/*
-	shutdown -r now
 	;;
 regional )
 	sed -i "s/^\(NTP=\).*/\1${args[1]}/" /etc/systemd/timesyncd.conf

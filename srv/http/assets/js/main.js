@@ -415,7 +415,8 @@ $( '#colorok' ).click( function() {
 		var s = 0;
 		var l = L * 100;
 	}
-	if ( hsl !== G.display.color ) sh( [ 'color', h +' '+ s +' '+ l ] );
+	var hsl = h +' '+ s +' '+ l;
+	if ( hsl !== G.display.color ) sh( [ 'color', hsl ] );
 } );
 $( '#colorreset' ).click( function() {
 	sh( [ 'color', 'reset' ] );

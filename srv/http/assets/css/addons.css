@@ -406,7 +406,7 @@ pre hr {
 	border: 1px solid #00ffff;
 }
 pre hr.hrlight {
-	border-width: 0.5px;
+	border-top: none;
 }
 p,
 ul,

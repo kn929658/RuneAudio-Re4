@@ -156,7 +156,7 @@ cmd;
 	if ( $options && array_key_exists( 'password', $options ) ) {
 		$pwdindex = array_search( 'password', array_keys( $options ) );
 		$opts = explode( ' ', $opt );
-		$opts[ $pwdindex ] = '***';
+		$opts[ $pwdindex + 1 ] = '***';
 		$opt = implode( ' ', $opts );
 	}
 	$commandtxt = <<<cmd

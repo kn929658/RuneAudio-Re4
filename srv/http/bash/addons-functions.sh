@@ -230,6 +230,7 @@ installstart() { # $1-'u'=update
 	notify "$type $title0" 'Please wait until finished.'
 	
 	branch=$1 && shift;
+	args=$@ # pass back the rest to script
 }
 installfinish() {
 	version=$( getvalue version )

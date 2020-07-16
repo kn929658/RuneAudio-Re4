@@ -49,10 +49,11 @@ accesspointset )
 	pushRefresh
 	;;
 btconnect )
+	mac=${args[1]}
 	/srv/http/bash/network-btscan.sh disconnect
-	bluetoothctl trust ${args[1]}
-	bluetoothctl pair ${args[1]}
-	bluetoothctl connect ${args[1]}
+	bluetoothctl trust $mac
+	bluetoothctl pair $mac
+	bluetoothctl connect $mac
 	[[ $? != 0 ]] && echo -1 ||	pushRefresh
 	;;
 connect )
@@ -138,13 +139,14 @@ Gateway=$gw
 	pushRefresh
 	;;
 editwifidhcp )
-	file="/srv/http/data/system/netctl-${args[1]}"
-	netctl stop "${args[1]}"
+	ssid=${args[1]}
+	file="/srv/http/data/system/netctl-$ssid"
+	netctl stop "$ssid"
 	sed -i -e '/^Address\|^Gateway/ d
 ' -e 's/^IP.*/IP=dhcp/
 ' "$file"
-	cp "$file" "/etc/netctl/${args[1]}"
-	netctl start "${args[1]}"
+	cp "$file" "/etc/netctl/$ssid"
+	netctl start "$ssid"
 	pushRefresh
 	;;
 ifconfig )

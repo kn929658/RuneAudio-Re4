@@ -405,6 +405,7 @@ function editWiFi( ssid, data ) {
 			}
 			data.push( hidden );
 			if ( static ) {
+				data.push( ip, gw );
 				if ( ip !== data0.Address ) {
 					sh( [ 'ipused', ip ], function( used ) {
 						if ( used == 1 ) {
@@ -417,12 +418,10 @@ function editWiFi( ssid, data ) {
 								}
 							} );
 						} else {
-							data.push( ip, gw );
 							connect( data );
 						}
 					} );
 				} else {
-					data.push( ip, gw );
 					connect( data );
 				}
 			} else {

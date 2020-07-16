@@ -305,9 +305,6 @@ function sendcommand() {
 }
 // post submit with temporary form (separate option to hide password)
 function postcmd() {
-/*	$.post( 'addons-terminal.php', { sh: opt }, function(data) {
-		console.log(data)
-	} );*/
 	var form = '<form id="formtemp" action="addons-terminal.php" method="post">';
 	var optL = opt.length;
 	for ( i = 0; i < optL; i++ ) {

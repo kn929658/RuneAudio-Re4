@@ -24,24 +24,27 @@ accesspoint )
 	pushRefresh
 	;;
 accesspointset )
-	sed -i -e "s/^\(dhcp-range=\).*/\1${args[1]}/
-	" -e "s/^\(.*option:router,\).*/\1${args[2]}/
-	" -e "s/^\(.*option:dns-server,\).*/\1${args[2]}
+	iprange=${args[1]}
+	router=${args[2]}
+	password=${args[3]}
+	sed -i -e "s/^\(dhcp-range=\).*/\1$iprange/
+	" -e "s/^\(.*option:router,\).*/\1$router/
+	" -e "s/^\(.*option:dns-server,\).*/\1$router
 	" /etc/dnsmasq.conf
 	sed -i -e '/wpa\|rsn_pairwise/ s/^#\+//
-	' -e "s/\(wpa_passphrase=\).*/\1${args[3]}/
+	' -e "s/\(wpa_passphrase=\).*/\1$password/
 	" /etc/hostapd/hostapd.conf
 	systemctl restart hostapd dnsmasq
-	if [[ ${args[2]} == 192.168.5.1 ]]; then
+	if [[ $router == 192.168.5.1 ]]; then
 		rm $dirsystem/accesspoint-ip*
 	else
-		echo ${args[2]} > $dirsystem/accesspoint-ip
-		echo ${args[1]} > $dirsystem/accesspoint-iprange
+		echo $router > $dirsystem/accesspoint-ip
+		echo $iprange > $dirsystem/accesspoint-iprange
 	fi
-	if [[ ${args[3]} == RuneAudio ]]; then
+	if [[ $password == RuneAudio ]]; then
 		rm $dirsystem/accesspoint-passphrase
 	else
-		echo ${args[3]} > $dirsystem/accesspoint-passphrase
+		echo $password > $dirsystem/accesspoint-passphrase
 	fi
 	pushRefresh
 	;;
@@ -53,10 +56,42 @@ btconnect )
 	[[ $? != 0 ]] && echo -1 ||	pushRefresh
 	;;
 connect )
-	ifconfig ${args[1]} down
-	[[ -n ${args[3]} ]] && echo "${args[3]}" | tee "/srv/http/data/system/netctl-${args[2]}" > "/etc/netctl/${args[2]}"
-	netctl switch-to "${args[2]}"
-	ifconfig ${args[1]} up
+	wlan=${args[1]}
+	ssid=${args[2]}
+	dhcp=${args[3]}
+	wpa=${args[4]}
+	password=${args[5]}
+	hidden=${args[6]}
+	ip=${args[7]}
+	gw=${args[8]}
+	
+	profile="\
+Interface=$wlan
+Connection=wireless
+ESSID=\"$ssid\"
+IP=$dhcp
+"
+	if [[ -n $password ]]; then
+		profile+="\
+Security=$wpa
+Key=\"$password\"
+"
+	else
+		profile+="\
+Security=none
+"
+	fi
+	[[ -n $hidden ]] && profile+="\
+Hidden=yes
+"
+	[[ $dhcp == static ]] && profile+="\
+Address=$ip/24
+Gateway=$gw
+"
+	ifconfig $wlan down
+	echo "$profile" | tee "/srv/http/data/system/netctl-$ssid" > "/etc/netctl/$ssid"
+	netctl switch-to "$ssid"
+	ifconfig $wlan up
 	pushRefresh
 	;;
 connectenable )
@@ -64,33 +99,37 @@ connectenable )
 	pushRefresh
 	;;
 disconnect )
+	wlan=${args[1]}
+	ssid=${args[2]}
 	netctl stop-all
 	killall wpa_supplicant
-	ifconfig ${args[1]} up
-	if [[ -n ${args[2]} ]]; then
-		systemctl disable netctl-auto@${args[1]}
-		rm "/etc/netctl/${args[2]}" "/srv/http/data/system/netctl-${args[2]}"
+	ifconfig $wlan up
+	if [[ -n $ssid ]]; then
+		systemctl disable netctl-auto@$wlan
+		rm "/etc/netctl/$ssid" "/srv/http/data/system/netctl-$ssid"
 	fi
 	pushRefresh
 	;;
 editlan )
+	ip=${args[1]}
+	gw=${args[2]}
 	eth0="\
 [Match]
 Name=eth0
 [Network]
 DNSSEC=no
 "
-	if [[ -z ${args[1]} ]];then
+	if [[ -z $ip ]];then
 		eth0+="\
 DHCP=yes
 "
 		rm /srv/http/data/system/eth0.network
 	else
-		arp -n | grep -q ^${args[1]} && echo -1 && exit
+		arp -n | grep -q ^$ip && echo -1 && exit
 		
 		eth0+="\
-Address=${args[1]}/24
-Gateway=${args[2]}
+Address=$ip/24
+Gateway=$gw
 "
 		echo "$eth0" > /srv/http/data/system/eth0.network
 	fi
@@ -102,8 +141,8 @@ editwifidhcp )
 	file="/srv/http/data/system/netctl-${args[1]}"
 	netctl stop "${args[1]}"
 	sed -i -e '/^Address\|^Gateway/ d
-	' -e 's/^IP.*/IP=dhcp/
-	' "$file"
+' -e 's/^IP.*/IP=dhcp/
+' "$file"
 	cp "$file" "/etc/netctl/${args[1]}"
 	netctl start "${args[1]}"
 	pushRefresh

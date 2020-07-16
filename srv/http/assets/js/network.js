@@ -289,11 +289,11 @@ function btStatus() {
 		btScan();
 	}, 'json' );
 }
-function connect( ssid, data, ip ) { // ip - static
+function connect( data ) { // [ wlan, ssid, static, wpa, password, hidden, ip, gw ]
 	clearTimeout( intervalscan );
 	$( '#scanning-wifi' ).removeClass( 'hide' );
-	var arg = G.wlcurrent +' "'+ ssid +'"';
-	if ( data ) arg += ' "'+ data +'"';
+	var ssid = data [ 1 ];
+	var ip = data[ 6 ];
 	if ( ip ) {
 		$( '#loader' ).removeClass( 'hide' );
 		location.href = 'http://'+ ip +'/index-settings.php?p=network';
@@ -302,7 +302,7 @@ function connect( ssid, data, ip ) { // ip - static
 	} else {
 		banner( ssid, 'Connect ...', 'wifi-3' );
 	}
-	sh( [ 'connect', arg ], function( std ) {
+	sh( [ 'connect' ].concat( data ), function( std ) {
 		if ( std != -1 ) {
 			G.wlconnected = G.wlcurrent;
 			sh( [ 'connect', G.wlcurrent ], refreshData );
@@ -387,49 +387,46 @@ function editWiFi( ssid, data ) {
 			}
 		}
 		, ok            : function() {
-			var ssidadd = $( '#infoTextBox' ).val();
+			var ssidadd = ssid || $( '#infoTextBox' ).val();
 			var password = $( '#infoPasswordBox' ).val();
 			var ip = $( '#infoTextBox1' ).val();
 			var gw = $( '#infoTextBox2' ).val();
-			var static = $( '#infoCheckBox input:eq( 0 )' ).prop( 'checked' );
-			var hidden = $( '#infoCheckBox input:eq( 1 )' ).prop( 'checked' );
-			var security = $( '#infoCheckBox input:eq( 2 )' ).prop( 'checked' );
+			var static = $( '#infoCheckBox input:eq( 0 )' ).prop( 'checked' ) ? 'static' : 'dhcp';
+			var hidden = $( '#infoCheckBox input:eq( 1 )' ).prop( 'checked' ) ? 'hidden' : '';
+			var security = $( '#infoCheckBox input:eq( 2 )' ).prop( 'checked' ) ? 'wep' : 'wpa';
 			if ( data0 && ip === data0.Address && gw === data0.Gateway ) return
 			
-			var data =   'Interface='+ G.wlcurrent
-						+'\nConnection=wireless'
-						+'\nESSID="'+ ( ssid || ssidadd ) +'"'
-						+'\nIP='+ ( static ? 'static' : 'dhcp' );
+			// [ wlan, ssid, static, wpa, password, hidden, ip, gw ]
+			var data = [ G.wlcurrent, ssid, static ];
 			if ( password ) {
-				data +=  '\nSecurity='+ ( security ?  'wep' : 'wpa' )
-						+'\nKey="'+ password +'"';
+				data.push( security, password );
 			} else {
-				data +=  '\nSecurity=none'
+				data.push( '', '' );
 			}
-			if ( hidden ) {
-				data +=  '\nHidden=yes';
-			}
+			data.push( hidden );
 			if ( static ) {
-				data +=  '\nAddress='+ ip +'/24'
-						+'\nGateway='+ gw;
-			}
-			if ( ssid ) {
-				sh( [ 'ipused', ip ], function( used ) {
-					if ( used == 1 ) {
-						info( {
-							  icon    : 'wifi-3'
-							, title   : 'Duplicate IP'
-							, message : 'IP <wh>'+ ip +'</wh> already in use.'
-							, ok      : function() {
-								editWiFi( ssid, data0 );
-							}
-						} );
-					} else {
-						connect( ssid, data, ip );
-					}
-				} );
+				if ( ip !== data0.Address ) {
+					sh( [ 'ipused', ip ], function( used ) {
+						if ( used == 1 ) {
+							info( {
+								  icon    : 'wifi-3'
+								, title   : 'Duplicate IP'
+								, message : 'IP <wh>'+ ip +'</wh> already in use.'
+								, ok      : function() {
+									editWiFi( ssid, data0 );
+								}
+							} );
+						} else {
+							data.push( ip, gw );
+							connect( data );
+						}
+					} );
+				} else {
+					data.push( ip, gw );
+					connect( data );
+				}
 			} else {
-				connect( ssidadd, data );
+				connect( data );
 			}
 		}
 	} );

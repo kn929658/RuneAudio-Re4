@@ -289,7 +289,7 @@ function btStatus() {
 		btScan();
 	}, 'json' );
 }
-function connect( data ) { // [ wlan, ssid, static, wpa, password, hidden, ip, gw ]
+function connect( data ) { // [ wlan, ssid, dhcp, wpa, password, hidden, ip, gw ]
 	clearTimeout( intervalscan );
 	$( '#scanning-wifi' ).removeClass( 'hide' );
 	var ssid = data [ 1 ];
@@ -387,7 +387,7 @@ function editWiFi( ssid, data ) {
 			}
 		}
 		, ok            : function() {
-			var ssidadd = ssid || $( '#infoTextBox' ).val();
+			var ssid = ssid || $( '#infoTextBox' ).val();
 			var password = $( '#infoPasswordBox' ).val();
 			var ip = $( '#infoTextBox1' ).val();
 			var gw = $( '#infoTextBox2' ).val();
@@ -396,7 +396,7 @@ function editWiFi( ssid, data ) {
 			var security = $( '#infoCheckBox input:eq( 2 )' ).prop( 'checked' ) ? 'wep' : 'wpa';
 			if ( data0 && ip === data0.Address && gw === data0.Gateway ) return
 			
-			// [ wlan, ssid, static, wpa, password, hidden, ip, gw ]
+			// [ wlan, ssid, dhcp, wpa, password, hidden, ip, gw ]
 			var data = [ G.wlcurrent, ssid, static ];
 			if ( password ) {
 				data.push( security, password );

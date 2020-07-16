@@ -268,7 +268,7 @@ uninstallfinish() {
 
 	[[ $type == Update ]] && exit
 	
-	title -l '=' "$bar $title uninstalled successfully."
+	title -l '=' "$bar Done."
 }
 restartlocalbrowser() {
 	if systemctl -q is-active localbrowser; then

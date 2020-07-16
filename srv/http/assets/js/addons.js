@@ -20,7 +20,7 @@ $( 'legend' ).click( function() {
 } );
 
 // branch test
-function branchtest( message, install ) {
+function branchtest( alias, type, message, install ) {
 	info( {
 		  icon      : 'addons'
 		, title     : title
@@ -29,14 +29,13 @@ function branchtest( message, install ) {
 		, textvalue : 'UPDATE'
 		, boxwidth  : 'max'
 		, ok        : function() {
-			branch = $( '#infoTextBox' ).val() +' -b';
+			opt = [ alias, type, $( '#infoTextBox' ).val() ];
 			option = addons[ alias ].option;
 			j = 0;
 			if ( install && option ) {
 				getoptions();
 			} else {
-				opt = branch;
-				formtemp();
+				postcmd();
 			}
 		}
 	} );
@@ -47,8 +46,6 @@ $( '.boxed-group .btn' ).on( 'taphold', function () {
 	title = addons[ alias ].title.replace( / *\**$/, '' );
 	type = $this.text();
 	rollback = addons[ alias ].rollback || '';
-	opt = '';
-	branch = '';
 	if ( rollback ) {
 		info( {
 			  icon      : 'addons'
@@ -58,17 +55,17 @@ $( '.boxed-group .btn' ).on( 'taphold', function () {
 						 +'<label><input type="radio" name="inforadio" value="Branch">&ensp;Tree # / Branch ...</label>'
 			, ok        : function() {
 				if ( $( '#infoRadio input:checked').val() == 1 ) {
-					opt = rollback +' -b';
-					formtemp();
+					opt = [ alias, type, rollback ];
+					postcmd();
 				} else {
-					branchtest( 'Upgrade / Downgrade to ?' );
+					branchtest( alias, type, 'Upgrade / Downgrade to ?' );
 				}
 			}
 		} );
 	} else if ( type === 'Install' ) {
-		branchtest( 'Install version?', 'install' );
+		branchtest( alias, type, 'Install version?', 'install' );
 	} else {
-		branchtest( 'Install version?' );
+		branchtest( alias, type, 'Install version?' );
 	}
 } ).on( 'click', function () {
 	$this = $( this );
@@ -77,8 +74,7 @@ $( '.boxed-group .btn' ).on( 'taphold', function () {
 	alias = $this.parent().attr( 'alias' );
 	title = addons[ alias ].title.replace( / *\**$/, '' );
 	type = $this.text();
-	opt = '';
-	branch = '';
+	opt = [ alias, type, 'master' ];
 	if ( $this.attr( 'warning' ) ) {
 		info( {
 			  icon    : 'addons'
@@ -98,7 +94,7 @@ $( '.boxed-group .btn' ).on( 'taphold', function () {
 			, title   : title
 			, message : type +'?'
 			, ok      : function () {
-				( option && type !== 'Update' && type !== 'Uninstall' ) ? getoptions() : formtemp();
+				( option && type !== 'Update' && type !== 'Uninstall' ) ? getoptions() : postcmd();
 			}
 		} );
 	}
@@ -143,11 +139,11 @@ function getoptions() {
 				, message     : ojson.message
 				, buttonlabel : 'No'
 				, button      : function() {
-					opt += '0 ';
+					opt.push( 0 );
 					sendcommand();
 				}
 				, ok          : function() {
-					opt += '1 ';
+					opt.push( 1 );
 					sendcommand();
 				}
 			} );
@@ -161,7 +157,7 @@ function getoptions() {
 				, cancellabel : 'No'
 				, cancel      : sendcommand
 				, oklabel     : 'Yes'
-				, ok          : formtemp
+				, ok          : postcmd
 			} );
 			break;
 // -------------------------------------------------------------------------------------------------
@@ -178,7 +174,7 @@ function getoptions() {
 					var input = '';
 					$( '.infotextbox .infoinput' ).each( function() {
 						var input = this.value;
-						opt += input ? "'"+ input +"' " : '0 ';
+						opt.push( input || 0 );
 					} );
 					sendcommand();
 				}
@@ -196,16 +192,16 @@ function getoptions() {
 					var pwd = $( '#infoPasswordBox' ).val();
 					if ( pwd ) {
 						verifyPassword( title, pwd, function() {
-							opt += "'"+ pwd +"' ";
+							opt.push( pwd );
 							sendcommand();
 						} );
 					} else {
 						if ( !ojson.required ) {
-							opt += '0 ';
+							opt.push( 0 );
 							sendcommand();
 						} else {
 							blankPassword( title, ojson.message, ojson.label, function() {
-								opt += "'"+ pwd +"' ";
+								opt.push( pwd );
 								sendcommand();
 							} );
 						}
@@ -224,7 +220,7 @@ function getoptions() {
 				, checked : ojson.checked
 				, ok      : function() {
 					var radiovalue = $( '#infoRadio input:checked' ).val();
-					opt += "'"+ radiovalue +"' ";
+					opt.push( radiovalue );
 					sendcommand();
 				}
 			} );
@@ -236,7 +232,7 @@ function getoptions() {
 						, message   : ojson.message
 						, textlabel : 'Custom'
 						, ok        : function() {
-							opt += "'"+ $( '#infoTextBox' ).val() +"' ";
+							opt.push( $( '#infoTextBox' ).val() );
 							sendcommand();
 						}
 					} );
@@ -258,7 +254,7 @@ function getoptions() {
 					$( '#infoSelectBox').selectric();
 				}
 				, ok          : function() {
-					opt += "'"+ $( '#infoSelectBox').val() +"' ";
+					opt.push( $( '#infoSelectBox').val() );
 					sendcommand();
 				}
 			} );
@@ -271,7 +267,7 @@ function getoptions() {
 						, textlabel : 'Custom'
 						, ok        : function() {
 							var input = $( '#infoTextBox' ).val();
-							opt += input ? "'"+ input +"' " : 0;
+							opt.push( input || 0 );
 							sendcommand();
 						}
 					} );
@@ -289,7 +285,7 @@ function getoptions() {
 				, checked  : ojson.checked
 				, ok       : function() {
 					$( '#infoCheckBox input' ).each( function() {
-						opt += "'"+ ( $( this ).prop( 'checked' ) ? 1 : 0 ) +"' ";
+						opt.push( $( this ).prop( 'checked' ) ? 1 : 0 );
 					} );
 					sendcommand();
 				}
@@ -304,17 +300,20 @@ function sendcommand() {
 	if ( j < olength ) {
 		getoptions();
 	} else {
-		opt += branch;
-		formtemp();
+		postcmd();
 	}
 }
 // post submit with temporary form (separate option to hide password)
-function formtemp() {
-	$( 'body' ).append(
-		'<form id="formtemp" action="addons-terminal.php" method="post">'
-			+'<input type="hidden" name="alias" value="'+ alias +'">'
-			+'<input type="hidden" name="type" value="'+ type +'">'
-			+'<input type="hidden" name="opt" value="'+ opt +'">'
-		+'</form>' );
+function postcmd() {
+/*	$.post( 'addons-terminal.php', { sh: opt }, function(data) {
+		console.log(data)
+	} );*/
+	var form = '<form id="formtemp" action="addons-terminal.php" method="post">';
+	var optL = opt.length;
+	for ( i = 0; i < optL; i++ ) {
+		form += '<input type="hidden" name="sh[]" value="'+ opt[ i ] +'">'
+	}
+	form += '</form>';
+	$( 'body' ).append( form );
 	$( '#formtemp' ).submit();
 }

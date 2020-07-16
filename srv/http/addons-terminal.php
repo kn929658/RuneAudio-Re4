@@ -3,16 +3,19 @@ ignore_user_abort( TRUE ); // for 'connection_status()' to work
 include 'logosvg.php';
 include '/srv/http/data/addons/addons-list.php';
 $time = time();
-$alias = $_POST[ 'alias' ] ?? '';
-$type = $_POST[ 'type' ];
-$opt = $_POST[ 'opt' ];
+
+$sh = $_POST[ 'sh' ];
+$alias = array_shift( $sh );
+$type = array_shift( $sh );
+$branch = array_shift( $sh );
+$opt = preg_replace( '/(["`])/', '\\\\\1', $sh );
+$opt = '"'.implode( '" "', $opt ).'"';
+
 $addon = $addons[ $alias ];
 $postinfo = preg_replace( '/e*$/', 'ed successfully.', $type, 1 );
 $postinfo.= $addon[ 'postinfo' ] ?? '<br><br>'.$addon[ 'postinfo' ];
 $installurl = $addon[ 'installurl' ];
-
-$optarray = explode( ' ', $opt );
-if ( end( $optarray ) === '-b' ) $installurl = str_replace( 'raw/master', 'raw/'.prev( $optarray ), $installurl );
+if ( $branch !== 'master' ) $installurl = str_replace( 'raw/master', 'raw/'.$branch, $installurl );
 
 $installfile = basename( $installurl );
 $uninstallfile = "/usr/local/bin/uninstall_$alias.sh";

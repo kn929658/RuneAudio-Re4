@@ -449,6 +449,9 @@ ul,
 	.btn-primary:hover {
 		background-color: var( --cml )
 	}
+	.btn-primary.red:hover {
+		background-color: #bb4040 ;
+	}
 	.btn-default:hover {
 		background-color: var( --cgl );
 	}

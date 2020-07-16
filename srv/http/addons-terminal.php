@@ -8,9 +8,13 @@ $sh = $_POST[ 'sh' ];
 $alias = array_shift( $sh );
 $type = array_shift( $sh );
 $branch = array_shift( $sh );
-$opt = preg_replace( '/(["`])/', '\\\\\1', $sh );
-$opt = '"'.implode( '" "', $opt ).'"';
-
+$count = count( $sh );
+if ( !$count ) {
+	$opt = '';
+} else {
+	$sh = preg_replace( '/(["`])/', '\\\\\1', $sh );
+	$opt = '"'.implode( '" "', $sh ).'"';
+}
 $addon = $addons[ $alias ];
 $postinfo = preg_replace( '/e*$/', 'ed successfully.', $type, 1 );
 $postinfo.= $addon[ 'postinfo' ] ?? '<br><br>'.$addon[ 'postinfo' ];

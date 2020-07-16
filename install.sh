@@ -72,7 +72,7 @@ fi
 if [[ $( cat /srv/http/data/addons/rre4 ) > 20200627 ]]; then
 	getinstallzip
 
-	installfinish $@
+	installfinish
 
 	restartlocalbrowser
 	
@@ -121,7 +121,7 @@ sed -i '/dtoverlay=vc4-kms-v3d/ d' /boot/config.txt
 
 getinstallzip
 
-installfinish $@
+installfinish
 
 if [[ $nginx ]]; then
 	systemctl restart mpd

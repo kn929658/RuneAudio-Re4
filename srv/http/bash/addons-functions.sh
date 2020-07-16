@@ -162,13 +162,14 @@ getinstallzip() {
 	bsdtar -tf $branch.zip | cut -d/ -f2- | grep / | grep -v '/$' | sed 's|^|/|' # list files
 	bsdtar -xf $branch.zip --strip 1 -C $tmpdir
 	rm $branch.zip $tmpdir/* &> /dev/null
-	cp -r $tmpdir/* /
+	cp -rp $tmpdir/* /
 	rm -r $tmpdir
 	chown -R http:http /srv/http
-	chown -R mpd:audio /srv/http/data/mpd /mnt/MPD
+	chown -R mpd:audio /srv/http/data/mpd
 	chmod 755 /srv/http/* /srv/http/bash/* /srv/http/settings/* /usr/local/bin/*
 	chmod 777 /srv/http/data/tmp
-	[[ -e /srv/http/data/system/color ]] && /srv/http/bash/cmd.sh color
+	
+	[[ -e /srv/http/data/system/color ]] && /srv/http/bash/setcolor.sh
 }
 getuninstall() {
 	installurl=$( getvalue installurl )
@@ -226,12 +227,7 @@ installstart() { # $1-'u'=update
 	timestart
 	notify "$title0" i s
 	
-	# for testing branch
-	if [[ ${@:$#} == '-b' ]]; then
-		branch=${@:(-2):1}
-	else
-		branch=master
-	fi
+	branch=$1 && shift;
 	
 	if [[ -n $( getvalue nouninstall ) ]]; then
 		title -l '=' "$bar Update $title ..."

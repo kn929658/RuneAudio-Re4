@@ -7,22 +7,16 @@ $time = time();
 $sh = $_POST[ 'sh' ];
 $alias = array_shift( $sh );
 $type = array_shift( $sh );
-$branch = array_shift( $sh );
-$count = count( $sh );
-if ( !$count ) {
-	$opt = '';
-} else {
-	$sh = preg_replace( '/(["`])/', '\\\\\1', $sh );
-	$opt = '"'.implode( '" "', $sh ).'"';
-}
+$branch = $sh[ 0 ];
+$sh = preg_replace( '/(["`])/', '\\\\\1', $sh );
+$opt = '"'.implode( '" "', $sh ).'"'; // "branch" "opt1" "opt 2" ...
 $addon = $addons[ $alias ];
 $postinfo = preg_replace( '/e*$/', 'ed successfully.', $type, 1 );
 $postinfo.= $addon[ 'postinfo' ] ?? '<br><br>'.$addon[ 'postinfo' ];
 $installurl = $addon[ 'installurl' ];
-if ( $branch !== 'master' ) $installurl = str_replace( 'raw/master', 'raw/'.$branch, $installurl );
-
 $installfile = basename( $installurl );
 $uninstallfile = "/usr/local/bin/uninstall_$alias.sh";
+if ( $branch !== 'master' ) $installurl = str_replace( 'raw/master', 'raw/'.$branch, $installurl );
 $title = preg_replace( '/\**$/', '', $addon[ 'title' ] );
 if ( $type !== 'coverart' ) {
 	$heading = 'Addons Progress';

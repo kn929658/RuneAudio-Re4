@@ -31,7 +31,7 @@ $( '#close' ).click( function() {
 					  cmd : 'sh'
 					, sh  : [ 'cmd.sh', 'reboot' ]
 				} );
-				notify( 'Rebooting ...', '', 'reboot blink', -1 );
+				notify( 'Power', 'Reboot ...', 'reboot blink', -1 );
 			}
 		} );
 	} else {

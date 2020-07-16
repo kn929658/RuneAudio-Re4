@@ -185,28 +185,22 @@ getuninstall() {
 }
 notify() { # $1-i=install $2-s=start
 	[[ $alias == addo ]] && return
-	[[ $2 == i ]] && type='Install' || type='Uninstall'
-	if [[ $3 == s ]]; then
-		data=$( cat <<EOF
-			{
-				  "icon" : "fa fa-info-circle fa-lg"
-				, "title": "${type}ing ..."
-				, "text" : "$1 \nRuneAudio may not response until finished."
-			}
-EOF
-		)
+	
+	if [[ $2 != Done. ]]; then
+		icon='addons blink'
+		delay=-1
 	else
-		data=$( cat <<EOF
-			{
-				  "icon" : "fa fa-check"
-				, "title": "Done"
-				, "text" : "$1 \n${type}ation."
-			}
-EOF
-		)
+		icon='addons'
+		delay=3000
 	fi
-
-	curl -s -X POST 'http://127.0.0.1/pub?id=notify' -d "$data" &> /dev/null
+	curl -s -X POST 'http://127.0.0.1/pub?id=notify' \
+		-d '{
+			  "icon"  : "'"$icon"'"
+			, "title" : "'"$1"'"
+			, "text"  : "'"$2"'"
+			, "delay" : '"$delay"'
+		}' \
+		&> /dev/null
 }
 installstart() { # $1-'u'=update
 	rm -f $0
@@ -224,31 +218,30 @@ installstart() { # $1-'u'=update
 	  exit
 	fi
 	
+	if [[ $1 != u ]]; then
+		[[ -z $( getvalue nouninstall ) ]] && type=Install || type=Update
+	else
+		type=Update
+		shift
+	fi
+	title -l '=' "$bar $type $title ..."
+	
 	timestart
-	notify "$title0" i s
+	notify "$type $title0" 'Please wait until finished.'
 	
 	branch=$1 && shift;
-	
-	if [[ -n $( getvalue nouninstall ) ]]; then
-		title -l '=' "$bar Update $title ..."
-	elif [[ $1 != u ]]; then
-		title -l '=' "$bar Install $title ..."
-	fi
+	echo $@
 }
-installfinish() { # $1-'u'=update
+installfinish() {
 	version=$( getvalue version )
 	echo $version > $diraddons/$alias
 	
 	. /srv/http/bash/addons-update.sh 1
 	
 	timestop
-	notify "$title0" i
+	notify "$type $title0" 'Done.'
 	
-	if [[ $1 != u ]]; then
-		title -l '=' "$bar $title installed successfully."
-	else
-		title -l '=' "$bar $title updated successfully."
-	fi
+	title -l '=' "$bar Done."
 }
 uninstallstart() { # $1-'u'=update
 	addonslist=$( sed -n "/^'$alias'/,/^],/p" $diraddons/addons-list.php )
@@ -262,17 +255,18 @@ uninstallstart() { # $1-'u'=update
 	fi
 	
 	rm $0
-	notify "$title0" u s
 
 	[[ $1 != u ]] && type=Uninstall || type=Update
+	notify "$type $title0" 'Please wait until finished.'
+	
 	title -l '=' "$bar $type $title ..."
 }
-uninstallfinish() { # $1-'u'=update
+uninstallfinish() {
 	rm $diraddons/$alias &> /dev/null
 
-	notify "$title0" u
+	notify "Uninstall $title0" 'Done.'
 
-	[[ $1 == u ]] && exit
+	[[ $type == Update ]] && exit
 	
 	title -l '=' "$bar $title uninstalled successfully."
 }

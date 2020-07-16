@@ -3,17 +3,20 @@ ignore_user_abort( TRUE ); // for 'connection_status()' to work
 include 'logosvg.php';
 include '/srv/http/data/addons/addons-list.php';
 $time = time();
-$alias = $_POST[ 'alias' ] ?? '';
-$type = $_POST[ 'type' ];
-$opt = $_POST[ 'opt' ];
+
+$sh = $_POST[ 'sh' ];
+$alias = array_shift( $sh );
+$type = array_shift( $sh );
+$branch = $sh[ 0 ];
+$sh = preg_replace( '/(["`])/', '\\\\\1', $sh );
+$opt = '"'.implode( '" "', $sh ).'"'; // "branch" "opt1" "opt 2" ...
 $addon = $addons[ $alias ];
-$installurl = $addon[ 'installurl' ] ?? '';
-
-$optarray = explode( ' ', $opt );
-if ( end( $optarray ) === '-b' ) $installurl = str_replace( 'raw/master', 'raw/'.prev( $optarray ), $installurl );
-
+$postinfo = $type." done.<br>See Progess terminal for result.";
+$postinfo.= isset( $addon[ 'postinfo' ] ) ? '<br><br>'.$addon[ 'postinfo' ] : '';
+$installurl = $addon[ 'installurl' ];
 $installfile = basename( $installurl );
 $uninstallfile = "/usr/local/bin/uninstall_$alias.sh";
+if ( $branch !== 'master' ) $installurl = str_replace( 'raw/master', 'raw/'.$branch, $installurl );
 $title = preg_replace( '/\**$/', '', $addon[ 'title' ] );
 if ( $type !== 'coverart' ) {
 	$heading = 'Addons Progress';
@@ -66,11 +69,10 @@ if ( $type !== 'coverart' ) {
 <script>
 $( '.close-root' ).click( function() { 
 	if ( $( '#wait' ).length ) {
-		$.post( 'commands.php', { bash: [
-			  "killall $installfile wget pacman &> /dev/null"
-			, "rm -f /var/lib/pacman/db.lck /srv/http/*.zip /usr/local/bin/uninstall_$alias.sh"
-			, "rm -f /srv/http/data/addons/$alias"
-		] }, function() {
+		$.post( 'cmd.php', {
+			  cmd : 'sh'
+			, sh  : [ 'cmd.sh', '<?=$installfile?>', '<?=$alias?>' ]
+		}, function() {
 			location.href = '<?=$href?>';
 		} );
 	} else {
@@ -154,7 +156,7 @@ cmd;
 	if ( $options && array_key_exists( 'password', $options ) ) {
 		$pwdindex = array_search( 'password', array_keys( $options ) );
 		$opts = explode( ' ', $opt );
-		$opts[ $pwdindex ] = '***';
+		$opts[ $pwdindex + 1 ] = '***';
 		$opt = implode( ' ', $opts );
 	}
 	$commandtxt = <<<cmd
@@ -239,9 +241,9 @@ pre.scrollTop = pre.scrollHeight;
 $( '#wait' ).remove();
 $( '#hidescrollv' ).css( 'max-height', ( $( '#hidescrollv' ).height() + 30 ) +'px' );
 info( {
-	  icon    : 'info-circle'
+	  icon    : 'addons'
 	, title   : '<?=$title?>'
-	, message : 'Please see result information on screen.'
+	, message : '<?=$postinfo?>'
 } );
 </script>
 

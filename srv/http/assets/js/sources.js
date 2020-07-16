@@ -1,12 +1,11 @@
 $( function() { // document ready start >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-var dirsystem = '/srv/http/data/system';
 var formdata = {}
 var html = heredoc( function() { /*
 	<form id="formmount">
 		<div id="infoRadio" class="infocontent infohtml">
 			Type&emsp;<label><input type="radio" name="protocol" value="cifs"> CIFS</label>&emsp;
-			<label><input type="radio" name="protocol" value="nfs"> NFS</label>
+			<label><input type="radio" name="protocol" value="nfs"> NFS</label>&emsp;
 		</div>
 		<div id="infoText" class="infocontent">
 			<div id="infotextlabel">
@@ -46,11 +45,11 @@ $( '#infoContent' ).on( 'click', '#infoRadio', function() {
 } );
 $( '#list' ).on( 'click', 'li', function() {
 	var $this = $( this );
-	var mountpoint = $this.data( 'mountpoint' );
+	var mountpoint = $this.find( '.mountpoint' ).text();
 	if ( mountpoint === '/' ) return
 	
-	var mountname = mountpoint.replace( / /g, '\\\\040' );
 	var nas = mountpoint.slice( 9, 12 ) === 'NAS';
+	var source = $this.find( '.source' ).text();
 	if ( !$this.data( 'unmounted' ) ) {
 		info( {
 			  icon    : nas ? 'network' : 'usbdrive'
@@ -59,16 +58,11 @@ $( '#list' ).on( 'click', 'li', function() {
 			, oklabel : 'Unmount'
 			, okcolor : '#de810e'
 			, ok      : function() {
-				local = 1;
-				$.post( 'commands.php', { bash: [
-						  ( nas ? '' : 'udevil ' ) +'umount -l "'+ mountpoint +'"'
-						, curlPage( 'source' )
-					] }, function() {
+				banner( 'Network Mount', 'Unmount ...', 'network' );
+				sh( [ 'unmount', mountpoint ], function() {
 					refreshData();
-					resetlocal();
 					$( '#refreshing' ).addClass( 'hide' );
 				} );
-				banner( 'Network Mount', 'Unmount ...', 'network' );
 				$( '#refreshing' ).removeClass( 'hide' );
 			}
 		} );
@@ -81,32 +75,20 @@ $( '#list' ).on( 'click', 'li', function() {
 			, buttonlabel : 'Remove'
 			, buttoncolor : '#bb2828'
 			, button      : function() {
-				local = 1;
-				$.post( 'commands.php', { bash: [
-						  "sed -i '\\|"+ mountname +"| d' /etc/fstab"
-						, 'rmdir "'+ mountpoint +'" &> /dev/null'
-						, 'rm -f "'+ dirsystem +'/fstab-'+ mountpoint.split( '/' ).pop() +'"'
-						, curlPage( 'source' )
-					] }, function() {
+				banner( 'Network Mount', 'Remove ...', 'network' );
+				sh( [ 'remove', mountpoint ], function() {
 					refreshData();
-					resetlocal();
 					$( '#refreshing' ).addClass( 'hide' );
 				} );
-				banner( 'Network Mount', 'Remove ...', 'network' );
 				$( '#refreshing' ).removeClass( 'hide' );
 			}
 			, oklabel     : 'Remount'
 			, ok          : function() {
-				local = 1;
-				$.post( 'commands.php', { bash: [
-						  ( nas ? 'mount "'+ mountpoint +'"' : 'udevil mount '+ $this.data( 'source' ) )
-						, curlPage( 'source' )
-					] }, function() {
+				banner( 'Network Mount', 'Remount ...', 'network' );
+				sh( [ 'remount', mountpoint, source ], function() {
 					refreshData();
-					resetlocal();
 					$( '#refreshing' ).addClass( 'hide' );
 				} );
-				banner( 'Network Mount', 'Remount ...', 'network' );
 				$( '#refreshing' ).removeClass( 'hide' );
 			}
 		} );
@@ -117,7 +99,7 @@ $( '#list' ).on( 'click', 'li', function() {
 	
 	if ( $( this ).find( '.fa-search' ).length ) {
 		$( '#listshare' ).html( '<li><i class="fa fa-search blink"></i></li>' );
-		$.post( 'commands.php', { bash: '/srv/http/bash/sources-sharescan.sh' }, function( list ) {
+		bash( '/srv/http/bash/sources-sharescan.sh', function( list ) {
 			var list = JSON.parse( list );
 			if ( list.length ) {
 				var html = '';
@@ -156,14 +138,14 @@ $( '#fstab' ).click( function( e ) {
 } );
 
 function getMounts() {
-	$.post( 'commands.php', { bash: 'mount | grep " / \\|MPD"', string: 1 }, function( status ) {
+	bash( 'mount | grep " / \\|MPD"', function( status ) {
 		$( '#codemount' )
 			.html( status )
 			.removeClass( 'hide' );
 	} );
 }
 function getFstab() {
-	$.post( 'commands.php', { bash: 'cat /etc/fstab', string: 1 }, function( status ) {
+	bash( 'cat /etc/fstab', function( status ) {
 		$( '#codefstab' )
 			.html( status )
 			.removeClass( 'hide' );
@@ -213,14 +195,9 @@ function infoMount( formdata, cifs ) {
 				options += data.options ? ','+ data.options : '';
 				var device = '"'+ data.ip +':/'+ directory +'"';
 			}
-			var cmd = '"'+ mountpoint +'" '+ data.ip +' '+ device +' '+ data.protocol +' '+ options;
-			local = 1;
-			$.post( 'commands.php', { bash: [
-					  '/srv/http/bash/sources-mount.sh '+ cmd
-					, curlPage( 'source' )
-				] }, function( std ) {
-				var std = std[ 0 ];
-				if ( std ) {
+			banner( 'Network Mount', 'Mount ...', 'network' );
+			sh( [ 'mount', mountpoint, data.ip, device, data.protocol, options ], function( std ) {
+				if ( std !== 0 ) {
 					formdata = data;
 					info( {
 						  icon    : 'network'
@@ -234,10 +211,8 @@ function infoMount( formdata, cifs ) {
 					refreshData();
 					formdata = {}
 				}
-				resetlocal();
 				$( '#refreshing' ).addClass( 'hide' );
 			}, 'json' );
-			banner( 'Network Mount', 'Mount ...', 'network' );
 			$( '#refreshing' ).removeClass( 'hide' );
 		}
 	} );
@@ -245,8 +220,8 @@ function infoMount( formdata, cifs ) {
 
 refreshData = function() {
 	$( '#refreshing' ).removeClass( 'hide' );
-	$.post( 'commands.php', { getjson: '/srv/http/bash/sources-data.sh' }, function( list ) {
-		var reboot = list.pop();
+	bash( '/srv/http/bash/sources-data.sh', function( list ) {
+		reboot = list.pop();
 		G.reboot = reboot ? reboot.split( '\n' ) : [];
 		var html = '';
 		$.each( list, function( i, val ) {
@@ -257,15 +232,16 @@ refreshData = function() {
 				var dataunmounted = ' data-unmounted="1"';
 				var dot = '<red>&ensp;&bull;&ensp;</red>';
 			}
-			html += '<li data-mountpoint="'+ val.mountpoint +'"'+ dataunmounted;
-			html += '><i class="fa fa-'+ val.icon +'"></i>'+ val.mountpoint + dot
-			html += '<gr>'+ val.source +'</gr>';
+			html += '<li '+ dataunmounted;
+			html += '><i class="fa fa-'+ val.icon +'"></i><wh class="mountpoint">'+ val.mountpoint +'</wh>'+ dot
+			html += '<gr class="source">'+ val.source +'</gr>';
 			html +=  val.size ? '&ensp;'+ val.size +'</li>' : '</li>';
 		} );
 		$( '#list' ).html( html );
 		$( '#refreshing' ).addClass( 'hide' );
 		if ( !$( '#codemount' ).hasClass( 'hide' ) ) getMounts();
 		if ( !$( '#codefstab' ).hasClass( 'hide' ) ) getFstab();
+		resetLocal();
 		showContent();
 	}, 'json' );
 }

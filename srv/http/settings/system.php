@@ -1,7 +1,11 @@
 <?php
-$hwcode = exec( "/usr/bin/sudo /usr/bin/cat /proc/cpuinfo | grep Revision | rev | cut -c2,3 | rev" );
-$rpiwireless = in_array( $hwcode, [ '0c', '08', '0e', '0d', '11' ] ); // rpi zero w, rpi3, rpi4
-$timezone = exec( "timedatectl | grep zone: | awk '{print $3}'" );
+$i2slist = json_decode( file_get_contents( '/srv/http/settings/system-i2s.json' ) );
+$selecti2s = '<select id="i2smodule">';
+foreach( $i2slist as $name => $sysname ) {
+	$selecti2s.= '<option value="'.$sysname.'">'.$name.'</option>';
+}
+$selecti2s.= '</select>';
+$timezone = exec( "timedatectl | awk '/zone:/ {print $3}'" );
 date_default_timezone_set( $timezone );
 $timezonelist = timezone_identifiers_list();
 $selecttimezone = '<select id="timezone">';
@@ -12,12 +16,6 @@ foreach( $timezonelist as $key => $zone ) {
 	$selecttimezone.= '<option value="'.$zone.'">'.$zonename.'&ensp;'.$offset.'</option>\n';
 }
 $selecttimezone.= '</select>';
-
-include '/srv/http/settings/system-i2smodules.php';
-$optioni2smodule = '';
-foreach( $i2slist as $name => $sysname ) {
-	$optioni2smodule.= '<option value="'.$sysname.'">'.$name.'</option>';
-}
 ?>
 <div>
 <heading>System<?=$help?></heading>
@@ -50,13 +48,14 @@ foreach( $i2slist as $name => $sysname ) {
 </div>
 
 <div>
-<heading>Renderer<?=$help?></heading>
+<heading>Renderers<?=$help?></heading>
 	<?php if ( file_exists( '/usr/bin/shairport-sync' ) ) { ?>
 <div class="col-l double"><a>AirPlay<br><gr>Shairport-sync</gr></a><i class="fa fa-airplay fa-lg"></i></div>
 <div class="col-r">
 	<input id="airplay" type="checkbox">
 	<div class="switchlabel" for="airplay"></div>
-	<span class="help-block hide">RuneAudio as AirPlay rendering device.
+	<span class="help-block hide">
+		<a href="https://github.com/mikebrady/shairport-sync">Shairport-sync</a> - RuneAudio as AirPlay rendering device.
 		<br>(Note: Enable AirPlay will also enable URL by Name.)</span>
 </div>
 	<?php }
@@ -68,7 +67,8 @@ foreach( $i2slist as $name => $sysname ) {
 		<div class="switchlabel" for="snapclient"></div>
 		<i id="setting-snapclient" class="setting fa fa-gear hide"></i>
 		<span class="help-block hide">
-			Connect: Menu >&ensp;<i class="fa fa-folder-cascade"></i>&ensp;Sources |&ensp;<i class="fa fa-snapcast"></i>
+			<a href="https://github.com/badaix/snapcast">Snapcast</a> - Multiroom client-server audio player
+			<br>SnapClient - Connect: Menu >&ensp;<i class="fa fa-folder-cascade"></i>&ensp;Sources |&ensp;<i class="fa fa-snapcast"></i>
 			<br>(Note: Not available while Snapcast server enabled.)
 		</span>
 	</div>
@@ -81,7 +81,7 @@ foreach( $i2slist as $name => $sysname ) {
 	<div class="switchlabel" for="spotify"></div>
 	<i id="setting-spotify" class="setting fa fa-gear hide"></i>
 	<span class="help-block hide">
-		RuneAudio as Spotify Connect device.(For Premium account only)
+		<a href="https://github.com/Spotifyd/spotifyd">Spotifyd</a> - RuneAudio as Spotify Connect device.(For Premium account only)
 		<br><i class="fa fa-gear"></i>&ensp;Manually select audio output (when default not working only)
 	</span>
 </div>
@@ -92,13 +92,15 @@ foreach( $i2slist as $name => $sysname ) {
 	<input id="upnp" type="checkbox">
 	<div class="switchlabel" for="upnp"></div>
 	<i id="setting-upnp" class="setting fa fa-gear hide"></i>
-	<span class="help-block hide">RuneAudio as UPnP / DLNA rendering device.</span>
+	<span class="help-block hide">
+		<a href="https://www.lesbonscomptes.com/upmpdcli/">upmpdcli</a> - RuneAudio as UPnP / DLNA rendering device.
+	</span>
 </div>
 	<?php } ?>
 </div>
 
 <div>
-<heading>Streamer<?=$help?></heading>
+<heading>Streamers<?=$help?></heading>
 <div class="col-l double"><a>For browsers<br><gr>MPD http</gr></a><i class="fa fa-webradio fa-lg"></i></div>
 <div class="col-r">
 	<input id="streaming" type="checkbox">
@@ -111,8 +113,8 @@ foreach( $i2slist as $name => $sysname ) {
 	<input id="snapcast" type="checkbox">
 	<div class="switchlabel" for="snapcast"></div>
 	<span class="help-block hide">
-		Synchronous streaming for multiroom audio
-		<br>Clients can be either RPis with RuneAudio+R e or Snapcast capable devices.
+		<a href="https://github.com/badaix/snapcast">Snapcast</a> - Multiroom client-server audio player
+		<br>SnapServer - Clients can be either RPis with RuneAudio+R e or Snapcast capable devices.
 		<br>(Note: Enable Snapcast will disable SnapClient.)
 	</span>
 </div>
@@ -122,35 +124,66 @@ foreach( $i2slist as $name => $sysname ) {
 <div>
 <heading>Features<?=$help?></heading>
 	<?php if ( file_exists( '/usr/bin/chromium' ) ) { ?>
-<div class="col-l double"><a>Browser on RPi<br><gr>Chromium</gr></a><i class="fa fa-chromium fa-lg"></i></div>
+<div class="col-l double">
+	<!-- keep in single line to prevent extrs spaces -->
+	<a>Browser on RPi<br><gr>Chromium</gr></a><i class="fa fa-chromium fa-lg"></i>
+</div>
 <div class="col-r">
 	<input id="localbrowser" type="checkbox">
 	<div class="switchlabel" for="localbrowser"></div>
 	<i id="setting-localbrowser" class="setting fa fa-gear"></i>
-	<span class="help-block hide">Browser on RPi connected screen. (Overscan change needs reboot.)</span>
+	<span class="help-block hide">
+		<a href="https://github.com/chromium/chromium">Chromium</a> - Browser on RPi connected screen. (Overscan change needs reboot.)
+	</span>
 </div>
 	<?php } 
-		if ( file_exists( '/usr/bin/smbd' ) ) { ?>
-<div class="col-l double"><a>File Sharing<br><gr>Samba</gr></a><i class="fa fa-network fa-lg"></i></div>
+		  if ( file_exists( '/usr/bin/smbd' ) ) { ?>
+<div class="col-l double">
+	<a>File Sharing<br><gr>Samba</gr></a><i class="fa fa-network fa-lg"></i>
+</div>
 <div class="col-r">
 	<input id="samba" type="checkbox">
 	<div class="switchlabel" for="samba"></div>
 	<i id="setting-samba" class="setting fa fa-gear"></i>
 	<span class="help-block hide">
-		Share files on RuneAudio.
+		<a href="https://www.samba.org">Samba</a> - Share files on RuneAudio.
 		<br>Set sources permissions for read+write - directory: <code>0777</code> file: <code>0555</code>
 		<br><i class="fa fa-gear"></i>&ensp;Enable/disable write.
 	</span>
 </div>
+	<?php }
+		  if ( file_exists( '/srv/http/data/system/gpio.json' ) ) { ?>
+<div class="col-l double">
+	<a>GPIO Relay<br><gr>RPI.GPIO</gr></a><i class="fa fa-gpio fa-lg"></i>
+</div>
+<div class="col-r">
+	<input id="gpio" type="checkbox">
+	<div class="switchlabel" for="gpio"></div>
+	<span class="help-block hide">
+		<a href="https://github.com/rern/RuneUI_GPIO/blob/master/README.md">RuneUI - GPIO</a> - Control GPIO-connected relay module for power on / off equipments.
+	</span>
+</div>
 	<?php } ?>
-<div class="col-l double"><a>Password Login<br><gr>Blowfish</gr></a><i class="fa fa-lock-circle fa-lg"></i></div>
+<div class="col-l double">
+	<a>Last.fm Scrobbler<br><gr>mpdscribble</gr></a><i class="fa fa-lastfm fa-lg"></i></div>
+<div class="col-r">
+	<input id="mpdscribble" type="checkbox">
+	<div class="switchlabel" for="mpdscribble"></div>
+	<i id="setting-mpdscribble" class="setting fa fa-gear"></i>
+	<span class="help-block hide">
+		<a href="https://github.com/MusicPlayerDaemon/mpdscribble">mpdscribble</a> - Automatically send listened music data to Last.fm for tracking.
+	</span>
+</div>
+<div class="col-l double">
+	<a>Password Login<br><gr>Blowfish</gr></a><i class="fa fa-lock-circle fa-lg"></i></div>
 <div class="col-r">
 	<input id="login" type="checkbox"<?=( password_verify( 'rune', file_get_contents( '/srv/http/data/system/password' ) ) ? ' data-default="1"' : '' )?>>
 	<div class="switchlabel" for="password"></div>
 	<i id="setting-login" class="setting fa fa-gear"></i>
 	<span class="help-block hide">Browser interface login. (Default: <code>rune</code>)</span>
 </div>
-<div class="col-l double"><a>Play on Startup<br><gr>System</gr></a><i class="fa fa-refresh-play fa-lg"></i></div>
+<div class="col-l double">
+	<a>Play on Startup<br><gr>System</gr></a><i class="fa fa-refresh-play fa-lg"></i></div>
 <div class="col-r">
 	<input id="autoplay" type="checkbox">
 	<div class="switchlabel" for="autoplay"></div>
@@ -167,9 +200,7 @@ foreach( $i2slist as $name => $sysname ) {
 		<div class="switchlabel" for="i2smodulesw"></div>
 	</div>
 	<div id="divi2smodule">
-		<select id="i2smodule" data-style="btn-default btn-lg">
-			<?=$optioni2smodule?>
-		</select>
+		<?=$selecti2s?>
 	</div>
 	<span class="help-block hide">I&#178;S modules are not plug-and-play capable. Select a driver for installed device.</span>
 </div>
@@ -200,7 +231,8 @@ foreach( $i2slist as $name => $sysname ) {
 		<span class="help-block hide">Should be disabled if use other devices as audio output.</span>
 	</div>
 </div>
-	<?php if ( $rpiwireless ) {
+	<?php $hwcode = exec( '/usr/bin/sudo /usr/bin/awk \'/Revision/ {print substr($NF, 4, 2)}\' /proc/cpuinfo' );
+		if ( in_array( $hwcode, [ '0c', '08', '0e', '0d', '11' ] ) ) { # rpi with wireless
 			if ( file_exists( '/usr/bin/bluetoothctl' ) ) { ?>
 <div class="col-l">Bluetooth</div>
 <div class="col-r">
@@ -208,12 +240,12 @@ foreach( $i2slist as $name => $sysname ) {
 	<div class="switchlabel" for="bluetooth"></div>
 	<span class="help-block hide">Should be disabled if not used.</span>
 </div>
-		<?php } ?>
+		<?php $bluetooth = ', Bluetooth';
+			  } ?>
 <div class="col-l">Wi-Fi</div>
 <div class="col-r">
 	<input id="wlan" type="checkbox">
 	<div class="switchlabel" for="wlan"></div>
-	<i id="setting-wlan" class="setting fa fa-gear"></i>
 	<span class="help-block hide">Should be disabled if not used.</span>
 </div>
 	<?php } ?>
@@ -224,16 +256,20 @@ foreach( $i2slist as $name => $sysname ) {
 <div class="col-l">Name</div>
 <div class="col-r">
 	<input type="text" id="hostname" readonly style="cursor: pointer">
-	<span class="help-block hide">Name for Bluetooth, Renderers, RPi access point and system.</span>
+	<span class="help-block hide">Name for Renderers, Streamers, RPi access point<?=$bluetooth?> and system hostname.</span>
 </div>
 <div class="col-l">Timezone</div>
 <div class="col-r">
 	<?=$selecttimezone?>
-	<i id="setting-ntp" class="settingedit fa fa-gear"></i>
-	<span class="help-block hide"><i class="fa fa-gear"></i>&ensp;Set Network Time Protocol (NTP) server.</span>
+	<i id="setting-regional" class="settingedit fa fa-gear"></i>
+	<span class="help-block hide">
+		<i class="fa fa-gear"></i>&ensp;Set:
+		<br>- NTP - Network Time Protocol server
+		<br>- Wi-Fi regulatory domain:
+		<p style="margin: 0 0 0 20px">00 = Least common denominator settings, channels and transmit power are permitted in all countries.
+		<br>Active regulatory domian may be reassigned by connected router.</p>
+	</span>
 </div>
-</div>
-
 <div>
 <heading id="journalctl" class="status">Boot Log<i id="journalctlicon" class="fa fa-code"></i><?=$help?></heading>
 <span class="help-block hide"><code>journalctl -b | sed -n '1,/Startup finished/ p'</code></span>

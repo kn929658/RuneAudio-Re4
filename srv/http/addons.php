@@ -1,5 +1,4 @@
 <?php
-$dirsettings = '/srv/http/data';
 $diraddons = '/srv/http/data/addons';
 
 $time = time();
@@ -86,7 +85,7 @@ foreach( $arrayalias as $alias ) {
 		$installed = ' class="installed"';
 		$check = '<grn>&bull;</grn> ';
 		if ( $nouninstall ) {
-			$taphold = ' alias="'.$alias.'" style="pointer-events: unset"';
+			$taphold = ' style="pointer-events: unset"';
 			$hide = ' hide';
 		} else {
 			$taphold = '';
@@ -102,14 +101,14 @@ foreach( $arrayalias as $alias ) {
 			$update = 1;
 			$installed = ' class="installed update"';
 			$check = '<grn class="blink">&bull;</grn> ';
-			$btnin = '<a class="btn btn-primary" alias="'.$alias.'"'.$warning.'><i class="fa fa-folder-refresh"></i>Update</a>';
+			$btnin = '<a class="btn btn-primary" '.$warning.'><i class="fa fa-folder-refresh"></i>Update</a>';
 		}
 		$btnunattr = isset( $addon[ 'rollback' ] ) ? ' rollback="'.$addon[ 'rollback' ].'"' : '';
-		$btnun = '<a class="btn btn-primary'.$hide.'" alias="'.$alias.'"'.$btnunattr.'><i class="fa fa-minus-circle"></i>Uninstall</a>';
+		$btnun = '<a class="btn btn-primary red'.$hide.'" '.$btnunattr.'><i class="fa fa-minus-circle"></i>Uninstall</a>';
 	} else {
 		$installed = '';
 		$check = '';
-		$btnin = '<a class="btn btn-primary" alias="'.$alias.'">'.$buttonlabel.'</a>';
+		$btnin = '<a class="btn btn-primary">'.$buttonlabel.'</a>';
 		$btnun = '<a class="btn btn-default disabled"><i class="fa fa-minus-circle"></i>Uninstall</a>';
 	}
 	
@@ -175,7 +174,7 @@ echo $blocks;
 <p id="bottom"></p> <!-- for bottom padding -->
 
 <?php
-$keepkey = [ 'title', 'installurl', 'rollback', 'option' ];
+$keepkey = [ 'title', 'installurl', 'rollback', 'option', 'postinfo' ];
 foreach( $arrayalias as $alias ) {
 	if ( $alias === 'addo' ) continue;
 	$addonslist[ $alias ] = array_intersect_key( $addons[ $alias ], array_flip( $keepkey ) );
@@ -198,7 +197,7 @@ var addons = <?=json_encode( $addonslist )?>;
 var restart = '<?=$restart?>';
 if ( restart ) {
 	setTimeout( function() {
-		$.post( 'commands.php', { bash: 'systemctl restart '+ restart } );
+		$.post( 'cmd.php', { cmd: 'bash', bash: 'systemctl restart '+ restart } );
 	}, 1000 );
 }
 </script>

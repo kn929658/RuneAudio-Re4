@@ -2,8 +2,10 @@
 	position: fixed;
 	min-width: 230px;
 	max-width: 100%;
+	min-height: 47px;
 	bottom: 50px;
-	padding: 8px 130px 8px 15px;
+	padding: 6px 130px 5px 35px;
+	line-height: 18px;
 	z-index: 112; /* #banner > #loader > # #keyboard > #infoOverlay */
 	background: linear-gradient( to right, var( --cm ) calc( 100% - 100px ), rgba( 0,0,0,0 ) 100% );
 }
@@ -22,11 +24,16 @@
 #banner .time {
 	color: var( --cw );
 }
-#bannerTitle i {
+#bannerIcon {
+	position: absolute;
+	top: 0;
+	left: 0;
 	width: 30px;
-	height: 23px;
-	margin-right: 5px;
+	height: 100%;
+	font-size: 20px;
+	line-height: 28px;
 	text-align: center;
+	background-color: var( --cg );
 }
 #bannerTitle .iconimg {
 	margin-left: 0;
@@ -34,9 +41,6 @@
 }
 #bannerMessage {
 	font-size: 16px;
-}
-#bannerTitle i {
-	color: #000000;
 }
 #bannerMessage,
 #banner .time,

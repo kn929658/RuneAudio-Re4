@@ -324,7 +324,7 @@ a:hover {
 }
 .btn {
 	display: inline-block;
-	min-width: 100px;
+	min-width: 95px;
 	margin-bottom: 5px;
 	line-height: 34px;
 	text-align: center;
@@ -343,6 +343,9 @@ a:hover {
 .btn-default,
 .btn-default.disabled {
 	background-color: var( --cg );
+}
+.red {
+	background-color: #bb2828;
 }
 .btn i {
 	margin-right: 5px;
@@ -403,7 +406,7 @@ pre hr {
 	border: 1px solid #00ffff;
 }
 pre hr.hrlight {
-	border-width: 0.5px;
+	border-top: none;
 }
 p,
 ul,
@@ -445,6 +448,9 @@ ul,
 	}
 	.btn-primary:hover {
 		background-color: var( --cml )
+	}
+	.btn-primary.red:hover {
+		background-color: #bb4040 ;
 	}
 	.btn-default:hover {
 		background-color: var( --cgl );

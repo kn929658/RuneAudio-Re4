@@ -22,7 +22,7 @@ sources=$( fdisk -lo device | grep ^/dev/sd )
 if [[ -n $sources ]]; then
 	for source in $sources; do
 		if ! df --output=source | grep -q $source; then
-			label=$( udevil info $source | grep '^  label' | awk '{print $NF}' )
+			label=$( udevil info $source | awk '/^  label/ {print $NF}' )
 			mountpoint="/mnt/MPD/USB/$label"
 			data+='{"icon":"usbdrive","mountpoint":"'${mountpoint//\"/\\\"}'","mounted":false,"source":"'$source'"},'
 		fi

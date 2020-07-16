@@ -1,19 +1,39 @@
 <?php
 $sudo = '/usr/bin/sudo ';
-$sudobin = '/usr/bin/sudo /usr/bin/';
-$dirsystem = '/srv/http/data/system';
-$dirwebradios = '/srv/http/data/webradios';
+$sudobin = $sudo.'/usr/bin/';
+$dirbash = '/srv/http/bash/';
+$dirdata = '/srv/http/data/';
+$dirbookmarks = $dirdata.'bookmarks/';
+$dirsystem = $dirdata.'system/';
+$dirtmp = $dirdata.'tmp/';
+$dirwebradios = $dirdata.'webradios/';
 
-if ( isset( $_POST[ 'backuprestore' ] ) ) {
+switch( $_POST[ 'cmd' ] ) {
+
+case 'sh': // multiple commands / scripts: no pre-escaped characters - js > php > bash
+	$sh = $_POST[ 'sh' ];                                // 1 - get js array
+	$script = '/srv/http/bash/'.array_shift( $sh ).' "'; // 2 - extract script from 1st element
+	$script.= escape( implode( "\n", $sh ) ).'"';        // 3 - convert array to multi-line string and escape ` "
+	echo shell_exec( $sudo.$script );                    // 4 - pass string to bash > convert each line to each args
+	break;
+case 'bash': // single / one-line command - return string
+	$cmd = $_POST[ 'bash' ];
+	echo shell_exec( $cmd[ 0 ] === '/' ? $sudo.$cmd : $sudobin.$cmd );
+	break;
+case 'exec': // single / one-line command - return array of lines to js
+	exec( $sudobin.$_POST[ 'exec' ], $output, $std );
+	echo json_encode( $output );
+	break;
+case 'backuprestore':
 	$type = $_POST[ 'backuprestore' ];
-	$scriptfile = '/srv/http/bash/backup-restore.sh ';
+	$scriptfile = $dirbash.'backup-restore.sh ';
 	if ( $type === 'backup' ) {
 		exec( $sudo.$scriptfile.'backup' );
 		echo 'ready';
 	} else if ( $type === 'restore' ) {
 		if ( $_FILES[ 'file' ][ 'error' ] == UPLOAD_ERR_OK ) {
 			$ext = pathinfo( $_FILES[ 'file' ][ 'name' ], PATHINFO_EXTENSION );
-			$backupfile = '/srv/http/data/tmp/backup.'.$ext;
+			$backupfile = $dirtmp.'backup.'.$ext;
 			move_uploaded_file( $_FILES[ 'file' ][ 'tmp_name' ], $backupfile ); // full path
 			exec( $sudo.$scriptfile.'restore '.$ext );
 			$reboot = @file_get_contents( '/tmp/reboot' );
@@ -22,39 +42,14 @@ if ( isset( $_POST[ 'backuprestore' ] ) ) {
 	} else {
 		exec( $sudo.$scriptfile.$type );
 	}
-
-} else if ( isset( $_POST[ 'bash' ] ) ) {
-	$bash = $_POST[ 'bash' ];
-	$command = '';
-	if ( !is_array( $bash ) ) $bash = [ $bash ];
-	foreach( $bash as $cmd ) {
-		if ( $cmd[ 0 ] === '/' ) {
-			$command.= $sudo.$cmd.';';
-		} else {
-			$command.= $sudobin.$cmd.';';
-		}
-	}
-	if ( isset( $_POST[ 'string' ] ) ) {
-		echo shell_exec( $command );
-		exit;
-		
-	} else {
-		exec( $command, $output, $std );
-	}
-	if ( $std !== 0 && $std !== 3 ) { // systemctl status: inactive $std = 3
-		echo -1;
-	} else {
-		echo json_encode( $output, JSON_NUMERIC_CHECK );
-	}
-	if ( isset( $_POST[ 'pushstream' ] ) ) pushstream( 'notify', $_POST[ 'pushstream' ] );
-	
-} else if ( isset( $_POST[ 'bookmarks' ] ) ) { // delete, new, rename
+	break;
+case 'bookmarks':
 	$name = $_POST[ 'bookmarks' ];
 	$path = $_POST[ 'path' ];
 	$data[ 'path' ] = $path; // for pushstream
 	$pathname = str_replace( '/', '|', $path );
-	$file = '/srv/http/data/bookmarks/'.$pathname;
-	$fileorder = $dirsystem.'/order';
+	$file = $dirbookmarks.$pathname;
+	$fileorder = $dirsystem.'order';
 	$order = json_decode( file_get_contents( $fileorder ) );
 	if ( isset( $_POST[ 'delete' ] ) ) {
 		array_diff( $order, [ $path ] );
@@ -70,10 +65,10 @@ if ( isset( $_POST[ 'backuprestore' ] ) ) {
 				.'<a class="lipath">'.$path.'</a>';
 		if ( $base64 ) {
 			if ( $base64 === 'tmp' ) {
-				rename( '/srv/http/data/tmp/base64', $file );
+				rename( $dirtmp.'base64', $file );
 				$html.='<img class="bkcoverart" src="'.file_get_contents( $file ).'">';
 			} else if ( $base64 === 1 ) {
-				$cover = exec( $sudo.'/srv/http/bash/getcover.sh "/mnt/MPD/'.$path.'" 200' );
+				$cover = cmdsh( [ 'coverartthumb', $path, 200 ] );
 				file_put_contents( $file, $cover );
 				$html.='<img class="bkcoverart" src="'.$cover.'">';
 			} else {
@@ -104,34 +99,26 @@ if ( isset( $_POST[ 'backuprestore' ] ) ) {
 		];
 	}
 	pushstream( 'bookmark', $data );
-	
-} else if ( isset( $_POST[ 'coverart' ] ) ) {
-	$coverart = exec( $sudo.'/srv/http/bash/getcover.sh "/mnt/MPD/'.$_POST[ 'coverart' ].'"' );
-	if ( $coverart ) {
-		echo $coverart;
-		pushstream( 'coverart', [ 'coverart' => $coverart ] );
-	}
-	
-} else if ( isset( $_POST[ 'displayget' ] ) ) {
-	$data = json_decode( file_get_contents( $dirsystem.'/display' ) );
-	$data->color = rtrim( @file_get_contents( $dirsystem.'/color' ) ) ?: '200 100 35';
-	$data->order = json_decode( file_get_contents( $dirsystem.'/order' ) );
-	$audiooutputfile = file_exists( '/srv/http/data/system/usbdac' ) ? 'usbdac' : 'audio-output';
-	$data->volumenone = exec( $sudobin.'sed -n "/$( cat /srv/http/data/system/'.$audiooutputfile.' )/,/^}/ p" /etc/mpd.conf | tail -1 | cut -d\" -f2' ) === 'none' ? true : false;
+	break;
+case 'displayget':
+	$data = json_decode( file_get_contents( $dirsystem.'display' ) );
+	$data->color = rtrim( @file_get_contents( $dirsystem.'color' ) ) ?: '200 100 35';
+	$data->order = json_decode( file_get_contents( $dirsystem.'order' ) );
+	$audiooutputfile = file_exists( $dirsystem.'usbdac' ) ? 'usbdac' : 'audio-output';
+	$data->volumenone = cmdsh( [ 'volumenone', $audiooutputfile ] ) === 'none';
 	echo json_encode( $data );
-	
-} else if ( isset( $_POST[ 'displayset' ] ) ) {
+	break;
+case 'displayset':
 	$data = json_decode( $_POST[ 'displayset' ] );
-	file_put_contents( $dirsystem.'/display', json_encode( $data, JSON_PRETTY_PRINT ) );
+	file_put_contents( $dirsystem.'display', json_encode( $data, JSON_PRETTY_PRINT ) );
 	pushstream( 'display', $data );
-	
-} else if ( isset( $_POST[ 'getbookmarks' ] ) ) {
-	$dirbookmarks = '/srv/http/data/bookmarks';
+	break;
+case 'getbookmarks':
 	$files = array_slice( scandir( $dirbookmarks ), 2 );
 	if ( !count( $files ) ) $data = 0;
 	
 	foreach( $files as $file ) {
-		$content = file_get_contents( $dirbookmarks.'/'.$file );
+		$content = file_get_contents( $dirbookmarks.$file );
 		$isimage = substr( $content, 0, 10 ) === 'data:image';
 		if ( $isimage ) {
 			$name = '';
@@ -147,48 +134,11 @@ if ( isset( $_POST[ 'backuprestore' ] ) ) {
 		];
 	}
 	echo json_encode( $data );
-	
-} else if ( isset( $_POST[ 'getbootlog' ] ) ) {
-	$logfile = "/tmp/bootlog";
-	if ( !file_exists( $logfile ) ) exec( $sudobin."journalctl -b | sed -n '1,/Startup finished.*kernel/ p' | grep -v 'is already registered' > ".$logfile ); // omit bcm8235 driver error
-	$lines = file( $logfile );
-	$errors = preg_grep( '/Error:.*|Under-voltage/', $lines );
-	$errors = count( $errors ) ? "<red>Warnings:</red>\n".implode( $errors )."<hr>\n" : '';
-	$finished = preg_replace( '/.*Startup.*in/' , 'Startup:', end( $lines ) )."\n";
-	echo $errors.$finished.implode( $lines );
-	
-} else if ( isset( $_POST[ 'getjson' ] ) ) {
-	$script = $_POST[ 'getjson' ];
-	$output = exec( $sudo.$script );
-	$array = json_decode( $output, true );
-	if ( isset( $_POST[ 'nonumeric' ] ) ) {
-		echo json_encode( $array );
-	} else {
-		echo json_encode( $array, JSON_NUMERIC_CHECK );
-	}
-	
-} else if ( isset( $_POST[ 'getnetctl' ] ) ) {
-	exec( $sudobin.'netctl list', $profiles );
-	if ( count( $profiles ) ) {
-		$data = '';
-		foreach( $profiles as $profile ) {
-			$profile = preg_replace( '/\**\s*/', '', $profile );
-			$data.= $profile."<hr>";
-			$data.= shell_exec( "cat /etc/netctl/Home2GHz | sed -e '/^#.*/ d' -e 's/Key=.*/Key=\"*********\"/'" )."\n";
-		}
-	} else {
-		$data = '(none)';
-	}
-	echo $data;
-	
-} else if ( isset( $_POST[ 'getwifi' ] ) ) {
-	$profile = shell_exec( "grep '^Address\|^Gateway\|^IP\|^Key\|^Security' '/etc/netctl/".$_POST[ 'getwifi' ]."' | tr -d '\"' | sed 's/^/\"/ ;s/=/\":\"/; s/\$/\",/'" );
-	echo '{'.substr( $profile, 0, -2 ).'}';
-	
-} else if ( isset( $_POST[ 'imagefile' ] ) ) {
+	break;
+case 'imagefile':
 	$imagefile = $_POST[ 'imagefile' ];
 	if ( isset( $_POST[ 'base64bookmark' ] ) ) {
-		$imagefile = '/srv/http/data/bookmarks/'.str_replace( '/', '|', $imagefile );
+		$imagefile = $dirbookmarks.str_replace( '/', '|', $imagefile );
 		if ( !isset( $_FILES[ 'file' ] ) ) {
 			file_put_contents( $imagefile, $_POST[ 'base64bookmark' ] );
 		} else {
@@ -202,7 +152,7 @@ if ( isset( $_POST[ 'backuprestore' ] ) ) {
 		}
 		exit;
 	} else if ( isset( $_POST[ 'base64webradio' ] ) ) {
-		$imagefile = $dirwebradios.'/'.$imagefile;
+		$imagefile = $dirwebradios.$imagefile;
 		if ( !isset( $_FILES[ 'file' ] ) ) {
 			file_put_contents( $imagefile, $_POST[ 'base64webradio' ] );
 		} else {
@@ -217,7 +167,7 @@ if ( isset( $_POST[ 'backuprestore' ] ) ) {
 		exit;
 	} else if ( isset( $_POST[ 'bookmarkfile' ] ) ) { // # bookmark thumbnail
 		$bookmarkfile = $_POST[ 'bookmarkfile' ];
-		$thumbnail = exec( $sudo.'/srv/http/bash/getcover.sh "'.$imagefile.'" 200' );
+		$thumbnail = cmdsh( [ 'coverartthumb', $imagefile, 200 ] );
 		file_put_contents( $bookmarkfile, $thumbnail ? $thumbnail : $_POST[ 'label' ] );
 		echo $thumbnail;
 		exit;
@@ -227,9 +177,9 @@ if ( isset( $_POST[ 'backuprestore' ] ) ) {
 	$coverfile = isset( $_POST[ 'coverfile' ] );
 	$srcfile = $_POST[ 'srcfile' ] ?? '';
 	if ( $srcfile ) {
-		exec( $sudobin.'mv -f "'.$srcfile.'"{,.backup}', $output, $std );
+		cmdsh( [ 'filemove', $srcfile, $srcfile.'.backup' ] );
 		if ( isset( $_POST[ 'remove' ] ) ) {
-			echo exec( $sudo.'/srv/http/bash/getcover.sh "'.$imagefile.'"' );
+			echo cmdsh( [ 'coverartget', $imagefile ] );
 			exit;
 		}
 	} else {
@@ -237,10 +187,10 @@ if ( isset( $_POST[ 'backuprestore' ] ) ) {
 	}
 	if ( isset( $_POST[ 'base64' ] ) ) {
 		if ( !isset( $_FILES[ 'file' ] ) ) {
-			$tmpfile = '/srv/http/data/tmp/tmp.jpg';
+			$tmpfile = $dirtmp.'tmp.jpg';
 			file_put_contents( $tmpfile, base64_decode( preg_replace( '/^.*,/', '', $_POST[ 'base64' ] ) ) ) || exit( '-1' );
 			if ( !$coverfile ) $imagefile = substr( $imagefile, 0, -3 ).'jpg'; // if existing is 'cover.svg'
-			exec( $sudobin.'mv -f "'.$tmpfile.'" "'.$imagefile.'"', $output, $std );
+			cmdsh( [ 'filemove', $tmpfile, $imagefile ] );
 			if ( substr( $imagefile, -3 ) === 'gif' ) unlink( substr( $imagefile, 0, -3 ).'gif' );
 		} else {
 			if ( $_FILES[ 'file' ][ 'error' ] != UPLOAD_ERR_OK ) exit( '-1' );
@@ -251,16 +201,12 @@ if ( isset( $_POST[ 'backuprestore' ] ) ) {
 				, $_POST[ 'resize' ] ?? false
 			);
 		}
-	} else if ( isset( $_FILES[ 'file' ] ) ) {
-		if ( $_FILES[ 'file' ][ 'error' ] == UPLOAD_ERR_OK ) {
-			// fix: "move_uploaded_file" permission
-			exec( $sudobin.'mv -f "'.$_FILES[ 'file' ][ 'tmp_name' ].'" "'.$imagefile.'"', $output, $std );
-		}
+	} else if ( isset( $_FILES[ 'file' ] ) && $_FILES[ 'file' ][ 'error' ] == UPLOAD_ERR_OK ) {
+		cmdsh( [ 'filemove', $_FILES[ 'file' ][ 'tmp_name' ], $imagefile ] );
 	}
-	echo $std;	
-	
-} else if ( isset( $_POST[ 'login' ] ) ) {
-	$passwordfile = $dirsystem.'/password';
+	break;
+case 'login':
+	$passwordfile = $dirsystem.'password';
 	$hash = file_get_contents( $passwordfile );
 	if ( !password_verify( $_POST[ 'login' ], $hash ) ) die();
 	
@@ -272,28 +218,26 @@ if ( isset( $_POST[ 'backuprestore' ] ) ) {
 		session_start();
 		$_SESSION[ 'login' ] = 1;
 	}
-	
-} else if ( isset( $_POST[ 'logout' ] ) ) {
+	break;
+case 'logout':
 	session_start();
 	session_destroy();
-	
-} else if ( isset( $_POST[ 'screenoff' ] ) ) {
+	break;
+case 'screenoff':
 	exec( 'DISPLAY=:0 '.$sudobin.'xset dpms force off' );
-	
-} else if ( isset( $_POST[ 'setorder' ] ) ) {
+	break;
+case 'setorder':
 	$order = $_POST[ 'setorder' ]; 
-	file_put_contents( $dirsystem.'/order', json_encode( $order, JSON_PRETTY_PRINT ) );
+	file_put_contents( $dirsystem.'order', json_encode( $order, JSON_PRETTY_PRINT ) );
 	pushstream( 'order', $order );
-	
-} else if ( isset( $_POST[ 'status' ] ) ) { // for previous/next
-	$output = exec( $sudo.'/srv/http/bash/status.sh' );
-	$array = json_decode( $output, true );
-	pushstream( 'mpdplayer', $array );
-	
-} else if ( isset( $_POST[ 'volume' ] ) ) {
+	break;
+case 'similar':
+	echo shell_exec( '/srv/http/bash/mpdsimilar.sh "'.escape( $_POST[ 'similar' ] ).'"' );
+	break;
+case 'volume':
 	$volume = $_POST[ 'volume' ];
 	$current = $_POST[ 'current' ] ?? '';
-	$filevolumemute = $dirsystem.'/volumemute';
+	$filevolumemute = $dirsystem.'volumemute';
 	if ( $volume !== 'setmute' ) { // set
 		pushstream( 'volume', [ 'volume' => [ 'set', $volume ] ] );
 		volumeIncrement( $volume, $current );
@@ -310,12 +254,12 @@ if ( isset( $_POST[ 'backuprestore' ] ) ) {
 			@unlink( $filevolumemute );
 		}
 	}
-	
-} else if ( isset( $_POST[ 'webradios' ] ) ) {
+	break;
+case 'webradios':
 	$name = $_POST[ 'webradios' ].'^^Radio';
 	$url = $_POST[ 'url' ];
 	$urlname = str_replace( '/', '|', $url );
-	$filewebradios = $dirwebradios.'/'.$urlname;
+	$filewebradios = $dirwebradios.$urlname;
 	if ( ( isset( $_POST[ 'new' ] ) || isset( $_POST[ 'save' ] ) ) 
 		&& file_exists( $filewebradios )
 	) {
@@ -343,16 +287,24 @@ if ( isset( $_POST[ 'backuprestore' ] ) ) {
 		$urlnamenew = str_replace( '/', '|', $_POST[ 'newurl' ] );
 		if ( count( $content ) > 1 ) $name.= "\n".$content[ 1 ]."\n".$content[ 2 ];
 		@unlink( $filewebradios );
-		file_put_contents( $dirwebradios.'/'.$urlnamenew, $name ); // name, thumbnail, coverart
+		file_put_contents( $dirwebradios.$urlnamenew, $name ); // name, thumbnail, coverart
 		$count = 0;
 	} else if ( isset( $_POST[ 'delete' ] ) ) {
 		unlink( $filewebradios );
 		$count = -1;
 	}
 	pushstream( 'webradio', [ 'webradio' => $count ] );
-	
+	break;
 }
 
+function cmdsh( $sh ) {
+	$script = '/usr/bin/sudo /srv/http/bash/cmd.sh "';
+	$script.= escape( implode( "\n", $sh ) ).'"';
+	return shell_exec( $script );
+}
+function escape( $string ) {
+	return preg_replace( '/(["`])/', '\\\\\1', $string );
+}
 function gifSave( $imagefile, $tmpfile, $resize ) {
 	$type = explode( '/', $imagefile )[ 4 ];
 	if ( $type === 'coverart' ) {
@@ -368,7 +320,7 @@ function gifSave( $imagefile, $tmpfile, $resize ) {
 			, 'icon'  => 'coverart blink'
 			, 'delay' => -1
 		] );
-		exec( $sudobin.'convert "'.$tmpfile.'" -coalesce -resize 200x200 "'.$imagefile.'"' );
+		cmdsh( [ 'imageresize', $tmpfile, $imagefile ] );
 		if ( $type === 'bookmarks' ) {
 			$img = file_get_contents( $imagefile );
 			file_put_contents( $imagefile, 'data:image/gif;base64,'.base64_encode( $img ) );
@@ -383,11 +335,7 @@ function gifSave( $imagefile, $tmpfile, $resize ) {
 	}
 }
 function pushstream( $channel, $data ) {
-	$ch = curl_init( 'http://127.0.0.1/pub?id='.$channel );
-	curl_setopt( $ch, CURLOPT_HTTPHEADER, [ 'Content-Type:application/json' ] );
-	curl_setopt( $ch, CURLOPT_POSTFIELDS, json_encode( $data, JSON_NUMERIC_CHECK ) );
-	curl_exec( $ch );
-	curl_close( $ch );
+	exec( $sudobin.'curl -s -X POST http://127.0.0.1/pub?id='.$channel." -d '".json_encode( $data, JSON_NUMERIC_CHECK )."'" );
 }
 function volumeIncrement( $volume, $current = '' ) {
 	if ( !$current || abs( $volume - $current ) < 10 ) {

@@ -163,7 +163,7 @@ select,
 	background: var( --cgl );
 }
 .selectric-items li:hover {
-	background: var( --cg60 );
+	background: var( --cg );
 }
 .selectric-items .disabled {
 	filter: alpha(opacity=50);

@@ -6,10 +6,15 @@ if [[ -e /usr/bin/hostapd ]]; then
 	ssid=$( grep ssid= /etc/hostapd/hostapd.conf | cut -d= -f2 )
 	passphrase=$( grep '^wpa_passphrase' /etc/hostapd/hostapd.conf | cut -d'=' -f2 )
 	hostapdip=$( grep router /etc/dnsmasq.conf | cut -d',' -f2 )
-	extra+=',"hostapd":{"ssid":"'${ssid//\"/\\\"}'","passphrase":"'${passphrase//\"/\\\"}'","hostapdip":"'$hostapdip'","hostapd":'$hostapd'}'
+	ap='
+	  "ssid"       : "'${ssid//\"/\\\"}'"
+	, "passphrase" : "'${passphrase//\"/\\\"}'"
+	, "hostapdip"  : "'$hostapdip'"
+	, "hostapd"    : '$hostapd
 fi
 
-. /srv/http/bash/network-ifconfig.sh
+lines=$( /srv/http/bash/network.sh ifconfig )
+readarray -t lines <<<"$lines"
 for line in "${lines[@]}"; do
 	items=( $line )
 	interface=${items[0]}
@@ -25,13 +30,19 @@ for line in "${lines[@]}"; do
 		ip=
 		mac=$items1
 	fi
-	ipr=$( ip r | grep "default.*$interface" )
-	gateway=( $( echo "$ipr" | sed 's/.*via \(.*\) dev.*/\1/' ) )
-	dhcp=$( [[ $ipr == *"dhcp src $ip "* ]] && echo true || echo false )
+	ipr=$( ip r | grep "^default.*$interface" )
+	dhcp=$( [[ $ipr == *"dhcp src $ip "* ]] && echo dhcp || echo static )
+	gateway=$( cut -d' ' -f3 <<< $ipr )
+	[[ -z $gateway ]] && gateway=$( ip r | grep ^default | head -n1 | cut -d' ' -f3 )
 	[[ $inftype == wlan && -n $ip && $ip != $hostapdip ]] && ssid=$( iwgetid $interface -r ) || ssid=
-	data+='{"dhcp":'$dhcp',"mac":"'$mac'","gateway":"'$gateway'","interface":"'$interface'","ip":"'$ip'","ssid":"'$ssid'"},'
+	data+='{"dhcp":"'$dhcp'","mac":"'$mac'","gateway":"'$gateway'","interface":"'$interface'","ip":"'$ip'","ssid":"'$ssid'"},'
 done
 
+extra='
+	  "hostapd"  : {'$ap'}
+	, "hostname" : "'$( hostname )'"
+	, "reboot"   : "'$( cat /srv/http/data/tmp/reboot 2> /dev/null )'"
+	, "wlan"     : '$( lsmod | grep -q ^brcmfmac && echo true || echo false )
 # bluetooth
 if systemctl -q is-active bluetooth; then
 	paired=$( bluetoothctl paired-devices )
@@ -49,10 +60,7 @@ if systemctl -q is-active bluetooth; then
 	fi
 	extra+=',"bluetooth":'$btlist
 fi
-extra+=',"hostname":"'$( hostname )'"
-	    ,"reboot":"'$( cat /srv/http/data/tmp/reboot 2> /dev/null )'"
-	    ,"wlan":'$( lsmod | grep -q ^brcmfmac && echo true || echo false )
 		
-data+={${extra:1}}
+data+={${extra}}
 
 echo [${data}]

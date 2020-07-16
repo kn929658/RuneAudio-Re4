@@ -3,70 +3,10 @@ $( function() { // document ready start >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 $( '#timezone, #i2smodule' ).selectric( { maxHeight: 400 } );
 $( '.selectric-input' ).prop( 'readonly', 1 ); // fix - suppress screen keyboard
 
-var dirsystem = '/srv/http/data/system';
 var filereboot = '/srv/http/data/tmp/reboot';
 
 $( '.container' ).on( 'click', '.settings', function() {
 	location.href = 'index-settings.php?p='+ this.id
-} );
-$( '#hostname' ).click( function() {
-	info( {
-		  icon      : 'rune'
-		, title     : 'Player Name'
-		, textlabel : 'Name'
-		, textvalue : G.hostname
-		, ok        : function() {
-			var hostname = $( '#infoTextBox' ).val().replace( /[^a-zA-Z0-9-]+/g, '-' ).replace( /(^-*|-*$)/g, '' );
-			if ( hostname !== G.hostname ) {
-				G.hostname = hostname;
-				$( '#hostname' ).val( hostname );
-				var hostnamelc = hostname.toLowerCase();
-				local = 1;
-				$.post( 'commands.php', { bash: [
-					  'hostnamectl set-hostname "'+ hostnamelc +'"'                                        // hostname
-					, "sed -i 's/\\(--hostname \\).*/\\1"+ hostname +"/' /etc/systemd/system/wsdd.service" // web service discovery
-					, "sed -i 's/^\\(ssid=\\).*/\\1"+ hostname +"/' /etc/hostapd/hostapd.conf"             // hostapd
-					, "sed -i '/^\\tname =/ s/\".*\"/\""+ hostname +"\"/' /etc/shairport-sync.conf"        // shairport-sync
-					, "sed -i 's/^\\(friendlyname = \\).*/\\1"+ hostname +"/' /etc/upmpdcli.conf"          // upnp
-					, 'rm -f /root/.config/chromium/SingletonLock'                                         // chromium profile reset
-					, 'systemctl daemon-reload'
-					, 'systemctl try-restart avahi-daemon hostapd mpd smb wsdd shairport-sync shairport-meta upmpdcli'
-					, 'systemctl -q is-active bluetooth && bluetoothctl system-alias "'+ hostname +'"'
-					, "echo '"+ hostname +"' > "+ dirsystem +"/hostname"
-					, curlPage( 'system' )
-				] }, resetlocal );
-				banner( 'Name', 'Change ...', 'sliders' );
-			}
-		}
-	} );
-} );
-$( '#setting-ntp' ).click( function() {
-	info( {
-		  icon      : 'stopwatch'
-		, title     : 'NTP Server'
-		, textlabel : 'URL'
-		, textvalue : G.ntp
-		, ok        : function() {
-			var ntp = $( '#infoTextBox' ).val();
-			if ( ntp === G.ntp ) {
-				G.ntp = ntp
-				local = 1;
-				$.post( 'commands.php', { bash: [
-					  "sed -i 's/^\\(NTP=\\).*/\\1"+ ntp +"/' /etc/systemd/timesyncd.conf"
-					, "echo '"+ ntp +"' > "+ dirsystem +"/ntp"
-					, curlPage( 'system' )
-				] }, resetlocal );
-			}
-		}
-	} );
-} );
-$( '#timezone' ).on( 'change', function( e ) {
-	G.timezone = $( this ).find( ':selected' ).val();
-	$.post( 'commands.php', { bash: [ 
-		  'timedatectl set-timezone '+ G.timezone
-		, "echo '"+ G.timezone +"' > "+ dirsystem +"/timezone"
-		, curlPage( 'system' )
-	] } );
 } );
 $( 'body' ).on( 'click touchstart', function( e ) {
 	if ( !$( e.target ).closest( '.i2s' ).length && $( '#i2smodule option:selected' ).val() === 'none' ) {
@@ -78,14 +18,14 @@ $( '#refresh' ).click( function( e ) {
 	if ( $( e.target ).hasClass( 'help' ) ) return
 	
 	var $this = $( this );
-	var active = $this.find( 'i' ).hasClass( 'blink' );
-	$this.find( 'i' ).toggleClass( 'blink', !active );
+	var active = $this.find( '.fa-refresh' ).hasClass( 'blink' );
+	$this.find( '.fa-refresh' ).toggleClass( 'blink', !active );
 	if ( active ) {
 		clearInterval( intervalcputime );
+		bannerHide();
 	} else {
-		var bullet = ' <gr>&bull;</gr> ';
 		intervalcputime = setInterval( function() {
-			$.post( 'commands.php', { getjson: '/srv/http/bash/system-data.sh status' }, function( status ) {
+			bash( '/srv/http/bash/system-data.sh status', function( status ) {
 				$.each( status, function( key, val ) {
 					G[ key ] = val;
 				} );
@@ -97,47 +37,30 @@ $( '#refresh' ).click( function( e ) {
 } );
 $( '#airplay' ).click( function( e ) {
 	G.airplay = $( this ).prop( 'checked' );
-	var bannertxt = G.airplay && !G.avahi ? ' + URL By Name' : '';
-	if ( G.airplay ) {
-		G.avahi = true;
-		$( '#avahi' ).prop( 'checked', 1 );
-	}
-	local = 1;
-	$.post( 'commands.php', { bash: [
-		  'systemctl '+ ( G.airplay ? 'enable' : 'disable' ) +' --now shairport-sync'
-		, ( G.airplay ? 'touch ' : 'rm -f ' ) + dirsystem +'/airplay'
-		, curlPage( 'system' )
-	] }, resetlocal );
-	banner( 'AirPlay  Renderer'+ bannertxt, G.airplay, 'airplay' );
+	banner( 'AirPlay Renderer', G.airplay, 'airplay' );
+	sh( [ 'airplay', G.airplay ], resetLocal );
 } );
 $( '#snapclient' ).click( function( e ) {
 	G.snapclient = $( this ).prop( 'checked' );
 	$( '#setting-snapclient' ).toggleClass( 'hide', !G.snapclient );
-	local = 1;
-	$.post( 'commands.php', { bash: [
-		  ( G.snapclient ? 'touch ' : 'rm -f ' ) + dirsystem +'/snapclient'
-		, curlPage( 'system' )
-	] }, resetlocal );
+	banner( 'SnapClient Renderer', G.snapclient, 'snapcast' );
+	sh( [ 'snapclient', G.snapclient ], resetLocal );
 } );
 $( '#setting-snapclient' ).click( function() {
 	info( {
-		  icon      : 'snapcast'
-		, title     : 'SnapClient'
-		, message   : 'Sync client to server:'
-		, textlabel : 'Latency <gr>(ms)</gr>'
-		, textvalue : G.snaplatency
-		, ok        : function() {
+		  icon          : 'snapcast'
+		, title         : 'SnapClient'
+		, message       : 'Sync client to server:'
+		, textlabel     : 'Latency <gr>(ms)</gr>'
+		, textvalue     : G.snaplatency
+		, passwordlabel : 'Password'
+		, footer        : '<px60/>*Snapserver - if not <wh>rune</wh>'
+		, ok            : function() {
 			var latency = Math.abs( $( '#infoTextBox' ).val() );
 			if ( latency !== G.snaplatency ) {
 				G.snaplatency = latency;
-				local = 1;
-				$.post( 'commands.php', { bash: [
-					  "sed -i '/OPTS=/ s/\".*\"/\"--latency="+ latency +"\"/' /etc/default/snapclient"
-					, 'systemctl try-restart snapclient'
-					, 'echo '+ latency +' > '+ dirsystem +'/snapcast-latency'
-					, curlPage( 'system' )
-				] }, resetlocal );
 				banner( 'Snapclient Latency', 'Change ...', 'snapcast' );
+				sh( [ 'snapclientset', G.snaplatency ], resetLocal );
 			}
 		}
 	} );
@@ -145,17 +68,14 @@ $( '#setting-snapclient' ).click( function() {
 $( '#spotify' ).click( function() {
 	G.spotify = $( this ).prop( 'checked' );
 	$( '#setting-spotify' ).toggleClass( 'hide', !G.spotify );
-	local = 1;
-	$.post( 'commands.php', { bash: [
-		  'systemctl '+ ( G.spotify ? 'enable' : 'disable' ) +' --now spotifyd'
-		, ( G.spotify ? 'touch ' : 'rm -f ' ) + dirsystem +'/spotify'
-		, curlPage( 'system' )
-	] }, resetlocal );
 	banner( 'Spotify Connect', G.spotify, 'spotify' );
+	sh( [ 'spotify', G.spotify ], resetLocal );
 } );
 $( '#setting-spotify' ).click( function() {
-	$.post( 'commands.php', { bash: "aplay -L | grep -v '^\\s\\|^null' | tr '\\n' ' '" }, function( data ) {
-		var devices = data[ 0 ].split( ' ' );
+	$.post( cmdphp, {
+		  cmd  : 'exec'
+		, exec : "aplay -L | grep -v '^\\s\\|^null'"
+	}, function( devices ) {
 		var select = {}
 		devices.forEach( function( val ) {
 			select[ val ] = val;
@@ -181,13 +101,8 @@ $( '#setting-spotify' ).click( function() {
 				var device = $( '#infoSelectBox option:selected' ).text();
 				if ( device !== G.spotifydevice ) {
 					G.spotifydevice = device;
-					local = 1;
-					$.post( 'commands.php', { bash: [
-						, 'systemctl try-restart spotifyd'
-						, 'echo '+ device +' > '+ dirsystem +'/spotify-device'
-						, curlPage( 'system' )
-					] }, resetlocal );
 					banner( 'Spotify Renderer', 'Change ...', 'spotify' );
+					sh( [ 'spotifyset', device ], resetLocal );
 				}
 			}
 		} );
@@ -195,23 +110,8 @@ $( '#setting-spotify' ).click( function() {
 } );
 $( '#upnp' ).click( function( e ) {
 	G.upnp = $( this ).prop( 'checked' );
-	local = 1;
-	$.post( 'commands.php', { bash: [
-		  'systemctl '+ ( G.upnp ? 'enable' : 'disable' ) +' --now upmpdcli'
-		, ( G.upnp ? 'touch ' : 'rm -f ' ) + dirsystem +'/upnp'
-		, curlPage( 'system' )
-	] }, resetlocal );
-	banner( 'UPnP Renderer', G.upnp, 'upnp' );
-} );
-$( '#streaming' ).click( function( e ) {
-	G.streaming = $( this ).prop( 'checked' );
-	local = 1;
-	$.post( 'commands.php', { bash: [
-		, ( G.streaming ? 'touch ' : 'rm -f ' ) + dirsystem +'/streaming'
-		, '/srv/http/bash/mpd-conf.sh'
-		, curlPage( 'system' )
-	] }, resetlocal );
-	banner( 'HTTP Streaming', G.streaming, 'mpd' );
+	banner( 'UPnP Renderer', G.upnp, 'upnp fa-s' );
+	sh( [ 'upnp', G.upnp ], resetLocal );
 } );
 $( '#snapcast' ).click( function( e ) {
 	G.snapcast = $( this ).prop( 'checked' );
@@ -221,40 +121,19 @@ $( '#snapcast' ).click( function( e ) {
 	} else {
 		$( '#divsnapclient' ).removeClass( 'hide' );
 	}
-	local = 1;
-	$.post( 'commands.php', { bash: [
-		  'systemctl '+ ( G.snapcast ? 'enable' : 'disable' ) +' --now snapserver'
-		, ( G.snapcast ? 'touch ' : 'rm -f ' ) + dirsystem +'/snapcast'
-		, '/srv/http/bash/mpd-conf.sh'
-		, '/srv/http/bash/snapcast.sh serverstop'
-		, curlPage( 'system' )
-	] }, resetlocal );
 	banner( 'Snapcast - Sync Streaming Server', G.snapcast, 'snapcast' );
+	sh( [ 'snapcast', G.snapcast ], resetLocal );
+} );
+$( '#streaming' ).click( function( e ) {
+	G.streaming = $( this ).prop( 'checked' );
+	banner( 'HTTP Streaming', G.streaming, 'mpd' );
+	sh( [ 'streaming', G.streaming ], resetLocal );
 } );
 $( '#localbrowser' ).click( function( e ) {
 	G.localbrowser = $( this ).prop( 'checked' );
 	$( '#setting-localbrowser' ).toggleClass( 'hide', !G.localbrowser );
-	local = 1;
-	if ( G.localbrowser ) {
-		var cmd = [
-			  "sed -i 's/\\(console=\\).*/\\1tty3 plymouth.enable=0 quiet loglevel=0 logo.nologo vt.global_cursor_default=0/' /boot/cmdline.txt"
-			, 'systemctl enable --now localbrowser'
-			, 'systemctl disable getty@tty1'
-			, 'touch '+ dirsystem +'/localbrowser'
-			, curlPage( 'system' )
-		];
-	} else {
-		var cmd = [
-			  "sed -i 's/\\(console=\\).*/\\1tty1/' /boot/cmdline.txt"
-			, 'systemctl disable --now localbrowser'
-			, 'systemctl enable getty@tty1'
-			, 'rm -f '+ dirsystem +'/localbrowser'
-			, '/usr/local/bin/ply-image /srv/http/assets/img/splash.png'
-			, curlPage( 'system' )
-		];
-	}
-	$.post( 'commands.php', { bash: cmd }, resetlocal( 7000 ) );
-	banner( 'Chromium - Browser on RPi', G.localbrowser, 'chromium' );
+	banner( 'Chromium - Browser on RPi', G.localbrowser, 'chromium blink' );
+	sh( [ 'localbrowser', G.localbrowser ], resetLocal( 7000 ) );
 } );
 var localbrowserinfo = heredoc( function() { /*
 	<div id="infoText" class="infocontent">
@@ -284,37 +163,6 @@ var localbrowserinfo = heredoc( function() { /*
 		<label><input type="checkbox">&ensp;Mouse pointer</label><br>
 	</div>
 */ } );
-// !!!keep 'space' indent here
-var rotatecontent = heredoc( function() { /*
-Section "Device"
-    Identifier "RpiFB"
-    Driver "fbdev"
-    Option "rotate" "ROTATION_SETTING"
-EndSection
-
-Section "InputClass"
-    Identifier "Touchscreen"
-    Driver "libinput"
-    MatchIsTouchscreen "on"
-    MatchDevicePath "/dev/input/event*"
-    Option "calibrationmatrix" "MATRIX_SETTING"
-EndSection
-
-Section "Monitor"
-    Identifier "generic"
-EndSection
-
-Section "Screen"
-    Identifier "screen1"
-    Device "RpiFB"
-    Monitor "generic"
-EndSection
-
-Section "ServerLayout"
-    Identifier "slayo1"
-    Screen "screen1"
-EndSection
-*/ } );
 $( '#setting-localbrowser' ).click( function( e ) {
 	info( {
 		  icon        : 'chromium'
@@ -329,7 +177,7 @@ $( '#setting-localbrowser' ).click( function( e ) {
 		, buttonlabel : '<i class="fa fa-refresh"></i>Refresh'
 		, buttoncolor : '#de810e'
 		, button      : function() {
-			$.post( 'commands.php', { bash: 'curl -s -X POST "http://127.0.0.1/pub?id=reload" -d \'{ "reload": 1 }\'' } );
+			sh( [ 'refreshbrowser' ] );
 		}
 		, buttonwidth : 1
 		, ok          : function() {
@@ -345,78 +193,9 @@ $( '#setting-localbrowser' ).click( function( e ) {
 			G.rotate    = rotate;
 			G.screenoff = screenoff;
 			G.zoom      = zoom;
-			var localbrowser = dirsystem +'/localbrowser-';
-			var cmd = [
-				  ( zoom != 1 ? 'echo '+ zoom +' > ' : 'rm -f ' ) + localbrowser +'zoom'
-				, ( cursor ? 'touch ' : 'rm -f ' ) + localbrowser +'cursor'
-				, ( screenoff != 0 ? 'echo '+ ( screenoff * 60 ) +' > ' : 'rm -f ' ) + localbrowser +'screenoff'
-				, "sed -i"
-					+" -e 's/\\(-use_cursor \\).*/\\1"+ ( cursor == 1 ? 'yes' : 'no' ) +" \\\&/'"
-					+" -e 's/\\(factor=\\).*/\\1"+ zoom +"/'"
-			 		+" -e 's/\\(xset dpms 0 0 \\).*/\\1"+ ( screenoff * 60 ) +" \\\&/'"
-					+" /etc/X11/xinit/xinitrc"
-				, 'ln -sf /srv/http/assets/img/{'+ rotate +',splash}.png'
-				, 'rm -f /etc/X11/xorg.conf.d/99-raspi-rotate.conf '+ localbrowser +'rotatefile'
-			];
-			if ( rotate !== 'NORMAL' ) {
-				var matrix = {
-					  CW  : '0 1 0 -1 0 1 0 0 1'
-					, CCW : '0 -1 1 1 0 0 0 0 1'
-					, UD  : '-1 0 1 0 -1 1 0 0 1'
-				}
-				rotatecontent = rotatecontent.replace( 'ROTATION_SETTING', rotate ).replace( 'MATRIX_SETTING', matrix[ rotate ] );
-				cmd.push(
-					  "echo '"+ rotatecontent +"' > "+ localbrowser +'rotatefile'
-					, 'cp -f '+ localbrowser +'rotatefile /etc/X11/xorg.conf.d/99-raspi-rotate.conf'
-				);
-			}
-			cmd.push( 
-				  'systemctl restart localbrowser'
-				, curlPage( 'system' )
-			);
-			local = 1;
-			$.post( 'commands.php', { bash: cmd }, function() {
-				resetlocal( 7000 );
-			} );
-			banner( 'Chromium - Browser on RPi', 'Change ...', 'chromium' );
-		}
-	} );
-} );
-$( '#login' ).click( function( e ) {
-	G.login = $( this ).prop( 'checked' );
-	$( '#setting-login' ).toggleClass( 'hide', !G.login );
-	local = 1;
-	$.post( 'commands.php', { bash: [
-		  ( G.login ? 'touch ' : 'rm -f ' ) + dirsystem +'/login'
-		, "sed -i '/^bind_to_address/ s/\".*\"/\""+ ( G.login ? '127.0.0.1' : '0.0.0.0' ) +"\"/' /etc/mpd.conf"
-		, 'systemctl restart mpd'
-		, curlPage( 'system' )
-	] }, resetlocal );
-	banner( 'Password Login', G.login, 'lock' );
-	if ( G.login && G.passworddefault ) {
-		info( {
-			  icon    : 'lock'
-			, title   : 'Password'
-			, message : 'Default password is <wh>rune</wh>'
-		} );
-	}
-} );
-$( '#setting-login' ).click( function() {
-	info( {
-		  icon          : 'lock'
-		, title         : 'Change Password'
-		, passwordlabel : [ 'Existing', 'New' ]
-		, ok            : function() {
-			$.post( 'commands.php', {
-				  login  : $( '#infoPasswordBox' ).val()
-				, pwdnew : $( '#infoPasswordBox1' ).val() }
-			, function( std ) {
-				info( {
-					  icon    : 'lock'
-					, title   : 'Change Password'
-					, nox     : 1
-					, message : ( std ? 'Password changed' : 'Wrong existing password' )
-				} );
+			banner( 'Chromium - Browser on RPi', 'Change ...', 'chromium blink' );
+			sh( [ 'localbrowserset', rotate, cursor, ( screenoff * 60 ), zoom ], function() {
+				resetLocal( 7000 );
 			} );
 		}
 	} );
@@ -424,13 +203,8 @@ $( '#setting-login' ).click( function() {
 $( '#samba' ).click( function( e ) {
 	G.samba = $( this ).prop( 'checked' );
 	$( '#setting-samba' ).toggleClass( 'hide', !G.samba );
-	local = 1;
-	$.post( 'commands.php', { bash: [
-		  'systemctl '+ ( G.samba ? 'enable' : 'disable' ) +' --now smb wsdd'
-		, ( G.samba ? 'touch ' : 'rm -f ' ) + dirsystem +'/samba'
-		, curlPage( 'system' )
-	] }, resetlocal );
-	banner( 'Samba - File Sharing', G.samba, 'network' );
+	banner( 'Samba - File Sharing', G.samba, 'network blink' );
+	sh( [ 'samba', G.samba ], resetLocal );
 } );
 $( '#setting-samba' ).click( function() {
 	info( {
@@ -448,30 +222,91 @@ $( '#setting-samba' ).click( function() {
 			if ( writesd !== G.writesd || writeusb !== G.writeusb ) {
 				G.writesd = writesd;
 				G.writeusb = writeusb;
-				var sed = "sed -i -e '/read only = no/ d'";
-				if ( writesd ) sed += " -e '/path = .*SD/ a\\\tread only = no'";
-				if ( writeusb ) sed += " -e '/path = .*USB/ a\\\tread only = no'";
-				local = 1;
-				$.post( 'commands.php', { bash: [ 
-					  sed +' /etc/samba/smb.conf'
-					, 'systemctl try-restart smb wsdd'
-					, ( writesd ? 'rm -f ' : 'touch ' ) + dirsystem +'/samba-readonlysd'
-					, ( writeusb ? 'rm -f ' : 'touch ' ) + dirsystem +'/samba-readonlyusb'
-					, curlPage( 'system' )
-				] }, resetlocal );
-				banner( 'Samba - File Sharing', 'Change ...', 'network' );
+				banner( 'Samba - File Sharing', 'Change ...', 'network blink' );
+				sh( [ 'sambaset', G.writesd, G.writeusb ], resetLocal );
 			}
+		}
+	} );
+} );
+$( '#gpio' ).click( function() {
+	G.gpio = $( this ).prop( 'checked' );
+	$( '#setting-gpio' ).toggleClass( 'hide', !G.gpio );
+	banner( 'GPIO Relay', G.gpio, 'gpio blink' );
+	bash( ( G.gpio ? 'touch ' : 'rm ' ) + dirsystem +'/gpio', resetLocal );
+} );
+$( '#mpdscribble' ).click( function() {
+	var mpdscribble = $( this ).prop( 'checked' );
+	if ( mpdscribble && !G.mpdscribbleuser ) {
+		$( '#setting-mpdscribble' ).click();
+	} else {
+		banner( 'Scrobbler', mpdscribble, 'lastfm' );
+		sh( [ 'mpdscribble', mpdscribble ], function( std ) {
+			G.mpdscribble = std == 0 ? true : false;
+			$( '#setting-mpdscribble' ).toggleClass( 'hide', !G.mpdscribble );
+			resetLocal();
+		} );
+	}
+} );
+$( '#setting-mpdscribble' ).click( function() {
+	info( {
+		  icon          : 'lastfm'
+		, title         : 'Scrobbler'
+		, textlabel     : 'Username'
+		, textvalue     : G.mpdscribbleuser
+		, passwordlabel : 'Password'
+		, cancel        : function() {
+			$( '#mpdscribble' ).prop( 'checked', G.mpdscribble );
+		}
+		, ok            : function() {
+			G.mpdscribbleuser = $( '#infoTextBox' ).val().replace( /(["&()\\])/g, '\$1' );
+			var password = $( '#infoPasswordBox' ).val().replace( /(["&()\\])/g, '\$1' );
+			banner( 'Scrobbler', G.mpdscribble ? 'Change ...' : 'Enable ...', 'lastfm' );
+			sh( [ 'mpdscribbleset', G.mpdscribbleuser, password ], function( std ) {
+				G.mpdscribble = std == 0 ? true : false;
+				$( '#setting-mpdscribble' ).toggleClass( 'hide', !G.mpdscribble );
+				resetLocal();
+		} );
+		}
+	} );
+} );
+$( '#login' ).click( function( e ) {
+	G.login = $( this ).prop( 'checked' );
+	$( '#setting-login' ).toggleClass( 'hide', !G.login );
+	banner( 'Password Login', G.login, 'lock' );
+	sh( [ 'login', G.login ], resetLocal );
+	if ( G.login && G.passworddefault ) {
+		info( {
+			  icon    : 'lock'
+			, title   : 'Password'
+			, message : 'Default password is <wh>rune</wh>'
+		} );
+	}
+} );
+$( '#setting-login' ).click( function() {
+	info( {
+		  icon          : 'lock'
+		, title         : 'Change Password'
+		, passwordlabel : [ 'Existing', 'New' ]
+		, ok            : function() {
+			$.post( cmdphp, {
+				  cmd    : 'login'
+				, login  : $( '#infoPasswordBox' ).val()
+				, pwdnew : $( '#infoPasswordBox1' ).val()
+			}, function( std ) {
+				info( {
+					  icon    : 'lock'
+					, title   : 'Change Password'
+					, nox     : 1
+					, message : ( std ? 'Password changed' : 'Wrong existing password' )
+				} );
+			} );
 		}
 	} );
 } );
 $( '#autoplay' ).click( function() {
 	G.autoplay = $( this ).prop( 'checked' );
-	local = 1;
-	$.post( 'commands.php', { bash: [
-		 ( G.autoplay ? 'touch ' : 'rm -f ' ) + dirsystem +'/autoplay'
-		, curlPage( 'system' )
-	] }, resetlocal );
-	banner( 'Play On Startup', G.autoplay, 'mpd' );
+	banner( 'Play on Startup', G.autoplay, 'refresh-play' );
+	sh( [ 'autoplay', G.autoplay ], resetLocal );
 } );
 $( '#onboardaudio' ).click( function( e ) {
 	var onboardaudio = $( this ).prop( 'checked' );
@@ -486,77 +321,19 @@ $( '#onboardaudio' ).click( function( e ) {
 		G.onboardaudio = onboardaudio;
 		rebootText( onboardaudio ? 'Enable' : 'Disable', 'on-board audio' );
 		local = 1;
-		$.post( 'commands.php', { bash: [
-			  "sed -i 's/\\(dtparam=audio=\\).*/\\1"+ ( onboardaudio ? 'on' : 'off' ) +"/' /boot/config.txt"
-			, ( onboardaudio ? 'touch ' : 'rm -f ' ) + dirsystem +'/onboard-audio'
-			, "sed -i '/on-board audio/ d' "+ filereboot
-			, "echo -e '"+ G.reboot.join( '\n' ) +"' > "+ filereboot
-			, curlPage( 'system' )
-		] }, resetlocal );
+		sh( [ 'onboardaudio', G.onboardaudio, G.reboot.join( '\n' ) ], resetLocal );
 	}
 } );
 $( '#bluetooth' ).click( function( e ) {
-	bluetooth = $( this ).prop( 'checked' );
-	local = 1;
-	if ( bluetooth ) {
-		var cmd = [
-			  "sed -i '/dtoverlay=bcmbt/ d' /boot/config.txt"
-			, "sed -i '$ a\dtoverlay=bcmbt' /boot/config.txt"
-			, 'touch '+ dirsystem +'/onboard-bluetooth'
-		];
-	} else {
-		var cmd = [
-			  "sed -i '/dtoverlay=bcmbt/ d' /boot/config.txt"
-			, 'rm -f '+ dirsystem +'/onboard-bluetooth'
-			, 'systemctl stop bluetooth'
-		];
-	}
-	rebootText( bluetooth ? 'Enable' : 'Disable', 'on-board Bluetooth' );
-	cmd.push(
-		  "echo -e '"+ G.reboot.join( '\n' ) +"' > "+ filereboot
-		, curlPage( 'system' )
-	);
-	$.post( 'commands.php', { bash: cmd }, resetlocal );
+	G.bluetooth = $( this ).prop( 'checked' );
+	rebootText( G.bluetooth ? 'Enable' : 'Disable', 'on-board Bluetooth' );
+	banner( 'On-board Bluetooth', G.bluetooth, 'bluetooth' );
+	sh( [ 'bluetooth', G.bluetooth, G.reboot.join( '\n' ) ], resetLocal );
 } );
 $( '#wlan' ).click( function( e ) {
 	G.wlan = $( this ).prop( 'checked' );
-	if ( G.wlan ) {
-		var cmd = [
-			  'modprobe brcmfmac'
-			, 'systemctl enable --now netctl-auto@wlan0'
-			, 'touch '+ dirsystem +'/onboard-wlan'
-			, curlPage( 'system' )
-		];
-	} else {
-		var cmd = [
-			  'systemctl disable --now netctl-auto@wlan0'
-			, 'rmmod brcmfmac'
-			, 'rm -f '+ dirsystem +'/onboard-wlan'
-			, curlPage( 'system' )
-		];
-	}
-	$.post( 'commands.php', { bash: cmd } );
-} );
-$( '#setting-wlan' ).click( function() {
-	info( {
-		  icon      : 'wifi-3'
-		, title     : 'Regulatory Domain'
-		, textlabel : 'Country code'
-		, textvalue : ( G.regdom === 0 ? '00' : G.regdom )
-		, ok        : function() {
-			var regdom = $( '#infoTextBox' ).val().trim().toUpperCase();
-			if ( regdom === G.regdom ) return
-			
-			G.regdom = regdom;
-			$.post( 'commands.php', { bash: [ 
-				  'sed -i \'s/".*"/"'+ regdom +'"/\' /etc/conf.d/wireless-regdom'
-				, 'iw reg set '+ regdom
-				, ( regdom === '00' ? 'rm ' : 'echo '+ regdom +' > ' ) + dirsystem +'/wlanregdom'
-				, curlPage( 'system' )
-			] }, resetlocal );
-			banner( 'Regulatory Domain', 'Change ...', 'wifi-3' );
-		}
-	} );
+	banner( 'On-board Wi-Fi', G.wlan, 'wifi-3' );
+	sh( [ 'wlan', G.wlan ], resetLocal );
 } );
 $( '#i2smodulesw' ).click( function() {
 	// delay to show switch sliding
@@ -568,37 +345,19 @@ $( '#i2smodulesw' ).click( function() {
 			.find( '.selectric' ).click();
 	}, 200 );
 } );
-$( '#i2smodule' ).on( 'change', function( e ) {
-	var $selected = $( this ).find( ':selected' );
-	var audioaplayname = $selected.val();
-	var audiooutput = $selected.text();
+$( '#i2smodule' ).on( 'selectric-change', function( e ) {
+	var audioaplayname = $( this ).val();
+	var audiooutput = $( this ).find( ':selected' ).text();
 	local = 1;
 	if ( audioaplayname !== 'none' ) {
 		G.audioaplayname = audioaplayname;
 		G.audiooutput = audiooutput;
 		G.onboardaudio = false;
-		G.onboardhdmi = false;
-		$( '#onboardaudio, #onboardhdmi' ).prop( 'checked', 0 );
+		$( '#onboardaudio' ).prop( 'checked', 0 );
 		$( '#divi2smodulesw' ).addClass( 'hide' );
 		$( '#divi2smodule' ).removeClass( 'hide' );
 		rebootText( 'Enable', 'I&#178;S Module' );
-		$.post( 'commands.php', { bash: [
-			  "grep -q 'dtoverlay=gpio' /boot/config.txt && touch /tmp/gpio"
-			, "sed -i '/dtparam=\\|dtoverlay=\\|^$/ d' /boot/config.txt"
-			, 'test -e /tmp/gpio && rm /tmp/gpio && echo dtoverlay=gpio >> /boot/config.txt'
-			, "sed -i '$ a\\"
-				+ ( G.bluetoothon ? "dtoverlay=bcmbt\\n" : '' )
-				+"dtparam=audio=off\\n"
-				+"dtparam=i2s=on\\n"
-				+"dtoverlay="+ audioaplayname
-			  	+"' /boot/config.txt"
-			, "echo '"+ audiooutput +"' > "+ dirsystem +"/audio-output"
-			, "echo '"+ audioaplayname +"' > "+ dirsystem +"/audio-aplayname"
-			, 'rm -f '+ dirsystem +'/onboard-audio'
-			, "sed -i '/I&#178;S Module/ d' "+ filereboot
-			, "echo -e '"+ G.reboot.join( '\n' ) +"' > "+ filereboot
-			, curlPage( 'system' )
-		] }, resetlocal );
+		banner( 'I&#178;S Module', 'Enable ...', 'volume' );
 	} else {
 		var audioaplayname = G.audioaplayname;
 		var notrpi0 = G.hardware.split( ' ' )[ 2 ] !== 'Zero';
@@ -614,53 +373,29 @@ $( '#i2smodule' ).on( 'change', function( e ) {
 		$( '#divi2smodulesw' ).removeClass( 'hide' );
 		$( '#divi2smodule' ).addClass( 'hide' );
 		rebootText( 'Disable', 'I&#178;S Module' );
-		$.post( 'commands.php', { bash: [
-			  "sed -i '/dtparam=\\|dtoverlay=\\|^$/ d' /boot/config.txt"
-			, "sed -i '$ a\\"
-				+ ( G.bluetoothon ? "dtoverlay=bcmbt\\n" : '' )
-				+"dtparam=audio=on"
-				+"' /boot/config.txt"
-			, "echo "+ G.audiooutput +" > "+ dirsystem +"/audio-output"
-			, "echo "+ G.audioaplayname +" > "+ dirsystem +"/audio-aplayname"
-			, "touch "+ dirsystem +"/onboard-audio"
-			, "sed -i '/I&#178;S Module/ d' "+ filereboot
-			, "echo -e '"+ G.reboot.join( '\n' ) +"' > "+ filereboot
-			, curlPage( 'system' )
-		] }, resetlocal );
+		banner( 'I&#178;S Module', 'Disable ...', 'volume' );
 	}
+	sh( [ 'i2smodule', G.audioaplayname, G.audiooutput, G.reboot.join( '\n' ) ], function() {
+			resetLocal();
+			getConfigtxt();
+		} );
 	$( '#output' ).text( G.audiooutput );
 } );
 $( '#soundprofile' ).click( function( e ) {
-	var soundprofile = $( this ).prop( 'checked' );
-	if ( soundprofile ) {
-		if ( G.eth0mtu ) { // custom
-			$.post( 'commands.php', { bash: [
-				  '/srv/http/bash/system-soundprofile.sh custom '
-					+ G.eth0mtu +' '+ G.eth0txq +' '+ G.sysswap +' '+ G.syslatency
-				, 'echo custom > '+ dirsystem +'/soundprofile'
-			] } );
-		} else {
-			$( '#setting-soundprofile' ).click();
-		}
-	} else {
-		G.soundprofile = '';
-		$( '#setting-soundprofile' ).addClass( 'hide' );
-		rebootText( 'Disable', 'sound profile' );
-		local = 1;
-		$.post( 'commands.php', { bash: [
-			  '/srv/http/bash/system-soundprofile.sh default'
-			, 'rm -f '+ dirsystem +'/soundprofile'
-			, curlPage( 'system' )
-		] }, resetlocal );
-	}
+	var checked = $( this ).prop( 'checked' );
+	rebootText( checked ? 'Enable' : 'Disable', 'sound profile' );
+	banner( 'Sound Profile', checked, 'volume' );
+	sh( [ 'soundprofile', checked ], resetLocal );
+	$( '#setting-soundprofile' ).toggleClass( 'hide', !checked );
+	G.soundprofile = checked ? 'RuneAudio' : '';
 } );
 $( '#setting-soundprofile' ).click( function() {
 	var radio= {
-		  RuneAudio: 'RuneAudio'
-		, ACX: 'ACX'
-		, Orion: 'Orion'
+		  RuneAudo  : 'RuneAudio'
+		, ACX       : 'ACX'
+		, Orion     : 'Orion'
 		, 'Orion V2': 'OrionV2'
-		, Um3ggh1U: 'Um3ggh1U'
+		, Um3ggh1U  : 'Um3ggh1U'
 	}
 	if ( G.audioaplayname === 'snd_rpi_iqaudio_dac' ) radio[ 'IQaudio Pi-DAC' ] = 'OrionV3';
 	if ( G.audiooutput === 'BerryNOS' ) radio[ 'BerryNOS' ] = 'OrionV4';
@@ -670,14 +405,17 @@ $( '#setting-soundprofile' ).click( function() {
 		, title   : 'Sound Profile'
 		, radio   : radio
 		, preshow : function() {
-			var soundprofile = G.soundprofile || 'RuneAudio';
-			$( 'input[name=inforadio]' ).val( [ soundprofile ] )
+			var values = G.soundprofileval.split( ' ' );
+			for ( i = 0; i < 4; i++ ) {
+				if ( values[ i ] === "''" ) values[ i ] = '';
+			}
+			$( 'input[value='+ G.soundprofile +']' ).prop( 'checked', 1 )
 			$( '#infoRadio input[value=custom]' ).click( function() {
 				var textlabel = [ 'vm.swappiness (0-100)', 'kernel.sched_latency_ns (ns)' ];
-				var textvalue = [ G.sysswap, G.syslatency ];
+				var textvalue = [ values[ 2 ], values[ 3 ] ];
 				if ( G.ip.slice( 0, 4 ) === 'eth0' ) {
 					textlabel.push( 'eth0 mtu (byte)', 'eth0 txqueuelen' );
-					textvalue.push( G.eth0mtu, G.eth0txq );
+					textvalue.push( values[ 0 ], values[ 1 ] );
 				}
 				info( {
 					  icon      : 'volume'
@@ -687,21 +425,14 @@ $( '#setting-soundprofile' ).click( function() {
 					, textvalue : textvalue
 					, boxwidth  : 110
 					, ok        : function() {
-						G.soundprofile = 'custom';
-						var eth0mtu = parseInt( $( '#infoTextBox' ).val() );
-						var eth0txq = parseInt( $( '#infoTextBox1' ).val() );
-						var sysswap = parseInt( $( '#infoTextBox2' ).val() );
-						var syslatency = parseInt( $( '#infoTextBox3' ).val() );
-						if ( eth0mtu !== G.eth0mtu || eth0txq !== G.eth0txq || sysswap !== G.sysswap || syslatency !== G.syslatency ) {
-							$.post( 'commands.php', { bash: [
-								  '/srv/http/bash/system-soundprofile.sh custom '
-									+ eth0mtu +' '+ eth0txq +' '+ sysswap +' '+ syslatency
-								, 'echo custom > '+ dirsystem +'/soundprofile'
-								, 'echo '+ eth0mtu +' > '+ dirsystem +'/sound-eth0mtu'
-								, 'echo '+ eth0txq +' > '+ dirsystem +'/sound-eth0txq'
-								, 'echo '+ sysswap +' > '+ dirsystem +'/sound-sysswap'
-								, 'echo '+ syslatency +' > '+ dirsystem +'/sound-syslatency'
-							] } );
+						var soundprofile = $( '#infoTextBox' ).val();
+						for ( i = 1; i < 4; i++ ) {
+							G.soundprofile += ' '+ $( '#infoTextBox'+ i ).val();
+						}
+						if ( soundprofile != G.soundprofile ) {
+							G.soundprofile = soundprofile;
+							banner( 'Sound Profile', 'Change ...', 'volume' );
+							sh( [ 'soundprofileset', soundprofile ], resetLocal );
 						}
 					}
 				} );
@@ -718,16 +449,51 @@ $( '#setting-soundprofile' ).click( function() {
 			if ( soundprofile !== G.soundprofile ) {
 				rebootText( G.soundprofile ? 'Change' : 'Enable', 'sound profile' );
 				G.soundprofile = soundprofile;
-				local = 1;
-				$.post( 'commands.php', { bash: [
-					  '/srv/http/bash/system-soundprofile.sh '+ soundprofile
-					, 'rm -f '+ dirsystem +'/sound*'
-					, 'echo '+ soundprofile +' > '+ dirsystem +'/soundprofile'
-					, curlPage( 'system' )
-				] }, resetlocal );
+				banner( 'Sound Profile', 'Change ...', 'volume' );
+				sh( [ 'soundprofileset', soundprofile ], resetLocal );
 			}
 		}
 	} );
+} );
+$( '#hostname' ).click( function() {
+	info( {
+		  icon      : 'rune'
+		, title     : 'Player Name'
+		, textlabel : 'Name'
+		, textvalue : G.hostname
+		, ok        : function() {
+			var hostname = $( '#infoTextBox' ).val().replace( /[^a-zA-Z0-9-]+/g, '-' ).replace( /(^-*|-*$)/g, '' );
+			if ( hostname !== G.hostname ) {
+				G.hostname = hostname;
+				$( '#hostname' ).val( hostname );
+				banner( 'Name', 'Change ...', 'sliders' );
+				sh( [ 'hostname', hostname ], resetLocal );
+			}
+		}
+	} );
+} );
+$( '#setting-regional' ).click( function() {
+	info( {
+		  icon      : 'gear'
+		, title     : 'Regional Settings'
+		, textlabel : [ 'NTP server', 'Regulatory domain' ]
+		, textvalue : [ G.ntp, G.regdom || '00' ]
+		, footer    : '<px70/><px60/>00 - common for all regions'
+		, ok        : function() {
+			var ntp = $( '#infoTextBox' ).val();
+			var regdom = $( '#infoTextBox1' ).val();
+			if ( ntp !== G.ntp || regdom !== G.regdom ) {
+				G.ntp = ntp;
+				G.regdom = regdom;
+				banner( 'Regional Settings', 'Change ...', 'gear' );
+				sh( [ 'regional', ntp, regdom ], resetLocal );
+			}
+		}
+	} );
+} );
+$( '#timezone' ).on( 'selectric-change', function( e ) {
+	G.timezone = $( this ).val();
+	sh( [ 'timezone', G.timezone ] );
 } );
 $( '#journalctl' ).click( function( e ) {
 	codeToggle( e.target, this.id, getJournalctl );
@@ -738,7 +504,7 @@ $( '#configtxt' ).click( function( e ) {
 $( '#backuprestore' ).click( function( e ) {
 	if ( $( e.target ).hasClass( 'help' ) ) return
 	
-	var icon = 'sliders';
+	var icon = 'sd';
 	var restoretitle = 'Restore Settings';
 	var backuptitle = restoretitle.replace( 'Restore', 'Backup' );
 	var maintitle = 'Backup/'+ restoretitle;
@@ -758,9 +524,13 @@ $( '#backuprestore' ).click( function( e ) {
 		, buttonlabel : 'Backup'
 		, buttoncolor : '#0a8c68'
 		, button      : function() {
-			$.post( 'commands.php', { backuprestore: 'backup' }, function( data ) {
+			notify( backuptitle, 'Backup ...', 'sd blink', -1 );
+			$.post( cmdphp, {
+				  cmd           : 'backuprestore'
+				, backuprestore : 'backup'
+			}, function( data ) {
 				if ( data === 'ready' ) {
-					notify( backuptitle, 'Download ...', 'sliders blink' );
+					notify( backuptitle, 'Download ...', 'sd blink' );
 					fetch( '/data/tmp/backup.gz' )
 						.then( response => response.blob() )
 						.then( blob => {
@@ -774,6 +544,7 @@ $( '#backuprestore' ).click( function( e ) {
 							setTimeout( () => {
 								a.remove();
 								window.URL.revokeObjectURL( url );
+								bannerHide();
 							}, 1000 );
 						} ).catch( () => {
 							info( {
@@ -781,6 +552,7 @@ $( '#backuprestore' ).click( function( e ) {
 								, title   : backuptitle
 								, message : '<wh>Warning!</wh><br>File download failed.'
 							} );
+							bannerHide();
 						} );
 				} else {
 					info( {
@@ -788,9 +560,9 @@ $( '#backuprestore' ).click( function( e ) {
 						, title   : backuptitle
 						, message : 'Backup failed.'
 					} );
+					bannerHide();
 				}
 			} );
-			banner( backuptitle, 'Backup ...', 'sliders' );
 		}
 		, oklabel     : 'Restore'
 		, ok          : function() {
@@ -821,16 +593,21 @@ $( '#backuprestore' ).click( function( e ) {
 					} );
 				}
 				, ok          : function() {
+					notify( restoretitle, 'Restore ...', 'sd blink', -1 );
 					var checked = $( '#infoRadio input:checked' ).val();
 					if ( checked !== 'restore' ) { // directly restore from directory
-						$.post( 'commands.php', { backuprestore: checked }, bannerHide );
+						$.post( cmdphp, {
+							  cmd           : 'backuprestore'
+							, backuprestore : checked
+						}, bannerHide );
 					} else {
 						var file = $( '#infoFileBox' )[ 0 ].files[ 0 ];
 						var formData = new FormData();
+						formData.append( 'cmd', 'backuprestore' );
 						formData.append( 'backuprestore', 'restore' );
 						formData.append( 'file', file );
 						$.ajax( {
-							  url         : 'commands.php'
+							  url         : cmdphp
 							, type        : 'POST'
 							, data        : formData
 							, processData : false  // no - process the data
@@ -850,7 +627,6 @@ $( '#backuprestore' ).click( function( e ) {
 							}
 						} );
 					}
-					banner( restoretitle, 'Restore ...', 'sliders', -1 );
 					setTimeout( function() {
 						$( '#loader' ).removeClass( 'hide' );
 					}, 0 );
@@ -859,16 +635,20 @@ $( '#backuprestore' ).click( function( e ) {
 		}
 	} );
 } );
+function getIwregget() {
+	bash( 'iw reg get', function( status ) {
+		$( '#codeiwregget' )
+			.html( status )
+			.removeClass( 'hide' );
+	} );
+}
 function getJournalctl() {
 	if ( $( '#codejournalctl' ).text() ) {
 		$( '#codejournalctl' ).removeClass( 'hide' );
 	} else {
-		$.post( 'commands.php', { getbootlog: 1 }, function( data ) {
-			var htmldata = data.replace( /(Error:.*|Under-voltage detected.*)/g, function( match, $1 ) {
-				return '<red>'+ $1 +'</red>'
-			} );
+		sh( [ 'statusbootlog' ], function( data ) {
 			$( '#codejournalctl' )
-				.html( htmldata )
+				.html( data )
 				.removeClass( 'hide' );
 			$( '#journalctlicon' )
 				.removeClass( 'fa-refresh blink' )
@@ -880,7 +660,7 @@ function getJournalctl() {
 	}
 }
 function getConfigtxt() {
-	$.post( 'commands.php', { bash: 'cat /boot/config.txt', string: 1 }, function( status ) {
+	bash( 'cat /boot/config.txt', function( status ) {
 		$( '#codeconfigtxt' )
 			.html( status )
 			.removeClass( 'hide' );
@@ -893,18 +673,25 @@ function rebootText( enable, device ) {
 	G.reboot.push( enable +' '+ device );
 }
 function renderStatus() {
-	var temp = G.cputemp < 80 ? G.cputemp +' °C' : '<red><i class="fa fa-warning blink"></i> '+ G.cputemp +' °C</red>';
-	return G.cpuload.replace( / /g, '&emsp;' ) + '<br>' 
-		+ temp +'<br>'
-		+ G.time.replace( ' ', ' <gr>&bull;</gr> ' ) + '&ensp;<grw>' + G.timezone.replace( /\//g, ' &middot; ' ) +'</grw><br>'
-		+ G.uptime +'&ensp;<gr>since '+ G.uptimesince +'</gr>'
+	var undervoltage = '';
+	var warning = '<i style="width: 20px; text-align: center" class="fa fa-warning blink"></i>';
+	if ( G.undervoltage ) {
+		undervoltage = '<br><red>'+ warning +' Voltage under 4.7V</red>';
+	} else if ( G.undervdetected ) {
+		undervoltage = '<br><i class="fa fa-warning gr"></i> Voltage under 4.7V occured.';
+	}
+	return G.cpuload
+		+'<br>'+ ( G.cputemp < 80 ? G.cputemp +' °C' : '<red>'+ warning + G.cputemp +' °C</red>' )
+		+'<br>'+ G.time
+		+'<br>'+ G.uptime
+		+ undervoltage
 }
 
-refreshData = function() {
-	$.post( 'commands.php', { getjson: '/srv/http/bash/system-data.sh' }, function( list ) {
+refreshData = function() { // system page: use resetLocal() to aviod delay
+	bash( '/srv/http/bash/system-data.sh', function( list ) {
 		G = list;
+		G.reboot = list.reboot ? list.reboot.split( '\n' ) : [];
 		G.sources.pop(); // remove 'reboot' from sources-data.sh
-		G.reboot = G.reboot ? G.reboot.split( '\n' ) : [];
 		
 		var systemlabel =
 			 'RuneAudio<br>'
@@ -951,7 +738,7 @@ refreshData = function() {
 		$( '#system' ).html(
 			  '<i class="fa fa-addons gr" style="line-height: 20px;"></i> '+ G.version +' <gr>'+ G.versionui +'</gr>'+ bullet + G.hostname +'<br>'
 			+ G.hardware +'<br>'
-			+ G.soc + bullet + G.soccpu + bullet + G.socmem +'<br>'
+			+ G.soc +'<br>'
 			+ '<span id="output">'+ G.audiooutput +'</span><br>'
 			+ G.kernel +'<br>'
 			+ G.mpd 
@@ -962,26 +749,6 @@ refreshData = function() {
 		);
 		$( '#statuslabel' ).html( statuslabel );
 		$( '#status' ).html( renderStatus );
-		$( '#hostname' ).val( G.hostname );
-		$( '#timezone' )
-			.val( G.timezone )
-			.selectric( 'refresh' );
-		$( '#i2smodule' ).val( 'none' );
-		$( '#i2smodule option' ).filter( function() {
-			var $this = $( this );
-			return $this.text() === G.audiooutput && $this.val() === G.audioaplayname;
-		} ).prop( 'selected', true );
-		$( '#i2smodule' ).selectric( 'refresh' );
-		var i2senabled = $( '#i2smodule' ).val() === 'none' ? false : true;
-		$( '#divi2smodulesw' ).toggleClass( 'hide', i2senabled );
-		$( '#divi2smodule' ).toggleClass( 'hide', !i2senabled );
-		$( '#soundprofile' ).prop( 'checked', G.soundprofile !== '' );
-		$( '#eth0help' ).toggleClass( 'hide', G.ip.slice( 0, 4 ) !== 'eth0' );
-		$( '#setting-soundprofile' ).toggleClass( 'hide', G.soundprofile === '' );
-		$( '#onboardaudio' ).prop( 'checked', G.onboardaudio );
-		$( '#onboardhdmi' ).prop( 'checked', G.onboardhdmi );
-		$( '#bluetooth' ).prop( 'checked', G.bluetooth );
-		$( '#wlan' ).prop( 'checked', G.wlan );
 		$( '#airplay' ).prop( 'checked', G.airplay );
 		$( '#spotify' ).prop( 'checked', G.spotify );
 		$( '#setting-spotify' ).toggleClass( 'hide', !G.spotify );
@@ -1003,11 +770,33 @@ refreshData = function() {
 		}
 		$( '#streaming' ).prop( 'checked', G.streaming );
 		$( '#ip' ).text( G.streamingip +':8000' );
+		$( '#gpio' ).prop( 'checked', G.gpio );
+		$( '#mpdscribble' ).prop( 'checked', G.mpdscribble );
+		$( '#setting-mpdscribble' ).toggleClass( 'hide', !G.mpdscribble );
 		$( '#login' ).prop( 'checked', G.login );
 		$( '#setting-login' ).toggleClass( 'hide', !G.login );
 		$( '#avahi' ).prop( 'checked', G.avahi );
 		$( '#avahiname' ).text( G.hostname.toLowerCase() );
 		$( '#autoplay' ).prop( 'checked', G.autoplay );
+		$( '#i2smodule' ).val( 'none' );
+		$( '#i2smodule option' ).filter( function() {
+			var $this = $( this );
+			return $this.text() === G.audiooutput && $this.val() === G.audioaplayname;
+		} ).prop( 'selected', true );
+		$( '#i2smodule' ).selectric( 'refresh' );
+		var i2senabled = $( '#i2smodule' ).val() === 'none' ? false : true;
+		$( '#divi2smodulesw' ).toggleClass( 'hide', i2senabled );
+		$( '#divi2smodule' ).toggleClass( 'hide', !i2senabled );
+		$( '#soundprofile' ).prop( 'checked', G.soundprofile !== '' );
+		$( '#setting-soundprofile' ).toggleClass( 'hide', G.soundprofile === '' );
+		$( '#eth0help' ).toggleClass( 'hide', G.ip.slice( 0, 4 ) !== 'eth0' );
+		$( '#onboardaudio' ).prop( 'checked', G.onboardaudio );
+		$( '#bluetooth' ).prop( 'checked', G.bluetooth );
+		$( '#wlan' ).prop( 'checked', G.wlan );
+		$( '#hostname' ).val( G.hostname );
+		$( '#timezone' )
+			.val( G.timezone )
+			.selectric( 'refresh' );
 		showContent();
 	}, 'json' );
 }

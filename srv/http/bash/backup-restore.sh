@@ -40,6 +40,11 @@ rm $diraddons/rre*
 echo $version > $dirsystem/version
 echo $versionrr > $diraddons/rr$version
 
+chown -R http:http /srv/http
+chown -R mpd:audio /srv/http/data/mpd /mnt/MPD
+chmod 755 /srv/http/* /srv/http/bash/* /srv/http/settings/* /usr/local/bin/*
+chmod 777 /srv/http/data/tmp
+
 # hostname
 if [[ $( cat $dirsystem/hostname ) != RuneAudio ]]; then
 	hostname=$( cat $dirsystem/hostname )
@@ -66,7 +71,7 @@ if [[ -e /usr/bin/chromium ]]; then
 	fi
 fi
 # color
-[[ -e $dirsystem/color ]] && color=1 && /srv/http/bash/setcolor.sh
+[[ -e $dirsystem/color ]] && color=1 && /srv/http/bash/cmd.sh color
 # fstab
 if ls $dirsystem/fstab-* &> /dev/null; then
 	sed -i '\|/mnt/MPD/NAS| d' /etc/fstab
@@ -95,15 +100,23 @@ if [[ -e /usr/bin/hostapd ]]; then
 	[[ -e $dirsystem/accesspoint ]] && enable+=' hostapd'
 fi
 # login
-[[ -e $dirsystem/login ]] && sed -i 's/\(bind_to_address\).*/\1         "127.0.0.1"/' /etc/mpd.conf
+[[ -e $dirsystem/login ]] && sed -i 's/\(bind_to_address\).*/\1           "127.0.0.1"/' /etc/mpd.conf
 # mpd.conf
 file=$dirsystem/mpd
 if ls $file-* &> /dev/null; then
-	[[ -e $file-autoupdate ]] &&    sed -i '1 i\auto_update           "yes"' /etc/mpd.conf
-	[[ -e $file-buffer ]] &&        sed -i '1 i\audio_buffer_size     "'$( cat $dirsystem/mpd-buffer )'"' /etc/mpd.conf
+	[[ -e $file-autoupdate ]] &&    sed -i '1 i\auto_update             "yes"' /etc/mpd.conf
+	[[ -e $file-buffer ]] &&        sed -i '1 i\audio_buffer_size       "'$( cat $dirsystem/mpd-buffer )'"' /etc/mpd.conf
 	[[ -e $file-ffmpeg ]] &&        sed -i '/ffmpeg/ {n;s/\(enabled\s*"\).*/\1yes"/}' /etc/mpd.conf
 	[[ -e $file-normalization ]] && sed -i '/^user/ a\volume_normalization  "yes"' /etc/mpd.conf
 	[[ -e $file-replaygain ]] &&    sed -i 's/\(replaygain\s*\"\).*/\1'$( cat $dirsystem/mpd-replaygain )'"/' /etc/mpd.conf
+fi
+# mpdscribble
+file=$dirsystem/mpdscribble
+if [[ -e $file ]]; then
+	sed -i -e 's/^\(username =\).*/\1 "'$( sed -n '1 p' $file )'"/
+' -e 's/^\(password =\).*/\1 "'$( sed -n '2 p' $file )'"/
+' /etc/mpdscribble.conf
+	[[ -e $dirsystem/mpd-mpdscribble ]] && enable+=' mpdscribble'
 fi
 # netctl profiles
 if ls $dirsystem/netctl-* &> /dev/null; then
@@ -189,7 +202,7 @@ if [[ -e $dirsystem/wlanregdom ]]; then
 	iw reg set $regdom
 fi
 # i2s
-if grep -q "$audiooutput.*=>.*$audioaplayname" /srv/http/settings/system-i2smodules.php; then
+if grep -q "$audiooutput.*$audioaplayname" /srv/http/settings/system-i2s.json; then
 	[[ -e $dirsystem/onboard-audio ]] && onoff=on || onoff=off
 	config+="\
 dtparam=audio=$onoff

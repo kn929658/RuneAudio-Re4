@@ -37,6 +37,7 @@ var picaOption = { // pica.js
 //	, quality          : 3    // 0...3 Default = 3 (Lanczos win=3)
 //	, alpha            : true // Default = false (black crop background)
 };
+var cmdphp = 'cmd.php';
 var hash = Math.ceil( Date.now() / 1000 );
 var coverrune = '/assets/img/cover.'+ hash +'.svg';
 var vustop = '/assets/img/vustop.'+ hash +'.gif';
@@ -49,7 +50,7 @@ if ( G.localhost ) {
 }
 
 // get mpd status with passive.js on pushstream connect
-$.post( 'commands.php', { displayget: 1 }, function( data ) {
+displayGet( function( data ) {
 	G.display = data;
 	G.bars = data.bars;
 	$.event.special.tap.emitTapOnTaphold = false; // suppress tap on taphold
@@ -69,7 +70,7 @@ $.post( 'commands.php', { displayget: 1 }, function( data ) {
 			swipeleft ? $( '#tab-library' ).click()  : $( '#tab-playback' ).click();
 		}
 	} );
-}, 'json' );
+} );
 
 $( function() { // document ready start >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
@@ -102,17 +103,7 @@ $( '#coverart' ).on( 'error', function() {
 	$( '#coverart' ).removeClass( 'hide' );
 	$( '.rs-animation .rs-transition' ).css( 'transition-property', '' ); // restore animation after load
 	$( 'html, body' ).scrollTop( 0 );
-	if ( !$( '#lib-cover-list' ).html() ) return
-	
-	var lazyLoad = new LazyLoad( { elements_selector: '.lazy' } );
-	// for load 1st page without lazy
-	var perrow = $( 'body' )[ 0 ].clientWidth / 200;
-	var percolumn = window.innerHeight / 200;
-	var perpage = Math.ceil( perrow ) * Math.ceil( percolumn );
-	var lazyL = $( '#lib-cover-list .lazy' ).length;
-	if ( perpage > lazyL ) perpage = lazyL;
-	var lazy = document.getElementsByClassName( 'lazy' );
-	for( i = 0; i < perpage; i++ ) LazyLoad.load( lazy[ i ], 'force' );
+	if ( $( '#lib-cover-list' ).html() ) new LazyLoad( { elements_selector: '.lazy' } );
 } );
 // COMMON /////////////////////////////////////////////////////////////////////////////////////
 $( '#button-settings, #badge' ).click( function() {
@@ -152,7 +143,7 @@ $( '#displaylibrary' ).click( function( e ) {
 	var options = $( e.target ).hasClass( 'submenu' );
 	var checklist = !options ? chklibrary : chklibrary2;
 	var thumbbyartist = G.display.thumbbyartist;
-	$.post( 'commands.php', { displayget: 1 }, function( data ) {
+	displayGet( function( data ) {
 		G.display = data;
 		info( {
 			  icon     : 'library'
@@ -211,7 +202,7 @@ $( '#displaylibrary' ).click( function( e ) {
 				}
 			}
 		} );
-	}, 'json' );
+	} );
 } );
 var chkplayback = {
 	  bars         : 'Top-Bottom bars'
@@ -242,7 +233,7 @@ $( '#displayplayback' ).click( function( e ) {
 	}
 	
 	if ( 'coverTL' in G ) $( '#coverTL' ).tap();
-	$.post( 'commands.php', { displayget: 1 }, function( data ) {
+	displayGet( function( data ) {
 		G.display = data;
 		info( {
 			  icon     : 'play-circle'
@@ -316,12 +307,12 @@ $( '#displayplayback' ).click( function( e ) {
 				}
 			}
 		} );
-	}, 'json' );
+	} );
 } );
 $( '.settings' ).click( function( e ) {
 	var id = e.target.id || e.currentTarget.id;
 	if ( id === 'snapclient' ) {
-		$.post( 'commands.php', { bash: '/srv/http/bash/snapcast.sh '+ ( G.status.snapclient ? 'stop' : 'start' ) }, function( data ) {
+		bash( '/srv/http/bash/snapcast.sh '+ ( G.status.snapclient ? 'stop' : 'start' ), function( data ) {
 			bannerHide();
 			if ( data != -1 ) {
 				getPlaybackStatus();
@@ -344,49 +335,42 @@ $( '.settings' ).click( function( e ) {
 			, radio   : { 'Only changed files' : 'update', 'Rebuild entire database': 'rescan' }
 			, ok      : function() {
 				G.status.updating_db = true;
-				$.post( 'commands.php', { bash: 'mpc '+ $( '#infoRadio input:checked' ).val() } );
+				bash( 'mpc '+ $( '#infoRadio input:checked' ).val() );
 			}
 		} );
 	}
 } );
-var cmdpower = $( '#gpio' ).length ? [ '/usr/local/bin/gpiooff.py' ] : [];
-cmdpower.push(
-	  '/usr/local/bin/ply-image /srv/http/assets/img/splash.png'
-	, 'mount | grep -q /mnt/MPD/NAS && umount -l /mnt/MPD/NAS/* &> /dev/null && sleep 3' );
-var jsonpower = {
-	  buttonlabel : '<i class="fa fa-reboot"></i>Reboot'
-	, buttoncolor : '#de810e'
-	, button      : function() {
-		$( '#stop' ).click();
-		cmdpower.push( 'shutdown -r now' );
-		$.post( 'commands.php', { bash: cmdpower } );
-		notify( 'Reboot ...', '', 'reboot blink', -1 );
-	}
-	, oklabel     : '<i class="fa fa-power"></i>Off'
-	, okcolor     : '#bb2828'
-	, ok          : function() {
-		$( '#stop' ).click();
-		cmdpower.push( 'shutdown -h now' );
-		$.post( 'commands.php', { bash: cmdpower } );
-		$( '#loader' )
-			.css( 'background', '#000000' )
-			.find( 'svg' ).css( 'animation', 'unset' );
-		notify( 'Power Off ...', '', 'power blink', -1 );
-	}
-	, buttonwidth : 1
-}
 $( '#power' ).click( function( e ) {
 	if ( $( e.target ).hasClass( 'submenu' ) ) {
-		$.post( 'commands.php', { screenoff: 1 } );
-	} else {
-		var infopower = jsonpower;
-		infopower.icon    = 'power';
-		infopower.title   = 'Power';
-		info( infopower ); // toggle splash screen by pushstream.onstatuschange
+		$.post( cmdphp, { cmd: 'screenoff' } );
+		return
 	}
+	
+	info( {
+		  icon        : 'power'
+		, title       : 'Power'
+		, buttonlabel : '<i class="fa fa-reboot"></i>Reboot'
+		, buttoncolor : '#de810e'
+		, button      : function() {
+			$( '#stop' ).click();
+			sh( [ 'reboot' ] );
+			notify( 'Power', 'Reboot ...', 'reboot blink', -1 );
+		}
+		, oklabel     : '<i class="fa fa-power"></i>Off'
+		, okcolor     : '#bb2828'
+		, ok          : function() {
+			$( '#stop' ).click();
+			sh( [ 'reboot', 'off' ] );
+			$( '#loader' )
+				.css( 'background', '#000000' )
+				.find( 'svg' ).css( 'animation', 'unset' );
+			notify( 'Power', 'Shutdown ...', 'power blink', -1 );
+		}
+		, buttonwidth : 1
+	} );
 } );
 $( '#logout' ).click( function( e ) {
-	$.post( 'commands.php', { logout: 1 }, function() {
+	$.post( cmdphp, { cmd: 'logout' }, function() {
 		location.reload();
 	} );
 } );
@@ -396,10 +380,8 @@ $( '#addons' ).click( function ( e ) {
 		return
 	}
 	
-	$.post( 'commands.php'
-		, { bash: 'wget -q --no-check-certificate https://github.com/rern/RuneAudio_Addons/raw/master/addons-list.php -O /srv/http/data/addons/addons-list.php' }
-		, function( exit ) {
-		if ( exit == -1 ) {
+	sh( [ 'addonslist' ], function( std ) {
+		if ( std != 0 ) {
 			info( {
 				  icon    : 'info-circle'
 				, message : 'Download from Addons server failed.'
@@ -425,23 +407,23 @@ $( '#colorok' ).click( function() {
 	var L = ( 2 - s ) * v / 2;
 	if ( L && L < 1 ) {
 		S = L < 0.5 ? s * v / ( L * 2 ) : s * v / ( 2 - L * 2 );
-		var hsl = Math.round( 360 * hsv.h ) +' '+ Math.round( S * 100 ) +' '+ Math.round( L * 100 );
+		var h = Math.round( 360 * hsv.h );
+		var s = Math.round( S * 100 );
+		var l = Math.round( L * 100 );
 	} else {
-		var hsl = 0 +' '+ 0 +' '+ L * 100;
+		var h = 0;
+		var s = 0;
+		var l = L * 100;
 	}
-	if ( hsl !== G.display.color ) {
-		$.post( 'commands.php', { bash: [
-			  '/srv/http/bash/setcolor.sh '+ hsl
-			, 'echo '+ hsl +' > /srv/http/data/system/color'
-		] } );
+	var hsl = h +' '+ s +' '+ l;
+	if ( hsl === G.display.color ) {
+		$( '#colorcancel' ).click();
+	} else {
+		sh( [ 'color', hsl ] );
 	}
 } );
 $( '#colorreset' ).click( function() {
-	$.post( 'commands.php', { bash: [
-		  'rm /srv/http/data/system/color'
-		, '/srv/http/bash/setcolor.sh'
-		, curl( 'reload', 'reload', 'all' )
-	] } );
+	sh( [ 'color', 'reset' ] );
 } );
 $( '#colorcancel' ).click( function() {
 	G.color = 0;
@@ -632,7 +614,11 @@ $( '#volume' ).roundSlider( {
 			G.local = 1;
 			$( '#volume' ).addClass( 'disabled' );
 			//setTimeout( function() { G.local = 0 }, 300 );
-			$.post( 'commands.php', { volume: e.value, current: G.status.volume }, function() {
+			$.post( cmdphp, {
+				  cmd     : 'volume'
+				, volume  : e.value
+				, current : G.status.volume
+			}, function() {
 				G.local = 0;
 				G.status.volume = e.value;
 				$( '#volume' ).removeClass( 'disabled' );
@@ -662,7 +648,11 @@ $( '#volmute' ).click( function() {
 	}
 	G.local = 1;
 	$( '#vol-group .btn, .volmap' ).addClass( 'disabled' );
-	$.post( 'commands.php', { volume: 'setmute', current: vol }, function() {
+	$.post( cmdphp, {
+		  cmd     : 'volume'
+		, volume  : 'setmute'
+		, current : vol
+	}, function() {
 		G.local = 0;
 		$( '#vol-group .btn, .volmap' ).removeClass( 'disabled' );
 	} );
@@ -674,10 +664,13 @@ $( '#volup, #voldn' ).click( function() {
 
 	vol = ( thisid === 'volup' ) ? vol + 1 : vol - 1;
 	$volumeRS.setValue( vol );
-	$.post( 'commands.php', { volume: vol } );
+	$.post( cmdphp, {
+		  cmd    : 'volume'
+		, volume : vol
+	} );
 } );
 $( '#coverTL, #timeTL' ).tap( function() {
-	var list = [ 'time', 'cover', 'coversmall', 'volume', 'buttons', 'progressbar' ];
+	var list = [ 'bars', 'time', 'cover', 'coversmall', 'volume', 'buttons', 'progressbar' ];
 	if ( 'coverTL' in G ) {
 		list.forEach( function( el ) {
 			G.display[ el ] = G.coverTL[ el ];
@@ -698,6 +691,7 @@ $( '#coverTL, #timeTL' ).tap( function() {
 		} else {
 			G.display.time = G.display.cover = G.display.coversmall = G.display.volume = G.display.buttons = true;
 		}
+		G.display.bars = false;
 	}
 	$( '.band, #swipebar' ).addClass( 'transparent' );
 	$( '#volume-bar, #volume-text' ).addClass( 'hide' );
@@ -901,7 +895,7 @@ $( '.map' ).tap( function( e ) {
 				setButtonToggle();
 				G.local = 1;
 				setTimeout( function() { G.local = 0 }, 600 );
-				$.post( 'commands.php', { bash: [ 'mpc repeat 0', 'mpc single 0' ] } );
+				bash( 'mpc repeat 0 && mpc single 0' );
 			} else {
 				$( '#single' ).click();
 			}
@@ -927,7 +921,7 @@ $( '.btn-cmd' ).click( function() {
 		
 		if ( cmd !== 'play' ) clearIntervalAll();
 		if ( cmd === 'play' ) {
-			var command = 'mpc play';
+			bash( 'mpc play' );
 			$( '#song' ).removeClass( 'gr' );
 			if ( G.display.time ) {
 				$( '#elapsed' ).removeClass( 'bl' );
@@ -941,28 +935,23 @@ $( '.btn-cmd' ).click( function() {
 			}
 		} else if ( cmd === 'stop' ) {
 			if ( G.status.airplay ) {
-				$.post( 'commands.php', { bash: '/srv/http/bash/shairport.sh stop' } );
-				return
-				
+				bash( '/srv/http/bash/shairport.sh stop' );
 			} else if ( G.status.snapclient ) {
 				clearIntervalAll();
-				$.post( 'commands.php', { bash: '/srv/http/bash/snapcast.sh stop' }, function() {
+				bash( '/srv/http/bash/snapcast.sh stop', function() {
 					getPlaybackStatus();
 				} );
-				return
-				
 			} else if ( G.status.spotify ) {
-				$.post( 'commands.php', { bash: '/srv/http/bash/spotifyd.sh stop' } );
-				return
-				
+				bash( '/srv/http/bash/spotifyd.sh stop' );
 			} else if ( G.status.upnp ) {
-				$.post( 'commands.php', { bash: '/srv/http/bash/upnp-stop.sh' } );
-				return
-				
+				bash( '/srv/http/bash/upnp-stop.sh' );
 			}
+			if ( !G.status.mpd ) return
+			
 			$( '#song' ).removeClass( 'gr' );
 			if ( !G.status.playlistlength ) return
-			var command = 'mpc stop';
+			
+			bash( 'mpc stop' );
 			$( '#pl-list .elapsed' ).empty();
 			$( '#total' ).empty();
 			if ( !G.status.webradio ) {
@@ -989,7 +978,7 @@ $( '.btn-cmd' ).click( function() {
 		} else if ( cmd === 'pause' ) {
 			if ( G.status.state === 'stop' ) return
 			
-			var command = 'mpc pause';
+			bash( 'mpc pause' );
 			$( '#song' ).addClass( 'gr' );
 			if ( G.display.time && !$( '#time-knob' ).hasClass( 'hide' ) ) {
 				$( '#elapsed' ).addClass( 'bl' );
@@ -1000,53 +989,25 @@ $( '.btn-cmd' ).click( function() {
 				$( '#progress' ).html( '<i class="fa fa-pause"></i><bl>'+ elapsedhms +'</bl> / <w>'+ timehms +'</w>' );
 			}
 		} else if ( cmd === 'previous' || cmd === 'next' ) {
-			// enable previous / next while stop
-			var current = G.status.song + 1;
-			var last = G.status.playlistlength;
-			if ( last === 1 ) return
+			var length = G.status.playlistlength;
+			if ( length === 1 ) return
 			
-			if ( G.status.random ) {
-				// improve: repeat pattern of mpd random
-				var pos = Math.floor( Math.random() * last ); // Math.floor( Math.random() * ( max - min + 1 ) ) + min;
-				if ( pos === current ) pos = ( pos === last ) ? pos - 1 : pos + 1; // avoid same pos ( no pos-- or pos++ in ternary )
-			} else {
-				if ( cmd === 'previous' ) {
-					var pos = current !== 1 ? current - 1 : last;
-				} else {
-					var pos = current !== last ? current + 1 : 1;
-				}
-			}
-			pos = pos || 1;
-			if ( G.status.state === 'play' ) {
-				command = 'mpc play '+ pos;
-			} else {
-				command = [
-					  'touch /srv/http/data/tmp/nostatus'
-					, 'mpc play '+ pos
-					, 'mpc stop'
-				];
+			if ( G.status.state !== 'play' ) {
 				var prevnext = setTimeout( function() {
 					$( '#loader' ).removeClass( 'hide' );
 				}, 300 );
 			}
+			sh( [ 'mpcprevnext', cmd, G.status.song + 1, length ], function() {
+				clearTimeout( prevnext );
+			} );
 		}
 		G.status.state = cmd;
 		[ 'previous', 'stop', 'play', 'pause', 'next' ].forEach( function( el ) {
 			$( '#'+ el ).toggleClass( 'active', el === cmd );
 		} );
 	}
-	$.post( 'commands.php', { bash: command }, function( data ) {
-		clearTimeout( prevnext );
-		setTimeout( getPlaybackStatus, 600 );
-	} );
 	// for gpio
-	if ( $( '#gpio' ).hasClass( 'on' ) && command === 'mpc play' ) {
-		$.post( 'commands.php', { bash: [
-			  'killall -9 gpiotimer.py &> /dev/null'
-			, '/usr/local/bin/gpiotimer.py &> /dev/null'
-			, curl( 'gpio', 'state', 'RESET' )
-		] } );
-	}
+	if ( $( '#gpio' ).hasClass( 'on' ) && command === 'mpc play' ) sh( [ 'gpiotimerreset' ] );
 } );
 $( '#biocontent' ).on( 'click', '.biosimilar', function() {
 	getBio( $( this ).text() );
@@ -1061,7 +1022,7 @@ $( '#lib-breadcrumbs' ).on( 'click', 'a', function() {
 	var path = $( this ).find( '.lidir' ).text();
 	var query = {
 		  query  : 'ls'
-		, string : escapePath( path )
+		, string : path
 		, format : [ 'file' ]
 	}
 	$.post( 'mpdlibrary.php', query, function( data ) {
@@ -1194,7 +1155,7 @@ $( '.mode' ).click( function() {
 	if ( [ 'sd', 'nas', 'usb' ].indexOf( G.mode ) !== -1 ) { // browse by directory
 		var query = {
 			  query  : 'ls'
-			, string : escapePath( path )
+			, string : path
 			, format : [ 'file' ]
 		}
 	} else if ( G.mode === 'webradio' ) {
@@ -1319,21 +1280,26 @@ $( '#lib-mode-list' ).on( 'tap', '.mode-bookmark', function( e ) { // delegate -
 			, fileoklabel : '<i class="fa fa-flash"></i>Replace'
 			, filetype    : 'image/*'
 			, ok          : function() {
-				var bookmarkname = escapePath( path );
+				var bookmarkname = path;
 				var file = $( '#infoFileBox' )[ 0 ].files[ 0 ];
 				if ( file.name.slice( -4 ) !== '.gif' ) {
 					var newimg = $( '#imgnew' ).prop( 'src' );
-					$.post( 'commands.php', { imagefile: bookmarkname, base64bookmark: newimg }, bookmarkThumbReplace( $this, newimg ) );
+					$.post( cmdphp, {
+						  cmd            : 'imagefile'
+						, imagefile      : bookmarkname
+						, base64bookmark : newimg
+					}, bookmarkThumbReplace( $this, newimg ) );
 				} else {
 					var newimg = URL.createObjectURL( file );
 					var img = $( '#infoMessage img' )[ 0 ];
 					var formData = new FormData();
+					formData.append( 'cmd', 'imagefile' );
 					formData.append( 'imagefile', bookmarkname );
 					formData.append( 'base64bookmark', 1 );
 					formData.append( 'file', file );
 					formData.append( 'resize', img.naturalWidth > 200 || img.naturalHeight > 200 );
 					$.ajax( {
-						  url         : 'commands.php'
+						  url         : cmdphp
 						, type        : 'POST'
 						, data        : formData
 						, processData : false
@@ -1349,11 +1315,12 @@ $( '#lib-mode-list' ).on( 'tap', '.mode-bookmark', function( e ) { // delegate -
 			jsoninfo.buttonlabel = '<i class="fa fa-undo"></i>Reset';
 			jsoninfo.buttonwidth = 1;
 			jsoninfo.button      = function() {
-				var bookmarkname = escapePath( path );
+				var bookmarkname = path;
 				var label = bookmarkname.split( '/' ).pop();
 				bookmarkname = bookmarkname.replace( /\//g, '|' );
-				$.post( 'commands.php', {
-					  imagefile    : '/mnt/MPD/'+ path
+				$.post( cmdphp, {
+					  cmd          : 'imagefile'
+					, imagefile    : '/mnt/MPD/'+ path
 					, bookmarkfile : '/srv/http/data/bookmarks/'+ bookmarkname
 					, label        : label
 				}, function( src ) {
@@ -1374,7 +1341,7 @@ $( '#lib-mode-list' ).on( 'tap', '.mode-bookmark', function( e ) { // delegate -
 		var path = $( this ).find( '.lipath' ).text();
 		var query = {
 			  query  : 'ls'
-			, string : escapePath( path )
+			, string : path
 			, format : [ 'file' ]
 		}
 		$( '#loader' ).removeClass( 'hide' );
@@ -1422,7 +1389,10 @@ var sortablelibrary = new Sortable( document.getElementById( 'lib-mode-list' ), 
 			order.push( $( this ).find( '.lipath' ).text() );
 		} );
 		G.display.order = order;
-		$.post( 'commands.php', { setorder: order } );
+		$.post( cmdphp, {
+			  cmd      : 'setorder'
+			, setorder : order
+		} );
 	}
 } );
 $( '#mode-coverart' ).click( function() { // fix - 'tap' also fire .coverart click here
@@ -1537,7 +1507,7 @@ $( '.coverart' ).tap( function( e ) {
 		var query = {
 			  query  : 'ls'
 			, mode   : 'coverart'
-			, string : escapePath( path )
+			, string : path
 		}
 	} else {
 		var cv1 = $( this ).find( '.coverart1' ).text();
@@ -1587,7 +1557,10 @@ $( '#lib-cover-list' ).on( 'tap', '.coverart-remove', function() {
 			var count = $( '#mode-coverart grl' ).text().replace( /,/g, '' );
 			count = ( Number( count ) - 1 ).toString().replace( /\B(?=(\d{3})+(?!\d))/g, ',' );
 			$( '#mode-coverart grl' ).text( count );
-			$.post( 'commands.php', { imagefile: thumbfile } );
+			$.post( cmdphp, {
+				  cmd       : 'imagefile'
+				, imagefile : thumbfile
+			} );
 		}
 	} );
 } );
@@ -1608,7 +1581,11 @@ $( '#lib-cover-list' ).on( 'tap', '.coverart-cover', function() {
 			var file = $( '#infoFileBox' )[ 0 ].files[ 0 ];
 			if ( file.name.slice( -4 ) !== '.gif' ) {
 				var newimg = $( '#imgnew' ).prop( 'src' );
-				$.post( 'commands.php', { imagefile: thumbfile.replace( /%22/g, '\\"' ), base64: newimg }, function() {
+				$.post( cmdphp, {
+					  cmd       : 'imagefile'
+					, imagefile : thumbfile.replace( /%22/g, '\\"' )
+					, base64    : newimg
+				}, function() {
 					$img
 						.removeAttr( 'data-src' ) // lazyload 'data-src'
 						.prop( 'src', newimg );
@@ -1617,12 +1594,13 @@ $( '#lib-cover-list' ).on( 'tap', '.coverart-cover', function() {
 				var newimg = URL.createObjectURL( file );
 				var img = $( '#infoMessage img' )[ 0 ];
 				var formData = new FormData();
+				formData.append( 'cmd', 'imagefile' );
 				formData.append( 'imagefile', thumbfile );
 				formData.append( 'base64', 1 );
 				formData.append( 'file', file );
 				formData.append( 'resize', img.naturalWidth > 200 || img.naturalHeight > 200 );
 				$.ajax( {
-					  url         : 'commands.php'
+					  url         : cmdphp
 					, type        : 'POST'
 					, data        : formData
 					, processData : false
@@ -1717,7 +1695,7 @@ $( '#lib-list' ).on( 'taphold', '.licoverimg',  function() {
 		var modetitle = path;
 		var query = {
 			  query  : 'ls'
-			, string : escapePath( path )
+			, string : path
 			, format : [ 'file' ]
 		}
 	} else if ( mode !== 'album' ) { // list by mode (non-album)
@@ -1813,11 +1791,11 @@ $( '#button-pl-consume' ).click( function() {
 	if ( G.status.consume ) {
 		$( this ).removeClass( 'bl' );
 		notify( 'Consume Mode', 'Off', 'list-ul' );
-		$.post( 'commands.php', { bash: 'mpc consume 0' } );
+		bash( 'mpc consume 0' );
 	} else {
 		$( this ).addClass( 'bl' );
 		notify( 'Consume Mode', 'On - Remove each song after played.', 'list-ul' );
-		$.post( 'commands.php', { bash: 'mpc consume 1' } );
+		bash( 'mpc consume 1' );
 	}
 } );
 $( '#button-pl-random' ).click( function() {
@@ -1825,11 +1803,7 @@ $( '#button-pl-random' ).click( function() {
 		G.status.librandom = false;
 		$( this ).removeClass( 'bl' );
 		notify( 'Roll The Dice', 'Off ...', 'dice' );
-		$.post( 'commands.php', { bash: [
-			  'systemctl stop libraryrandom'
-			, curl( 'mpdoptions', 'librandom', false )
-			, curl( 'playlist', 'playlist', 'playlist' )
-		] } );
+		sh( [ 'plrandom', 0 ] );
 	} else {
 		info( {
 			  icon    : 'dice'
@@ -1839,16 +1813,7 @@ $( '#button-pl-random' ).click( function() {
 				G.status.librandom = true;
 				$( this ).addClass( 'bl' );
 				notify( 'Roll The Dice', 'Add+play ...', 'dice' );
-				$.post( 'commands.php', { bash: [
-					  'mpc random 0'
-					, "mpc add \"$( mpc listall | sed '"+ Math.floor( Math.random() * G.countsong ) +"q;d' )\""
-					, 'mpc play $( mpc playlist | wc -l )'
-					, "mpc add \"$( mpc listall | sed '"+ Math.floor( Math.random() * G.countsong ) +"q;d' )\""
-					, "mpc add \"$( mpc listall | sed '"+ Math.floor( Math.random() * G.countsong ) +"q;d' )\""
-					, 'systemctl start libraryrandom'
-					, curl( 'mpdoptions', 'librandom', true )
-					, curl( 'playlist', 'playlist', 'playlist' )
-				] } );
+				sh( [ 'plrandom', 1 ] );
 			}
 		} );
 	}
@@ -1861,10 +1826,7 @@ $( '#button-pl-shuffle' ).click( function() {
 		, title   : 'Shuffle Playlist'
 		, message : 'Shuffle all tracks in playlist?'
 		, ok      : function() {
-			$.post( 'commands.php', { bash: [
-				  'mpc shuffle'
-				, curl( 'playlist', 'playlist', 'playlist' )
-			] } );
+			sh( [ 'plshuffle' ] );
 		}
 	} );
 } );
@@ -1877,15 +1839,11 @@ $( '#button-pl-crop' ).click( function() {
 		, message : 'Clear playlist except current song?'
 		, ok      : function() {
 			$( '#pl-list li:not( .active )' ).remove();
-			var cmd = [ G.status.state === 'stop' ? 'mpc play; mpc crop; mpc stop' : 'mpc crop' ];
-			if ( G.status.librandom ) cmd.push(
-				  "mpc add \"$( mpc listall | sed '"+ Math.floor( Math.random() * G.countsong ) +"q;d' )\""
-				, "mpc add \"$( mpc listall | sed '"+ Math.floor( Math.random() * G.countsong ) +"q;d' )\""
-			);
-			cmd.push( curl( 'playlist', 'playlist', 'playlist' ) );
-			G.local = 1;
-			setTimeout( function() { G.local = 0 }, 300 );
-			$.post( 'commands.php', { bash: cmd } );
+			if ( !G.status.librandom ) {
+				G.local = 1;
+				setTimeout( function() { G.local = 0 }, 300 );
+			}
+			sh( [ 'plcrop' ] );
 		}
 	} );
 } );
@@ -1917,7 +1875,7 @@ $( '#button-pl-clear' ).click( function() {
 			$( '.cover-save' ).remove();
 			G.local = 1;
 			setTimeout( function() { G.local = 0 }, 1000 );
-			$.post( 'commands.php', { bash: 'mpc clear' } );
+			bash( 'mpc clear' );
 		}
 		, buttonwidth : 1
 	} );
@@ -1951,10 +1909,7 @@ var sortableplaylist = new Sortable( document.getElementById( 'pl-list' ), {
 		}
 		G.sortable = 1;
 		setTimeout( function() { G.sortable = 0 }, 500 );
-		$.post( 'commands.php', { bash: [
-			  'mpc move '+ ( e.oldIndex + 1 ) +' '+ ( e.newIndex + 1 )
-			, curl( 'playlist', 'playlist', 'playlist' )
-		] }, function() {
+		sh( [ 'plorder', ( e.oldIndex + 1 ), ( e.newIndex + 1 ) ], function() {
 			setTimeout( setPlaylistScroll, 600 );
 		} );
 	}
@@ -1969,7 +1924,11 @@ var sortablesavedplaylist = new Sortable( document.getElementById( 'pl-savedlist
 		setTimeout( function() { G.sortable = 0 }, 500 );
 		
 		var plname = $( '#pl-path .lipath' ).text();
-		$.post( 'mpdplaylist.php', { edit: plname, old: e.oldIndex, new: e.newIndex } );
+		$.post( 'mpdplaylist.php', {
+			  edit : plname
+			, old  : e.oldIndex
+			, new  : e.newIndex
+		} );
 	}
 } );
 $( '#pl-list, #pl-savedlist' ).on( 'swipeleft', 'li', function() {
@@ -2007,7 +1966,7 @@ $( '#pl-list' ).on( 'click', 'li', function( e ) {
 		$( '#pl-list li.active .elapsed' ).empty();
 		$( '#pl-list li.active' ).removeClass( 'active' );
 		$this.addClass( 'active' );
-		$.post( 'commands.php', { bash: 'mpc play '+ listnumber } );
+		bash( 'mpc play '+ listnumber );
 	} else {
 		if ( $this.hasClass( 'active' ) ) {
 			if ( G.status.state == 'play' ) {
@@ -2030,7 +1989,7 @@ $( '#pl-list' ).on( 'click', 'li', function( e ) {
 			$( '#pl-list li.active .elapsed' ).empty();
 			$( '#pl-list li.active' ).removeClass( 'active' );
 			$this.addClass( 'active' );
-			$.post( 'commands.php', { bash: 'mpc play '+ listnumber } );
+			bash( 'mpc play '+ listnumber );
 			G.status.elapsed = 0;
 			if ( $this.find( '.fa-webradio' ).length ) G.status.Title = '';
 			playlistProgress();
@@ -2084,7 +2043,7 @@ $( '#pl-list' ).on( 'click', '.pl-icon', function( e ) {
 	if ( targetB > wH - ( G.bars ? 80 : 40 ) + $( window ).scrollTop() ) $( 'html, body' ).animate( { scrollTop: targetB - wH + 42 } );
 } );
 $( '#pl-list' ).on( 'click', '.pl-remove', function() { // remove from playlist
-	$.post( 'commands.php', { bash: 'mpc del '+ ( $( this ).parent().index() + 1 ) } );
+	bash( 'mpc del '+ ( $( this ).parent().index() + 1 ) );
 } );
 $( '#pl-savedlist' ).on( 'click', 'li', function( e ) {
 	if ( G.swipe ) return

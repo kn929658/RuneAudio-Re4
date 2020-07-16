@@ -1,23 +1,22 @@
-var G = {};
+G = {}
 var local = 0;
 var intervalcputime;
 var intervalscan;
 var page = location.href.split( '=' ).pop();
-if ( page === 'credits' ) { // no script file to get reboot data for credits page
-	$.post( 'commands.php', { bash: 'cat /srv/http/data/tmp/reboot' }, function( reboot ) {
-		G.reboot = reboot !== -1 ? reboot[ 0 ].split( '\n' ) : [];
+var reboot = '';
+var cmdphp = 'cmd.php';
+var dirsystem = '/srv/http/data/system';
+
+if ( page === 'credits' ) {
+	$.post( cmdphp, {
+		  cmd  : 'exec'
+		, exec : 'cat /srv/http/data/tmp/reboot'
+	}, function( lines ) {
+		G = { reboot: lines || [] }
 	}, 'json' );
 }
 $( '#close' ).click( function() {
 	if ( G.reboot.length ) {
-		var cmdpower = [ 'rm -f /srv/http/data/tmp/reboot' ];
-		if ( $( '#gpio' ).length ) cmdpower.push( '/usr/local/bin/gpiooff.py' );
-		cmdpower.push(
-			  '/usr/local/bin/ply-image /srv/http/assets/img/splash.png'
-			, 'mount | grep -q /mnt/MPD/NAS && umount -l /mnt/MPD/NAS/* &> /dev/null && sleep 3'
-			, 'rm -f /srv/http/data/tmp/*'
-			, 'shutdown -r now'
-		);
 		info( {
 			  icon    : 'sliders'
 			, title   : 'System Setting'
@@ -25,18 +24,21 @@ $( '#close' ).click( function() {
 					   +'<br><br><w>'+ G.reboot.join( '<br>' ) +'</w>'
 			, cancel  : function() {
 				G.reboot = [];
-				$.post( 'commands.php', { bash: 'rm -f /srv/http/data/tmp/*' } );
+				bash( 'rm -f /srv/http/data/tmp/reboot' );
 			}
 			, ok      : function() {
-				$.post( 'commands.php', { bash: cmdpower } );
-				notify( 'Rebooting ...', '', 'reboot blink', -1 );
+				$.post( cmdphp, {
+					  cmd : 'sh'
+					, sh  : [ 'cmd.sh', 'reboot' ]
+				} );
+				notify( 'Power', 'Reboot ...', 'reboot blink', -1 );
 			}
 		} );
 	} else {
 		if ( page === 'system' ) {
-			$.post( 'commands.php', { bash: 'rm -f /srv/http/data/tmp/backup.xz' } );
+			bash( 'rm -f /srv/http/data/tmp/backup.*' );
 		} else if ( page === 'network' ) {
-			if ( $( '#listinterfaces li' ).hasClass( 'bt' ) ) $.post( 'commands.php', { bash: 'bluetoothctl scan off' } );
+			if ( $( '#listinterfaces li' ).hasClass( 'bt' ) ) bash( 'bluetoothctl scan off' );
 		}
 		location.href = '/';
 	}
@@ -98,6 +100,22 @@ pushstream.onmessage = function( data, id, channel ) {
 		case 'restore': psRestore( data ); break;
 	}
 }
+function bash( command, callback, json ) {
+	$.post( 
+		  cmdphp
+		, { cmd: 'bash', bash: command }
+		, callback || null
+		, json || null
+	);
+}
+function sh( array, callback, json ) {
+	$.post( 
+		  cmdphp
+		, { cmd: 'sh', sh: [ page +'.sh' ].concat( array ) }
+		, callback || null
+		, json || null
+	);
+}
 function psRefresh( data ) {
 	if ( data.page === page ) refreshData();
 }
@@ -117,14 +135,12 @@ function psRestore( data ) {
 }
 
 function banner( title, message, icon ) {
+	local = 1;
 	if ( typeof message === 'boolean' || typeof message === 'number' ) var message = message ? 'Enable ...' : 'Disable ...';
 	notify( title, message, icon +' blink', -1 );
 }
 function codeToggle( target, id, fn ) {
 	if ( !$( target ).hasClass( 'help' ) ) $( '#code'+ id ).hasClass( 'hide' ) ? fn() : $( '#code'+ id ).addClass( 'hide' );
-}
-function curlPage( page ) {
-	return 'curl -s -X POST "http://127.0.0.1/pub?id=refresh" -d \'{ "page": "'+ page +'" }\''
 }
 function onVisibilityChange( callback ) {
     var visible = 1;
@@ -140,12 +156,12 @@ function onVisibilityChange( callback ) {
     window.onpageshow = window.onfocus = focused;
     window.onpagehide = window.onblur = unfocused;
 }
-function resetlocal( ms ) {
+function resetLocal( ms ) {
 	local = 0;
 	setTimeout( function() {
-		$( '#bannerTitle i' ).removeClass( 'blink' );
+		$( '#bannerIcon i' ).removeClass( 'blink' );
 		$( '#bannerMessage' ).text( 'Done' );
-	}, ms ? ms -2000 : 0 );
+	}, ms ? ms - 2000 : 0 );
 	setTimeout( bannerHide, ms || 2000 );
 }
 function showContent() {

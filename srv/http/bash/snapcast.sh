@@ -8,13 +8,13 @@ if [[ $1 == start ]]; then # client start - save server ip
 	mpc stop
 	systemctl start snapclient
 	sleep 2
-	serverip=$( systemctl status snapclient | grep 'Connected to' | awk '{print $NF}' )
+	serverip=$( systemctl status snapclient | awk '/Connected to/ {print $NF}' )
 	if [[ -n $serverip ]]; then
 		echo '"mpd":false,"airplay":false,"snapclient":true,"spotify":false,"upnp":false' > $playerfile
 		rm -f $playerfile-*
 		touch $playerfile-snapclient
 		echo $serverip > $snapserverfile
-		clientip=$( ifconfig | grep 'inet .*broadcast' | awk '{print $2}' )
+		clientip=$( ifconfig | awk '/inet .*broadcast/ {print $2}' )
 		curl -s -X POST "http://$serverip/pub?id=snapcast" -d '{ "add": "'$clientip'" }'
 		systemctl try-restart shairport-sync spotifyd upmpdcli &> /dev/null
 	else
@@ -28,7 +28,7 @@ elif [[ $1 == stop ]]; then # client stop - delete server ip, curl remove client
 	rm -f $playerfile-*
 	touch $playerfile-mpd
 	serverip=$( cat $snapserverfile )
-	clientip=$( ifconfig | grep 'inet .*broadcast' | awk '{print $2}' )
+	clientip=$( ifconfig | awk '/inet .*broadcast/ {print $2}' )
 	rm $snapserverfile
 	curl -s -X POST "http://$serverip/pub?id=snapcast" -d '{ "remove": "'$clientip'" }'
 elif [[ $1 == add ]]; then # connected from client - save client ip

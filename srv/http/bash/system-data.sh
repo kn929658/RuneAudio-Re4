@@ -1,44 +1,65 @@
 #!/bin/bash
 
-data='
-	  "cpuload"         : "'$( cat /proc/loadavg | cut -d' ' -f1-3 )'"
-	, "cputemp"         : '$( /opt/vc/bin/vcgencmd measure_temp | cut -d= -f2 | cut -d\' -f1 )'
-	, "time"            : "'$( date +'%T %F' )'"
-	, "timezone"        : "'$( timedatectl | grep zone: | awk '{print $3}' )'"
-	, "uptime"          : "'$( uptime -p | tr -d 's,' | sed 's/up //; s/ day/d/; s/ hour/h/; s/ minute/m/' )'"
-	, "uptimesince"     : "'$( uptime -s | cut -d: -f1-2 )'"'
 
+# vcgencmd get_throttled > 0xDDDDD (decimal)
+#  1st D > binary BBBB - occured
+#    1st B = Soft temperature limit
+#    2nd B = Throttling
+#    3rd B = Arm frequency capping
+#    4th B = Under-voltage
+#  5th D > binary BBBB - current
+#    1st B = Soft temperature limit active
+#    2nd B = Currently throttled
+#    3rd B = Arm frequency capped
+#    4th B = Under-voltage detected
+throttle=$( /opt/vc/bin/vcgencmd get_throttled )
+if [[ $throttle != 0x0 ]]; then
+	D2B=( {0..1}{0..1}{0..1}{0..1} )
+	undervoltage=${throttle: -1}
+	[[ $( echo ${D2B[$undervoltage]} | cut -c4 ) == 1 ]] && undervoltage=true || undervoltage=false
+	undervdetected=${throttle: -5:1}
+	[[ $( echo ${D2B[$undervdetected]} | cut -c4 ) == 1 ]] && undervdetected=true || undervdetected=false
+fi
+
+bullet='<gr> &bull; </gr>'
+date=( $( date +'%T %F' ) )
+timezone=$( timedatectl | awk '/zone:/ {print $3}' )
+time="${date[0]}$bullet${date[1]}&emsp;<grw>${timezone//\// &middot; }</grw>"
+uptime=$( uptime -p | tr -d 's,' | sed 's/up //; s/ day/d/; s/ hour/h/; s/ minute/m/' )
+uptimesince=$( uptime -s | cut -d: -f1-2 )
+uptime+="&emsp;<gr>since ${uptimesince/ / &bull; }</gr>"
+
+data='
+	  "cpuload"         : "'$( cat /proc/loadavg | cut -d' ' -f1-3 | sed 's/ /\&emsp;/g' )'"
+	, "cputemp"         : '$( printf "%.0f\n" $( /opt/vc/bin/vcgencmd measure_temp | cut -d= -f2 | cut -d\' -f1 ) )'
+	, "time"            : "'$time'"
+	, "uptime"          : "'$uptime'"
+	, "undervoltage"    : '$undervoltage'
+	, "undervdetected"  : '$undervdetected
 
 # for interval refresh
 (( $# > 0 )) && echo {$data} && exit
 
-hardwarecode=$( grep Revision /proc/cpuinfo | awk '{print $NF}' )
-code=${hardwarecode: -3:2}
-case $code in
-	0c | 08 | 0e | 0d | 11 ) rpiwireless=1;;
-esac
-case $code in
-	00 | 01 | 02 | 03 ) cpu='700MHz';;
-	04 )                cpu='4 @ 900MHz';;
-	09 | 0c )           cpu='1GHz';;
-	08 )                cpu='4 @ 900MHz';;
-	0d | 0e )           cpu='4 @ 1.4GHz';;
-	11 )                cpu='4 @ 1.5GHz';;
-esac
-case ${hardwarecode: -4:1} in
-	0 ) soc='BCM2835';;
-	1 ) soc='BCM2836';;
-	2 ) soc='BCM2837';;
-	3 ) soc='BCM2711';;
-esac
-case ${hardwarecode: -6:1} in
-	9 ) mem='512KB';;
-	a ) mem='1GB';;
-	b ) mem='2GB';;
-	c ) mem='4GB';;
+cpuinfo=$( cat /proc/cpuinfo )
+lscpu=$( lscpu )
+soc=$( awk '/Hardware/ {print $NF}' <<< "$cpuinfo" )
+cpucores=$( awk '/CPU\(s\):/ {print $NF}' <<< "$lscpu" | cut -d. -f1 )
+cpuname=$( awk '/Model name/ {print $NF}' <<< "$lscpu" )
+cpuspeed=$( awk '/CPU max/ {print $NF}' <<< "$lscpu" | cut -d. -f1 )
+(( $cpucores > 1 )) && cores=" $cpucores"
+soc="$soc$bullet$cores $cpuname @ "
+(( $cpuspeed < 1000 )) && soc+="${cpuspeed}MHz" || soc+="$( awk "BEGIN { printf \"%.1f\n\", $cpuspeed / 1000 }" )GHz"
+soc+=$bullet
+hwcode=$( awk '/Revision/ {print $NF}' <<< "$cpuinfo" )
+case ${hwcode::1} in
+	9 ) soc+='512KB';;
+	a ) soc+='1GB';;
+	b ) soc+='2GB';;
+	c ) soc+='4GB';;
 esac
 
-. /srv/http/bash/network-ifconfig.sh
+lines=$( /srv/http/bash/network.sh ifconfig )
+readarray -t lines <<<"$lines"
 for line in "${lines[@]}"; do
     items=( $line )
     iplist+=",${items[0]} ${items[1]} ${items[2]}"
@@ -47,19 +68,24 @@ done
 dirsystem=/srv/http/data/system
 version=$( cat $dirsystem/version )
 mpdstats=$( systemctl -q is-active mpd && mpc stats | head -3 | awk '{print $NF}' | tr '\n' ',' | head -c -1 )
-snaplatency=$( grep OPTS= /etc/default/snapclient | cut -d= -f3 | tr -d '"' )
+soundprofile=$( cat $dirsystem/soundprofile 2> /dev/null )
+snaplatency=$( grep OPTS= /etc/default/snapclient | sed 's/.*latency=\(.*\)"/\1/' )
 [[ -n $mpdstats ]] && mpdstats=[$mpdstats] || mpdstats=false
 [[ -z $snaplatency ]] && snaplatency=0
 
 data+='
 	, "audioaplayname"  : "'$( cat $dirsystem/audio-aplayname 2> /dev/null )'"
 	, "audiooutput"     : "'$( cat $dirsystem/audio-output )'"
-	, "hardware"        : "'$( tr -d '\0' < /sys/firmware/devicetree/base/model )'"
+	, "autoplay"        : '$( [[ -e $dirsystem/autoplay ]] && echo true || echo false )'
+	, "gpio"            : '$( [[ -e $dirsystem/gpio ]] && echo true || echo false )'
+	, "hardware"        : "'$( awk '/Model/ {$1=$2=""; print}' <<< "$cpuinfo" )'"
 	, "hostname"        : "'$( cat $dirsystem/hostname )'"
 	, "ip"              : "'${iplist:1}'"
 	, "kernel"          : "'$( uname -r )'"
 	, "login"           : '$( [[ -e $dirsystem/login ]] && echo true || echo false )'
 	, "mpd"             : "'$( pacman -Q mpd 2> /dev/null |  cut -d' ' -f2 )'"
+	, "mpdscribble"     : '$( systemctl -q is-active mpdscribble@mpd && echo true || echo false )'
+	, "mpdscribbleuser" : "'$( grep ^username /etc/mpdscribble.conf | cut -d' ' -f3- )'"
 	, "mpdstats"        : '$mpdstats'
 	, "ntp"             : "'$( grep '^NTP' /etc/systemd/timesyncd.conf | cut -d= -f2 )'"
 	, "onboardaudio"    : '$( grep -q 'dtparam=audio=on' /boot/config.txt && echo true || echo false )'
@@ -70,28 +96,22 @@ data+='
 	, "snapclient"      : '$( [[ -e $dirsystem/snapclient ]] && echo true || echo false )'
 	, "snaplatency"     : '$snaplatency'
 	, "soc"             : "'$soc'"
-	, "soccpu"          : "'$cpu'"
-	, "socmem"          : "'$mem'"
-	, "soundprofile"    : "'$( cat $dirsystem/soundprofile 2> /dev/null )'"
+	, "soundprofile"    : "'$soundprofile'"
+	, "soundprofileval" : "'$( /srv/http/bash/system-soundprofile.sh $soundprofile getvalue )'"
 	, "sources"         : '$( /srv/http/bash/sources-data.sh )'
 	, "streaming"       : '$( grep -q 'type.*"httpd"' /etc/mpd.conf && echo true || echo false )'
-	, "sysswap"         : '$( sysctl vm.swappiness | cut -d" " -f3 )'
-	, "syslatency"      : '$( sysctl kernel.sched_latency_ns | cut -d" " -f3 )'
+	, "timezone"        : "'$timezone'"
 	, "version"         : "'$version'"
 	, "versionui"       : '$( cat /srv/http/data/addons/rr$version )
-	
 [[ -e /usr/bin/bluetoothctl  ]] && data+='
 	, "bluetooth"       : '$( grep -q dtoverlay=bcmbt /boot/config.txt && echo true || echo false )'
 	, "bluetoothon"     : '$( [[ $( systemctl is-active bluetooth ) == active ]] && echo true || echo false )
-[[ -e /sys/class/net/eth0 ]] && data+='
-	, "eth0mtu"         : '$( cat /sys/class/net/eth0/mtu )'
-	, "eth0txq"         : '$( cat /sys/class/net/eth0/tx_queue_len )
 # renderer
 [[ -e /usr/bin/shairport-sync  ]] && data+='
 	, "airplay"         : '$( systemctl -q is-active shairport-sync && echo true || echo false )
 [[ -e /usr/bin/spotifyd  ]] && data+='
 	, "spotify"         : '$( systemctl -q is-active spotifyd && echo true || echo false )'
-	, "spotifydevice"   : "'$( grep 'device =' /etc/spotifyd.conf | awk '{print $NF}' )'"'
+	, "spotifydevice"   : "'$( awk '/device =/ {print $NF}' /etc/spotifyd.conf )'"'
 [[ -e /usr/bin/upmpdcli  ]] && data+='
 	, "upnp"            : '$( systemctl -q is-active upmpdcli && echo true || echo false )
 # features
@@ -99,9 +119,8 @@ data+='
 	, "samba"           : '$( systemctl -q is-active smb && echo true || echo false )'
 	, "writesd"         : '$( grep -A1 /mnt/MPD/SD /etc/samba/smb.conf | grep -q 'read only = no' && echo true || echo false )'
 	, "writeusb"        : '$( grep -A1 /mnt/MPD/USB /etc/samba/smb.conf | grep -q 'read only = no' && echo true || echo false )
-[[ -n $rpiwireless ]] && data+='
+[[ ${hwcode:3:2} =~ ^(08|0c|0d|0e|11)$ ]] && data+='
 	, "wlan"            : '$( lsmod | grep -q '^brcmfmac ' && echo true || echo false )
-
 xinitrc=/etc/X11/xinit/xinitrc
 if [[ -e $xinitrc ]]; then
 	file='/etc/X11/xorg.conf.d/99-raspi-rotate.conf'

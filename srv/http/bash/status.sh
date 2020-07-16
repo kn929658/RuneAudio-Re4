@@ -6,8 +6,11 @@ status=$( cat $playerfile )
 status+=', "webradio" : false'
 
 if [[ -e $playerfile-snapclient ]]; then
+	[[ ! -e /srv/http/data/tmp/snapserverpw ]] && snapserverpw=rune || snapserverpw=$( cat /srv/http/data/tmp/snapserverpw )
 ########
-	status+=', "snapserverip" : "'$( cat /srv/http/data/tmp/snapserverip )'"'
+	status+='
+		, "snapserverip" : "'$( cat /srv/http/data/tmp/snapserverip )'"
+		, "snapserverpw" : "'$snapserverpw'"'
 	echo {$status}
 	exit
 elif [[ -e $playerfile-spotify ]]; then
@@ -56,7 +59,6 @@ elif [[ -e $playerfile-airplay ]]; then
 	status+='
 		, "coverart"       : "'$coverart'"
 		, "elapsed"        : '$elapsed'
-		, "file"           : ""
 		, "playlistlength" : 1
 		, "sampling"       : "16 bit 44.1 kHz 1.41 Mbit/s • AirPlay"
 		, "state"          : "play"

@@ -18,7 +18,7 @@ mpdconf=$( sed '/audio_output/,/}/ d' $mpdfile ) # remove all outputs
 
 . /srv/http/bash/mpd-devices.sh
 
-for (( i=0; i < $cardL; i++ )); do
+for (( i=0; i < cardL; i++ )); do
 	card=${Acard[i]}
 	dop=${Adop[i]}
 	hw=${Ahw[i]}
@@ -55,7 +55,7 @@ audio_output {
 		fi
 	fi
 	
-	if [[ $dop == 1 && $aplayname != 'bcm2835 ALSA' ]]; then
+	if [[ $dop == 1 ]]; then
 ########
 		mpdconf+='
 	dop            "yes"'

@@ -13,7 +13,7 @@ if ( $login && !$_SESSION[ 'login' ] ) {
 <script>
 $( '#pwd' ).focus();
 $( '#login' ).click( function() {
-	$.post( 'commands.php', { login: $( '#pwd' ).val() }, function( data ) {
+	$.post( 'cmd.php', { login: $( '#pwd' ).val() }, function( data ) {
 		data ? location.reload() : info( 'Wrong password' );
 	} );
 } );
@@ -30,7 +30,7 @@ $( '#pwd' ).keypress( function( e ) {
 $color = file_exists( '/srv/http/data/system/color' );
 $submenupower = in_array( $_SERVER[ 'REMOTE_ADDR' ], [ '127.0.0.1', '::1' ] ) ? '<i class="fa fa-screenoff submenu"></i>' : '';
 // counts
-$counts = exec( '/srv/http/bash/mpdcount.sh' );
+$counts = exec( '/srv/http/bash/mpd.sh count' );
 $counts = json_decode( $counts );
 // library home blocks
 $modes = [ 'CoverArt', 'SD', 'USB', 'NAS', 'WebRadio', 'Album', 'Artist', 'AlbumArtist', 'Composer', 'Genre', 'Date' ];
@@ -257,7 +257,7 @@ $addonsupdate = @file_get_contents( '/srv/http/data/addons/update' ) ?: false;
 	<a id="logout"><i class="fa fa-lock"></i>Logout</a>
 		<?php } ?>
 	<a id="power"><i class="fa fa-power"></i>Power<?=$submenupower ?></a>
-		<?php if ( file_exists( '/srv/http/gpiosettings.php' ) ) { ?>
+		<?php if ( file_exists( '/srv/http/data/system/gpio' ) ) { ?>
 	<a id="gpio"><i class="fa fa-gpio"></i>GPIO<i class="fa fa-gear submenu"></i></a>
 		<?php }
 			  if ( file_exists( '/srv/http/aria2' ) ) {

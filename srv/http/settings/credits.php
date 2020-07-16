@@ -95,7 +95,7 @@ foreach( $listruneos as $name => $link ) {
 <heading>RuneAudio<i class="fa fa-addons gr"></i><?=( file_get_contents( '/srv/http/data/system/version' ) )?></heading>
 <a href="https://github.com/rern/">r e r n</a><br>
 <span class="help-block hide">
-	System-wide improvement with features of <a href="https://www.runeaudio.com/forum/runeui-enhancement-t4207.html">RuneUI Enhancement</a><br>
+	System-wide improvement with features based on <a href="https://www.runeaudio.com/forum/runeui-enhancement-t4207.html">RuneUI Enhancement</a><br>
 </span>
 <heading>Version 0.5</heading>
 <?=$list05html?>

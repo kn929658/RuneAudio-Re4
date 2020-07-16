@@ -3,9 +3,9 @@
 while :; do
 	mpc idle player
 
-	counts=$( mpc | grep '\[playing\]' | cut -d' ' -f2 | tr -d '#' )
-	pos=$( echo $counts | cut -d/ -f1 )
-	total=$( echo $counts | cut -d/ -f2 )
+	counts=$( mpc | awk '/\[playing\]/ {print $2}' | tr -d '#' )
+	pos=${counts/\/*}
+	total=${counts/*\/}
 
 	if (( $(( total - pos )) < 2 )); then
 		length=$( mpc listall | wc -l )

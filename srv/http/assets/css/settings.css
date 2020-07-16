@@ -24,6 +24,7 @@
 	font-family: enhance;
 	font-style: normal;
 }
+.fa-s { font-size: 18px; line-height: 18px; }
 .fa-lg { font-size: 22px; line-height: 18px; }
 .fa-2x { font-size: 28px; line-height: 24px; }
 .fa-addons:before { content: "\f581" }
@@ -42,8 +43,10 @@
 .fa-gear:before { content: "\f509" }
 .fa-gears:before { content: "\f50A" }
 .fa-gmusic:before { content: "\f592" }
+.fa-gpio:before { content: "\f522" }
 .fa-info-circle:before { content: "\f561" }
 .fa-lan:before { content: "\f552" }
+.fa-lastfm:before { content: "\f585" }
 .fa-library:before { content: "\f506" }
 .fa-list-ul:before { content: "\f508"; }
 .fa-lock:before { content: "\f573" }
@@ -67,6 +70,7 @@
 .fa-reload:before { content: "\f525" }
 .fa-rune:before { content: "\f580" }
 .fa-save:before { content: "\f542"}
+.fa-sd:before { content: "\f543" }
 .fa-search:before { content: "\f56A" }
 .fa-sliders:before { content: "\f50B" }
 .fa-snapcast:before { content: "\f59A" }
@@ -482,7 +486,7 @@ input:checked + .switchlabel:after {
 }
 .col-l {
 	display: inline-block;
-	width: 155px;
+	width: 160px;
 	text-align: right;
 	padding-right: 15px;
 	padding-top: 10px;
@@ -492,7 +496,7 @@ input:checked + .switchlabel:after {
 	line-height: 26px;
 }
 .col-l i {
-	width: 35px;
+	width: 30px;
 	vertical-align: 5px;
 }
 .col-l i.fa-gear {
@@ -509,7 +513,7 @@ input:checked + .switchlabel:after {
 	color: var( --cw );
 }
 .col-r {
-	width: calc( 100% - 155px );
+	width: calc( 100% - 160px );
 	min-width: 230px;
 	padding-right: 0;
 	padding-left: 0 !important;

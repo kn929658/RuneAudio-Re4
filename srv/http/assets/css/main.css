@@ -108,6 +108,7 @@
 .fa-spotify:before { content: "\f594" }
 .fa-star:before { content: "\f550" }
 .fa-stop:before { content: "\f502" }
+.fa-stopwatch:before { content: "\f547" }
 .fa-stopwatch-o:before { content: "\f548" }
 .fa-stopwatch-i:before { content: "\f549" }
 .fa-swipe:before { content: "\f54A" }
@@ -634,9 +635,8 @@ svg path.st1 {
 	top: 130px;
 	width: 100%;
 	text-align: center;
-	font-size: 30px !important;
-	color: var( --cw ) !important;
-	z-index: 1;
+	font-size: 24px;
+	z-index: 102;
 }
 #divartist,
 #divalbum {
@@ -1212,11 +1212,6 @@ svg path.st1 {
 	background: var( --cg );
 }
 .rs-tooltip {
-	top: 40% !important;
-	margin: 0 !important;
-	left: 30% !important;
-	width: 40%;
-	height: 50px;
 	font-family: Lato !important;
 	font-size: 38px !important;
 	line-height: 50px;
@@ -2437,7 +2432,11 @@ li.active .li2 bl {
 	}
 	#coverart-block,
 	.coverlarge {
-		width: 90% !important;
+		width: 100% !important;
+	}
+	#coverart-block,
+	#divcover {
+		max-width: 100vw !important;
 	}
 }
 @media( orientation: portrait ) and ( max-width: 500px ) {

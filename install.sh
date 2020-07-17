@@ -6,15 +6,17 @@ alias=rre4
 
 if [[ -e /etc/systemd/system/bootsplash.service ]]; then
 	sed -i 's|usr/local/bin|srv/http/bash|' /etc/systemd/system/bootsplash.service
-	systemctl try-restart bootsplash wsdd
+	systemctl try-restart bootsplash
 fi
-sed -i 's|usr/local/bin|srv/http/bash|' /etc/systemd/system/wsdd.service
-systemctl daemon-reload
-systemctl try-restart wsdd
+if [[ -e /etc/systemd/system/wsdd.service ]]; then
+	sed -i 's|usr/local/bin|srv/http/bash|' /etc/systemd/system/wsdd.service
+	systemctl daemon-reload
+	systemctl try-restart wsdd
+fi
 
 dirsystem=/srv/http/data/system
 
-if [[ ! -e $dirsystem/gpio.json ]]; then
+if ls /usr/lib/python*/site-packages/RPi.GPIO* &> /dev/null; then
 	echo '{
   "name": {
     "11": "DAC",

@@ -10,9 +10,11 @@ pushRefresh() {
 	curl -s -X POST 'http://127.0.0.1/pub?id=refresh' -d '{ "page": "system" }'
 }
 enable() {
-	systemctl enable --now $1
-	touch $dirsystem/$2
-	pushRefresh
+	if systemctl start $1; then
+		systemctl enable $1
+		touch $dirsystem/$2
+		pushRefresh
+	fi
 }
 disable() {
 	systemctl disable --now $1
@@ -141,17 +143,28 @@ login )
 	pushRefresh
 	;;
 mpdscribble )
-	[[ ${args[1]} == true ]] && enable mpdscribble@mpd mpdscribble || disable mpdscribble@mpd mpdscribble
-	systemctl -q is-active mpdscribble@mpd && echo 0
+	if [[ ${args[1]} == true ]]; then
+		if systemctl start mpdscribble; then
+			systemctl enable mpdscribble
+			touch $dirsystem/mpdscribble
+		fi
+	else
+		disable mpdscribble@mpd mpdscribble
+		echo -1
+	fi
 	;;
 mpdscribbleset )
 	sed -i -e "s/^\(username =\).*/\1 ${args[1]}/
 	" -e "s/^\(password =\).*/\1 ${args[2]}/
 	" /etc/mpdscribble.conf
 	echo -e "${args[1]}\n${args[2]}" > $dirsystem/mpdscribble-login
-	touch $dirsystem/mpdscribble
-	systemctl restart mpdscribble@mpd && systemctl enable mpdscribble@mpd || systemctl disable mpdscribble@mpd
-	systemctl -q is-active mpdscribble@mpd && echo 0
+	if systemctl restart mpdscribble@mpd; then
+		touch $dirsystem/mpdscribble
+	else
+		systemctl disable mpdscribble@mpd
+		rm $dirsystem/mpdscribble-login
+		echo -1
+	fi
 	pushRefresh
 	;;
 onboardaudio )
@@ -271,7 +284,7 @@ wlan )
 		modprobe brcmfmac
 		enable netctl-auto@wlan0 onboard-wlan
 	else
-		enable netctl-auto@wlan0 onboard-wlan
+		disable netctl-auto@wlan0 onboard-wlan
 		rmmod brcmfmac
 	fi
 	pushRefresh

@@ -235,10 +235,10 @@ function psOrder( data ) {
 function psPackage( data ) {
 	if ( G.local ) return
 	
-	var pkg = Object.keys( data )[ 0 ];
-	var data = JSON.parse( data[ pkg ] );
-	var active = data[ 0 ];
-	var enable = data[ 1 ];
+	var data = JSON.parse( data.data );
+	var pkg = data[ 0 ];
+	var active = data[ 1 ];
+	var enable = data[ 2 ];
 	$( '#'+ pkg )
 			.data( { active: active, enabled: enable } )
 			.find( 'img' ).toggleClass( 'on', active );

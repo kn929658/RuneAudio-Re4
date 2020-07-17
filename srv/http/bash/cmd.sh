@@ -3,7 +3,7 @@
 # convert each line to each args
 readarray -t args <<< "$1"
 
-pushstream() {
+pushstream() { # $3 - can be array ['\"'$string'\"',$boolean,$number,...]
 	curl -s -X POST 'http://127.0.0.1/pub?id='$1 -d '{ "'$2'": "'$3'" }'
 }
 
@@ -206,7 +206,7 @@ packageenable )
 	pkg=${args[1]}
 	enable=${args[2]}
 	systemctl start $pkg
-	pushstream package $pkg [true,$enable]
+	pushstream package data ['\"'$pkg'\"',true,$enable]
 	;;
 packageset )
 	pkg=${args[1]}
@@ -214,7 +214,7 @@ packageset )
 	enable=${args[3]}
 	[[ $start == true ]] && systemctl start $pkg || systemctl stop $pkg
 	[[ $enable == true ]] && systemctl enable $pkg || systemctl disable $pkg
-	pushstream package $pkg [$start,$enable]
+	pushstream package data ['\"'$pkg'\"',$start,$enable]
 	;;
 playpos )
 	mpc play ${args[1]}

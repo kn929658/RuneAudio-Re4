@@ -50,15 +50,23 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 	var ssid = $this.data( 'ssid' );
 	var ip = $this.data( 'ip' );
 	var gw = $this.data( 'gateway' );
-	var wpa = $this.data( 'wpa' );
+	var wpa = $this.data( 'wpa' ) || 'wep';
 	var dhcp = $this.data( 'dhcp' );
 	var encrypt = $this.data( 'encrypt' ) === 'on';
 	var password = $this.data( 'password' );
 	if ( !profile ) {
 		if ( encrypt ) {
-			newWiFi( $this );
+			info( {
+				  icon          : 'wifi-3'
+				, title         : ssid
+				, passwordlabel : 'Password'
+				, oklabel       : 'Connect'
+				, ok            : function() {
+					connect( [ ssid, 'dhcp', wpa, $( '#infoPasswordBox' ).val() ] );
+				}
+			} );
 		} else {
-			connect( G.wlcurrent, ssid, 'dhcp' );
+			connect( [ ssid, 'dhcp' ] );
 		}
 		return
 	}
@@ -107,12 +115,12 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 		, oklabel : connected ? 'Disconnect' : 'Connect'
 		, okcolor : connected ? '#de810e' : ''
 		, ok      : function() {
-			if ( !connected ) {
-				sh( [ 'reconnect', ssid ] );
-			} else {
-				clearTimeout( intervalscan );
-				banner( ssid, 'Disconnect ...', 'wifi-3' );
+			clearTimeout( intervalscan );
+			banner( ssid, connected ? 'Disconnect ...' : 'Connect ...', 'wifi-3 blink' );
+			if ( connected ) {
 				sh( [ 'disconnect', G.wlcurrent ], refreshData );
+			} else {
+				connect( [ ssid ] );
 			}
 		}
 	} );
@@ -283,11 +291,11 @@ function btStatus() {
 		btScan();
 	}, 'json' );
 }
-function connect( data ) { // [ wlan, ssid, dhcp, wpa, password, hidden, ip, gw ]
+function connect( data ) { // [ ssid, dhcp, wpa, password, hidden, ip, gw ]
 	clearTimeout( intervalscan );
 	$( '#scanning-wifi' ).removeClass( 'hide' );
-	var ssid = data [ 1 ];
-	var ip = data[ 6 ];
+	var ssid = data [ 0 ];
+	var ip = data[ 5 ];
 	if ( ip ) {
 		$( '#loader' ).removeClass( 'hide' );
 		location.href = 'http://'+ ip +'/index-settings.php?p=network';
@@ -296,12 +304,11 @@ function connect( data ) { // [ wlan, ssid, dhcp, wpa, password, hidden, ip, gw 
 	} else {
 		banner( ssid, 'Connect ...', 'wifi-3' );
 	}
-	sh( [ 'connect' ].concat( data ), function( std ) {
+	sh( [ 'connect', G.wlcurrent ].concat( data ), function( std ) {
 		if ( std != -1 ) {
 			G.wlconnected = G.wlcurrent;
-			sh( [ 'connect', G.wlcurrent ], refreshData );
+			$( '#listwifi li[data-ssid='+ ssid +']' ).find( 'i:eq( 0 )' ).after( ' <grn>&bull;</grn> ' );
 		} else {
-			$( '#scanning-wifi' ).addClass( 'hide' );
 			G.wlconnected =  '';
 			info( {
 				  icon      : 'wifi-3'
@@ -309,6 +316,7 @@ function connect( data ) { // [ wlan, ssid, dhcp, wpa, password, hidden, ip, gw 
 				, message   : 'Connect to <wh>'+ ssid +'</wh> failed.'
 			} );
 		}
+		refreshData();
 	} );
 }
 function editLAN( data ) {
@@ -373,7 +381,6 @@ function editWiFi( ssid, data ) {
 					editWiFiSet( ssid, data );
 				} else {
 					sh( [ 'statuswifi', ssid ], function( data ) {
-						data.dhcp = data.IP === 'static' ? 'Static IP' : 'DHCP';
 						data.Address = 'Address' in data ? data.Address.replace( '/24', '' ) : '';
 						editWiFiSet( ssid, data );
 					}, 'json' );
@@ -385,22 +392,25 @@ function editWiFi( ssid, data ) {
 			var password = $( '#infoPasswordBox' ).val();
 			var ip = $( '#infoTextBox1' ).val();
 			var gw = $( '#infoTextBox2' ).val();
-			var static = $( '#infoCheckBox input:eq( 0 )' ).prop( 'checked' ) ? 'static' : 'dhcp';
+			var dhcp = $( '#infoCheckBox input:eq( 0 )' ).prop( 'checked' ) ? 'static' : 'dhcp';
 			var hidden = $( '#infoCheckBox input:eq( 1 )' ).prop( 'checked' ) ? 'hidden' : '';
 			var security = $( '#infoCheckBox input:eq( 2 )' ).prop( 'checked' ) ? 'wep' : 'wpa';
 			if ( data0 && ip === data0.Address && gw === data0.Gateway ) return
 			
 			// [ wlan, ssid, dhcp, wpa, password, hidden, ip, gw ]
-			var data = [ G.wlcurrent, ssid, static ];
+			var data = [ ssid, dhcp ];
 			if ( password ) {
-				data.push( security, password );
+				data.push( security, password, hidden );
 			} else {
-				data.push( '', '' );
+				data.push( '', '', hidden );
 			}
-			data.push( hidden );
-			if ( static ) {
+			if ( dhcp === 'dhcp' ) {
+				connect( data );
+			} else {
 				data.push( ip, gw );
-				if ( ip !== data0.Address ) {
+				if ( ip === data0.Address ) {
+					connect( data );
+				} else {
 					sh( [ 'ipused', ip ], function( used ) {
 						if ( used == 1 ) {
 							info( {
@@ -415,11 +425,7 @@ function editWiFi( ssid, data ) {
 							connect( data );
 						}
 					} );
-				} else {
-					connect( data );
 				}
-			} else {
-				connect( data );
 			}
 		}
 	} );
@@ -430,7 +436,7 @@ function editWiFi( ssid, data ) {
 function editWiFiSet( ssid, data ) {
 	$( '#infoMessage' ).html(
 		 '<i class="fa fa-wifi-3"></i>&ensp;<wh>'+ ssid +'</wh>'
-		+'<br>Current: <wh>'+ data.dhcp +'</wh><br>&nbsp;'
+		+'<br>Current: <wh>'+ ( data.dhcp === 'dhcp' ? 'DHCP' : 'Static IP' ) +'</wh><br>&nbsp;'
 	).css( 'text-align', 'center' );
 	$( '#infoTextBox1' ).val( data.Address );
 	$( '#infoTextBox2' ).val( data.Gateway );
@@ -469,23 +475,9 @@ function getNetctl() {
 			.removeClass( 'hide' );
 	} );
 }
-function newWiFi( $this ) {
-	var ssid = $this.data( 'ssid' );
-	var wpa = $this.data( 'wpa' );
-	info( {
-		  icon          : 'wifi-3'
-		, title         : ssid
-		, passwordlabel : 'Password'
-		, oklabel       : 'Connect'
-		, ok            : function() {
-			connect( [ G.wlcurrent, ssid, 'dhcp', wpa || 'wep', $( '#infoPasswordBox' ).val() ] );
-		}
-	} );
-}
 function nicsStatus() {
 	bash( '/srv/http/bash/network-data.sh', function( list ) {
 		var extra = list.pop();
-		$( '#divaccesspoint' ).toggleClass( 'hide', !extra.wlan );
 		if ( extra.hostapd ) {
 			G = extra.hostapd;
 			$( '#ssid' ).text( G.ssid );
@@ -533,8 +525,11 @@ function nicsStatus() {
 		}
 		$( '#refreshing' ).addClass( 'hide' );
 		$( '#listinterfaces' ).html( html );
+		if ( $( '#divinterface' ).hasClass( 'hide' ) ) return
+		
 		renderQR();
 		bannerHide();
+		$( '#divaccesspoint' ).toggleClass( 'hide', !extra.wlan );
 		if ( !$( '#codeifconfig' ).hasClass( 'hide' ) ) getIfconfig();
 		if ( !$( '#codenetctl' ).hasClass( 'hide' ) ) getNetctl();
 		showContent();

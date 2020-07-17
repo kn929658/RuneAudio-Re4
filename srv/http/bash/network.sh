@@ -60,43 +60,47 @@ connect )
 	wlan=${args[1]}
 	ssid=${args[2]}
 	dhcp=${args[3]}
-	wpa=${args[4]}
-	password=${args[5]}
-	hidden=${args[6]}
-	ip=${args[7]}
-	gw=${args[8]}
-	
-	profile="\
+	if [[ -n $dhcp ]]; then
+		wpa=${args[4]}
+		password=${args[5]}
+		hidden=${args[6]}
+		ip=${args[7]}
+		gw=${args[8]}
+		
+		profile="\
 Interface=$wlan
 Connection=wireless
 ESSID=\"$ssid\"
 IP=$dhcp
 "
-	if [[ -n $password ]]; then
-		profile+="\
+		if [[ -n $password ]]; then
+			profile+="\
 Security=$wpa
 Key=\"$password\"
 "
-	else
-		profile+="\
+		else
+			profile+="\
 Security=none
 "
-	fi
-	[[ -n $hidden ]] && profile+="\
+		fi
+		[[ -n $hidden ]] && profile+="\
 Hidden=yes
 "
-	[[ $dhcp == static ]] && profile+="\
+		[[ $dhcp == static ]] && profile+="\
 Address=$ip/24
 Gateway=$gw
 "
+		echo "$profile" | tee "/srv/http/data/system/netctl-$ssid" > "/etc/netctl/$ssid"
+	fi
+	
 	ifconfig $wlan down
-	echo "$profile" | tee "/srv/http/data/system/netctl-$ssid" > "/etc/netctl/$ssid"
-	netctl switch-to "$ssid" && systemctl enable netctl-auto@$wlan
+	if netctl switch-to "$ssid"; then
+		systemctl enable netctl-auto@$wlan
+	else
+		echo -1
+		rm "/srv/http/data/system/netctl-$ssid" "/etc/netctl/$ssid"
+	fi
 	ifconfig $wlan up
-	pushRefresh
-	;;
-reconnect )
-	netctl switch-to "${args[1]}"
 	pushRefresh
 	;;
 disconnect )

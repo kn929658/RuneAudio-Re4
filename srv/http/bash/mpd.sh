@@ -25,13 +25,17 @@ amixer )
 		| awk '!a[$0]++'
 	;;
 audiooutput )
-	[[ ${2:0:7} == WM5102 ]] && /srv/http/bash/mpd-wm5102.sh ${args[2]} ${2/*-} &> /dev/null
-	if [[ ${args[1]} != $( cat /srv/http/data/system/usbdac 2> /dev/null ) ]]; then
-		echo ${args[1]} > $dirsystem/audio-aplayname
-		echo ${args[3]} > $dirsystem/audio-output
+	aplayname=${args[1]}
+	card=${args[2]}
+	output=${args[3]}
+	mixer=${args[4]}
+	[[ ${output:0:7} == WM5102 ]] && /srv/http/bash/mpd-wm5102.sh $card ${output/*-} &> /dev/null
+	if [[ $aplayname != $( cat /srv/http/data/system/usbdac 2> /dev/null ) ]]; then
+		echo $aplayname > $dirsystem/audio-aplayname
+		echo $output > $dirsystem/audio-output
 	fi
-	sed -i -e '/output_device = / s/".*"/"hw:'${args[2]}'"/
-	' -e '/mixer_control_name = / s/".*"/"'${args[4]}'"/
+	sed -i -e '/output_device = / s/".*"/"hw:'$card'"/
+	' -e '/mixer_control_name = / s/".*"/"'$mixer'"/
 	' /etc/shairport-sync.conf
 	systemctl try-restart shairport-sync shairport-meta
 	pushRefresh
@@ -48,10 +52,11 @@ autoupdate )
 	pushRefresh
 	;;
 buffer )
-	if [[ -n ${args[1]} ]]; then
+	buffer=${args[1]}
+	if [[ -n $buffer ]]; then
 		sed -i -e '/^audio_buffer/ d
-		' -e '1 i\audio_buffer_size    "'${args[1]}'"' /etc/mpd.conf
-		echo ${args[1]} > $dirsystem/mpd-buffer
+		' -e '1 i\audio_buffer_size    "'$buffer'"' /etc/mpd.conf
+		echo $buffer > $dirsystem/mpd-buffer
 	else
 		sed -i '/^audio_buffer/ d' /etc/mpd.conf
 		rm $dirsystem/mpd-buffer
@@ -60,9 +65,10 @@ buffer )
 	pushRefresh
 	;;
 crossfade )
-	if [[ -n ${args[1]} ]]; then
-		mpc crossfade ${args[1]}
-		echo ${args[1]} > $dirsystem/mpd-crossfade
+	crossfade=${args[1]}
+	if [[ -n $crossfade ]]; then
+		mpc crossfade $crossfade
+		echo $crossfade > $dirsystem/mpd-crossfade
 	else
 		mpc crossfade 0
 		rm $dirsystem/mpd-crossfade
@@ -93,10 +99,12 @@ count )
 	echo $albumartist $composer $genre > /srv/http/data/system/mpddb
 	;;
 dop )
-	if [[ ${args[1]} == true ]]; then
-		touch "$dirsystem/mpd-dop-${args[2]}"
+	dop=${args[1]}
+	output=${args[2]}
+	if [[ $dop == true ]]; then
+		touch "$dirsystem/mpd-dop-$output"
 	else
-		rm "$dirsystem/mpd-dop-${args[2]}"
+		rm "$dirsystem/mpd-dop-$output"
 	fi
 	restartMPD
 	pushRefresh
@@ -113,27 +121,35 @@ ffmpeg )
 	pushRefresh
 	;;
 mixerhw )
-	sed -i '/'${args[1]}'/,/}/ s/\(mixer_control \+"\).*/\1"'${args[2]}'"/' /etc/mpd.conf
-	sed -i '/mixer_control_name = / s/".*"/"'${args[2]}'"/' /etc/shairport-sync.conf
-	if [[ ${args[3]} == auto ]]; then
-		rm /srv/http/data/system/mpd-hwmixer-${args[4]}
+	output=${args[1]}
+	mixer=${args[2]}
+	hwmixer=${args[3]}
+	aplayname=${args[4]}
+	sed -i '/'$output'/,/}/ s/\(mixer_control \+"\).*/\1"'$mixer'"/' /etc/mpd.conf
+	sed -i '/mixer_control_name = / s/".*"/"'$mixer'"/' /etc/shairport-sync.conf
+	if [[ $hwmixer == auto ]]; then
+		rm "/srv/http/data/system/mpd-hwmixer-$aplayname"
 	else
-		echo ${args[3]} > /srv/http/data/system/mpd-hwmixer-${args[4]}
+		echo $hwmixer > "/srv/http/data/system/mpd-hwmixer-$aplayname"
 	fi
 	systemctl try-restart shairport-sync shairport-meta
 	restartMPD
 	pushRefresh
 	;;
 mixerset )
+	mixer=${args[1]}
+	output=${args[2]}
+	card=${args[3]}
+	control=${args[4]}
 	volumenone=0
-	if [[ ${args[1]} == none ]]; then
-		[[ -n ${args[4]} ]] && amixer -c ${args[3]} sset ${args[4]} 0dB
+	if [[ $mixer == none ]]; then
+		[[ -n $control ]] && amixer -c $card sset $control 0dB
 		volumenone=1
 	fi
-	if [[ ${args[1]} == hardware ]]; then
-		rm "$dirsystem/mpd-mixertype-${args[2]}"
+	if [[ $mixer == hardware ]]; then
+		rm "$dirsystem/mpd-mixertype-$output"
 	else
-		echo ${args[1]} > "$dirsystem/mpd-mixertype-${args[2]}"
+		echo $mixer > "$dirsystem/mpd-mixertype-$output"
 	fi
 	restartMPD
 	pushRefresh
@@ -162,9 +178,10 @@ novolume )
 	curl -s -X POST 'http://127.0.0.1/pub?id=volumenone' -d '{ "pvolumenone": "1" }'
 	;;
 replaygain )
-	if [[ -n ${args[1]} ]]; then
-		sed -i '/^replaygain/ s/".*"/"'${args[1]}'"/' /etc/mpd.conf
-		echo ${args[1]} $dirsystem/mpd-replaygain
+	replaygain=${args[1]}
+	if [[ -n $replaygain ]]; then
+		sed -i '/^replaygain/ s/".*"/"'$replaygain'"/' /etc/mpd.conf
+		echo $replaygain $dirsystem/mpd-replaygain
 	else
 		sed -i '/^replaygain/ s/".*"/"off"/' /etc/mpd.conf
 		rm $dirsystem/mpd-replaygain

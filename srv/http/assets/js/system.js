@@ -181,7 +181,7 @@ $( '#setting-localbrowser' ).click( function( e ) {
 		}
 		, buttonwidth : 1
 		, ok          : function() {
-			var cursor    = $( '#infoCheckBox input:eq( 0 )' ).prop( 'checked' ) ? 1 : 0;
+			var cursor    = $( '#infoCheckBox input:eq( 0 )' ).prop( 'checked' );
 			var rotate    = $( 'input[name=inforadio]:checked' ).val();
 			var screenoff = $( '#infoTextBox' ).val();
 			var zoom = parseFloat( $( '#infoTextBox1' ).val() ) || 1;

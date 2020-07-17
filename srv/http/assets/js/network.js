@@ -58,12 +58,7 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 		if ( encrypt ) {
 			newWiFi( $this );
 		} else {
-			var data = 'Interface='+ G.wlcurrent
-					  +'\nConnection=wireless'
-					  +'\nIP=dhcp'
-					  +'\nESSID="'+ ssid +'"'
-					  +'\nSecurity=none';
-			connect( ssid, data );
+			connect( G.wlcurrent, ssid, 'dhcp' );
 		}
 		return
 	}
@@ -113,13 +108,12 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 		, okcolor : connected ? '#de810e' : ''
 		, ok      : function() {
 			if ( !connected ) {
-				connect( ssid, false );
-				return
+				sh( [ 'reconnect', ssid ] );
+			} else {
+				clearTimeout( intervalscan );
+				banner( ssid, 'Disconnect ...', 'wifi-3' );
+				sh( [ 'disconnect', G.wlcurrent ], refreshData );
 			}
-			
-			clearTimeout( intervalscan );
-			banner( ssid, 'Disconnect ...', 'wifi-3' );
-			sh( [ 'disconnect', G.wlcurrent ], refreshData );
 		}
 	} );
 } );
@@ -484,14 +478,7 @@ function newWiFi( $this ) {
 		, passwordlabel : 'Password'
 		, oklabel       : 'Connect'
 		, ok            : function() {
-			var password = $( '#infoPasswordBox' ).val();
-			var data = 'Interface='+ G.wlcurrent
-					  +'\nConnection=wireless'
-					  +'\nIP=dhcp'
-					  +'\nESSID="'+ ssid +'"'
-					  +'\nSecurity='+ ( wpa || 'wep' )
-					  +'\nKey="'+ password +'"';
-			connect( ssid, data );
+			connect( [ G.wlcurrent, ssid, 'dhcp', wpa || 'wep', $( '#infoPasswordBox' ).val() ] );
 		}
 	} );
 }

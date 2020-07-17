@@ -120,15 +120,7 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 			if ( connected ) {
 				sh( [ 'disconnect', G.wlcurrent ], refreshData );
 			} else {
-				sh( [ 'connect', G.wlcurrent, ssid ], function( std ) {
-					console.log(std)
-					if ( std === 'connected' ) {
-						$this.after( '<grn> &bull; </grn>' );
-					} else if ( std === 'failed' ) {
-						banner( ssid, 'Connect failed.', 'wifi-3' );
-					}
-					refreshData();
-				} );
+				connect( [ ssid ] );
 			}
 		}
 	} );

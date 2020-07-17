@@ -241,7 +241,7 @@ $( '#mpdscribble' ).click( function() {
 	} else {
 		banner( 'Scrobbler', mpdscribble, 'lastfm' );
 		sh( [ 'mpdscribble', mpdscribble ], function( std ) {
-			G.mpdscribble = std == 0 ? true : false;
+			G.mpdscribble = std != -1 ? true : false;
 			$( '#setting-mpdscribble' ).toggleClass( 'hide', !G.mpdscribble );
 			resetLocal();
 		} );
@@ -262,7 +262,7 @@ $( '#setting-mpdscribble' ).click( function() {
 			var password = $( '#infoPasswordBox' ).val().replace( /(["&()\\])/g, '\$1' );
 			banner( 'Scrobbler', G.mpdscribble ? 'Change ...' : 'Enable ...', 'lastfm' );
 			sh( [ 'mpdscribbleset', G.mpdscribbleuser, password ], function( std ) {
-				G.mpdscribble = std == 0 ? true : false;
+				G.mpdscribble = std != -1 ? true : false;
 				$( '#setting-mpdscribble' ).toggleClass( 'hide', !G.mpdscribble );
 				resetLocal();
 		} );

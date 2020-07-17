@@ -389,7 +389,6 @@ function editWiFi( ssid, data ) {
 					editWiFiSet( ssid, data );
 				} else {
 					sh( [ 'statuswifi', ssid ], function( data ) {
-						data.dhcp = data.IP === 'static' ? 'Static IP' : 'DHCP';
 						data.Address = 'Address' in data ? data.Address.replace( '/24', '' ) : '';
 						editWiFiSet( ssid, data );
 					}, 'json' );
@@ -445,7 +444,7 @@ function editWiFi( ssid, data ) {
 function editWiFiSet( ssid, data ) {
 	$( '#infoMessage' ).html(
 		 '<i class="fa fa-wifi-3"></i>&ensp;<wh>'+ ssid +'</wh>'
-		+'<br>Current: <wh>'+ data.dhcp +'</wh><br>&nbsp;'
+		+'<br>Current: <wh>'+ ( data.dhcp === 'dhcp' ? 'DHCP' : 'Static IP' ) +'</wh><br>&nbsp;'
 	).css( 'text-align', 'center' );
 	$( '#infoTextBox1' ).val( data.Address );
 	$( '#infoTextBox2' ).val( data.Gateway );

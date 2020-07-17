@@ -106,7 +106,7 @@ localbrowserset )
 	zoom=${args[4]}
 	path=$dirsystem/localbrowser
 	rotateconf=/etc/X11/xorg.conf.d/99-raspi-rotate.conf
-	if [[ $1 == NORMAL ]]; then
+	if [[ $rotate == NORMAL ]]; then
 		rm -f $rotateconf $path-rotatefile
 	else
 		case $rotate in

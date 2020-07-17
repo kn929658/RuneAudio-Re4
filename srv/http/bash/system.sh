@@ -48,25 +48,29 @@ bluetooth )
 	pushRefresh
 	;;
 hostname )
-	hostnamectl set-hostname ${args[1]}
+	hostname=${args[1]}
+	hostnamectl set-hostname $hostname
 	sed -i "s/\(--hostname \).*/\1${args[1]}/" /etc/systemd/system/wsdd.service
 	sed -i "s/^\(ssid=\).*/\1${args[1]}/" /etc/hostapd/hostapd.conf
-	sed -i '/^\tname =/ s/".*"/"'${args[1]}'"/' /etc/shairport-sync.conf
+	sed -i '/^\tname =/ s/".*"/"'$hostname'"/' /etc/shairport-sync.conf
 	sed -i "s/^\(friendlyname = \).*/\1${args[1]}/" /etc/upmpdcli.conf
 	rm -f /root/.config/chromium/SingletonLock
 	systemctl daemon-reload
 	systemctl try-restart avahi-daemon hostapd mpd smb wsdd shairport-sync shairport-meta upmpdcli
-	systemctl -q is-active bluetooth && bluetoothctl system-alias ${args[1]}
-	echo ${args[1]} > $dirsystem/hostname
+	systemctl -q is-active bluetooth && bluetoothctl system-alias $hostname
+	echo $hostname > $dirsystem/hostname
 	pushRefresh
 	;;
 i2smodule )
+	aplayname=${args[1]}
+	output=${args[2]}
+	reboot=${args[3]}
 	grep -q 'dtoverlay=gpio' /boot/config.txt && gpio=1
 	grep -q 'dtoverlay=bcmbt' /boot/config.txt && bt=1
 	sed -i '/dtparam=\|dtoverlay=\|^$/ d' /boot/config.txt
 	[[ -n $gpio ]] && echo dtoverlay=gpio >> /boot/config.txt
 	[[ -n $bt ]] && echo dtoverlay=bcmbt >> /boot/config.txt
-	if [[ ${2:0:7} != bcm2835 ]]; then
+	if [[ ${aplayname:0:7} != bcm2835 ]]; then
 		echo "\
 dtparam=audio=off
 dtparam=i2s=on
@@ -77,18 +81,18 @@ dtoverlay=${args[1]}\
 		echo dtparam=audio=on >> /boot/config.txt
 		touch $dirsystem/onboard-audio
 	fi
-	echo ${args[1]} > $dirsystem/audio-aplayname
-	echo ${args[2]} > $dirsystem/audio-output
-	echo "${args[3]}" > $filereboot
+	echo $aplayname > $dirsystem/audio-aplayname
+	echo $output > $dirsystem/audio-output
+	echo "$reboot" > $filereboot
 	pushRefresh
 	;;
 localbrowser )
 	if [[ ${args[1]} == true ]]; then
-		enable localbrowser $1
+		enable localbrowser localbrowser
 		systemctl disable getty@tty1
 		sed -i 's/\(console=\).*/\1tty3 plymouth.enable=0 quiet loglevel=0 logo.nologo vt.global_cursor_default=0/' /boot/cmdline.txt
 	else
-		disable localbrowser $1
+		disable localbrowser localbrowser
 		systemctl enable getty@tty1
 		sed -i 's/\(console=\).*/\1tty1/' /boot/cmdline.txt
 		/srv/http/bash/ply-image /srv/http/assets/img/splash.png
@@ -96,32 +100,36 @@ localbrowser )
 	pushRefresh
 	;;
 localbrowserset )
+	rotate=${args[1]}
+	cursor=${args[2]}
+	screenoff=${args[3]}
+	zoom=${args[4]}
 	path=$dirsystem/localbrowser
 	rotateconf=/etc/X11/xorg.conf.d/99-raspi-rotate.conf
 	if [[ $1 == NORMAL ]]; then
 		rm -f $rotateconf $path-rotatefile
 	else
-		case ${args[1]} in
+		case $rotate in
 			CW )  matrix='0 1 0 -1 0 1 0 0 1';;
 			CCW ) matrix='0 -1 1 1 0 0 0 0 1';;
 			UD )  matrix='-1 0 1 0 -1 1 0 0 1';;
 		esac
-		sed -e "s/ROTATION_SETTING/${args[1]}/
+		sed -e "s/ROTATION_SETTING/$rotate/
 		" -e "s/MATRIX_SETTING/$matrix/" /etc/X11/xinit/rotateconf | tee $rotateconf $path-rotatefile
 	fi
-	ln -sf /srv/http/assets/img/{$1,splash}.png
-	if [[ ${args[1]} == 1 ]]; then
+	ln -sf /srv/http/assets/img/{$rotate,splash}.png
+	if [[ $cursor == true ]]; then
 		touch $path-cursor
 		cursor=yes
 	else
 		rm $path-cursor
 		cursor=no
 	fi
-	[[ ${args[2]} != 0 ]] && echo ${args[2]} > $path-screenoff || rm $path-screenoff
-	[[ ${args[3]} != 1 ]] && echo ${args[3]} > $path-zoom || rm $path-zoom
+	[[ $screenoff != 0 ]] && echo $screenoff > $path-screenoff || rm $path-screenoff
+	[[ $zoom != 1 ]] && echo $zoom > $path-zoom || rm $path-zoom
 	sed -i -e 's/\(-use_cursor \).*/\1"'$cursor'" \&/
-	' -e 's/\(xset dpms 0 0 \).*/\1"'${args[2]}'" \&/
-	' -e 's/\(factor=\).*/\1"'${args[3]}'"/
+	' -e 's/\(xset dpms 0 0 \).*/\1"'$screenoff'" \&/
+	' -e 's/\(factor=\).*/\1"'$zoom'"/
 	' /etc/X11/xinit/xinitrc
 	systemctl restart localbrowser
 	pushRefresh
@@ -139,7 +147,7 @@ login )
 	pushRefresh
 	;;
 mpdscribble )
-	[[ ${args[1]} == true ]] && enable mpdscribble@mpd $1 || disable mpdscribble@mpd $1
+	[[ ${args[1]} == true ]] && enable mpdscribble@mpd mpdscribble || disable mpdscribble@mpd mpdscribble
 	systemctl -q is-active mpdscribble@mpd && echo 0
 	;;
 mpdscribbleset )
@@ -165,15 +173,17 @@ onboardaudio )
 	pushRefresh
 	;;
 regional )
-	sed -i "s/^\(NTP=\).*/\1${args[1]}/" /etc/systemd/timesyncd.conf
-	sed -i 's/".*"/"'${args[2]}'"/' /etc/conf.d/wireless-regdom
-	iw reg set ${args[2]}
-	[[ ${args[1]} == pool.ntp.org ]] && rm $dirsystem/ntp || echo ${args[1]} > $dirsystem/ntp
-	[[ ${args[2]} == 00 ]] && rm $dirsystem/wlanregdom || echo ${args[2]} > $dirsystem/wlanregdom
+	ntp=${args[1]}
+	regom=${args[2]}
+	sed -i "s/^\(NTP=\).*/\1$ntp/" /etc/systemd/timesyncd.conf
+	sed -i 's/".*"/"'$regdom'"/' /etc/conf.d/wireless-regdom
+	iw reg set $regdom
+	[[ $ntp == pool.ntp.org ]] && rm $dirsystem/ntp || echo $ntp > $dirsystem/ntp
+	[[ $regdom == 00 ]] && rm $dirsystem/wlanregdom || echo $regdom > $dirsystem/wlanregdom
 	pushRefresh
 	;;
 samba )
-	[[ ${args[1]} == true ]] && enable 'smb wsdd' $1 || disable 'smb wsdd' $1
+	[[ ${args[1]} == true ]] && enable 'smb wsdd' samba || disable 'smb wsdd' samba
 	;;
 sambaset )
 	smbconf=/etc/samba/smb.conf
@@ -191,7 +201,7 @@ sambaset )
 	pushRefresh
 	;;
 snapcast )
-	[[ ${args[1]} == true ]] && enable snapserver $1 || disable snapserver $1
+	[[ ${args[1]} == true ]] && enable snapserver snapcast || disable snapserver snapcast
 	/srv/http/bash/mpd-conf.sh
 	/srv/http/bash/snapcast.sh serverstop
 	;;
@@ -200,8 +210,9 @@ snapclient )
 	pushRefresh
 	;;
 snapclientset )
-	sed -i '/OPTS=/ s/".*"/"--latency="'${args[1]}'"/' /etc/default/snapclient
-	changeSetting snapclient snapcast-latency ${args[1]}
+	latency=${args[1]}
+	sed -i '/OPTS=/ s/".*"/"--latency="'$latency'"/' /etc/default/snapclient
+	changeSetting snapclient snapcast-latency $latency
 	;;
 soundprofile )
 	if [[ ${args[1]} == true ]]; then
@@ -215,17 +226,19 @@ soundprofile )
 	pushRefresh
 	;;
 soundprofileset )
-	if [[ ${args[1]} != [0-9]* ]]; then
-		/srv/http/bash/system-soundprofile.sh ${args[1]}
-		echo ${args[1]} > $dirsystem/soundprofile
+	profile=${args[1]}
+	if [[ $profile != [0-9]* ]]; then
+		/srv/http/bash/system-soundprofile.sh $profile
+		echo $profile > $dirsystem/soundprofile
 	else
-		/srv/http/bash/system-soundprofile.sh ${args[1]} ${args[2]} ${args[3]} ${args[4]}
-		echo ${args[1]} ${args[2]} ${args[3]} ${args[4]} > $dirsystem/soundprofile
+		data="$profile ${args[2]} ${args[3]} ${args[4]}"
+		/srv/http/bash/system-soundprofile.sh $data
+		echo $data > $dirsystem/soundprofile
 	fi
 	pushRefresh
 	;;
 spotify )
-	[[ ${args[1]} == true ]] && enable spotifyd $1 || disable spotifyd $1
+	[[ ${args[1]} == true ]] && enable spotifyd spotify || disable spotifyd spotify
 	;;
 spotifyset )
 	changeSetting spotifyd spotify-device ${args[1]}
@@ -245,12 +258,13 @@ streaming )
 	/srv/http/bash/mpd-conf.sh
 	;;
 timezone )
-	timedatectl set-timezone ${args[1]}
-	echo ${args[1]} > $dirsystem/timezone
+	timezone=${args[1]}
+	timedatectl set-timezone $timezone
+	echo $timezone > $dirsystem/timezone
 	pushRefresh
 	;;
 upnp )
-	[[ ${args[1]} == true ]] && enable upmpdcli $1 || disable upmpdcli $1
+	[[ ${args[1]} == true ]] && enable upmpdcli upnp || disable upmpdcli upnp
 	;;
 wlan )
 	if [[ ${args[1]} == true ]]; then

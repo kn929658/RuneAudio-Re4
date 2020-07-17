@@ -235,9 +235,13 @@ function psOrder( data ) {
 function psPackage( data ) {
 	if ( G.local ) return
 	
-	$( '#'+ data[ 0 ] )
-			.data( { active: data[ 1 ], enabled: data[ 2 ] } )
-			.find( 'img' ).toggleClass( 'on', data[ 1 ] === 1 );
+	var pkg = Object.keys( data )[ 0 ];
+	var data = JSON.parse( data[ pkg ] );
+	var active = data[ 0 ];
+	var enable = data[ 1 ];
+	$( '#'+ pkg )
+			.data( { active: active, enabled: enable } )
+			.find( 'img' ).toggleClass( 'on', active );
 }
 function psPlaylist( data ) {
 	if ( data.playlist === 'playlist' ) {

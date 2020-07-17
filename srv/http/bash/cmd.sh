@@ -10,13 +10,14 @@ pushstream() {
 case ${args[0]} in
 
 addonsclose )
-	killall ${args[1]} wget pacman &> /dev/null
-	rm -f /var/lib/pacman/db.lck /srv/http/*.zip /usr/local/bin/uninstall_${args[2]}.sh
-	rm -f /srv/http/data/addons/${args[2]}
+	script=${args[1]}
+	alias=${args[2]}
+	killall $script wget pacman &> /dev/null
+	rm -f /var/lib/pacman/db.lck /srv/http/*.zip /srv/http/data/addons/$alias /usr/local/bin/uninstall_$alias.sh
 	;;
 addonslist )
 	wget -q --no-check-certificate https://github.com/rern/RuneAudio_Addons/raw/master/addons-list.php -O /srv/http/data/addons/addons-list.php
-	[[ $? != 0 ]] && echo -n -1
+	echo -n $?
 	;;
 color )
 	cmd=${args[1]}
@@ -24,7 +25,7 @@ color )
 	if [[ $cmd == reset ]]; then
 		rm $file
 	elif [[ -n $cmd && $cmd != color ]]; then # omit call from addons-functions.sh / backup-restore.sh
-		echo ${args[1]} > $file
+		echo $cmd > $file
 	fi
 	if [[ -e $file ]]; then
 		hsl=( $( cat $file ) )
@@ -68,8 +69,9 @@ gpioset )
 	echo ${args[1]} | jq . > /srv/http/data/system/gpio.json
 	;;
 ignoredir )
-	dir=$( basename "${args[1]}" )
-	mpdpath=$( dirname "${args[1]}" )
+	path=${args[1]}
+	dir=$( basename "$path" )
+	mpdpath=$( dirname "$path" )
 	echo $dir >> "/mnt/MPD/$mpdpath/.mpdignore"
 	mpc update "$mpdpath" #1 get .mpdignore into database
 	mpc update "$mpdpath" #2 after .mpdignore was in databasep
@@ -122,44 +124,50 @@ mpcadd )
 	mpc play $pos
 	;;
 mpcfindadd )
+	type=${args[1]}
+	string=${args[2]}
 	cmd=${args[3]}
 	sleep=${args[4]}
 	[[ ${cmd: -4} == play ]] && play=1 && pos=$(( $( mpc playlist | wc -l ) + 1 ))
 	[[ ${cmd:0:7} == replace ]] && mpc clear && pos=1
-	mpc findadd ${args[1]} "${args[2]}"
+	mpc findadd $type "$string"
 	[[ -z $play ]] && exit
 	
 	sleep $sleep
 	mpc play $pos
 	;;
 mpcload )
+	playlist=${args[1]}
 	cmd=${args[2]}
 	sleep=${args[3]}
 	[[ ${cmd: -4} == play ]] && play=1 && pos=$(( $( mpc playlist | wc -l ) + 1 ))
 	[[ ${cmd:0:7} == replace ]] && mpc clear && pos=1
-	mpc load "${args[1]}"
+	mpc load "$playlist"
 	[[ -z $play ]] && exit
 	
 	sleep $sleep
 	mpc play $pos
 	;;
 mpcloadrange )
+	range=${args[1]}
+	playlist=${args[2]}
 	cmd=${args[3]}
 	sleep=${args[4]}
 	[[ ${cmd: -4} == play ]] && play=1 && pos=$(( $( mpc playlist | wc -l ) + 1 ))
 	[[ ${cmd:0:7} == replace ]] && mpc clear && pos=1
-	mpc --range=${args[1]} load "${args[2]}"
+	mpc --range=$range load "$playlist"
 	[[ -z $play ]] && exit
 	
 	sleep $sleep
 	mpc play $pos
 	;;
 mpcls )
+	dir=${args[1]}
 	cmd=${args[2]}
 	sleep=${args[3]}
 	[[ ${cmd: -4} == play ]] && play=1 && pos=$(( $( mpc playlist | wc -l ) + 1 ))
 	[[ ${cmd:0:7} == replace ]] && mpc clear && pos=1
-	/srv/http/bash/mpdls.sh "${args[1]}"
+	/srv/http/bash/mpdls.sh "$dir"
 	[[ -z $play ]] && exit
 	
 	sleep $sleep
@@ -195,13 +203,18 @@ mpcupdate )
 	mpc update "${args[1]}"
 	;;
 packageenable )
-	systemctl start ${args[1]}
-	pushstream ${args[1]} 1 ${args[2]}
+	pkg=${args[1]}
+	enable=${args[2]}
+	systemctl start $pkg
+	pushstream package $pkg [true,$enable]
 	;;
 packageset )
-	[[ ${args[2]} == true ]] && systemctl start ${args[1]} || systemctl start ${args[1]}
-	[[ ${args[3]} == true ]] && systemctl enable ${args[1]} || systemctl disable ${args[1]}
-	pushstream ${args[1]} ${args[2]} ${args[3]}
+	pkg=${args[1]}
+	start=${args[2]}
+	enable=${args[3]}
+	[[ $start == true ]] && systemctl start $pkg || systemctl stop $pkg
+	[[ $enable == true ]] && systemctl enable $pkg || systemctl disable $pkg
+	pushstream package $pkg [$start,$enable]
 	;;
 playpos )
 	mpc play ${args[1]}
@@ -211,14 +224,15 @@ playrandom )
 	mpc play $( shuf -i 0-$plL -n 1 )
 	;;
 playseek )
+	seek=${args[1]}
 	touch /srv/http/data/tmp/nostatus
 	mpc play
 	mpc pause
-	mpc seek ${args[1]}
-	pushstream seek elapsed ${args[1]}
+	mpc seek $seek
+	pushstream seek elapsed $seek
 	;;
 plrandom )
-	if [[ ${args[1]} == 0 ]]; then
+	if [[ ${args[1]} == false ]]; then
 		systemctl stop libraryrandom
 	else
 		mpc random 0
@@ -228,7 +242,6 @@ plrandom )
 		systemctl start libraryrandom
 	fi
 	pushstream playlist playlist playlist
-	pushstream mpdoptions librandom ${args[1]}
 	;;
 plrename )
 	mv "/srv/http/data/playlists/${args[1]}" "/srv/http/data/playlists/${args[2]}"

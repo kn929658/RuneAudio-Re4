@@ -1803,7 +1803,7 @@ $( '#button-pl-random' ).click( function() {
 		G.status.librandom = false;
 		$( this ).removeClass( 'bl' );
 		notify( 'Roll The Dice', 'Off ...', 'dice' );
-		sh( [ 'plrandom', 0 ] );
+		sh( [ 'plrandom', false ] );
 	} else {
 		info( {
 			  icon    : 'dice'
@@ -1813,7 +1813,7 @@ $( '#button-pl-random' ).click( function() {
 				G.status.librandom = true;
 				$( this ).addClass( 'bl' );
 				notify( 'Roll The Dice', 'Add+play ...', 'dice' );
-				sh( [ 'plrandom', 1 ] );
+				sh( [ 'plrandom', true ] );
 			}
 		} );
 	}

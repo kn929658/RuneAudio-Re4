@@ -305,7 +305,7 @@ function connect( data ) { // [ ssid, dhcp, wpa, password, hidden, ip, gw ]
 		banner( ssid, 'Connect ...', 'wifi-3' );
 	}
 	sh( [ 'connect', G.wlcurrent ].concat( data ), function( std ) {
-		if ( std == 0 ) {
+		if ( std != -1 ) {
 			G.wlconnected = G.wlcurrent;
 			$( '#listwifi li[data-ssid='+ ssid +']' ).find( 'i:eq( 0 )' ).after( ' <grn>&bull;</grn> ' );
 		} else {
@@ -478,7 +478,6 @@ function getNetctl() {
 function nicsStatus() {
 	bash( '/srv/http/bash/network-data.sh', function( list ) {
 		var extra = list.pop();
-		$( '#divaccesspoint' ).toggleClass( 'hide', !extra.wlan );
 		if ( extra.hostapd ) {
 			G = extra.hostapd;
 			$( '#ssid' ).text( G.ssid );
@@ -526,8 +525,11 @@ function nicsStatus() {
 		}
 		$( '#refreshing' ).addClass( 'hide' );
 		$( '#listinterfaces' ).html( html );
+		if ( $( '#divinterface' ).hasClass( 'hide' ) ) return
+		
 		renderQR();
 		bannerHide();
+		$( '#divaccesspoint' ).toggleClass( 'hide', !extra.wlan );
 		if ( !$( '#codeifconfig' ).hasClass( 'hide' ) ) getIfconfig();
 		if ( !$( '#codenetctl' ).hasClass( 'hide' ) ) getNetctl();
 		showContent();

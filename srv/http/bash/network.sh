@@ -95,9 +95,9 @@ Gateway=$gw
 	
 	ifconfig $wlan down
 	if netctl switch-to "$ssid"; then
-		echo -n $?
 		systemctl enable netctl-auto@$wlan
 	else
+		echo -1
 		rm "/srv/http/data/system/netctl-$ssid" "/etc/netctl/$ssid"
 	fi
 	ifconfig $wlan up

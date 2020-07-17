@@ -120,7 +120,15 @@ $( '#listwifi' ).on( 'click', 'li', function( e ) {
 			if ( connected ) {
 				sh( [ 'disconnect', G.wlcurrent ], refreshData );
 			} else {
-				sh( [ 'connect', G.wlcurrent, ssid ], refreshData );
+				sh( [ 'connect', G.wlcurrent, ssid ], function( std ) {
+					console.log(std)
+					if ( std === 'connected' ) {
+						$this.after( '<grn> &bull; </grn>' );
+					} else if ( std === 'failed' ) {
+						banner( ssid, 'Connect failed.', 'wifi-3' );
+					}
+					refreshData();
+				} );
 			}
 		}
 	} );
@@ -305,11 +313,10 @@ function connect( data ) { // [ ssid, dhcp, wpa, password, hidden, ip, gw ]
 		banner( ssid, 'Connect ...', 'wifi-3' );
 	}
 	sh( [ 'connect', G.wlcurrent ].concat( data ), function( std ) {
-		if ( std != -1 ) {
+		if ( std == 0 ) {
 			G.wlconnected = G.wlcurrent;
-			sh( [ 'connect', G.wlcurrent ], refreshData );
+			$( '#listwifi li[data-ssid='+ ssid +']' ).find( 'i:eq( 0 )' ).after( ' <grn>&bull;</grn> ' );
 		} else {
-			$( '#scanning-wifi' ).addClass( 'hide' );
 			G.wlconnected =  '';
 			info( {
 				  icon      : 'wifi-3'
@@ -317,6 +324,7 @@ function connect( data ) { // [ ssid, dhcp, wpa, password, hidden, ip, gw ]
 				, message   : 'Connect to <wh>'+ ssid +'</wh> failed.'
 			} );
 		}
+		refreshData();
 	} );
 }
 function editLAN( data ) {

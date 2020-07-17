@@ -39,25 +39,29 @@ mount )
 	pushRefresh
 	;;
 remount )
-	if [[ ${2:9:3} == NAS ]]; then
-		mount "${args[1]}"
+	mountpoint=${args[1]}
+	source=${args[2]}
+	if [[ ${mountpoint:9:3} == NAS ]]; then
+		mount "$mountpoint"
 	else
-		udevil mount "${args[2]}"
+		udevil mount "$source"
 	fi
 	pushRefresh
 	;;
 remove )
-	umount -l "${args[1]}"
-	sed -i "\|${2// /.040}| d" /etc/fstab
-	rmdir "${args[1]}" &> /dev/null
-	rm "$dirsystem/fstab-${2/*\/}"
+	mountpoint=${args[1]}
+	umount -l "$mountpoint"
+	sed -i "\|${mountpoint// /.040}| d" /etc/fstab
+	rmdir "$mountpoint" &> /dev/null
+	rm "$dirsystem/fstab-${mountpoint/*\/}"
 	pushRefresh
 	;;
 unmount )
-	if [[ ${2:9:3} == NAS ]]; then
-		umount -l "${args[1]}"
+	mountpoint=${args[1]}
+	if [[ ${mountpoint:9:3} == NAS ]]; then
+		umount -l "$mountpoint"
 	else
-		udevil umount -l "${args[1]}"
+		udevil umount -l "$mountpoint"
 	fi
 	pushRefresh
 	;;

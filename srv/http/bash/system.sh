@@ -19,12 +19,6 @@ disable() {
 	rm $dirsystem/$2
 	pushRefresh
 }
-changeSetting() {
-	systemctl try-restart $1
-	echo $3 > $dirsystem/$2
-	pushRefresh
-}
-
 
 case ${args[0]} in
 
@@ -212,7 +206,9 @@ snapclient )
 snapclientset )
 	latency=${args[1]}
 	sed -i '/OPTS=/ s/".*"/"--latency="'$latency'"/' /etc/default/snapclient
-	changeSetting snapclient snapcast-latency $latency
+	systemctl restart snapclient
+	echo $latency > $dirsystem/snapcast-latency
+	pushRefresh
 	;;
 soundprofile )
 	if [[ ${args[1]} == true ]]; then
@@ -241,7 +237,11 @@ spotify )
 	[[ ${args[1]} == true ]] && enable spotifyd spotify || disable spotifyd spotify
 	;;
 spotifyset )
-	changeSetting spotifyd spotify-device ${args[1]}
+	device=${args[1]}
+	sed -i "s/^\(device = \)/\1$device/" /etc/spotifyd.conf
+	systemctl restart spotifyd
+	echo $device > $dirsystem/spotify-device
+	pushRefresh
 	;;
 statusbootlog )
 	if [[ -e /tmp/bootlog ]]; then

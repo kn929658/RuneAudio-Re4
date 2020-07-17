@@ -91,12 +91,12 @@ Gateway=$gw
 "
 	ifconfig $wlan down
 	echo "$profile" | tee "/srv/http/data/system/netctl-$ssid" > "/etc/netctl/$ssid"
-	netctl switch-to "$ssid"
+	netctl switch-to "$ssid" && systemctl enable netctl-auto@$wlan
 	ifconfig $wlan up
 	pushRefresh
 	;;
-connectenable )
-	systemctl enable netctl-auto${args[1]}
+reconnect )
+	netctl switch-to "${args[1]}"
 	pushRefresh
 	;;
 disconnect )

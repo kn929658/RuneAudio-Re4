@@ -67,6 +67,8 @@ function contextmenuLibrary( $li, $target ) {
 	} else if ( $( '.licover' ).length && !$li.hasClass( 'licover' ) ) {
 		G.list.name = $li.find( '.li1' ).html().replace( /<span.*/, '' ) || '';
 		G.list.artist = $( '.licover .liartist' ).text() || '';
+	} else {
+		G.list.name = $li.find( '.li1' ).html();
 	}
 	G.list.track = $li.data( 'track' ) || '';  // cue - in contextmenu
 	if ( ( G.display.tapaddplay || G.display.tapreplaceplay )

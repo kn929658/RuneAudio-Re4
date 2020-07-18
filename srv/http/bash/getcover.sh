@@ -34,6 +34,7 @@ fi
 
 [[ $found != 1 ]] && exit
 
+coverfile=${coverfile//\"/%22}
 [[ -z $size || $ext == gif ]] && echo -n ${coverfile%.*}.$( date +%s ).${coverfile/*.} && exit
 
 # resize

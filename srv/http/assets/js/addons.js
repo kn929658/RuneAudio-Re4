@@ -29,7 +29,7 @@ function branchtest( alias, type, message, install ) {
 		, textvalue : 'UPDATE'
 		, boxwidth  : 'max'
 		, ok        : function() {
-			opt = [ alias, type, $( '#infoTextBox' ).val() ];
+			opt = [ $( '#infoTextBox' ).val(), alias, type ];
 			option = addons[ alias ].option;
 			j = 0;
 			if ( install && option ) {
@@ -55,7 +55,7 @@ $( '.boxed-group .btn' ).on( 'taphold', function () {
 						 +'<label><input type="radio" name="inforadio" value="Branch">&ensp;Tree # / Branch ...</label>'
 			, ok        : function() {
 				if ( $( '#infoRadio input:checked').val() == 1 ) {
-					opt = [ alias, type, rollback ];
+					opt = [ rollback, alias, type ];
 					postcmd();
 				} else {
 					branchtest( alias, type, 'Upgrade / Downgrade to ?' );
@@ -74,7 +74,7 @@ $( '.boxed-group .btn' ).on( 'taphold', function () {
 	alias = $this.parent().attr( 'alias' );
 	title = addons[ alias ].title.replace( / *\**$/, '' );
 	type = $this.text();
-	opt = [ alias, type, 'master' ];
+	opt = [ 'master', alias, type ];
 	if ( $this.attr( 'warning' ) ) {
 		info( {
 			  icon    : 'addons'
@@ -303,11 +303,11 @@ function sendcommand() {
 		postcmd();
 	}
 }
-// post submit with temporary form (separate option to hide password)
+// post submit with temporary form
 function postcmd() {
 	var form = '<form id="formtemp" action="addons-terminal.php" method="post">';
 	var optL = opt.length;
-	for ( i = 0; i < optL; i++ ) {
+	for ( i = 0; i < optL; i++ ) { // [ branch, alias, type, opt1, opt2, ... ]
 		form += '<input type="hidden" name="sh[]" value="'+ opt[ i ] +'">'
 	}
 	form += '</form>';

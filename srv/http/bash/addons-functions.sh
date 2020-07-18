@@ -203,7 +203,13 @@ notify() { # $1-i=install $2-s=start
 		&> /dev/null
 }
 installstart() { # $1-'u'=update
-	rm -f $0
+	rm $0
+	
+	readarray -t args <<< "$1" # lines to array: alias type opt1 opt2 ...
+
+	alias=${args[0]}
+	type=${args[1]}
+	args=( "${args[@]:2}" ) # 'opt' start at ${args[0]}
 	
 	addonslist=$( sed -n "/^'$alias'/,/^],/p" $diraddons/addons-list.php )
 	title0=$( getvalue title )
@@ -218,22 +224,10 @@ installstart() { # $1-'u'=update
 	  exit
 	fi
 	
-	# convert each line to each args
-	readarray -t args <<< "$1"
-	
-	if [[ ${args[0]} != u ]]; then
-		[[ -z $( getvalue nouninstall ) ]] && type=Install || type=Update
-	else
-		type=Update
-		unset args[0] && args=( ${args[@]} )
-	fi
 	title -l '=' "$bar $type $title ..."
 	
 	timestart
 	notify "$type $title0" 'Please wait until finished.'
-	
-	branch=${args[0]}
-	unset args[0] && arg=( ${args[@]} ) # for the rest to script
 }
 installfinish() {
 	version=$( getvalue version )

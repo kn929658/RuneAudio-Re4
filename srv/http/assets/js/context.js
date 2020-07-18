@@ -661,7 +661,7 @@ function updateThumbnails() {
 			$( '#infoCheckBox input:eq( 3 )' ).prop( 'checked', 1 );
 		}
 		, ok       : function() {
-			var opt = [ 'cove', 'Update', 'master', path ];
+			var opt = [ 'master', 'cove', 'Update', path ];
 			$( '#infoCheckBox input' ).each( function() {
 				opt.push( $( this ).prop( 'checked' ) );
 			} );

@@ -633,7 +633,7 @@ function tagEditor() {
 				}
 				if ( diff === 0 ) return
 				
-				tag.push( file, G.list.licover, cue );
+				tag.unshift( file, G.list.licover, cue );
 				notify( 'Tag Editor', 'Change ...', 'tag blink', -1 );
 				sh( tag );
 			}
@@ -645,7 +645,7 @@ function updateThumbnails() {
 	var path = G.list.path.slice( -4 ) !== '.cue' ? G.list.path : G.list.path.substr( 0, G.list.path.lastIndexOf( '/' ) );
 	info( {
 		  icon     : 'coverart'
-		, title    : 'CoverArt Thumbnails Update'
+		, title    : 'CoverArt Thumbnails'
 		, message  : 'Update thumbnails in:'
 					+'<br><w>'+ path.replace( /\\/g, '' ) +'</w>'
 					+'<br>&nbsp;'
@@ -661,17 +661,17 @@ function updateThumbnails() {
 			$( '#infoCheckBox input:eq( 3 )' ).prop( 'checked', 1 );
 		}
 		, ok       : function() {
-			path = path.replace( /'/g, '&apos;' ).replace( /"/g, '\\&quot;' );
-			var opt = '';
+			var opt = [ 'cove', 'Update', 'master', path ];
 			$( '#infoCheckBox input' ).each( function() {
-				opt += $( this ).prop( 'checked' ) ? ' 1': ' 0';
+				opt.push( $( this ).prop( 'checked' ) );
 			} );
-			$( 'body' ).append(
-				'<form id="formtemp" action="addons-terminal.php" method="post">'
-					+'<input type="hidden" name="type" value="coverart">'
-					+'<input type="hidden" name="path" value="/mnt/MPD/'+ path +'">'
-					+'<input type="hidden" name="opt" value="'+ opt +'">'
-				+'</form>' );
+			var form = '<form id="formtemp" action="addons-terminal.php" method="post">';
+			var optL = opt.length;
+			for ( i = 0; i < optL; i++ ) {
+				form += '<input type="hidden" name="sh[]" value="'+ opt[ i ] +'">'
+			}
+			form += '</form>';
+			$( 'body' ).append( form );
 			$( '#formtemp' ).submit();
 		}
 	} );

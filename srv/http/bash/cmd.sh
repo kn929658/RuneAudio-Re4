@@ -51,12 +51,12 @@ s|\(--cg60: *hsl\).*;|\1(${hsg}60%);|
 	pushstream reload reload all
 	;;
 coverartget )
-	coverart=$( /srv/http/bash/getcover.sh "/mnt/MPD/${args[1]}" )
+	coverart=$( /srv/http/bash/getcover.sh "${args[1]}" )
 	echo -n $coverart
 	[[ -n ${args[2]} ]] && pushstream coverart coverart $coverart
 	;;
 coverartthumb )
-	/srv/http/bash/getcover.sh "/mnt/MPD/${args[1]}" ${args[2]}
+	/srv/http/bash/getcover.sh "${args[1]}" ${args[2]}
 	;;
 filemove )
 	mv -f "${args[1]}" "${args[2]}"

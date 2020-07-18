@@ -194,7 +194,7 @@ fi
 
 # coverart
 if [[ $ext != Radio ]]; then
-	coverart=$( /srv/http/bash/getcover.sh "/mnt/MPD/$file" )
+	coverart=$( /srv/http/bash/getcover.sh "$file" )
 elif [[ -e $radiofile ]]; then
 	coverart=$( sed -n '3 p' $radiofile )
 fi

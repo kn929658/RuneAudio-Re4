@@ -661,7 +661,7 @@ function updateThumbnails() {
 			$( '#infoCheckBox input:eq( 3 )' ).prop( 'checked', 1 );
 		}
 		, ok       : function() {
-			var opt = [ 'master', 'cove', 'Update', path ];
+			var opt = [ 'cove', 'Update', 'master', path ];
 			$( '#infoCheckBox input' ).each( function() {
 				opt.push( $( this ).prop( 'checked' ) );
 			} );
@@ -774,7 +774,6 @@ function webRadioDelete() {
 	var img = G.list.li.find( 'img' ).prop( 'src' );
 	var url = G.list.path;
 	var urlname = url.toString().replace( /\//g, '|' );
-	alert($( '#mode-webradio grl' ).text())
 	info( {
 		  icon    : 'webradio'
 		, title   : 'Delete WebRadio'

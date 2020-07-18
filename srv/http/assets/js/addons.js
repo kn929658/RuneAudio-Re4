@@ -29,7 +29,7 @@ function branchtest( alias, type, message, install ) {
 		, textvalue : 'UPDATE'
 		, boxwidth  : 'max'
 		, ok        : function() {
-			opt = [ $( '#infoTextBox' ).val(), alias, type ];
+			opt = [ alias, type, $( '#infoTextBox' ).val() ];
 			option = addons[ alias ].option;
 			j = 0;
 			if ( install && option ) {
@@ -55,7 +55,7 @@ $( '.boxed-group .btn' ).on( 'taphold', function () {
 						 +'<label><input type="radio" name="inforadio" value="Branch">&ensp;Tree # / Branch ...</label>'
 			, ok        : function() {
 				if ( $( '#infoRadio input:checked').val() == 1 ) {
-					opt = [ rollback, alias, type ];
+					opt = [ alias, type, rollback ];
 					postcmd();
 				} else {
 					branchtest( alias, type, 'Upgrade / Downgrade to ?' );
@@ -74,7 +74,7 @@ $( '.boxed-group .btn' ).on( 'taphold', function () {
 	alias = $this.parent().attr( 'alias' );
 	title = addons[ alias ].title.replace( / *\**$/, '' );
 	type = $this.text();
-	opt = [ 'master', alias, type ];
+	opt = [ alias, type, 'master' ];
 	if ( $this.attr( 'warning' ) ) {
 		info( {
 			  icon    : 'addons'

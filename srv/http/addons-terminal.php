@@ -127,7 +127,7 @@ if ( $alias === 'cove' ) {
 	$commandtxt = '/srv/http/bash/coverartscan.sh '.$opttxt;
 } else if ( $type === 'Uninstall' ) {
 	$command = $uninstall;
-	$commandtxt = 'uninstall_'.$alias.'.sh';
+	$commandtxt = "uninstall_$alias.sh";
 } else if ( $type === 'Update' && !isset( $addon[ 'nouninstall' ] ) ) {
 	$command = <<<cmd
 $getinstall
@@ -137,9 +137,7 @@ cmd;
 	$commandtxt = <<<cmd
 wget -qN --no-check-certificate $installurl
 chmod 755 $installfile
-
 uninstall_$alias.sh
-
 ./$installfile $opttxt
 cmd;
 } else {
@@ -152,7 +150,6 @@ wget -qN --no-check-certificate $installurl
 chmod 755 $installfile
 ./$installfile $opttxt
 cmd;
-	}
 }
 
 // convert bash stdout to html

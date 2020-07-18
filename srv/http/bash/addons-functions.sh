@@ -240,7 +240,7 @@ installfinish() {
 	
 	title -l '=' "$bar Done."
 }
-uninstallstart() { # $1-'u'=update
+uninstallstart() {
 	addonslist=$( sed -n "/^'$alias'/,/^],/p" $diraddons/addons-list.php )
 	title0=$( getvalue title )
 	title=$( tcolor "$title0" )
@@ -253,7 +253,6 @@ uninstallstart() { # $1-'u'=update
 	
 	rm $0
 
-	[[ $1 != u ]] && type=Uninstall || type=Update
 	notify "$type $title0" 'Please wait until finished.'
 	
 	title -l '=' "$bar $type $title ..."

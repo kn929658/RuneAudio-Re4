@@ -361,7 +361,7 @@ function htmlTracks( $lists, $f, $filemode = '', $string = '' ) { // track list 
 		$icon = 'artist';
 	}
 	$dir = dirname( $file0 );
-	$coverart = exec( '/srv/http/bash/getcover.sh "/mnt/MPD/'.escape( $file0 ).'"' );
+	$coverart = exec( '/srv/http/bash/getcover.sh "'.escape( $file0 ).'"' );
 	$nocover = '';
 	if ( !$coverart ) {
 		$coverart = '/assets/img/cover.'.( time() ).'.svg';

@@ -4,27 +4,36 @@ include 'logosvg.php';
 include '/srv/http/data/addons/addons-list.php';
 $time = time();
 
-$sh = $_POST[ 'sh' ];
-$alias = array_shift( $sh );
-$type = array_shift( $sh );
-$branch = $sh[ 0 ];
-$sh = preg_replace( '/(["`])/', '\\\\\1', $sh );
-$opt = '"'.implode( '" "', $sh ).'"'; // "branch" "opt1" "opt 2" ...
+$sh = $_POST[ 'sh' ]; // [ alias, type, branch, opt1, opt2, ... ]
+$alias = $sh[ 0 ];
+$type = $sh[ 1 ];
+$branch = $sh[ 2 ];
 $addon = $addons[ $alias ];
+if ( $alias !== 'cove' ) {
+	$heading = 'Addons Progress';
+	$href = '/addons.php';
+	$title = preg_replace( '/\**$/', '', $addon[ 'title' ] );
+} else {
+	$heading = 'CoverArt Thumbnails';
+	$href = '/';
+	$title = 'CoverArt Thumbnails';
+	$sh = array_slice( $sh, 3 );
+}
+$opt = preg_replace( '/(["`])/', '\\\\\1', implode( "\n", $sh ) );
+if ( isset( $addon[ 'option' ][ 'password' ] ) ) { // hide password
+	$i = array_search( 'password', array_keys( $addon[ 'option' ] ) );
+	$sh[ $i + 2 ] = '***';
+}
+$opttxt = '';
+foreach( $sh as $arg ) {
+	$opttxt.= strpos( $arg, ' ' ) ? '"'.$arg.'" ' : $arg.' ';
+}
 $postinfo = $type." done.<br>See Progess terminal for result.";
 $postinfo.= isset( $addon[ 'postinfo' ] ) ? '<br><br>'.$addon[ 'postinfo' ] : '';
 $installurl = $addon[ 'installurl' ];
 $installfile = basename( $installurl );
 $uninstallfile = "/usr/local/bin/uninstall_$alias.sh";
 if ( $branch !== 'master' ) $installurl = str_replace( 'raw/master', 'raw/'.$branch, $installurl );
-$title = preg_replace( '/\**$/', '', $addon[ 'title' ] );
-if ( $type !== 'coverart' ) {
-	$heading = 'Addons Progress';
-	$href = '/addons.php';
-} else {
-	$heading = 'CoverArt Thumbnails';
-	$href = '/';
-}
 ?>
 <!DOCTYPE html>
 <html>
@@ -112,57 +121,33 @@ $uninstall = <<<cmd
 /usr/bin/sudo $uninstallfile
 cmd;
 
-if ( $type === 'Uninstall' ) {
+if ( $alias === 'cove' ) {
+	$command = '/usr/bin/sudo /srv/http/bash/coverartscan.sh "'.$opt.'"';
+	$commandtxt = '/srv/http/bash/coverartscan.sh '.$opttxt;
+} else if ( $type === 'Uninstall' ) {
 	$command = $uninstall;
 	$commandtxt = "uninstall_$alias.sh";
-} else if ( $type === 'Update' ) {
-	if ( !isset( $addon[ 'nouninstall' ] ) ) {
-		$command = <<<cmd
-$getinstall
-$uninstall u
-/usr/bin/sudo ./$installfile u $opt
-cmd;
-		$commandtxt = <<<cmd
-wget -qN --no-check-certificate $installurl
-chmod 755 $installfile
-
-uninstall_$alias.sh u
-
-./$installfile u $opt
-cmd;
-	} else {
-		$command = <<<cmd
-$getinstall
-/usr/bin/sudo ./$installfile u $opt
-cmd;
-		$commandtxt = <<<cmd
-wget -qN --no-check-certificate $installurl
-chmod 755 $installfile
-
-./$installfile u $opt
-cmd;
-	}
-} else if ( $type === 'coverart' ) {
-	$opt = '"'.$_POST[ 'path' ].'" '.$opt;
-	$command = "/usr/bin/sudo /srv/http/bash/coverartscan.sh $opt";
-	$commandtxt = "/srv/http/bash/coverartscan.sh $opt";
-} else {
+} else if ( $type === 'Update' && !isset( $addon[ 'nouninstall' ] ) ) {
 	$command = <<<cmd
 $getinstall
-/usr/bin/sudo ./$installfile $opt
+$uninstall
+/usr/bin/sudo ./$installfile "$opt"
 cmd;
-	// hide password from command verbose
-	$options = isset( $addon[ 'option' ] ) ? $addon[ 'option' ] : '';
-	if ( $options && array_key_exists( 'password', $options ) ) {
-		$pwdindex = array_search( 'password', array_keys( $options ) );
-		$opts = explode( ' ', $opt );
-		$opts[ $pwdindex + 1 ] = '***';
-		$opt = implode( ' ', $opts );
-	}
 	$commandtxt = <<<cmd
 wget -qN --no-check-certificate $installurl
 chmod 755 $installfile
-./$installfile $opt
+uninstall_$alias.sh
+./$installfile $opttxt
+cmd;
+} else {
+	$command = <<<cmd
+$getinstall
+/usr/bin/sudo ./$installfile "$opt"
+cmd;
+	$commandtxt = <<<cmd
+wget -qN --no-check-certificate $installurl
+chmod 755 $installfile
+./$installfile $opttxt
 cmd;
 }
 

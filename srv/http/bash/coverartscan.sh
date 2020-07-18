@@ -2,17 +2,22 @@
 
 dircoverarts=/srv/http/data/coverarts
 dirtmp=/srv/http/data/tmp
-path=$1
-replaceexist=$3
-copyembedded=$5
+
+readarray -t args <<< "$1"
+
+path="/mnt/MPD/${args[0]}"
+updatedb=${args[1]}
+replaceexist=${args[2]}
+remove=${args[3]}
+copyembedded=${args[4]}
 
 . /srv/http/bash/addons-functions.sh
 
-if [[ $2 == 1 ]]; then
+if [[ $updatedb == true ]]; then
 	echo -e "$bar Update database ..."
 	mpc update
 fi
-if [[ $4 == 1 ]]; then
+if [[ $remove == true ]]; then
 	echo -e "$bar Remove entire thumbnails ..."
 	rm $dircoverarts/*
 fi
@@ -110,11 +115,11 @@ createThumbnail() {
 			echo "  $albumname - $artistname"
 			echo -e "$mpcfind\n" >> $duplog
 			return
-		elif [[ $replaceexist != 1 ]]; then
+		elif [[ $replaceexist == false ]]; then
 			(( exist++ ))
 			echo -e "$padW #$exist Skip - Thumbnail exists:"
 			echo "  $( basename "$thumbfile" )"
-			if [[ $copyembedded == 1 ]]; then # copy embedded
+			if [[ $copyembedded == true ]]; then # copy embedded
 				findCoverFile
 				[[ $found == 1 ]] && return
 				
@@ -157,7 +162,7 @@ createThumbnail() {
 		fi
 		if [[ $? == 0 ]]; then
 			echo "  Source: $( basename "$coverfile" )"
-			if [[ $replaceexist == 1 ]]; then
+			if [[ $replaceexist == true ]]; then
 				(( replace++ ))
 				echo -e "$padG #$replace - Replace existing."
 			else
@@ -192,7 +197,7 @@ createThumbnail() {
 			else
 				echo "  Source: Embedded coverart"
 				convert "$coverfile" -thumbnail 200x200 -unsharp 0x.5 "$thumbfile"
-				if [[ $copyembedded == 1 ]]; then
+				if [[ $copyembedded == true ]]; then
 					if [[ -w "$dir" ]]; then
 						mv $coverfile "$dir"
 						(( copy++ ))
@@ -204,7 +209,7 @@ createThumbnail() {
 					rm "$coverfile"
 				fi
 				if [[ $? == 0 ]]; then
-					if [[ $replaceexist == 1 ]]; then
+					if [[ $replaceexist == true ]]; then
 						(( replace++ ))
 						echo -e "$padG #$replace - Replace existing."
 					else
@@ -252,9 +257,8 @@ echo -e "Duplicate Name - $( date +"%D %T" )\n" > $duplog
 echo -e "No Write Permission Directories - $( date +"%D %T" )\n" > $permissionlog
 
 [[ -n $( ls $dircoverarts ) ]] && update=Update || update=Create
-coloredname=$( tcolor 'Browse By CoverArt' )
 
-title -l '=' "$bar $update thumbnails for $coloredname ..."
+title -l '=' "$bar $update $( tcolor 'CoverArt Thumbnails' ) ..."
 
 echo Base directory: $( tcolor "$path" )
 find=$( find "$path" -mindepth 1 ! -empty ! -path '*/\.*' -type d | sort )
@@ -326,13 +330,13 @@ curl -s -v -X POST 'http://localhost/pub?id=notify' \
 
 timestop
 
-title -l '=' "$bar Thumbnails for $coloredname ${update}d successfully."
+title -l '=' "$bar Done."
 
 echo
-echo Thumbnails directory : $( tcolor "$dircoverarts" )
+echo Thumbnails directory : $( tcolor $dircoverarts )
 echo
-echo -e "$bar To change individually:"
-echo "    - CoverArt > long-press thumbnail > coverArt / delete"
-echo -e "$bar To update with updated database:"
+echo -e "$padC To change individually:"
+echo "    - CoverArt > long-press thumbnail > CoverArt / delete"
+echo -e "$padC To update with updated database:"
 echo "    - Library > long-press CoverArt"
 echo "    - Library > directory > context menu > Update thumbnails"

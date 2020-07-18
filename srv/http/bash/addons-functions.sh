@@ -203,7 +203,14 @@ notify() { # $1-i=install $2-s=start
 		&> /dev/null
 }
 installstart() { # $1-'u'=update
-	rm -f $0
+	rm $0
+	
+	readarray -t args <<< "$1" # lines to array: alias type branch opt1 opt2 ...
+
+	alias=${args[0]}
+	type=${args[1]}
+	branch=${args[2]}
+	args=( "${args[@]:3}" ) # 'opt' for script start at ${args[0]}
 	
 	addonslist=$( sed -n "/^'$alias'/,/^],/p" $diraddons/addons-list.php )
 	title0=$( getvalue title )
@@ -218,19 +225,10 @@ installstart() { # $1-'u'=update
 	  exit
 	fi
 	
-	if [[ $1 != u ]]; then
-		[[ -z $( getvalue nouninstall ) ]] && type=Install || type=Update
-	else
-		type=Update
-		shift
-	fi
 	title -l '=' "$bar $type $title ..."
 	
 	timestart
 	notify "$type $title0" 'Please wait until finished.'
-	
-	branch=$1 && shift;
-	args=$@ # pass back the rest to script
 }
 installfinish() {
 	version=$( getvalue version )
@@ -243,7 +241,7 @@ installfinish() {
 	
 	title -l '=' "$bar Done."
 }
-uninstallstart() { # $1-'u'=update
+uninstallstart() {
 	addonslist=$( sed -n "/^'$alias'/,/^],/p" $diraddons/addons-list.php )
 	title0=$( getvalue title )
 	title=$( tcolor "$title0" )
@@ -256,19 +254,16 @@ uninstallstart() { # $1-'u'=update
 	
 	rm $0
 
-	[[ $1 != u ]] && type=Uninstall || type=Update
 	notify "$type $title0" 'Please wait until finished.'
 	
-	title -l '=' "$bar $type $title ..."
+	[[ $type != Update ]] && title -l '=' "$bar Uninstall $title ..."
 }
 uninstallfinish() {
 	rm $diraddons/$alias &> /dev/null
 
 	notify "Uninstall $title0" 'Done.'
 
-	[[ $type == Update ]] && exit
-	
-	title -l '=' "$bar Done."
+	[[ $type != Update ]] && title -l '=' "$bar Done."
 }
 restartlocalbrowser() {
 	if systemctl -q is-active localbrowser; then

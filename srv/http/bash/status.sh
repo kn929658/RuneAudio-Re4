@@ -99,8 +99,11 @@ for line in "${lines[@]}"; do
 		duration | elapsed | playlistlength | song | Time | volume )
 			printf -v $key '%s' $val;; # value of $key as "var name" - value of $val as "var value"
 		# string - escaped name
-		Album | AlbumArtist | Artist | file | Name | Title )
+		Album | AlbumArtist | Artist | Name | Title )
 			printf -v $key '%s' "${val//\"/\\\"}";; # escape " for json
+		file )
+			file0=$val             # no escape " for coverart and ffprobe
+			file=${val//\"/\\\"};; # escape " for json
 		# string
 		* ) # state | updating_db
 			printf -v $key '%s' "$val"
@@ -194,7 +197,7 @@ fi
 
 # coverart
 if [[ $ext != Radio ]]; then
-	coverart=$( /srv/http/bash/getcover.sh "/mnt/MPD/$file" )
+	coverart=$( /srv/http/bash/getcover.sh "$file0" )
 elif [[ -e $radiofile ]]; then
 	coverart=$( sed -n '3 p' $radiofile )
 fi
@@ -258,7 +261,7 @@ else
 				-show_entries stream=bits_per_raw_sample,sample_rate \
 				-show_entries format=bit_rate \
 				-of default=noprint_wrappers=1:nokey=1 \
-				"/mnt/MPD/$file" ) )
+				"/mnt/MPD/$file0" ) )
 			samplerate=${data[0]}
 			bitdepth=${data[1]}
 			bitrate=${data[2]}

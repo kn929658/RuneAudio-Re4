@@ -1,6 +1,6 @@
 #!/bin/bash
 
-path="$1"
+path="/mnt/MPD/$1"
 size=$2
 # get coverfile in directory
 [[ -d "$path" ]] && dir="$path" || dir=$( dirname "$path" )
@@ -34,6 +34,7 @@ fi
 
 [[ $found != 1 ]] && exit
 
+coverfile=${coverfile//\"/%22}
 [[ -z $size || $ext == gif ]] && echo -n ${coverfile%.*}.$( date +%s ).${coverfile/*.} && exit
 
 # resize

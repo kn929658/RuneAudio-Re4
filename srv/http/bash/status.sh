@@ -99,9 +99,11 @@ for line in "${lines[@]}"; do
 		duration | elapsed | playlistlength | song | Time | volume )
 			printf -v $key '%s' $val;; # value of $key as "var name" - value of $val as "var value"
 		# string - escaped name
-		Album | AlbumArtist | Artist | file | Name | Title )
-			[[ $key == file ]] && file0=$val        # no escape " for coverart and ffprobe
+		Album | AlbumArtist | Artist | Name | Title )
 			printf -v $key '%s' "${val//\"/\\\"}";; # escape " for json
+		file )
+			file0=$val             # no escape " for coverart and ffprobe
+			file=${val//\"/\\\"};; # escape " for json
 		# string
 		* ) # state | updating_db
 			printf -v $key '%s' "$val"

@@ -13,7 +13,6 @@ if ( $alias !== 'cove' ) {
 	$heading = 'Addons Progress';
 	$href = '/addons.php';
 	$title = preg_replace( '/\**$/', '', $addon[ 'title' ] );
-	$sh = array_slice( $sh, 1 );
 } else {
 	$heading = 'CoverArt Thumbnails';
 	$href = '/';

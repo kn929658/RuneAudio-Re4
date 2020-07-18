@@ -207,8 +207,9 @@ installstart() { # $1-'u'=update
 	
 	readarray -t args <<< "$1" # lines to array: alias type opt1 opt2 ...
 
-	alias=${args[0]}
-	type=${args[1]}
+	branch=${args[0]}
+	alias=${args[1]}
+	type=${args[2]}
 	args=( "${args[@]:2}" ) # 'opt' start at ${args[0]}
 	
 	addonslist=$( sed -n "/^'$alias'/,/^],/p" $diraddons/addons-list.php )

@@ -5,9 +5,9 @@ include '/srv/http/data/addons/addons-list.php';
 $time = time();
 
 $sh = $_POST[ 'sh' ]; // [ alias, type, branch, opt1, opt2, ... ]
-$branch = $sh[ 0 ];
-$alias = $sh[ 1 ];
-$type = $sh[ 2 ];
+$alias = $sh[ 0 ];
+$type = $sh[ 1 ];
+$branch = $sh[ 2 ];
 $addon = $addons[ $alias ];
 if ( $alias !== 'cove' ) {
 	$heading = 'Addons Progress';

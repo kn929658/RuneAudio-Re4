@@ -218,19 +218,22 @@ installstart() { # $1-'u'=update
 	  exit
 	fi
 	
-	if [[ $1 != u ]]; then
+	# convert each line to each args
+	readarray -t args <<< "$1"
+	
+	if [[ ${args[0]} != u ]]; then
 		[[ -z $( getvalue nouninstall ) ]] && type=Install || type=Update
 	else
 		type=Update
-		shift
+		unset args[0] && args=( ${args[@]} )
 	fi
 	title -l '=' "$bar $type $title ..."
 	
 	timestart
 	notify "$type $title0" 'Please wait until finished.'
 	
-	branch=$1 && shift;
-	args=$@ # pass back the rest to script
+	branch=${args[0]}
+	unset args[0] && arg=( ${args[@]} ) # for the rest to script
 }
 installfinish() {
 	version=$( getvalue version )

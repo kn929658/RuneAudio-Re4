@@ -61,7 +61,7 @@ if grep -q shairport-startstop /etc/shairport-sync.conf; then
 	systemctl try-restart shairport-sync
 fi
 
-installstart $@
+installstart "$1"
 
 if [[ ! -e /usr/bin/mpdscribble ]]; then
 	[[ $( lscpu | awk '/CPU\(s\):/ {print $NF}' ) == 4 ]] && arch=armv7h || arch=armv6h

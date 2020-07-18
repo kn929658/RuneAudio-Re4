@@ -205,12 +205,12 @@ notify() { # $1-i=install $2-s=start
 installstart() { # $1-'u'=update
 	rm $0
 	
-	readarray -t args <<< "$1" # lines to array: alias type opt1 opt2 ...
+	readarray -t args <<< "$1" # lines to array: alias type branch opt1 opt2 ...
 
-	branch=${args[0]}
-	alias=${args[1]}
-	type=${args[2]}
-	args=( "${args[@]:2}" ) # 'opt' start at ${args[0]}
+	alias=${args[0]}
+	type=${args[1]}
+	branch=${args[2]}
+	args=( "${args[@]:3}" ) # 'opt' for script start at ${args[0]}
 	
 	addonslist=$( sed -n "/^'$alias'/,/^],/p" $diraddons/addons-list.php )
 	title0=$( getvalue title )
@@ -256,16 +256,14 @@ uninstallstart() {
 
 	notify "$type $title0" 'Please wait until finished.'
 	
-	title -l '=' "$bar $type $title ..."
+	[[ $type != Update ]] && title -l '=' "$bar Uninstall $title ..."
 }
 uninstallfinish() {
 	rm $diraddons/$alias &> /dev/null
 
 	notify "Uninstall $title0" 'Done.'
 
-	[[ $type == Update ]] && exit
-	
-	title -l '=' "$bar Done."
+	[[ $type != Update ]] && title -l '=' "$bar Done."
 }
 restartlocalbrowser() {
 	if systemctl -q is-active localbrowser; then

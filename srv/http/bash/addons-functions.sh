@@ -2,7 +2,6 @@
 
 # default variables and functions for addons install/uninstall scripts
 
-tty -s && col=$( tput cols ) || col=80 # [[ -t 1 ]] not work
 lcolor() {
 	local color=6
 	[[ $2 ]] && color=$2
@@ -69,35 +68,6 @@ title() {
 }
 
 # for install/uninstall scripts ##############################################################
-
-yesno() { # $1: header string; $2 : optional return variable (default - answer)
-	echo
-	echo -e "$yn $1"
-	echo -e '  \e[36m0\e[m No'
-	echo -e '  \e[36m1\e[m Yes'
-	echo
-	echo -e '\e[36m0\e[m / 1 ? '
-	read -n 1 answer
-	echo
-	[[ $answer != 1 ]] && answer=0
-	[[ $2 ]] && eval $2=$answer
-}
-setpwd() { #1 : optional return variable (default - pwd1)
-	echo
-	echo -e "$yn Password: "
-	read -s pwd1
-	echo
-	echo 'Retype password: '
-	read -s pwd2
-	echo
-	if [[ $pwd1 != $pwd2 ]]; then
-		echo
-		echo "$info Passwords not matched. Try again."
-		setpwd
-	fi
-	[[ $1 ]] && eval $1=$pwd1
-}
-
 timestart() { # timelapse: any argument
 	time0=$( date +%s )
 	[[ $1 ]] && timelapse0=$( date +%s )
@@ -123,33 +93,12 @@ timestop() { # timelapse: any argument
 	fi
 	echo -e "\nDuration$stringlapse $( formatTime $dif )"
 }
-
 wgetnc() {
 	[[ -t 1 ]] && progress='--show-progress'
 	wget -qN --no-check-certificate $progress $@
 }
-getvalue() { # $1-key
-	echo "$addonslist" |
-		grep $1'.*=>' |
-		cut -d '>' -f 2 |
-		sed $'s/^ [\'"]//; s/[\'"],$//; s/\s*\**$//'
-}
-rankmirrors() {
-	now=$( date '+%s' )
-	timestamp=$( date -r /etc/pacman.d/mirrorlist '+%s' )
-	if (( $(( now - timestamp )) > 86400 )) || grep -q 'http://mirror' /etc/pacman.d/mirrorlist; then # only if more than 24 hour
-		wgetnc https://github.com/rern/RuneAudio/raw/master/rankmirrors/rankmirrors.sh
-		chmod +x rankmirrors.sh
-		./rankmirrors.sh
-	fi
-}
-packagestatus() {
-	pkg=$( pacman -Ss "^$1$" | head -n1 )
-	version=$( echo $pkg | cut -d' ' -f2 )
-	[[ $( echo $pkg | cut -d' ' -f3 ) == '[installed]' ]] && installed=1
-}
 getinstallzip() {
-	installurl=$( getvalue installurl )
+	installurl=$( jq -r .$alias.installurl $addonsjson )
 	installzip=${installurl/raw\/master\/install.sh/archive\/$branch.zip}
 	
 	echo -e "$bar Get files ..."
@@ -172,7 +121,7 @@ getinstallzip() {
 	[[ -e /srv/http/data/system/color ]] && /srv/http/bash/setcolor.sh
 }
 getuninstall() {
-	installurl=$( getvalue installurl )
+	installurl=$( jq -r .$alias.installurl $addonsjson )
 	installurl=${installurl/raw\/master/raw\/$branch}
 	uninstallurl=${installurl/install.sh/uninstall_$alias.sh}
 	wgetnc $uninstallurl -P /usr/local/bin
@@ -182,25 +131,6 @@ getuninstall() {
 		exit
 	fi
 	chmod +x /usr/local/bin/uninstall_$alias.sh
-}
-notify() { # $1-i=install $2-s=start
-	[[ $alias == addo ]] && return
-	
-	if [[ $2 != Done. ]]; then
-		icon='addons blink'
-		delay=-1
-	else
-		icon='addons'
-		delay=3000
-	fi
-	curl -s -X POST 'http://127.0.0.1/pub?id=notify' \
-		-d '{
-			  "icon"  : "'"$icon"'"
-			, "title" : "'"$1"'"
-			, "text"  : "'"$2"'"
-			, "delay" : '"$delay"'
-		}' \
-		&> /dev/null
 }
 installstart() { # $1-'u'=update
 	rm $0
@@ -212,8 +142,7 @@ installstart() { # $1-'u'=update
 	branch=${args[2]}
 	args=( "${args[@]:3}" ) # 'opt' for script start at ${args[0]}
 	
-	addonslist=$( sed -n "/^'$alias'/,/^],/p" $diraddons/addons-list.php )
-	title0=$( getvalue title )
+	title0=$( jq -r .$alias.title $addonsjson )
 	title=$( tcolor "$title0" )
 	
 	if [[ -e /usr/local/bin/uninstall_$alias.sh ]]; then
@@ -231,14 +160,9 @@ installstart() { # $1-'u'=update
 	notify "$type $title0" 'Please wait until finished.'
 }
 installfinish() {
-	version=$( getvalue version )
-	echo $version > $diraddons/$alias
+	jq -r .$alias.version $addonsjson > $diraddons/$alias
 	
-	if grep -q addonsupdate /srv/http/bash/cmd.sh; then
-		/srv/http/bash/cmd.sh addonsupdate update
-	else
-		. /srv/http/bash/addons-update.sh 1
-	fi
+	/srv/http/bash/cmd.sh addonsupdate update
 	
 	timestop
 	notify "$type $title0" 'Done.'
@@ -246,8 +170,7 @@ installfinish() {
 	title -l '=' "$bar Done."
 }
 uninstallstart() {
-	addonslist=$( sed -n "/^'$alias'/,/^],/p" $diraddons/addons-list.php )
-	title0=$( getvalue title )
+	title0=$( jq -r .$alias.title $addonsjson )
 	title=$( tcolor "$title0" )
 	
 	if [[ ! -e /usr/local/bin/uninstall_$alias.sh ]]; then

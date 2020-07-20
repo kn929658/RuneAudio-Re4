@@ -26,8 +26,12 @@ addonsupdate )
 	installed=$( ls $diraddons | grep -v addons* )
 	jsonfile=$diraddons/addons-list.json
 	count=0
+	echo $installed
+	exit
 	for addon in $installed; do
+		echo $diraddons/$addon
 		verinstalled=$( cat $diraddons/$addon )
+		echo $verinstalled
 		if (( ${#verinstalled} > 1 )); then
 			verlist=$( jq -r .$addon.version $jsonfile )
 			[[ $verinstalled != $verlist ]] && (( count++ ))

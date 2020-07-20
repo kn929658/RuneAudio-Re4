@@ -276,9 +276,9 @@ function getMpdconf() {
 	} );
 }
 function getStatus() {
-	sh( [ 'statusmpd' ], function( status ) {
+	bash( 'systemctl status mpd', function( status ) {
 		$( '#codestatus' )
-			.html( status )
+			.html( statusColor( status ) )
 			.removeClass( 'hide' );
 	} );
 }

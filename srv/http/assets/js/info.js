@@ -131,7 +131,10 @@ $( '#infoContent' ).on( 'click', '.eye', function() {
 
 function infoReset() {
 	$( '#infoOverlay' ).addClass( 'hide' );
-	$( '#infoBox' ).css( 'margin', '' );
+	$( '#infoBox' ).css( {
+		  margin     : ''
+		, visibility : 'hidden'
+	} );
 	$( '#infoContent' ).html( infocontenthtml );
 	$( '#infoX' ).removeClass( 'hide' );
 	$( '.infocontent, .infolabel, .infoinput, .infohtml, .filebtn, .infobtn' ).addClass( 'hide' );
@@ -386,6 +389,12 @@ function info( O ) {
 		.removeClass( 'hide' )
 		.focus(); // enable e.which keypress (#infoOverlay needs tabindex="1")
 	alignVertical();
+	
+	$( '#infoOverlay' ).addClass( 'noclick' );
+	setTimeout( function() { // prevent click OK on consecutive info
+		$( '#infoOverlay' ).removeClass( 'noclick' );
+	}, 300 );
+
 	if ( !( 'nofocus' in O ) ) $( '.infoinput:eq( 0 )' ).focus();
 	if ( 'boxwidth' in O ) {
 		var maxW = window.innerWidth * 0.98;
@@ -413,10 +422,15 @@ function info( O ) {
 }
 
 function alignVertical() { // make infoBox scrollable
-	var boxH = $( '#infoBox' ).height();
-	var wH = window.innerHeight;
-	var top = boxH < wH ? ( wH - boxH ) / 2 : 20;
-	$( '#infoBox' ).css( 'margin-top', top +'px' );
+	setTimeout( function() {
+		var boxH = $( '#infoBox' ).height();
+		var wH = window.innerHeight;
+		var top = boxH < wH ? ( wH - boxH ) / 2 : 20;
+		$( '#infoBox' ).css( {
+			  'margin-top' : top +'px'
+			, 'visibility' : 'visible'
+		} );
+	}, 0 );
 }
 function checkRequired() {
 	var $empty = $( '.infoinput.required' ).filter( function() {

@@ -38,13 +38,13 @@ $( '#refresh' ).click( function( e ) {
 $( '#airplay' ).click( function( e ) {
 	G.airplay = $( this ).prop( 'checked' );
 	banner( 'AirPlay Renderer', G.airplay, 'airplay' );
-	sh( [ 'airplay', G.airplay ], resetLocal );
+	sh( [ 'airplay', G.airplay ], getStatusRefresh( 'shairport-sync' ) );
 } );
 $( '#snapclient' ).click( function( e ) {
 	G.snapclient = $( this ).prop( 'checked' );
 	$( '#setting-snapclient' ).toggleClass( 'hide', !G.snapclient );
 	banner( 'SnapClient Renderer', G.snapclient, 'snapcast' );
-	sh( [ 'snapclient', G.snapclient ], resetLocal );
+	sh( [ 'snapclient', G.snapclient ], getStatusRefresh( 'snapclient' ) );
 } );
 $( '#setting-snapclient' ).click( function() {
 	info( {
@@ -69,7 +69,7 @@ $( '#spotify' ).click( function() {
 	G.spotify = $( this ).prop( 'checked' );
 	$( '#setting-spotify' ).toggleClass( 'hide', !G.spotify );
 	banner( 'Spotify Connect', G.spotify, 'spotify' );
-	sh( [ 'spotify', G.spotify ], resetLocal );
+	sh( [ 'spotify', G.spotify ], getStatusRefresh( 'spotifyd' ) );
 } );
 $( '#setting-spotify' ).click( function() {
 	$.post( cmdphp, {
@@ -111,7 +111,7 @@ $( '#setting-spotify' ).click( function() {
 $( '#upnp' ).click( function( e ) {
 	G.upnp = $( this ).prop( 'checked' );
 	banner( 'UPnP Renderer', G.upnp, 'upnp fa-s' );
-	sh( [ 'upnp', G.upnp ], resetLocal );
+	sh( [ 'upnp', G.upnp ], getStatusRefresh( 'upmpdcli' ) );
 } );
 $( '#snapcast' ).click( function( e ) {
 	G.snapcast = $( this ).prop( 'checked' );
@@ -122,7 +122,7 @@ $( '#snapcast' ).click( function( e ) {
 		$( '#divsnapclient' ).removeClass( 'hide' );
 	}
 	banner( 'Snapcast - Sync Streaming Server', G.snapcast, 'snapcast' );
-	sh( [ 'snapcast', G.snapcast ], resetLocal );
+	sh( [ 'snapcast', G.snapcast ], getStatusRefresh( 'snapserver' ) );
 } );
 $( '#streaming' ).click( function( e ) {
 	G.streaming = $( this ).prop( 'checked' );
@@ -133,7 +133,7 @@ $( '#localbrowser' ).click( function( e ) {
 	G.localbrowser = $( this ).prop( 'checked' );
 	$( '#setting-localbrowser' ).toggleClass( 'hide', !G.localbrowser );
 	banner( 'Chromium - Browser on RPi', G.localbrowser, 'chromium blink' );
-	sh( [ 'localbrowser', G.localbrowser ], resetLocal( 7000 ) );
+	sh( [ 'localbrowser', G.localbrowser ], getStatusRefresh( 'localbrowser' ) );
 } );
 var localbrowserinfo = heredoc( function() { /*
 	<div id="infoText" class="infocontent">
@@ -204,7 +204,7 @@ $( '#samba' ).click( function( e ) {
 	G.samba = $( this ).prop( 'checked' );
 	$( '#setting-samba' ).toggleClass( 'hide', !G.samba );
 	banner( 'Samba - File Sharing', G.samba, 'network blink' );
-	sh( [ 'samba', G.samba ], resetLocal );
+	sh( [ 'samba', G.samba ], getStatusRefresh( 'smb' ) );
 } );
 $( '#setting-samba' ).click( function() {
 	info( {
@@ -243,7 +243,7 @@ $( '#mpdscribble' ).click( function() {
 		sh( [ 'mpdscribble', mpdscribble ], function( std ) {
 			G.mpdscribble = std != -1 ? true : false;
 			$( '#setting-mpdscribble' ).toggleClass( 'hide', !G.mpdscribble );
-			resetLocal();
+			getStatusRefresh( 'mpdscribble' );
 		} );
 	}
 } );
@@ -389,6 +389,31 @@ $( '#soundprofile' ).click( function( e ) {
 	$( '#setting-soundprofile' ).toggleClass( 'hide', !checked );
 	G.soundprofile = checked ? 'RuneAudio' : '';
 } );
+$( '#infoOverlay' ).on( 'click', '#custom', function() {
+	info( {
+		  icon      : 'volume'
+		, title     : 'Sound Profile'
+		, message   : 'Custom value (Current value shown)'
+		, textlabel : [ 'eth0 mtu (byte)', 'eth0 txqueuelen', 'vm.swappiness (0-100)', 'kernel.sched_latency_ns (ns)' ]
+		, textvalue : G.soundprofilecus.split( ' ' )
+		, boxwidth  : 110
+		, preshow   : function() {
+			if ( G.ip.slice( 0, 4 ) !== 'eth0' ) $( '#infoTextBox, #infoTextBox1' ).hide();
+		}
+		, ok        : function() {
+			var soundprofileval = $( '#infoTextBox' ).val() || 0;
+			for ( i = 1; i < 4; i++ ) {
+				soundprofileval += ' '+ ( $( '#infoTextBox'+ i ).val() || 0 );
+			}
+			if ( soundprofileval != G.soundprofileval ) {
+				G.soundprofileval = soundprofileval;
+				G.soundprofile = 'custom';
+				banner( 'Sound Profile', 'Change ...', 'volume' );
+				sh( [ 'soundprofileset', 'custom', soundprofileval ], resetLocal );
+			}
+		}
+	} );
+} );
 $( '#setting-soundprofile' ).click( function() {
 	var radio= {
 		  RuneAudo  : 'RuneAudio'
@@ -399,50 +424,26 @@ $( '#setting-soundprofile' ).click( function() {
 	}
 	if ( G.audioaplayname === 'snd_rpi_iqaudio_dac' ) radio[ 'IQaudio Pi-DAC' ] = 'OrionV3';
 	if ( G.audiooutput === 'BerryNOS' ) radio[ 'BerryNOS' ] = 'OrionV4';
-	radio[ 'Custom' ] = 'custom';
+	radio[ 'Custom&ensp;<i id="custom" class="fa fa-gear"></i>' ] = 'custom';
 	info( {
 		  icon    : 'volume'
 		, title   : 'Sound Profile'
 		, radio   : radio
-		, preshow : function() {
-			var values = G.soundprofileval.split( ' ' );
-			for ( i = 0; i < 4; i++ ) {
-				if ( values[ i ] === "''" ) values[ i ] = '';
-			}
-			$( 'input[value='+ G.soundprofile +']' ).prop( 'checked', 1 )
-			$( '#infoRadio input[value=custom]' ).click( function() {
-				var textlabel = [ 'vm.swappiness (0-100)', 'kernel.sched_latency_ns (ns)' ];
-				var textvalue = [ values[ 2 ], values[ 3 ] ];
-				if ( G.ip.slice( 0, 4 ) === 'eth0' ) {
-					textlabel.push( 'eth0 mtu (byte)', 'eth0 txqueuelen' );
-					textvalue.push( values[ 0 ], values[ 1 ] );
-				}
-				info( {
-					  icon      : 'volume'
-					, title     : 'Sound Profile'
-					, message   : 'Custom value (Current value shown)'
-					, textlabel : textlabel
-					, textvalue : textvalue
-					, boxwidth  : 110
-					, ok        : function() {
-						var soundprofile = $( '#infoTextBox' ).val();
-						for ( i = 1; i < 4; i++ ) {
-							G.soundprofile += ' '+ $( '#infoTextBox'+ i ).val();
-						}
-						if ( soundprofile != G.soundprofile ) {
-							G.soundprofile = soundprofile;
-							banner( 'Sound Profile', 'Change ...', 'volume' );
-							sh( [ 'soundprofileset', soundprofile ], resetLocal );
-						}
-					}
-				} );
-			} );
-		}
+		, checked : G.soundprofile
 		, cancel  : function() {
 			if ( !G.soundprofile ) {
 				$( '#soundprofile' ).prop( 'checked', 0 );
 				$( '#setting-soundprofile' ).addClass( 'hide' );
 			}
+		}
+		, preshow : function() {
+			$( '#infoRadio input[value=custom]' ).click( function() {
+				if ( !G.soundprofilecus ) {
+					G.soundprofilecus = G.soundprofileval;
+					$( '#infoOverlay #custom' ).click();
+					return
+				}
+			} );
 		}
 		, ok      : function() {
 			var soundprofile = $( 'input[name=inforadio]:checked' ).val();
@@ -450,7 +451,12 @@ $( '#setting-soundprofile' ).click( function() {
 				rebootText( G.soundprofile ? 'Change' : 'Enable', 'sound profile' );
 				G.soundprofile = soundprofile;
 				banner( 'Sound Profile', 'Change ...', 'volume' );
-				sh( [ 'soundprofileset', soundprofile ], resetLocal );
+				sh( [ 'soundprofileset', soundprofile ], function() {
+					resetLocal();
+					bash( '/srv/http/bash/cmd.sh "soundprofile\ngetvalue"', function( data ) {
+						G.soundprofileval = data;
+					} );
+				} );
 			}
 		}
 	} );
@@ -494,6 +500,16 @@ $( '#setting-regional' ).click( function() {
 $( '#timezone' ).on( 'selectric-change', function( e ) {
 	G.timezone = $( this ).val();
 	sh( [ 'timezone', G.timezone ] );
+} );
+$( '.status' ).click( function() {
+	$this = $( this );
+	var service = $this.data( 'service' );
+	$code = $( '#code'+ service );
+	if ( $code.hasClass( 'hide' ) ) {
+		getStatus( service );
+	} else {
+		$code.addClass( 'hide' );
+	}
 } );
 $( '#journalctl' ).click( function( e ) {
 	codeToggle( e.target, this.id, getJournalctl );
@@ -635,6 +651,20 @@ $( '#backuprestore' ).click( function( e ) {
 		}
 	} );
 } );
+function getStatus( service ) {
+	var $code = $( '#code'+ service );
+	if ( service === 'mpdscribble' ) service += '@mpd';
+	bash( 'systemctl status '+ service, function( status ) {
+		if ( service === 'spotifyd' ) status = status.replace( /.*Authenticated as.*\n|.*Country:.*\n/g, '' );
+		$code
+			.html( statusColor( status ) )
+			.removeClass( 'hide' );
+	} );
+}
+function getStatusRefresh( service ) {
+	service !== 'localbrowser' ? resetLocal() : resetLocal( 7000 );
+	if ( !$( '#code'+ service ).hasClass( 'hide' ) ) getStatus( service );
+}
 function getIwregget() {
 	bash( 'iw reg get', function( status ) {
 		$( '#codeiwregget' )
@@ -797,6 +827,9 @@ refreshData = function() { // system page: use resetLocal() to aviod delay
 		$( '#timezone' )
 			.val( G.timezone )
 			.selectric( 'refresh' );
+		$( 'pre:not(.hide)' ).each( function() {
+			getStatus( this.id.replace( 'code', '' ) );
+		} );
 		showContent();
 	}, 'json' );
 }

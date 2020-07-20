@@ -16,7 +16,7 @@ fi
 
 dirsystem=/srv/http/data/system
 
-if ls /usr/lib/python*/site-packages/RPi.GPIO* &> /dev/null && [[ ! -e /srv/http/data/system/gpio.json ]]; then
+if ls /usr/lib/python*/site-packages/RPi.GPIO* &> /dev/null; then
 	echo '{
   "name": {
     "11": "DAC",
@@ -71,7 +71,7 @@ if [[ ! -e /usr/bin/mpdscribble ]]; then
 	cp /usr/share/mpdscribble/mpdscribble.conf.example /etc/mpdscribble.conf
 fi
 
-if (( $( cat /srv/http/data/addons/rre4 ) > 20200627 )); then
+if [[ $( cat /srv/http/data/addons/rre4 ) > 20200627 ]]; then
 	getinstallzip
 
 	installfinish

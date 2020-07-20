@@ -19,6 +19,22 @@ addonslist )
 	wget -q --no-check-certificate https://github.com/rern/RuneAudio_Addons/raw/master/addons-list.php -O /srv/http/data/addons/addons-list.php
 	echo -n $?
 	;;
+addonsupdate )
+	diraddons=/srv/http/data/addons
+	file=$diraddons/addons-list.php
+	[[ -z ${args[1]} ]] && wget -qN --no-check-certificate https://github.com/rern/RuneAudio_Addons/raw/master/addons-list.php -O $file
+	installed=$( ls $diraddons | grep -v addons* )
+	jsonfile=$diraddons/addons-list.json
+	count=0
+	for addon in $installed; do
+		verinstalled=$( cat $diraddons/$addon )
+		if (( ${#verinstalled} > 1 )); then
+			verlist=$( jq -r .$addon.version $jsonfile )
+			[[ $verinstalled != $verlist ]] && (( count++ ))
+		fi
+	done
+	(( $count )) && echo $count > $diraddons/update || rm -f $diraddons/update
+	;;
 color )
 	cmd=${args[1]}
 	file=/srv/http/data/system/color
@@ -51,12 +67,12 @@ s|\(--cg60: *hsl\).*;|\1(${hsg}60%);|
 	pushstream reload reload all
 	;;
 coverartget )
-	coverart=$( /srv/http/bash/getcover.sh "${args[1]}" )
+	coverart=$( /srv/http/bash/cmd-coverart.sh "${args[1]}" )
 	echo -n $coverart
 	[[ -n ${args[2]} ]] && pushstream coverart coverart $coverart
 	;;
 coverartthumb )
-	/srv/http/bash/getcover.sh "${args[1]}" ${args[2]}
+	/srv/http/bash/cmd-coverart.sh "${args[1]}" ${args[2]}
 	;;
 filemove )
 	mv -f "${args[1]}" "${args[2]}"
@@ -167,7 +183,7 @@ mpcls )
 	sleep=${args[3]}
 	[[ ${cmd: -4} == play ]] && play=1 && pos=$(( $( mpc playlist | wc -l ) + 1 ))
 	[[ ${cmd:0:7} == replace ]] && mpc clear && pos=1
-	/srv/http/bash/mpdls.sh "$dir"
+	/srv/http/bash/cmd-mpcls.sh "$dir"
 	[[ -z $play ]] && exit
 	
 	sleep $sleep
@@ -198,6 +214,24 @@ mpcprevnext )
 		mpc play $pos
 		mpc stop
 	fi
+	;;
+mpcsimilar )
+	plL=$( mpc playlist | wc -l )
+	linesL=${#args[@]}
+	for (( i=1; i < linesL; i++ )); do
+		artist=${args[$i]}
+		(( i++ ))
+		title=${args[$i]}
+		[[ -z $artist || -z $title ]] && continue
+		
+		file=$( mpc find artist "$artist" title "$title" )
+		[[ -z $file ]] && continue
+		
+		list+="$( mpc find artist "$artist" title "$title" )
+"
+	done
+	echo "$list" | awk 'NF' | mpc add
+	echo $(( $( mpc playlist | wc -l ) - plL ))
 	;;
 mpcupdate )
 	mpc update "${args[1]}"
@@ -275,6 +309,42 @@ reboot )
 	;;
 refreshbrowser )
 	curl -s -X POST 'http://127.0.0.1/pub?id=reload' -d '{ "reload": 1 }'
+	;;
+soundprofile )
+	hwcode=$( awk '/Revision/ {print substr($NF, 4, 2)}' /proc/cpuinfo )
+	if [[ $hwcode =~ ^(04|08|0d|0e|11)$ ]]; then # not RPi 1
+		lat=( 4500000 3500075 1000000 2000000 3700000 1500000 145655 6000000 )
+	else
+		lat=( 1500000 850000 500000 120000 500000 1500000 145655 6000000 )
+	fi
+	profile=${args[1]}
+	if [[ -z $profile ]]; then
+		profile=$( cat /srv/http/data/system/soundprofile )
+	elif [[ $profile == getvalue ]]; then
+		getvalue=1
+		profile=$( cat /srv/http/data/system/soundprofile )
+	fi
+	case $profile in # mtu  txq  sw lat
+		RuneAudio ) val=( 1500 1000 0  ${lat[0]} );;
+		ACX )       val=( 1500 4000 0  ${lat[1]} );;
+		Orion )     val=( 1000 4000 20 ${lat[2]} );;
+		OrionV2 )   val=( 1000 4000 0  ${lat[3]} );;
+		Um3ggh1U )  val=( 1500 1000 0  ${lat[4]} );;
+		iqaudio )   val=( 1000 4000 0  ${lat[5]} );;
+		berrynos )  val=( 1000 4000 60 ${lat[6]} );;
+		default )   val=( 1500 1000 60 18000000 );;
+		custom )    val=( $( cat /srv/http/data/system/soundprofile-custom ) );;
+	esac
+	if [[ $getvalue ]]; then
+		echo -n ${val[@]}
+	else
+		if ifconfig | grep -q eth0; then
+			ip link set eth0 mtu ${val[0]}
+			ip link set eth0 txqueuelen ${val[1]}
+		fi
+		sysctl vm.swappiness=${val[2]}
+		sysctl kernel.sched_latency_ns=${val[3]}
+	fi
 	;;
 tageditor )
 	file=${args[0]}

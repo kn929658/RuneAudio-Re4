@@ -234,7 +234,11 @@ installfinish() {
 	version=$( getvalue version )
 	echo $version > $diraddons/$alias
 	
-	. /srv/http/bash/addons-update.sh 1
+	if grep -q addonsupdate /srv/http/bash/cmd.sh; then
+		/srv/http/bash/cmd.sh addonsupdate update
+	else
+		. /srv/http/bash/addons-update.sh 1
+	fi
 	
 	timestop
 	notify "$type $title0" 'Done.'

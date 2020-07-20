@@ -225,25 +225,23 @@ snapclientset )
 	;;
 soundprofile )
 	if [[ ${args[1]} == true ]]; then
-		echo RuneAudio > $dirsystem/soundprofile
-		profile=RuneAudio
+		[[ -e $dirsystem/soundprofile-custom ]] && profile=custom || profile=RuneAudio
+		echo $profile > $dirsystem/soundprofile
 	else
-		rm $dirsystem/soundprofile
 		profile=default
+		rm $dirsystem/soundprofile
 	fi
-	/srv/http/bash/system-soundprofile.sh $profile
+	/srv/http/bash/cmd.sh soundprofile$'\n'"$profile"
 	pushRefresh
 	;;
 soundprofileset )
 	profile=${args[1]}
-	if [[ $profile != [0-9]* ]]; then
-		/srv/http/bash/system-soundprofile.sh $profile
-		echo $profile > $dirsystem/soundprofile
-	else
-		data="$profile ${args[2]} ${args[3]} ${args[4]}"
-		/srv/http/bash/system-soundprofile.sh $data
-		echo $data > $dirsystem/soundprofile
-	fi
+	values=${args[2]}
+	customfile=$dirsystem/soundprofile-custom
+	echo $profile > $dirsystem/soundprofile
+	[[ -n $value ]] && echo $values > $customfile
+	[[ $profile == 'custom' && ! -e $customfile ]] && echo 1500 1000 60 18000000 > $customfile
+	/srv/http/bash/cmd.sh soundprofile$'\n'"$profile"
 	pushRefresh
 	;;
 spotify )

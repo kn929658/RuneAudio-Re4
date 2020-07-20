@@ -143,7 +143,7 @@ installstart() { # $1-'u'=update
 	branch=${args[2]}
 	args=( "${args[@]:3}" ) # 'opt' for script start at ${args[0]}
 	
-	title=$( tcolor "$( jq -r .$alias.title $addonsjson )" )
+	name=$( tcolor "$( jq -r .$alias.title $addonsjson )" )
 	
 	if [[ -e /usr/local/bin/uninstall_$alias.sh ]]; then
 	  title -l '=' "$info $title already installed."
@@ -154,7 +154,7 @@ installstart() { # $1-'u'=update
 	  exit
 	fi
 	
-	title -l '=' "$bar $type $title ..."
+	title -l '=' "$bar $type $name ..."
 	
 	timestart
 }
@@ -167,16 +167,16 @@ installfinish() {
 	title -l '=' "$bar Done."
 }
 uninstallstart() {
-	title=$( tcolor "$$( jq -r .$alias.title $addonsjson )" )
+	name=$( tcolor "$$( jq -r .$alias.title $addonsjson )" )
 	
 	if [[ ! -e /usr/local/bin/uninstall_$alias.sh ]]; then
-	  echo -e "$info $title not found."
+	  echo -e "$info $name not found."
 	  rm $diraddons/$alias &> /dev/null
 	  exit 1
 	fi
 	
 	rm $0
-	[[ $type != Update ]] && title -l '=' "$bar Uninstall $title ..."
+	[[ $type != Update ]] && title -l '=' "$bar Uninstall $name ..."
 }
 uninstallfinish() {
 	rm $diraddons/$alias &> /dev/null

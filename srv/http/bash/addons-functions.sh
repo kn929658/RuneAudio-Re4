@@ -142,8 +142,7 @@ installstart() { # $1-'u'=update
 	branch=${args[2]}
 	args=( "${args[@]:3}" ) # 'opt' for script start at ${args[0]}
 	
-	title0=$( jq -r .$alias.title $addonsjson )
-	title=$( tcolor "$title0" )
+	title=$( tcolor "$( jq -r .$alias.title $addonsjson )" )
 	
 	if [[ -e /usr/local/bin/uninstall_$alias.sh ]]; then
 	  title -l '=' "$info $title already installed."
@@ -157,7 +156,6 @@ installstart() { # $1-'u'=update
 	title -l '=' "$bar $type $title ..."
 	
 	timestart
-	notify "$type $title0" 'Please wait until finished.'
 }
 installfinish() {
 	jq -r .$alias.version $addonsjson > $diraddons/$alias
@@ -165,13 +163,10 @@ installfinish() {
 	/srv/http/bash/cmd.sh addonsupdate update
 	
 	timestop
-	notify "$type $title0" 'Done.'
-	
 	title -l '=' "$bar Done."
 }
 uninstallstart() {
-	title0=$( jq -r .$alias.title $addonsjson )
-	title=$( tcolor "$title0" )
+	title=$( tcolor "$$( jq -r .$alias.title $addonsjson )" )
 	
 	if [[ ! -e /usr/local/bin/uninstall_$alias.sh ]]; then
 	  echo -e "$info $title not found."
@@ -180,16 +175,10 @@ uninstallstart() {
 	fi
 	
 	rm $0
-
-	notify "$type $title0" 'Please wait until finished.'
-	
 	[[ $type != Update ]] && title -l '=' "$bar Uninstall $title ..."
 }
 uninstallfinish() {
 	rm $diraddons/$alias &> /dev/null
-
-	notify "Uninstall $title0" 'Done.'
-
 	[[ $type != Update ]] && title -l '=' "$bar Done."
 }
 restartlocalbrowser() {

@@ -231,9 +231,6 @@ case 'setorder':
 	file_put_contents( $dirsystem.'order', json_encode( $order, JSON_PRETTY_PRINT ) );
 	pushstream( 'order', $order );
 	break;
-case 'similar':
-	echo shell_exec( '/srv/http/bash/mpdsimilar.sh "'.escape( $_POST[ 'similar' ] ).'"' );
-	break;
 case 'volume':
 	$volume = $_POST[ 'volume' ];
 	$current = $_POST[ 'current' ] ?? '';

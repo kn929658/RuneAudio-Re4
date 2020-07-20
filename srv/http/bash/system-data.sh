@@ -68,7 +68,7 @@ done
 dirsystem=/srv/http/data/system
 version=$( cat $dirsystem/version )
 mpdstats=$( systemctl -q is-active mpd && mpc stats | head -3 | awk '{print $NF}' | tr '\n' ',' | head -c -1 )
-soundprofile=$( cat $dirsystem/soundprofile 2> /dev/null )
+soundprofile=$( cat $dirsystem/soundprofile )
 snaplatency=$( grep OPTS= /etc/default/snapclient | sed 's/.*latency=\(.*\)"/\1/' )
 [[ -n $mpdstats ]] && mpdstats=[$mpdstats] || mpdstats=false
 [[ -z $snaplatency ]] && snaplatency=0
@@ -97,7 +97,8 @@ data+='
 	, "snaplatency"     : '$snaplatency'
 	, "soc"             : "'$soc'"
 	, "soundprofile"    : "'$soundprofile'"
-	, "soundprofileval" : "'$( /srv/http/bash/system-soundprofile.sh $soundprofile getvalue )'"
+	, "soundprofileval" : "'$( /srv/http/bash/cmd.sh soundprofile$'\n'getvalue )'"
+	, "soundprofilecus" : "'$( cat /srv/http/data/system/soundprofile-custom 2> /dev/null )'"
 	, "sources"         : '$( /srv/http/bash/sources-data.sh )'
 	, "streaming"       : '$( grep -q 'type.*"httpd"' /etc/mpd.conf && echo true || echo false )'
 	, "timezone"        : "'$timezone'"

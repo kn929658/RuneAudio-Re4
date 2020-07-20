@@ -33,22 +33,9 @@ fi
 
 /boot/x.sh &> /dev/null
 
-# on-board wifi
 [[ -e $dirsystem/onboard-wlan ]] && ifconfig wlan0 up || rmmod brcmfmac
 
-if [[ -e $dirsystem/soundprofile ]]; then
-	profile=$( cat $dirsystem/soundprofile )
-	if [[ $profile != custom ]]; then
-		/srv/http/bash/system-soundprofile.sh $profile
-	else
-		path=$dirsystem/sound
-		eth0mtu=$( cat $path-eth0mtu )
-		eth0txq=$( cat $path-eth0txq )
-		sysswap=$( cat $path-sysswap )
-		syslatency=$( cat $path-syslatency )
-		/srv/http/bash/system-soundprofile.sh custom $eth0mtu $eth0txq $sysswap $syslatency 
-	fi
-fi
+[[ -e $dirsystem/soundprofile ]] && /srv/http/bash/cmd.sh soundprofile
 
 /srv/http/bash/mpd-conf.sh # mpd start by this script
 
@@ -99,7 +86,7 @@ if [[ -n "$wlans" ]]; then
 	done
 fi
 
-/srv/http/bash/addons-update.sh
+/srv/http/bash/cmd.sh addonsupdate
 
 if grep -q dtoverlay=bcmbt /boot/config.txt; then
 	modprobe btbcm

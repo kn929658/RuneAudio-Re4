@@ -77,10 +77,7 @@ $( '.contextmenu a' ).click( function( e ) {
 					similar += val[ i ].artist.name +'\n'+ val[ i ].name +'\n';
 				}
 				notify( title, 'Find similar tracks from Library ...', 'library blink',  -1 );
-				$.post( cmdphp, {
-					  cmd     : 'similar'
-					, similar : similar
-				}, function( count ) {
+				sh( [ 'mpcsimilar', similar ], function( count ) {
 					updatePlaylist();
 					setButton()
 					notify( title, count +' tracks added.', 'library' );

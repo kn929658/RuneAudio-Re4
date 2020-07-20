@@ -60,6 +60,9 @@ input::-moz-focus-inner { /* dotted outline */
 	background-color: var( --cg );
 	pointer-events: none;
 }
+.noclick {
+	pointer-events: none;
+}
 hr {
 	margin: 7px 0;
 	border: none;
@@ -304,6 +307,9 @@ hr {
 #infoSelect .selectric,
 #infoSelect .selectric-items li {
 	text-align: left;
+}
+#infoRadio i {
+	vertical-align: baseline !important;
 }
 #infoOverlay code {
 	display: inline-block;

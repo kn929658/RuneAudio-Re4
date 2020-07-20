@@ -139,6 +139,11 @@ function banner( title, message, icon ) {
 	if ( typeof message === 'boolean' || typeof message === 'number' ) var message = message ? 'Enable ...' : 'Disable ...';
 	notify( title, message, icon +' blink', -1 );
 }
+function statusColor( status ) {
+	return status
+				.replace( /(active \(running\))/, '<grn>$1</grn>' )
+				.replace( /(inactive \(dead\))/, '<red>$1</red>' );
+}
 function codeToggle( target, id, fn ) {
 	if ( !$( target ).hasClass( 'help' ) ) $( '#code'+ id ).hasClass( 'hide' ) ? fn() : $( '#code'+ id ).addClass( 'hide' );
 }

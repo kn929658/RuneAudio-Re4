@@ -74,7 +74,7 @@ if ( $query === 'find' ) {
 	$array = htmlList( $mode, $lists );
 	
 } else if ( $query === 'ls' ) {
-	$dirs = exec( '/srv/http/bash/mpdls.sh "'.$string.'" count' );
+	$dirs = exec( '/srv/http/bash/cmd-mpcls.sh "'.$string.'" count' );
 	if ( $dirs  ) {
 		exec( 'mpc ls -f %file% "'.$string.'" 2> /dev/null'
 			, $lists );
@@ -166,7 +166,7 @@ if ( $query === 'find' ) {
 		} else {
 			$lists = exec( 'mpc ls -f "'.$format.'" "'.$file.'"' );
 			$array = explode( '^^', $lists );
-			if ( isset( $_POST[ 'coverart' ] ) ) $array[] = shell_exec( '/srv/http/bash/getcover.sh "/mnt/MPD/'.$file.'"' );
+			if ( isset( $_POST[ 'coverart' ] ) ) $array[] = exec( '/srv/http/bash/cmd-coverart.sh "'.$file.'"' );
 		}
 	}
 	
@@ -361,7 +361,7 @@ function htmlTracks( $lists, $f, $filemode = '', $string = '' ) { // track list 
 		$icon = 'artist';
 	}
 	$dir = dirname( $file0 );
-	$coverart = exec( '/srv/http/bash/getcover.sh "'.escape( $file0 ).'"' );
+	$coverart = exec( '/srv/http/bash/cmd-coverart.sh "'.escape( $file0 ).'"' );
 	$nocover = '';
 	if ( !$coverart ) {
 		$coverart = '/assets/img/cover.'.( time() ).'.svg';

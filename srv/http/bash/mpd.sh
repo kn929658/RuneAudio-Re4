@@ -189,9 +189,5 @@ replaygain )
 	restartMPD
 	pushRefresh
 	;;
-statusmpd )
-	systemctl status mpd \
-		| sed 's|\(active (running)\)|<grn>\1</grn>|; s|\(inactive (dead)\)|<red>\1</ed>|'
-	;;
 
 esac

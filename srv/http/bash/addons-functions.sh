@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # default variables and functions for addons install/uninstall scripts
-
+tty -s && col=$( tput cols ) || col=80 # [[ -t 1 ]] not work
 lcolor() {
 	local color=6
 	[[ $2 ]] && color=$2

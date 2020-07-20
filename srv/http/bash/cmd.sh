@@ -22,7 +22,7 @@ addonslist )
 addonsupdate )
 	diraddons=/srv/http/data/addons
 	[[ -z ${args[1]} ]] && wget -qN --no-check-certificate https://github.com/rern/RuneAudio_Addons/raw/master/addons-list.php -O $diraddons/addons-list.php
-	installed=$( find $diraddons -type f ! -name addons* )
+	installed=$( find "$diraddons" -type f ! -name "addons*" )
 	jsonfile=$diraddons/addons-list.json
 	count=0
 	for addon in $installed; do

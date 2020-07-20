@@ -21,17 +21,12 @@ addonslist )
 	;;
 addonsupdate )
 	diraddons=/srv/http/data/addons
-	file=$diraddons/addons-list.php
-	[[ -z ${args[1]} ]] && wget -qN --no-check-certificate https://github.com/rern/RuneAudio_Addons/raw/master/addons-list.php -O $file
-	installed=$( ls $diraddons | grep -v addons* )
+	[[ -z ${args[1]} ]] && wget -qN --no-check-certificate https://github.com/rern/RuneAudio_Addons/raw/master/addons-list.php -O $diraddons/addons-list.php
+	installed=$( find $diraddons -type f ! -name addons* )
 	jsonfile=$diraddons/addons-list.json
 	count=0
-	echo $installed
-	exit
 	for addon in $installed; do
-		echo $diraddons/$addon
-		verinstalled=$( cat $diraddons/$addon )
-		echo $verinstalled
+		verinstalled=$( cat $addon )
 		if (( ${#verinstalled} > 1 )); then
 			verlist=$( jq -r .$addon.version $jsonfile )
 			[[ $verinstalled != $verlist ]] && (( count++ ))

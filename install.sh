@@ -71,7 +71,7 @@ if [[ ! -e /usr/bin/mpdscribble ]]; then
 	cp /usr/share/mpdscribble/mpdscribble.conf.example /etc/mpdscribble.conf
 fi
 
-if [[ $( cat /srv/http/data/addons/rre4 ) > 20200627 ]]; then
+if (( $( cat /srv/http/data/addons/rre4 ) > 20200627 )); then
 	getinstallzip
 
 	installfinish

@@ -28,7 +28,7 @@ addonsupdate )
 	for file in $installed; do
 		verinstalled=$( cat $file )
 		if (( ${#verinstalled} > 1 )); then
-			$addon=$( basename $file )
+			addon=$( basename $file )
 			verlist=$( jq -r .$addon.version $jsonfile )
 			[[ $verinstalled != $verlist ]] && (( count++ ))
 		fi

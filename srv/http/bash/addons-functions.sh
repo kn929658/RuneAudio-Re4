@@ -20,6 +20,7 @@ yn=$( tcolor ' ? ' 0 3 )  # [ i ]       (black on yellow)
 warn=$( tcolor ' ! ' 7 1 )  # [ ! ]     (white on red)
 padR=$( tcolor '.' 1 1 )
 diraddons=/srv/http/data/addons
+addonsjson=$diraddons/addons-list.json
 
 title() {
 	local ctop=6
@@ -160,7 +161,7 @@ installstart() { # $1-'u'=update
 installfinish() {
 	jq -r .$alias.version $addonsjson > $diraddons/$alias
 	
-	/srv/http/bash/cmd.sh addonsupdate update
+#	/srv/http/bash/cmd.sh addonsupdate update
 	
 	timestop
 	title -l '=' "$bar Done."

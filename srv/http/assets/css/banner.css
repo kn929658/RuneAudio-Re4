@@ -35,6 +35,9 @@
 	text-align: center;
 	background-color: var( --cg );
 }
+#bannerIcon i {
+	width: 30px;
+}
 #bannerTitle .iconimg {
 	margin-left: 0;
 	vertical-align: -5px;

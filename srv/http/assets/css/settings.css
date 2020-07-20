@@ -486,7 +486,7 @@ input:checked + .switchlabel:after {
 }
 .col-l {
 	display: inline-block;
-	width: 160px;
+	width: 165px;
 	text-align: right;
 	padding-right: 15px;
 	padding-top: 10px;
@@ -499,10 +499,17 @@ input:checked + .switchlabel:after {
 	width: 30px;
 	vertical-align: 5px;
 }
-.col-l i.fa-gear {
+.col-l i.fa-gear,
+.col-l i.fa-code {
 	width: 20px;
 	vertical-align: 0;
+}
+.col-l i.fa-gear {
 	color: var( --cw );
+}
+.w2x {
+	width: 2em;
+	text-align: center;
 }
 .col-l.double {
 	padding-top: 5px;
@@ -513,7 +520,7 @@ input:checked + .switchlabel:after {
 	color: var( --cw );
 }
 .col-r {
-	width: calc( 100% - 160px );
+	width: calc( 100% - 165px );
 	min-width: 230px;
 	padding-right: 0;
 	padding-left: 0 !important;

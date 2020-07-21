@@ -62,10 +62,12 @@ i2smodule )
 	output=${args[2]}
 	reboot=${args[3]}
 	grep -q 'dtoverlay=gpio' /boot/config.txt && gpio=1
-	grep -q 'dtoverlay=bcmbt' /boot/config.txt && bt=1
+	grep -q 'dtoverlay=bcmbt' /boot/config.txt && bcmbt=1
+	grep -q 'dtoverlay=sdtweak' /boot/config.txt && sdtweak=1
 	sed -i '/dtparam=\|dtoverlay=\|^$/ d' /boot/config.txt
 	[[ -n $gpio ]] && echo dtoverlay=gpio >> /boot/config.txt
-	[[ -n $bt ]] && echo dtoverlay=bcmbt >> /boot/config.txt
+	[[ -n $bcmbt ]] && echo dtoverlay=bcmbt >> /boot/config.txt
+	[[ -n $sdtweak ]] && echo dtoverlay=sdtweak,poll_once >> /boot/config.txt
 	if [[ ${aplayname:0:7} != bcm2835 ]]; then
 		echo "\
 dtparam=audio=off

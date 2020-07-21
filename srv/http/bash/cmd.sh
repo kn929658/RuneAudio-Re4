@@ -16,12 +16,12 @@ addonsclose )
 	rm -f /var/lib/pacman/db.lck /srv/http/*.zip /srv/http/data/addons/$alias /usr/local/bin/uninstall_$alias.sh
 	;;
 addonslist )
-	wget -q --no-check-certificate https://github.com/rern/RuneAudio_Addons/raw/master/addons-list.php -O /srv/http/data/addons/addons-list.php
+	wget -q --no-check-certificate https://github.com/rern/RuneAudio_Addons/raw/master/addons-list.json -O /srv/http/data/addons/addons-list.json
 	echo -n $?
 	;;
 addonsupdate )
 	diraddons=/srv/http/data/addons
-	[[ -z ${args[1]} ]] && wget -qN --no-check-certificate https://github.com/rern/RuneAudio_Addons/raw/master/addons-list.php -O $diraddons/addons-list.php
+	[[ -z ${args[1]} ]] && wget -qN --no-check-certificate https://github.com/rern/RuneAudio_Addons/raw/master/addons-list.json -O $diraddons/addons-list.json
 	installed=$( find "$diraddons" -type f ! -name "addons*" )
 	jsonfile=$diraddons/addons-list.json
 	count=0

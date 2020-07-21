@@ -16,7 +16,6 @@ $htmlused = '<p id="diskused" class="disk" style="width: '.$Wused.'px;">&nbsp;</
 $htmlavail = $Wavail ? '<p id="diskfree" class="disk" style="width: '.$Wavail.'px;">&nbsp;</p>' : '';
 $htmlfree = '<white>'.( $MiBavail < 1024 ? round( $MiBavail, 2 ).' MiB' : round( $MiBavail / 1024, 2 ).' GiB' ).'</white> free';
 if ( $MiBunpart < 10 ) {
-	file_put_contents( "$diraddons/expa", 1 );
 	$htmlunpart = '';
 	$expandable = '';
 } else {
@@ -62,13 +61,8 @@ if ( $MiBunpart < 10 ) {
 // ------------------------------------------------------------------------------------
 $list = '';
 $blocks = '';
-// sort
-include "$diraddons/addons-list.php";
-$arraytitle = array_column( $addons, 'title' );
-//$addoindex = array_search( 'Addons Menu', $arraytitle );
-//$arraytitle[ $addoindex ] = 0;
+$addons = json_decode( file_get_contents( '/srv/http/data/addons/addons-list.json' ), true );
 $updatecount = 0;
-//array_multisort( $arraytitle, SORT_NATURAL | SORT_FLAG_CASE, $addons );
 $arrayalias = array_keys( $addons );
 foreach( $arrayalias as $alias ) {
 	$addon = $addons[ $alias ];

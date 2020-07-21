@@ -1,7 +1,7 @@
 <?php
 ignore_user_abort( TRUE ); // for 'connection_status()' to work
 include 'logosvg.php';
-include '/srv/http/data/addons/addons-list.php';
+$addons = json_decode( file_get_contents( '/srv/http/data/addons/addons-list.json' ), true );
 $time = time();
 
 $sh = $_POST[ 'sh' ]; // [ alias, type, branch, opt1, opt2, ... ]

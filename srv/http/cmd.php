@@ -223,53 +223,10 @@ case 'logout':
 	session_start();
 	session_destroy();
 	break;
-case 'screenoff':
-	exec( 'DISPLAY=:0 '.$sudobin.'xset dpms force off' );
-	break;
 case 'setorder':
 	$order = $_POST[ 'setorder' ]; 
 	file_put_contents( $dirsystem.'order', json_encode( $order, JSON_PRETTY_PRINT ) );
 	pushstream( 'order', $order );
-	break;
-case 'webradios':
-	$name = $_POST[ 'webradios' ].'^^Radio';
-	$url = $_POST[ 'url' ];
-	$urlname = str_replace( '/', '|', $url );
-	$filewebradios = $dirwebradios.$urlname;
-	if ( ( isset( $_POST[ 'new' ] ) || isset( $_POST[ 'save' ] ) ) 
-		&& file_exists( $filewebradios )
-	) {
-		echo file_get_contents( $filewebradios );
-		exit;
-	}
-	
-	if ( isset( $_POST[ 'new' ] ) ) {
-		$ext = pathinfo( $url, PATHINFO_EXTENSION );
-		if ( $ext === 'm3u' ) {
-			$url = exec( $sudobin.'curl -s "'.$url.'" | grep ^http | head -1' );
-			if ( !$url ) exit( '-1' );
-			
-			$urlname = str_replace( '/', '|', $url );
-		} else if ( $ext === 'pls' ) {
-			$url = exec( $sudobin.'curl -s "'.$url.'" | grep ^File | head -1 | cut -d= -f2' );
-			if ( !$url ) exit( '-1' );
-			
-			$urlname = str_replace( '/', '|', $url );
-		}
-		file_put_contents( $filewebradios, $name );
-		$count = 1;
-	} else if ( isset( $_POST[ 'edit' ] ) ) {
-		$content = file( $filewebradios, FILE_IGNORE_NEW_LINES );
-		$urlnamenew = str_replace( '/', '|', $_POST[ 'newurl' ] );
-		if ( count( $content ) > 1 ) $name.= "\n".$content[ 1 ]."\n".$content[ 2 ];
-		@unlink( $filewebradios );
-		file_put_contents( $dirwebradios.$urlnamenew, $name ); // name, thumbnail, coverart
-		$count = 0;
-	} else if ( isset( $_POST[ 'delete' ] ) ) {
-		unlink( $filewebradios );
-		$count = -1;
-	}
-	pushstream( 'webradio', [ 'webradio' => $count ] );
 	break;
 }
 

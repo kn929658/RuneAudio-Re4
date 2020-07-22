@@ -12,7 +12,7 @@ pushRefresh() {
 case ${args[0]} in
 
 mount )
-	mountpoint=${args[1]}
+	mountpoint=/mnt/MPD/NAS/${args[1]}
 	ip=${args[2]}
 	source=${args[3]}
 	cifsnfs=${args[4]}
@@ -20,9 +20,11 @@ mount )
 
 	! ping -c 1 -w 1 $ip &> /dev/null && echo 'IP not found.' && exit
 
-	[[ -e "$mountpoint" ]]  && echo 'Mount name already exists.' && exit
-
-	mkdir -p "$mountpoint"
+	if [[ -e $mountpoint ]]; then
+		find "$mountpoint" -mindepth 1 | read && echo "Mount name <code>$mountpoint</code> not empty." && exit
+	else
+		mkdir "$mountpoint"
+	fi
 	chown mpd:audio "$mountpoint"
 	[[ -n $options ]] && optmount="-o $options"
 	mount -t $cifsnfs "$source" "$mountpoint" $optmount

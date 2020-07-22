@@ -182,18 +182,18 @@ function infoMount( formdata, cifs ) {
 			$.map( formmount, function( val ) {
 				data[ val[ 'name' ] ] = val[ 'value' ];
 			});
-			var mountpoint = '/mnt/MPD/NAS/'+ data.name;
+			var mountpoint = data.name;
 			var directory = data.directory.replace( /^\//, '' );
 			if ( data.protocol === 'cifs' ) {
 				var options = 'noauto';
-				options += ( !data.user ) ? ',username=guest' : ',username='+ data.user +',password='+ data.password;
+				options += ( !data.user ) ? ',username=guest,password=' : ',username='+ data.user +',password='+ data.password;
 				options += ',uid='+ $( '#list' ).data( 'uid' ) +',gid='+ $( '#list' ).data( 'gid' ) +',iocharset=utf8';
 				options += data.options ? ','+ data.options : '';
-				var device = '"//'+ data.ip +'/'+ directory +'"';
+				var device = '//'+ data.ip +'/'+ directory;
 			} else {
 				var options = 'defaults,noauto,bg,soft,timeo=5';
 				options += data.options ? ','+ data.options : '';
-				var device = '"'+ data.ip +':/'+ directory +'"';
+				var device = data.ip +':/'+ directory;
 			}
 			banner( 'Network Mount', 'Mount ...', 'network' );
 			sh( [ 'mount', mountpoint, data.ip, device, data.protocol, options ], function( std ) {

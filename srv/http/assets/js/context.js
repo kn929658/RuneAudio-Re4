@@ -752,12 +752,7 @@ function webRadioDelete() {
 		, ok      : function() {
 			G.list.li.remove();
 			if ( !$( '#lib-list li' ).length ) $( '#button-library' ).click();
-			$.post( cmdphp, {
-				  cmd       : 'webradios'
-				, webradios : name
-				, url       : url
-				, delete    : 1
-			} );
+			sh( [ 'webradiodelete', url ] );
 		}
 	} );
 }
@@ -780,14 +775,23 @@ function webRadioEdit() {
 			var newname = $( '#infoTextBox' ).val();
 			var newurl = $( '#infoTextBox1' ).val().toString().replace( /\/\s*$/, '' ); // omit trailling / and space
 			if ( newname !== name || newurl !== url )
-				$.post( cmdphp, {
-					  cmd       : 'webradios'
-					, webradios : newname
-					, newurl    : newurl
-					, url       : url
-					, edit      : 1
-				}, function() {
-					$( '#mode-webradio' ).click();
+				sh( [ 'webradioedit', url, newname, newurl ], function() {
+					if ( data ) {
+						var nameimg = data.split( "\n" );
+						info( {
+							  icon    : 'webradio'
+							, title   : 'Add WebRadio'
+							, message : ( nameimg[ 2 ] ? '<img src="'+ nameimg[ 2 ] +'">' : '<i class="fa fa-webradio bookmark"></i>' )
+									   +'<br><w>'+ nameimg[ 0 ] +'</w>'
+									   +'<br>'+ url
+									   +'<br>Already exists.'
+							, ok      : function() {
+								webRadioEdit();
+							}
+						} );
+					} else {
+						$( '#mode-webradio' ).click();
+					}
 				} );
 		}
 	} );
@@ -806,12 +810,7 @@ function webRadioNew( name, url ) {
 		, ok           : function() {
 			var newname = $( '#infoTextBox' ).val().toString().replace( /\/\s*$/, '' ); // omit trailling / and space
 			var url = $( '#infoTextBox1' ).val();
-			$.post( cmdphp, {
-				  cmd       : 'webradios'
-				, webradios : newname
-				, url       : url
-				, new       : 1
-			}, function( data ) {
+			sh( [ 'webradioadd', newname, url ], function( data ) {
 				if ( data == -1 ) {
 					info( {
 						  icon    : 'webradio'

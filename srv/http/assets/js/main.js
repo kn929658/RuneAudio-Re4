@@ -342,7 +342,7 @@ $( '.settings' ).click( function( e ) {
 } );
 $( '#power' ).click( function( e ) {
 	if ( $( e.target ).hasClass( 'submenu' ) ) {
-		$.post( cmdphp, { cmd: 'screenoff' } );
+		bash( 'DISPLAY=:0 /usr/bin/sudo /usr/bin/xset dpms force off' );
 		return
 	}
 	

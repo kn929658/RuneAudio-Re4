@@ -305,13 +305,13 @@ function psVolume( data ) {
 	
 	clearTimeout( G.debounce );
 	G.debounce = setTimeout( function() {
-		var type = data.volume[ 0 ];
-		var vol = data.volume[ 1 ];
-		G.status.volume = vol;
-		$volumeRS.setValue( type === 'mute' ? 0 : vol );
+		var type = data.type;
+		var val = data.val;
+		G.status.volume = val;
+		$volumeRS.setValue( type === 'mute' ? 0 : val );
 		$volumehandle.rsRotate( - $volumeRS._handle1.angle );
 		if ( type === 'mute' ) {
-			muteColor( vol );
+			muteColor( val );
 		} else if ( type === 'unmute' ) {
 			unmuteColor();
 		}

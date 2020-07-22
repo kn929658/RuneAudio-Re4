@@ -845,7 +845,7 @@ function muteColor( volumemute ) {
 	$volumetooltip
 		.text( volumemute )
 		.addClass( 'bl' )
-		.css( 'margin-left', '-23px' ); // fix - posistion
+//		.css( 'margin-left', '-23px' ); // fix - posistion
 	$volumehandle.addClass( 'bgr' );
 	$( '#volmute' ).addClass( 'active' )
 		.find( 'i' ).removeClass( 'fa-volume' ).addClass( 'fa-mute' );
@@ -1665,11 +1665,7 @@ function volumeSet( pageX ) {
 		if ( !G.drag ) $( '#volume-bar' ).animate( { width: vol +'%' }, 600 );
 		G.local = 1;
 		$( '.volumeband' ).addClass( 'disabled' );
-		$.post( cmdphp, {
-			  cmd     : 'volume'
-			, volume  : vol
-			, current : G.status.volume
-		}, function() {
+		sh( [ 'volume', G.status.volume, vol ], function() {
 			G.local = 0;
 			G.status.volume = vol;
 			$( '.volumeband' ).removeClass( 'disabled' );

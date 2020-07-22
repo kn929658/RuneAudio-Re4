@@ -614,11 +614,7 @@ $( '#volume' ).roundSlider( {
 			G.local = 1;
 			$( '#volume' ).addClass( 'disabled' );
 			//setTimeout( function() { G.local = 0 }, 300 );
-			$.post( cmdphp, {
-				  cmd     : 'volume'
-				, volume  : e.value
-				, current : G.status.volume
-			}, function() {
+			sh( [ 'volume', G.status.volume, e.value ], function() {
 				G.local = 0;
 				G.status.volume = e.value;
 				$( '#volume' ).removeClass( 'disabled' );
@@ -648,11 +644,7 @@ $( '#volmute' ).click( function() {
 	}
 	G.local = 1;
 	$( '#vol-group .btn, .volmap' ).addClass( 'disabled' );
-	$.post( cmdphp, {
-		  cmd     : 'volume'
-		, volume  : 'setmute'
-		, current : vol
-	}, function() {
+	sh( [ 'volume', vol ], function() {
 		G.local = 0;
 		$( '#vol-group .btn, .volmap' ).removeClass( 'disabled' );
 	} );
@@ -664,10 +656,7 @@ $( '#volup, #voldn' ).click( function() {
 
 	vol = ( thisid === 'volup' ) ? vol + 1 : vol - 1;
 	$volumeRS.setValue( vol );
-	$.post( cmdphp, {
-		  cmd    : 'volume'
-		, volume : vol
-	} );
+	bash( 'mpc -q volume '+ vol );
 } );
 $( '#coverTL, #timeTL' ).tap( function() {
 	var list = [ 'bars', 'time', 'cover', 'coversmall', 'volume', 'buttons', 'progressbar' ];
@@ -912,7 +901,7 @@ $( '.btn-cmd' ).click( function() {
 	if ( $this.hasClass( 'btn-toggle' ) ) {
 		var onoff = !G.status[ cmd ];
 		G.status[ cmd ] = onoff;
-		bash( 'mpc '+ cmd +' '+ onoff );
+		bash( 'mpc -q '+ cmd +' '+ onoff );
 		setButtonToggle();
 		G.local = 1;
 		setTimeout( function() { G.local = 0 }, 600 );

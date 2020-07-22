@@ -1,3 +1,28 @@
+function cmd( command, callback, json ) { // cmd case - no args 
+	$.post( 
+		  cmdphp
+		, { cmd: command }
+		, callback || null
+		, json || null
+	);
+}
+function bash( command, callback, json ) { // single line command
+	$.post( 
+		  cmdphp
+		, { cmd: 'bash', bash : command }
+		, callback || null
+		, json || null
+	);
+}
+function sh( array, callback, json ) { // complex commands - array
+	$.post( 
+		  cmdphp
+		, { cmd: 'sh', sh: [ 'cmd.sh' ].concat( array ) }
+		, callback || null
+		, json || null
+	);
+}
+//------------------------------------------------------------------
 function addonsdl( exit ) {
 	if ( exit == 1 ) {
 		info( {
@@ -31,30 +56,6 @@ function bookmarkThumbReplace( $this, newimg ) {
 		$this.find( '.lipath' ).after( '<img class="bkcoverart" src="'+ newimg +'">' );
 		$( '.mode-bookmark img' ).css( 'opacity', 0.33 );
 	}
-}
-function cmd( command, callback, json ) {
-	$.post( 
-		  cmdphp
-		, { cmd: command }
-		, callback || null
-		, json || null
-	);
-}
-function bash( command, callback, json ) {
-	$.post( 
-		  cmdphp
-		, { cmd: 'bash', bash : command }
-		, callback || null
-		, json || null
-	);
-}
-function sh( array, callback, json ) {
-	$.post( 
-		  cmdphp
-		, { cmd: 'sh', sh: [ 'cmd.sh' ].concat( array ) }
-		, callback || null
-		, json || null
-	);
 }
 function clearIntervalAll() {
 	clearInterval( G.intKnob );

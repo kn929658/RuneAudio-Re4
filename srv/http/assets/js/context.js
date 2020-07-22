@@ -658,18 +658,7 @@ function updateThumbnails() {
 			$( '#infoCheckBox input:eq( 3 )' ).prop( 'checked', 1 );
 		}
 		, ok       : function() {
-			var opt = [ 'cove', 'Update', 'master', path ];
-			$( '#infoCheckBox input' ).each( function() {
-				opt.push( $( this ).prop( 'checked' ) );
-			} );
-			var form = '<form id="formtemp" action="addons-terminal.php" method="post">';
-			var optL = opt.length;
-			for ( i = 0; i < optL; i++ ) {
-				form += '<input type="hidden" name="sh[]" value="'+ opt[ i ] +'">'
-			}
-			form += '</form>';
-			$( 'body' ).append( form );
-			$( '#formtemp' ).submit();
+			coverartScan( path );
 		}
 	} );
 }

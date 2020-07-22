@@ -236,8 +236,8 @@ function psPackage( data ) {
 	if ( G.local ) return
 	
 	$( '#'+ data.pkg )
-			.data( { active: data.active, enabled: data.enable } )
-			.find( 'img' ).toggleClass( 'on', data.active );
+			.data( { active: data.start, enabled: data.enable } )
+			.find( 'img' ).toggleClass( 'on', data.start );
 }
 function psPlaylist( data ) {
 	if ( data.playlist === 'playlist' ) {

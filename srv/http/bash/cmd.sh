@@ -263,7 +263,7 @@ packageenable )
 	pkg=${args[1]}
 	enable=${args[2]}
 	systemctl start $pkg
-	curl -s -X POST 'http://127.0.0.1/pub?id=package' -d '{"pkg":"'$pkg'", "enable":'$enable' }'
+	curl -s -X POST 'http://127.0.0.1/pub?id=package' -d '{"pkg":"'$pkg'", "start":true,"enable":'$enable' }'
 	;;
 packageset )
 	pkg=${args[1]}

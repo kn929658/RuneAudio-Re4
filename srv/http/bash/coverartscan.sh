@@ -60,7 +60,7 @@ createThumbnail() {
 	if echo "$mpdpath" | grep -q '  '; then
 		(( doublespaces++ ))
 		echo -e "$padR Skip - Path contains double spaces."
-		echo $mpdpath >> $doublespaceslog
+		echo "$mpdpath" >> $doublespaceslog
 		return
 	fi
 	

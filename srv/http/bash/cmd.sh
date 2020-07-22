@@ -4,6 +4,8 @@ dirdata=/srv/http/data
 diraddons=/srv/http/data/addons
 dirsystem=/srv/http/data/system
 dirtmp=/srv/http/data/tmp
+dirwebradios=/srv/http/data/webradios
+
 # convert each line to each args
 readarray -t args <<< "$1"
 
@@ -445,6 +447,43 @@ volumenone )
 	mixer=$( sed -n "/$output/,/^}/ p" /etc/mpd.conf \
 		| awk -F '\"' '/mixer_type/ {print $2}' )
 	echo -n $mixer
+	;;
+webradioadd )
+	name=${args[1]}
+	url=${args[2]}
+	filewebradio=$dirwebradios/${url//\//|}
+	[[ -e $filewebradio ]] && cat $filewebradio && exit
+	
+	ext=${url/*.}
+	if [[ $ext == m3u ]]; then
+		url=$( curl -s $url | grep ^http | head -1 )
+	elif [[ $ext == pls ]]; then
+		url=$( curl -s $url | grep ^File | head -1 | cut -d= -f2 )
+	fi
+	[[ -z $url ]] && echo -1 && exit
+	
+	echo $name^^Radio > $filewebradio
+	pushstream webradio webradio 1
+	;;
+webradiodelete )
+	url=${args[1]}
+	rm $dirwebradios/${url//\//|}
+	pushstream webradio webradio -1
+	;;
+webradioedit )
+	url=${args[1]}
+	newname=${args[2]}^^Radio
+	newurl=${args[3]}
+	filewebradionew=$dirwebradios/${newurl//\//|}
+	[[ -e $filewebradionew ]] && cat $filewebradionew && exit
+	
+	filewebradio=$dirwebradios/${url//\//|}
+	content=$( cat $filewebradio )
+	rm $filewebradio
+	(( $( echo $content | wc -l ) > 1 )) && newname+="
+$( echo $content | sed '1 d' )"
+	echo "$newname" > $filewebradionew # name, thumbnail, coverart
+	pushstream webradio webradio 0
 	;;
 	
 esac

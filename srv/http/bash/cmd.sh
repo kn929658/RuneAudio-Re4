@@ -13,6 +13,9 @@ pushstream() {
 pushstreamVol() {
 	curl -s -X POST 'http://127.0.0.1/pub?id=volume' -d '{"type":"'$1'", "val":'$2' }'
 }
+pushstreamPkg() {
+	curl -s -X POST 'http://127.0.0.1/pub?id=package' -d '{"pkg":"'$1'", "start":'$2',"enable":'$3' }'
+}
 volumeSet() {
 	current=$1
 	target=$2
@@ -263,7 +266,7 @@ packageenable )
 	pkg=${args[1]}
 	enable=${args[2]}
 	systemctl start $pkg
-	curl -s -X POST 'http://127.0.0.1/pub?id=package' -d '{"pkg":"'$pkg'", "start":true,"enable":'$enable' }'
+	pushstreamPkg $pkg true $enable
 	;;
 packageset )
 	pkg=${args[1]}
@@ -271,7 +274,7 @@ packageset )
 	enable=${args[3]}
 	[[ $start == true ]] && systemctl start $pkg || systemctl stop $pkg
 	[[ $enable == true ]] && systemctl enable $pkg || systemctl disable $pkg
-	curl -s -X POST 'http://127.0.0.1/pub?id=package' -d '{"pkg":"'$pkg'", "start":'$start',"enable":'$enable' }'
+	pushstreamPkg $pkg $start $enable
 	;;
 playpos )
 	mpc play ${args[1]}

@@ -32,6 +32,14 @@ function bookmarkThumbReplace( $this, newimg ) {
 		$( '.mode-bookmark img' ).css( 'opacity', 0.33 );
 	}
 }
+function cmd( command, callback, json ) {
+	$.post( 
+		  cmdphp
+		, { cmd: command }
+		, callback || null
+		, json || null
+	);
+}
 function bash( command, callback, json ) {
 	$.post( 
 		  cmdphp
@@ -446,7 +454,7 @@ function displayPlayback() {
 	displayTopBottom();
 }
 function displayGet( callback ) {
-	$.post( cmdphp, { cmd: 'displayget' }, function( data ) {
+	cmd( 'displayget', function( data ) {
 		callback( data );
 	}, 'json' );
 }

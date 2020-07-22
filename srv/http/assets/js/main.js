@@ -342,7 +342,7 @@ $( '.settings' ).click( function( e ) {
 } );
 $( '#power' ).click( function( e ) {
 	if ( $( e.target ).hasClass( 'submenu' ) ) {
-		bash( 'DISPLAY=:0 /usr/bin/sudo /usr/bin/xset dpms force off' );
+		cmd( 'screenoff' );
 		return
 	}
 	
@@ -370,7 +370,7 @@ $( '#power' ).click( function( e ) {
 	} );
 } );
 $( '#logout' ).click( function( e ) {
-	$.post( cmdphp, { cmd: 'logout' }, function() {
+	cmd( 'logout', function() {
 		location.reload();
 	} );
 } );

@@ -109,7 +109,7 @@ setTimeout( function() {
 <!-- ...................................................................................... -->
 <?php
 $getinstall = <<<cmd
-wget -qN --no-check-certificate $installurl 
+wget -q $installurl 
 if [[ $? != 0 ]]; then 
 	echo -e '\e[38;5;7m\e[48;5;1m ! \e[0m Install file download failed.'
 	echo 'Please try again.'
@@ -134,7 +134,7 @@ $uninstall
 /usr/bin/sudo ./$installfile "$opt"
 cmd;
 	$commandtxt = <<<cmd
-wget -qN --no-check-certificate $installurl
+wget -q $installurl
 chmod 755 $installfile
 uninstall_$alias.sh
 ./$installfile $opttxt
@@ -145,7 +145,7 @@ $getinstall
 /usr/bin/sudo ./$installfile "$opt"
 cmd;
 	$commandtxt = <<<cmd
-wget -qN --no-check-certificate $installurl
+wget -q $installurl
 chmod 755 $installfile
 ./$installfile $opttxt
 cmd;
@@ -206,7 +206,7 @@ while ( !feof( $popencmd ) ) {                          // each line
 	// abort on browser back/close
 	if ( connection_status() !== 0 || connection_aborted() === 1 ) {
 		$sudo = '/usr/bin/sudo /usr/bin';
-		exec( "$sudo/killall $installfile wget pacman &" );
+		exec( "$sudo/killall $( basename $installfile ) wget pacman &" );
 		exec( "$sudo/rm /var/lib/pacman/db.lck /srv/http/*.zip /usr/local/bin/uninstall_$alias.sh &" );
 		exec( "$sudo/rm /srv/http/data/addons/$alias &" );
 		pclose( $popencmd );

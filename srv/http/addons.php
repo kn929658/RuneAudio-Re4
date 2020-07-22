@@ -140,7 +140,7 @@ foreach( $arrayalias as $alias ) {
 			'.$revision.'
 			<form class="form-horizontal" alias="'.$alias.'">
 				<p class="detailtext">'.$description.$detail.'</p>';
-	if ( $alias !== 'addo' ) $blocks .= $version ? $btnin.' &nbsp; '.$btnun : $btnin;
+	$blocks .= $version ? $btnin.' &nbsp; '.$btnun : $btnin;
 	$blocks .= '
 			</form>';
 	if ( $thumbnail ) $blocks .= '
@@ -170,7 +170,6 @@ echo $blocks;
 <?php
 $keepkey = [ 'title', 'installurl', 'rollback', 'option', 'postinfo' ];
 foreach( $arrayalias as $alias ) {
-	if ( $alias === 'addo' ) continue;
 	$addonslist[ $alias ] = array_intersect_key( $addons[ $alias ], array_flip( $keepkey ) );
 }
 $restartfile = '/srv/http/data/tmp/restart';

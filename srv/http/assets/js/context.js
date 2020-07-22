@@ -640,27 +640,7 @@ function tagEditor() {
 function updateThumbnails() {
 	// enclosed in double quotes entity &quot;
 	var path = G.list.path.slice( -4 ) !== '.cue' ? G.list.path : G.list.path.substr( 0, G.list.path.lastIndexOf( '/' ) );
-	info( {
-		  icon     : 'coverart'
-		, title    : 'CoverArt Thumbnails'
-		, message  : 'Update thumbnails in:'
-					+'<br><w>'+ path.replace( /\\/g, '' ) +'</w>'
-					+'<br>&nbsp;'
-		, checkbox : {
-			  'Update Library database'         : 1
-			, 'Replace existings'               : 1
-			, ''                                : 1
-			, 'Copy embedded to external files' : 1
-		}
-		, footer   : '<px30/>(Copy: write permission needed)'
-		, preshow  : function() {
-			$( '#infoCheckBox label:eq( 2 )' ).hide().prev().hide();
-			$( '#infoCheckBox input:eq( 3 )' ).prop( 'checked', 1 );
-		}
-		, ok       : function() {
-			coverartScan( path );
-		}
-	} );
+	infoCoverartScan( path );
 }
 function webRadioCoverart() {
 	if ( G.library ) {

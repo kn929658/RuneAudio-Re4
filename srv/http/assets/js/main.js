@@ -1427,33 +1427,7 @@ $( '#mode-coverart' ).click( function() { // fix - 'tap' also fire .coverart cli
 		return
 	}
 	
-	if ( !$( '#lib-cover-list' ).html() ) {
-		var title = 'Create CoverArt Thumbnails';
-		var albumcount = Number( $( '#mode-album grl' ).text().replace( /,/g, '' ) );
-		var time = ( albumcount > 60 ? '<br>( ±'+ Math.ceil( albumcount / 60 ) +' minutes for '+ albumcount +' albums)<br>&nbsp;' : '' )
-	} else {
-		var title = 'CoverArt Thumbnails Update';
-	}
-	info( {
-		  icon    : 'coverart'
-		, title   : title
-		, message : 'Find coverarts and create thumbnails.'
-				   + time
-		, checkbox : {
-			  'Update Library database'         : 1
-			, 'Replace existings'               : 1
-			, 'Rebuild entire thumbnails'       : 1
-			, 'Copy embedded to external files' : 1
-		}
-		, footer   : '<px30/>(Copy: write permission needed)'
-		, preshow  : function() {
-			if ( time ) $( '#infoCheckBox label:eq( 1 ), #infoCheckBox label:eq( 2 )' ).hide().prev().hide();
-			$( '#infoCheckBox input:eq( 3 )' ).prop( 'checked', 1 );
-		}
-		, ok      : function() {
-			coverartScan( '' );
-		}
-	} );
+	infoCoverartScan( '' );
 } );
 $( '.coverart' ).tap( function( e ) {
 	if ( $( e.target ).hasClass( 'edit' ) ) return

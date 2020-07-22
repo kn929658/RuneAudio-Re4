@@ -331,20 +331,6 @@ function coverartSave() {
 		}
 	} );
 }
-function coverartScan( path ) {
-	var opt = [ 'cove', 'Update', 'master', path ];
-	$( '#infoCheckBox input' ).each( function() {
-		opt.push( $( this ).prop( 'checked' ) );
-	} );
-	var form = '<form id="formtemp" action="addons-terminal.php" method="post">';
-	var optL = opt.length;
-	for ( i = 0; i < optL; i++ ) {
-		form += '<input type="hidden" name="sh[]" value="'+ opt[ i ] +'">'
-	}
-	form += '</form>';
-	$( 'body' ).append( form );
-	$( '#formtemp' ).submit();
-}
 function coverartSuccess( title, src, std ) {
 	$( '.edit' ).remove();
 	$( '#coverart, .licoverimg img' ).css( 'opacity', '' );
@@ -705,6 +691,51 @@ function imgError( image ) {
 	image.onerror = '';
 	image.src = coverrune;
 	return true;
+}
+function infoCoverartScan( path ) {
+	if ( !G.librarylist ) {
+		if ( !$( '#lib-cover-list' ).html() ) {
+			var albumcount = Number( $( '#mode-album grl' ).text().replace( /,/g, '' ) );
+			var time = ( albumcount > 60 ? '<br>( ±'+ Math.ceil( albumcount / 60 ) +' minutes for '+ albumcount +' albums)<br>&nbsp;' : '' )
+		}
+		var message = 'Find coverarts and create thumbnails.'
+				   + time;
+	} else {
+		var message = 'Update thumbnails in:'
+					+'<br><w>'+ path.replace( /\\/g, '' ) +'</w>'
+					+'<br>&nbsp;'
+	}
+	info( {
+		  icon     : 'coverart'
+		, title    : 'CoverArt Thumbnails'
+		, message  : message
+		, checkbox : {
+			  'Update Library database'         : 1
+			, 'Replace existings'               : 1
+			, 'Rebuild entire thumbnails'       : 1
+			, 'Copy embedded to external files' : 1
+		}
+		, footer   : '<px30/>(Copy: write permission needed)'
+		, preshow  : function() {
+			if ( time ) $( '#infoCheckBox label:eq( 1 ), #infoCheckBox label:eq( 2 )' ).hide().prev().hide();
+			if ( G.librarylist ) $( '#infoCheckBox label:eq( 2 )' ).hide().prev().hide();
+			$( '#infoCheckBox input:eq( 3 )' ).prop( 'checked', 1 );
+		}
+		, ok       : function() {
+			var opt = [ 'cove', 'Update', 'master', path ];
+			$( '#infoCheckBox input' ).each( function() {
+				opt.push( $( this ).prop( 'checked' ) );
+			} );
+			var form = '<form id="formtemp" action="addons-terminal.php" method="post">';
+			var optL = opt.length;
+			for ( i = 0; i < optL; i++ ) {
+				form += '<input type="hidden" name="sh[]" value="'+ opt[ i ] +'">'
+			}
+			form += '</form>';
+			$( 'body' ).append( form );
+			$( '#formtemp' ).submit();
+		}
+	} );
 }
 function infoNoData() {
 	$( '#loader' ).addClass( 'hide' );

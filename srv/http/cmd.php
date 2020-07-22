@@ -223,6 +223,9 @@ case 'logout':
 	session_start();
 	session_destroy();
 	break;
+case 'screenoff':
+	exec( 'DISPLAY=:0 '.$sudobin.'xset dpms force off' );
+	break;
 case 'setorder':
 	$order = $_POST[ 'setorder' ]; 
 	file_put_contents( $dirsystem.'order', json_encode( $order, JSON_PRETTY_PRINT ) );

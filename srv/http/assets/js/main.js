@@ -910,9 +910,9 @@ $( '.btn-cmd' ).click( function() {
 	var $this = $( this );
 	var cmd = this.id;
 	if ( $this.hasClass( 'btn-toggle' ) ) {
-		var onoff = G.status[ cmd ] ? false : true;
-		var command = 'mpc '+ cmd +' '+ onoff;
+		var onoff = !G.status[ cmd ];
 		G.status[ cmd ] = onoff;
+		bash( 'mpc '+ cmd +' '+ onoff );
 		setButtonToggle();
 		G.local = 1;
 		setTimeout( function() { G.local = 0 }, 600 );

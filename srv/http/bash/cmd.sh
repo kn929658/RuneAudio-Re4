@@ -394,7 +394,7 @@ tageditor )
 		for (( i=0; i < argsL; i++ )); do
 			key=${keys[$i]}
 			val=${args[$i]}
-			[[ -n $val ]] && kid3-cli -c "set $key \"$val\"" "$path"
+			kid3-cli -c "set $key \"$val\"" "$path"
 		done
 	else
 		if [[ $album == false ]]; then

@@ -426,18 +426,18 @@ volume )
 	target=${args[2]}
 	filevolumemute=$dirsystem/volumemute
 	if [[ -n $target ]]; then # set
-		volumeSet $current $target
 		pushstreamVol set $target
+		volumeSet $current $target
 		rm $filevolumemute
 	else
 		if (( $current > 0 )); then # mute
 			pushstreamVol mute $current
-			echo $current > $filevolumemute
 			volumeSet $current 0
+			echo $current > $filevolumemute
 		else # unmute
 			target=$( cat $filevolumemute )
-			volumeSet 0 $target
 			pushstreamVol unmute $target
+			volumeSet 0 $target
 			rm $filevolumemute
 		fi
 	fi

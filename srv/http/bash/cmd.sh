@@ -30,7 +30,7 @@ volumeSet() {
 			mpc -q volume $i
 			sleep 0.2
 		done
-		(( $i != $target )) && echo $target
+		(( $i != $target )) && mpc -q volume $target
 	fi
 }
 
@@ -426,8 +426,8 @@ volume )
 	target=${args[2]}
 	filevolumemute=$dirsystem/volumemute
 	if [[ -n $target ]]; then # set
-		pushstreamVol set $target
 		volumeSet $current $target
+		pushstreamVol set $target
 		rm $filevolumemute
 	else
 		if (( $current > 0 )); then # mute
@@ -436,11 +436,16 @@ volume )
 			volumeSet $current 0
 		else # unmute
 			target=$( cat $filevolumemute )
-			pushstreamVol unmute $target
 			volumeSet 0 $target
+			pushstreamVol unmute $target
 			rm $filevolumemute
 		fi
 	fi
+	;;
+volumeincrement )
+	target=${args[1]}
+	mpc volume $target
+	pushstreamVol set $target
 	;;
 volumenone )
 	output=$( cat "$dirsystem/${args[1]}" )

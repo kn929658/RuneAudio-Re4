@@ -666,9 +666,11 @@ $( '#volup, #voldn' ).click( function() {
 	var vol = G.status.volume;
 	if ( ( vol === 0 && ( thisid === 'voldn' ) ) || ( vol === 100 && ( thisid === 'volup' ) ) ) return
 
-	vol = ( thisid === 'volup' ) ? vol + 1 : vol - 1;
-	$volumeRS.setValue( vol );
-	bash( 'mpc -q volume '+ vol );
+	G.status.volume = ( thisid === 'volup' ) ? vol + 1 : vol - 1;
+	$volumeRS.setValue( G.status.volume );
+	G.local = 1;
+	setTimeout( function() { G.local = 0 }, 600 );
+	bash( [ 'volumeincrement', G.status.volume ] );
 } );
 $( '#coverTL, #timeTL' ).tap( function() {
 	var list = [ 'bars', 'time', 'cover', 'coversmall', 'volume', 'buttons', 'progressbar' ];

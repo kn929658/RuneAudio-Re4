@@ -512,7 +512,6 @@ function displayTopBottom() {
 				.addClass( 'active fa fa-'+ icon );
 			$( '#tab-library, #tab-playlist' ).addClass( 'hide' );
 		}
-		$( '#snapclient' ).toggleClass( 'on', G.status.snapclient );
 	}
 	$( '.menu' ).addClass( 'hide' );
 }
@@ -1516,6 +1515,7 @@ function setButtonToggle() {
 			.addClass( 'fa-folder' );
 	}
 	$( '#'+ ( G.display.time ? 'ti' : 'i' ) +'-gpio' ).toggleClass( 'hide', !G.status.gpioon );
+	$( '#snapclient' ).toggleClass( 'on', G.status.snapclient );
 	$( '#gpio .fa-gpio' ).toggleClass( 'on', G.status.gpioon );
 	if ( !G.status.mpd ) return
 	

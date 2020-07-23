@@ -1,3 +1,23 @@
+function sendcommand() {
+	j++;
+	if ( j < olength ) {
+		getoptions();
+	} else {
+		postcmd();
+	}
+}
+// post submit with temporary form
+function postcmd() {
+	var form = '<form id="formtemp" action="addons-terminal.php" method="post">';
+	var optL = opt.length;
+	for ( i = 0; i < optL; i++ ) { // [ branch, alias, type, opt1, opt2, ... ]
+		form += '<input type="hidden" name="sh[]" value="'+ opt[ i ] +'">'
+	}
+	form += '</form>';
+	$( 'body' ).append( form );
+	$( '#formtemp' ).submit();
+}
+//---------------------------------------------------------------------------
 data = {}
 $( '.close-root' ).click( function() {
 	location.href = '/';
@@ -293,24 +313,4 @@ function getoptions() {
 			break;
 // -------------------------------------------------------------------------------------------------
 	}
-}
-
-function sendcommand() {
-	j++;
-	if ( j < olength ) {
-		getoptions();
-	} else {
-		postcmd();
-	}
-}
-// post submit with temporary form
-function postcmd() {
-	var form = '<form id="formtemp" action="addons-terminal.php" method="post">';
-	var optL = opt.length;
-	for ( i = 0; i < optL; i++ ) { // [ branch, alias, type, opt1, opt2, ... ]
-		form += '<input type="hidden" name="sh[]" value="'+ opt[ i ] +'">'
-	}
-	form += '</form>';
-	$( 'body' ).append( form );
-	$( '#formtemp' ).submit();
 }

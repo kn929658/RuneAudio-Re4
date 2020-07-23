@@ -103,7 +103,7 @@ data+='
 	, "streaming"       : '$( grep -q 'type.*"httpd"' /etc/mpd.conf && echo true || echo false )'
 	, "timezone"        : "'$timezone'"
 	, "version"         : "'$version'"
-	, "versionui"       : '$( cat /srv/http/data/addons/rr$version )
+	, "versionui"       : '$( cat /srv/http/data/addons/rr$version 2> /dev/null || echo 0 )
 [[ -e /usr/bin/bluetoothctl  ]] && data+='
 	, "bluetooth"       : '$( grep -q dtoverlay=bcmbt /boot/config.txt && echo true || echo false )'
 	, "bluetoothon"     : '$( [[ $( systemctl is-active bluetooth ) == active ]] && echo true || echo false )

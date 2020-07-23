@@ -29,7 +29,7 @@ File
 search
 		track list: mpc search -f %*% any $keyword
 */
-$query = $_POST[ 'query' ];
+
 $mode = $_POST[ 'mode' ] ?? null;
 $string = $_POST[ 'string' ] ?? null;
 $string = escape( $string );
@@ -39,7 +39,9 @@ $format = '%'.implode( '%^^%', $f ).'%';
 $indexarray = range( 'A', 'Z' );
 $indexbar = '<a class="wh">#</a>';
 
-if ( $query === 'find' ) {
+switch( $_POST[ 'query' ] ) {
+
+case 'find':
 	$format = str_replace( '%artist%', '[%artist%|%albumartist%]', $format );
 	if ( is_array( $mode ) ) {
 		exec( 'mpc find -f "'.$format.'" '.$mode[ 0 ].' "'.$string[ 0 ].'" '.$mode[ 1 ].' "'.$string[ 1 ].'" 2> /dev/null'." | awk 'NF && !a[$0]++'"
@@ -67,13 +69,13 @@ if ( $query === 'find' ) {
 	} else { // modes - album, artist, albumartist, composer, genre: 2 fields format
 		$array = htmlFind( $mode, $lists, $f );
 	}
-	
-} else if ( $query === 'list' ) {
+	break;
+case 'list':
 	exec( 'mpc list '.$mode.' | awk NF'
 		, $lists );
 	$array = htmlList( $mode, $lists );
-	
-} else if ( $query === 'ls' ) {
+	break;
+case 'ls':
 	$dirs = exec( '/srv/http/bash/cmd-mpcls.sh "'.$string.'" count' );
 	if ( $dirs  ) {
 		exec( 'mpc ls -f %file% "'.$string.'" 2> /dev/null'
@@ -129,13 +131,13 @@ if ( $query === 'find' ) {
 			$array = htmlTracks( $lists, $f, $mode !== 'coverart' ? 'file' : '' );
 		}
 	}
-	
-} else if ( $query === 'search' ) {
+	break;
+case 'search':
 	exec( 'mpc search -f "'.$format.'" any "'.$string.'" | awk NF'
 		, $lists );
 	$array = htmlTracks( $lists, $f, 'search', $string );
-	
-} else if ( $query === 'track' ) { // for tag editor
+	break;
+case 'track': // for tag editor
 	$track = $_POST[ 'track' ] ?? '';
 	$file = escape( $_POST[ 'file' ] );
 	if ( $track ) { // cue
@@ -169,8 +171,8 @@ if ( $query === 'find' ) {
 			if ( isset( $_POST[ 'coverart' ] ) ) $array[] = exec( '/srv/http/bash/cmd-coverart.sh "'.$file.'"' );
 		}
 	}
-	
-} else if ( $query === 'webradio' ) {
+	break;
+case 'webradio':
 	$dirwebradios = '/srv/http/data/webradios';
 	$lists = array_slice( scandir( $dirwebradios ), 2 );
 	if ( !count( $lists ) ) exit( '-1' );
@@ -212,6 +214,7 @@ if ( $query === 'find' ) {
 		$indexbar.= '<a class="'.$white.$half.'">'.$char."</a>\n";
 	}
 	$array = [ 'html' => $html, 'index' => $indexbar ];
+	break;
 }
 
 echo json_encode( $array );

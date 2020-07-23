@@ -1,15 +1,17 @@
 <?php
 // current, delete, edit, get, list, load, save
-if ( isset( $_POST[ 'current' ] ) || $argv[ 1 ] === 'current' ) {
+switch( $_POST[ 'cmd' ] ) {
+	
+case 'current':
 	$lists = playlist();
 	$array = htmlPlaylist( $lists );
 	echo json_encode( $array );
-	
-} else if ( isset( $_POST[ 'delete' ] ) ) {
-	unlink( '/srv/http/data/playlists/'.$_POST[ 'delete' ] );
-
-} else if ( isset( $_POST[ 'edit' ] ) ) {
-	$name = $_POST[ 'edit' ];
+	break;
+case 'delete':
+	unlink( '/srv/http/data/playlists/'.$_POST[ 'name' ] );
+	break;
+case 'edit':
+	$name = $_POST[ 'name' ];
 	$file = '/srv/http/data/playlists/'.$name;
 	$contents = file_get_contents( $file );
 	$list = json_decode( $contents );
@@ -35,14 +37,14 @@ if ( isset( $_POST[ 'current' ] ) || $argv[ 1 ] === 'current' ) {
 	$newlist = json_encode( $list, JSON_NUMERIC_CHECK | JSON_PRETTY_PRINT );
 	file_put_contents( $file, $newlist );
 	pushstream( 'playlist', [ 'playlist' => $name ] );
-	
-} else if ( isset( $_POST[ 'get' ] ) ) {
-	$name = str_replace( '"', '\"', $_POST[ 'get' ] );
+	break;
+case 'get':
+	$name = str_replace( '"', '\"', $_POST[ 'name' ] );
 	$lists = json_decode( file_get_contents( '/srv/http/data/playlists/'.$name ) );
 	$array = htmlPlaylist( $lists, $name );
 	echo json_encode( $array );
-	
-} else if ( isset( $_POST[ 'list' ] ) ) {
+	break;
+case 'list':
 	$lists = array_slice( scandir( '/srv/http/data/playlists' ), 2 );
 	$count = count( $lists );
 	if ( !$count ) exit( '-1' );
@@ -84,8 +86,8 @@ if ( isset( $_POST[ 'current' ] ) || $argv[ 1 ] === 'current' ) {
 		, 'index'     => $indexbar
 		, 'counthtml' => $counthtml
 	] );
-	
-} else if ( isset( $_POST[ 'load' ] ) ) { // load saved playlist to current
+	break;
+case 'load': // load saved playlist to current
 	// load normal and individual cue tracks - use only file and track
 	// 1. alternate cue <-> normal
 	// 2. exec cumulative commands
@@ -102,7 +104,7 @@ if ( isset( $_POST[ 'current' ] ) || $argv[ 1 ] === 'current' ) {
 	
 	if ( $_POST[ 'replace' ] ) exec( 'mpc clear' );
 	
-	$lines = file_get_contents( '/srv/http/data/playlists/'.$_POST[ 'load' ] );
+	$lines = file_get_contents( '/srv/http/data/playlists/'.$_POST[ 'name' ] );
 	$lines = json_decode( $lines );
 	$list = $range = $fileprev = '';
 	$track0prev = $trackprev = $i = $j = 0;
@@ -156,15 +158,15 @@ if ( isset( $_POST[ 'current' ] ) || $argv[ 1 ] === 'current' ) {
 	
 	if ( $_POST[ 'play' ] ) exec( 'sleep 1; mpc play' );
 	echo exec( 'mpc playlist | wc -l' );
-	
-} else if ( isset( $_POST[ 'save' ] ) || $argv[ 1 ] === 'save' ) {
-	$name = !count( $argv ) ? $_POST[ 'save' ] : $argv[ 2 ];
-	$file = '/srv/http/data/playlists/'.$name;
+	break;
+case 'save':
+	$file = '/srv/http/data/playlists/'.$_POST[ 'name' ];
 	if ( file_exists( $file ) ) exit( '-1' );
 	
 	$list = json_encode( playlistInfo(), JSON_NUMERIC_CHECK | JSON_PRETTY_PRINT );
 	file_put_contents( $file, $list );
 	pushstream( 'playlist', [ 'playlist' => 'save' ] );
+	break;
 	
 }
 

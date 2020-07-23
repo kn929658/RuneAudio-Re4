@@ -75,10 +75,7 @@ $desktop = isset( $_SERVER[ 'HTTP_USER_AGENT' ] )
 <script src="/assets/js/banner.<?=$time?>.js"></script>
 <script src="/assets/js/context.<?=$time?>.js"></script>
 <script src="/assets/js/lyrics.<?=$time?>.js"></script>
-	<?php if ( file_exists( '/srv/http/data/system/gpio' ) ) { ?>
-<script src="/assets/js/gpio.<?=$time?>.js"></script>
-	<?php }
-		  if ( $desktop ) { ?>
+	<?php if ( $desktop ) { ?>
 <script src="/assets/js/shortcut.<?=$time?>.js"></script>
 	<?php } ?>
 	<?php if ( $localhost ) { ?>

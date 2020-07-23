@@ -231,67 +231,6 @@ case 'setorder':
 	file_put_contents( $dirsystem.'order', json_encode( $order, JSON_PRETTY_PRINT ) );
 	pushstream( 'order', $order );
 	break;
-case 'volume':
-	$volume = $_POST[ 'volume' ];
-	$current = $_POST[ 'current' ] ?? '';
-	$filevolumemute = $dirsystem.'volumemute';
-	if ( $volume !== 'setmute' ) { // set
-		pushstream( 'volume', [ 'volume' => [ 'set', $volume ] ] );
-		volumeIncrement( $volume, $current );
-		@unlink( $filevolumemute );
-	} else {
-		if ( $current ) { // mute
-			pushstream( 'volume', [ 'volume' => [ 'mute', $current ] ] );
-			file_put_contents( $filevolumemute, $current );
-			volumeIncrement( 0, $current );
-		} else { // unmute
-			$volume = file_get_contents( $filevolumemute );
-			pushstream( 'volume', [ 'volume' => [ 'unmute', $volume ] ] );
-			volumeIncrement( $volume, 0 );
-			@unlink( $filevolumemute );
-		}
-	}
-	break;
-case 'webradios':
-	$name = $_POST[ 'webradios' ].'^^Radio';
-	$url = $_POST[ 'url' ];
-	$urlname = str_replace( '/', '|', $url );
-	$filewebradios = $dirwebradios.$urlname;
-	if ( ( isset( $_POST[ 'new' ] ) || isset( $_POST[ 'save' ] ) ) 
-		&& file_exists( $filewebradios )
-	) {
-		echo file_get_contents( $filewebradios );
-		exit;
-	}
-	
-	if ( isset( $_POST[ 'new' ] ) ) {
-		$ext = pathinfo( $url, PATHINFO_EXTENSION );
-		if ( $ext === 'm3u' ) {
-			$url = exec( $sudobin.'curl -s "'.$url.'" | grep ^http | head -1' );
-			if ( !$url ) exit( '-1' );
-			
-			$urlname = str_replace( '/', '|', $url );
-		} else if ( $ext === 'pls' ) {
-			$url = exec( $sudobin.'curl -s "'.$url.'" | grep ^File | head -1 | cut -d= -f2' );
-			if ( !$url ) exit( '-1' );
-			
-			$urlname = str_replace( '/', '|', $url );
-		}
-		file_put_contents( $filewebradios, $name );
-		$count = 1;
-	} else if ( isset( $_POST[ 'edit' ] ) ) {
-		$content = file( $filewebradios, FILE_IGNORE_NEW_LINES );
-		$urlnamenew = str_replace( '/', '|', $_POST[ 'newurl' ] );
-		if ( count( $content ) > 1 ) $name.= "\n".$content[ 1 ]."\n".$content[ 2 ];
-		@unlink( $filewebradios );
-		file_put_contents( $dirwebradios.$urlnamenew, $name ); // name, thumbnail, coverart
-		$count = 0;
-	} else if ( isset( $_POST[ 'delete' ] ) ) {
-		unlink( $filewebradios );
-		$count = -1;
-	}
-	pushstream( 'webradio', [ 'webradio' => $count ] );
-	break;
 }
 
 function cmdsh( $sh ) {
@@ -333,15 +272,4 @@ function gifSave( $imagefile, $tmpfile, $resize ) {
 }
 function pushstream( $channel, $data ) {
 	exec( $sudobin.'curl -s -X POST http://127.0.0.1/pub?id='.$channel." -d '".json_encode( $data, JSON_NUMERIC_CHECK )."'" );
-}
-function volumeIncrement( $volume, $current = '' ) {
-	if ( !$current || abs( $volume - $current ) < 10 ) {
-		exec( 'mpc volume '.$volume );
-	} else {
-		foreach( range( $current, $volume, 5 ) as $val ) {
-			usleep( 0.2 * 1000000 );
-			exec( 'mpc volume '.$val );
-		}
-		if ( $val !== $volume ) exec( 'mpc volume '.$volume );
-	}
 }

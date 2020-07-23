@@ -1,142 +1,5 @@
 $( function() { // document ready start >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-var formdata = {}
-var html = heredoc( function() { /*
-	<form id="formmount">
-		<div id="infoRadio" class="infocontent infohtml">
-			Type&emsp;<label><input type="radio" name="protocol" value="cifs"> CIFS</label>&emsp;
-			<label><input type="radio" name="protocol" value="nfs"> NFS</label>&emsp;
-		</div>
-		<div id="infoText" class="infocontent">
-			<div id="infotextlabel">
-				<px50/>Name<br>
-				IP<br>
-				<span id="sharename">Share name</span><br>
-				<span class="guest">
-					User<br>
-					Password<br>
-				</span>
-				Options
-			</div>
-			<div id="infotextbox">
-				<input type="text" class="infoinput" name="name" spellcheck="false">
-				<input type="text" class="infoinput" name="ip" spellcheck="false">
-				<input type="text" class="infoinput" name="directory" spellcheck="false">
-				<div class="guest">
-				<input type="text" class="infoinput" name="user" spellcheck="false">
-				<input type="password" class="infoinput" name="password">
-				</div>
-				<input type="text" class="infoinput" name="options" spellcheck="false">
-			</div>
-		</div>
-	</form>
-*/ } );
-$( '#addnas' ).click( function() {
-	infoMount();
-} );
-$( '#infoContent' ).on( 'click', '#infoRadio', function() {
-	if ( $( this ).find( 'input:checked' ).val() === 'nfs' ) {
-		$( '#sharename' ).text( 'Share path' );
-		$( '.guest' ).addClass( 'hide' );
-	} else {
-		$( '#sharename' ).text( 'Share name' );
-		$( '.guest' ).removeClass( 'hide' );
-	}
-} );
-$( '#list' ).on( 'click', 'li', function() {
-	var $this = $( this );
-	var mountpoint = $this.find( '.mountpoint' ).text();
-	if ( mountpoint === '/' ) return
-	
-	var nas = mountpoint.slice( 9, 12 ) === 'NAS';
-	var source = $this.find( '.source' ).text();
-	if ( !$this.data( 'unmounted' ) ) {
-		info( {
-			  icon    : nas ? 'network' : 'usbdrive'
-			, title   : ( nas ? 'Network Share' : 'USB Drive' )
-			, message : 'Unmount:<br><wh>'+ mountpoint +'</wh>'
-			, oklabel : 'Unmount'
-			, okcolor : '#de810e'
-			, ok      : function() {
-				banner( 'Network Mount', 'Unmount ...', 'network' );
-				sh( [ 'unmount', mountpoint ], function() {
-					refreshData();
-					$( '#refreshing' ).addClass( 'hide' );
-				} );
-				$( '#refreshing' ).removeClass( 'hide' );
-			}
-		} );
-	} else { // remove / remount
-		info( {
-			  icon        : nas ? 'network' : 'usbdrive'
-			, title       : ( nas ? 'Network Share' : 'USB Drive' )
-			, message     : 'Remove / Remount:<br><wh>'+ mountpoint +'</wh>'
-			, buttonwidth : 1
-			, buttonlabel : 'Remove'
-			, buttoncolor : '#bb2828'
-			, button      : function() {
-				banner( 'Network Mount', 'Remove ...', 'network' );
-				sh( [ 'remove', mountpoint ], function() {
-					refreshData();
-					$( '#refreshing' ).addClass( 'hide' );
-				} );
-				$( '#refreshing' ).removeClass( 'hide' );
-			}
-			, oklabel     : 'Remount'
-			, ok          : function() {
-				banner( 'Network Mount', 'Remount ...', 'network' );
-				sh( [ 'remount', mountpoint, source ], function() {
-					refreshData();
-					$( '#refreshing' ).addClass( 'hide' );
-				} );
-				$( '#refreshing' ).removeClass( 'hide' );
-			}
-		} );
-	}
-} );
-/*$( '#listshare' ).on( 'click', 'li', function() {
-	if ( $( this ).find( '.blink' ).length ) return
-	
-	if ( $( this ).find( '.fa-search' ).length ) {
-		$( '#listshare' ).html( '<li><i class="fa fa-search blink"></i></li>' );
-		bash( '/srv/http/bash/sources-sharescan.sh', function( list ) {
-			var list = JSON.parse( list );
-			if ( list.length ) {
-				var html = '';
-				$.each( list, function( i, val ) {
-					html += '<li data-mount="//'+ val.ip +'/'+ val.share +'"><i class="fa fa-network"></i><gr>'+ val.host +'<grn>&ensp;&bull;&ensp;</grn>//'+ val.ip +'/'+ val.share +'</li>';
-				} );
-			} else {
-				var html = '<li><i class="fa fa-info-circle"></i><gr>No shares available</gr></li>';
-			}
-			$( '#listshare' ).html( html );
-			$( '#refreshshares' ).removeClass( 'hide' );
-		}, 'json' );
-	} else {
-		var source = $( this ).data( 'mount' );
-		var ipshare = source.split( '/' );
-		var share = ipshare.pop();
-		var ip = ipshare.pop();
-		infoMount( {
-			  protocol  : 'cifs'
-			, name      : share
-			, ip        : ip
-			, directory : share
-		}, 'cifs' );
-	}
-} );
-$( '#refreshshares' ).click( function() {
-	$( '#listshare li:eq( 0 )' )
-		.html( '<li><i class="fa fa-search"></i></li>' )
-		.click();
-} );*/
-$( '#mount' ).click( function( e ) {
-	codeToggle( e.target, this.id, getMounts );
-} );
-$( '#fstab' ).click( function( e ) {
-	codeToggle( e.target, this.id, getFstab );
-} );
-
 function getMounts() {
 	bash( 'mount | grep " / \\|MPD"', function( status ) {
 		$( '#codemount' )
@@ -196,7 +59,7 @@ function infoMount( formdata, cifs ) {
 				var device = data.ip +':/'+ directory;
 			}
 			banner( 'Network Mount', 'Mount ...', 'network' );
-			sh( [ 'mount', mountpoint, data.ip, device, data.protocol, options ], function( std ) {
+			bash( [ 'mount', mountpoint, data.ip, device, data.protocol, options ], function( std ) {
 				if ( std !== 0 ) {
 					formdata = data;
 					info( {
@@ -246,5 +109,142 @@ refreshData = function() {
 	}, 'json' );
 }
 refreshData();
+//---------------------------------------------------------------------------------------
+var formdata = {}
+var html = heredoc( function() { /*
+	<form id="formmount">
+		<div id="infoRadio" class="infocontent infohtml">
+			Type&emsp;<label><input type="radio" name="protocol" value="cifs"> CIFS</label>&emsp;
+			<label><input type="radio" name="protocol" value="nfs"> NFS</label>&emsp;
+		</div>
+		<div id="infoText" class="infocontent">
+			<div id="infotextlabel">
+				<px50/>Name<br>
+				IP<br>
+				<span id="sharename">Share name</span><br>
+				<span class="guest">
+					User<br>
+					Password<br>
+				</span>
+				Options
+			</div>
+			<div id="infotextbox">
+				<input type="text" class="infoinput" name="name" spellcheck="false">
+				<input type="text" class="infoinput" name="ip" spellcheck="false">
+				<input type="text" class="infoinput" name="directory" spellcheck="false">
+				<div class="guest">
+				<input type="text" class="infoinput" name="user" spellcheck="false">
+				<input type="password" class="infoinput" name="password">
+				</div>
+				<input type="text" class="infoinput" name="options" spellcheck="false">
+			</div>
+		</div>
+	</form>
+*/ } );
+$( '#addnas' ).click( function() {
+	infoMount();
+} );
+$( '#infoContent' ).on( 'click', '#infoRadio', function() {
+	if ( $( this ).find( 'input:checked' ).val() === 'nfs' ) {
+		$( '#sharename' ).text( 'Share path' );
+		$( '.guest' ).addClass( 'hide' );
+	} else {
+		$( '#sharename' ).text( 'Share name' );
+		$( '.guest' ).removeClass( 'hide' );
+	}
+} );
+$( '#list' ).on( 'click', 'li', function() {
+	var $this = $( this );
+	var mountpoint = $this.find( '.mountpoint' ).text();
+	if ( mountpoint === '/' ) return
+	
+	var nas = mountpoint.slice( 9, 12 ) === 'NAS';
+	var source = $this.find( '.source' ).text();
+	if ( !$this.data( 'unmounted' ) ) {
+		info( {
+			  icon    : nas ? 'network' : 'usbdrive'
+			, title   : ( nas ? 'Network Share' : 'USB Drive' )
+			, message : 'Unmount:<br><wh>'+ mountpoint +'</wh>'
+			, oklabel : 'Unmount'
+			, okcolor : '#de810e'
+			, ok      : function() {
+				banner( 'Network Mount', 'Unmount ...', 'network' );
+				bash( [ 'unmount', mountpoint ], function() {
+					refreshData();
+					$( '#refreshing' ).addClass( 'hide' );
+				} );
+				$( '#refreshing' ).removeClass( 'hide' );
+			}
+		} );
+	} else { // remove / remount
+		info( {
+			  icon        : nas ? 'network' : 'usbdrive'
+			, title       : ( nas ? 'Network Share' : 'USB Drive' )
+			, message     : 'Remove / Remount:<br><wh>'+ mountpoint +'</wh>'
+			, buttonwidth : 1
+			, buttonlabel : 'Remove'
+			, buttoncolor : '#bb2828'
+			, button      : function() {
+				banner( 'Network Mount', 'Remove ...', 'network' );
+				bash( [ 'remove', mountpoint ], function() {
+					refreshData();
+					$( '#refreshing' ).addClass( 'hide' );
+				} );
+				$( '#refreshing' ).removeClass( 'hide' );
+			}
+			, oklabel     : 'Remount'
+			, ok          : function() {
+				banner( 'Network Mount', 'Remount ...', 'network' );
+				bash( [ 'remount', mountpoint, source ], function() {
+					refreshData();
+					$( '#refreshing' ).addClass( 'hide' );
+				} );
+				$( '#refreshing' ).removeClass( 'hide' );
+			}
+		} );
+	}
+} );
+/*$( '#listshare' ).on( 'click', 'li', function() {
+	if ( $( this ).find( '.blink' ).length ) return
+	
+	if ( $( this ).find( '.fa-search' ).length ) {
+		$( '#listshare' ).html( '<li><i class="fa fa-search blink"></i></li>' );
+		bash( '/srv/http/bash/sources-sharescan.sh', function( list ) {
+			var list = JSON.parse( list );
+			if ( list.length ) {
+				var html = '';
+				$.each( list, function( i, val ) {
+					html += '<li data-mount="//'+ val.ip +'/'+ val.share +'"><i class="fa fa-network"></i><gr>'+ val.host +'<grn>&ensp;&bull;&ensp;</grn>//'+ val.ip +'/'+ val.share +'</li>';
+				} );
+			} else {
+				var html = '<li><i class="fa fa-info-circle"></i><gr>No shares available</gr></li>';
+			}
+			$( '#listshare' ).html( html );
+			$( '#refreshshares' ).removeClass( 'hide' );
+		}, 'json' );
+	} else {
+		var source = $( this ).data( 'mount' );
+		var ipshare = source.split( '/' );
+		var share = ipshare.pop();
+		var ip = ipshare.pop();
+		infoMount( {
+			  protocol  : 'cifs'
+			, name      : share
+			, ip        : ip
+			, directory : share
+		}, 'cifs' );
+	}
+} );
+$( '#refreshshares' ).click( function() {
+	$( '#listshare li:eq( 0 )' )
+		.html( '<li><i class="fa fa-search"></i></li>' )
+		.click();
+} );*/
+$( '#mount' ).click( function( e ) {
+	codeToggle( e.target, this.id, getMounts );
+} );
+$( '#fstab' ).click( function( e ) {
+	codeToggle( e.target, this.id, getFstab );
+} );
 
 } ); // document ready end <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<

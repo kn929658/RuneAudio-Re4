@@ -3,8 +3,10 @@
 playerfile=/srv/http/data/system/player
 ########
 status=$( cat $playerfile )
-status+=', "webradio" : false'
-
+status+='
+	, "webradio" : false
+	, "gpio"     : '$( [[ -e /srv/http/data/system/gpio ]] && echo true || echo false )'
+	, "gpioon"   : '$( [[ -e  /srv/http/data/tmp/gpiotimer ]] && echo true || echo false )
 if [[ -e $playerfile-snapclient ]]; then
 	[[ ! -e /srv/http/data/tmp/snapserverpw ]] && snapserverpw=rune || snapserverpw=$( cat /srv/http/data/tmp/snapserverpw )
 ########

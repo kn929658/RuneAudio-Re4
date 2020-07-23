@@ -15,7 +15,6 @@ function onVisibilityChange( callback ) {
 onVisibilityChange( function( visible ) {
 	if ( visible ) {
 		if ( G.playback ) {
-			delete G.coverTL;
 			hideGuide();
 			getPlaybackStatus();
 		} else if ( G.library ) {
@@ -24,9 +23,7 @@ onVisibilityChange( function( visible ) {
 		} else if ( G.playlist ) {
 			displayTopBottom();
 			if ( !G.savedlist && !G.savedplaylist && !$( '#pl-search-close' ).text() ) {
-				$.post( 'mpdplaylist.php', { current: 1 }, function( data ) {
-					renderPlaylist( data );
-				}, 'json' );
+				list( 'playlist', { cmd: 'current' }, renderPlaylist, 'json' );
 			}
 		}
 	} else {
@@ -113,7 +110,7 @@ function psAirplay( data ) {
 		G.status[ key ] = value;
 	} );
 	renderPlayback();
-	setButton();
+	setButtonControl();
 	displayTopBottom();
 }
 function psBookmark( data ) {
@@ -146,7 +143,7 @@ function psDisplay( data ) {
 		G.display[ key ] = val;
 	} );
 	if ( G.playback ) {
-		setButton();
+		setButtonControl();
 		renderPlayback();
 		displayPlayback();
 	} else if ( G.library ) {
@@ -157,6 +154,63 @@ function psDisplay( data ) {
 		}
 	}
 	displayTopBottom();
+}
+function psGPIO( response ) { // on receive broadcast
+	var state = response.state;
+	G.status.gpioon = state;
+	var delay = response.delay;
+	if ( timer ) { // must clear before pnotify can remove
+		clearInterval( timer );
+		timer = false;
+	}
+	if ( state === 'RESET' ) {
+		$( '#infoX' ).click();
+	} else if ( state === 'IDLE' ) {
+		info( {
+			  icon        : 'gpio'
+			, title       : 'GPIO Idle Timer'
+			, message     : 'Power Off Countdown:<br><br>'
+						   + stopwatch +'&ensp;<white>'+ delay +'</white>'
+			, oklabel     : 'Reset'
+			, ok          : function() {
+				sh( [ 'gpiotimerreset' ] );
+			}
+		} );
+		timer = setInterval( function() {
+			if ( delay === 1 ) {
+				G.status.gpioon = false;
+				setButtonOptions();
+				$( '#infoX' ).click();
+				clearInterval( timer );
+			}
+			$( '#infoMessage white' ).text( delay-- );
+		}, 1000 );
+	} else {
+		var onoff = state === true ? 'ON' : 'OFF';
+		var order = response.order;
+		var delays = [ 0 ];
+		var devices = ''
+		$.each( order, function( i, val ) {
+			if ( i % 2 ) {
+				delays.push( val );
+			} else {
+				devices += '<br><a id="device'+ i / 2 +'" class="'+ ( state ? 'gr' : '' ) +'">'+ val +'</a>';
+			}
+		} );
+		info( {
+			  icon      : 'gpio'
+			, title     : 'GPIO'
+			, message   : stopwatch +' <wh>Power '+ onoff +'</wh><hr>'
+						+ devices
+			, nobutton  : 1
+		} );
+		var iL = delays.length;
+		var i = 0
+		gpioCountdown( i, iL, delays );
+		setTimeout( function() {
+			setButtonOptions();
+		}, delay * 1000 );
+	}
 }
 function psMpdDatabase() {
 	if ( G.mode === 'webradio' ) $( '#mode-webradio' ).tap();
@@ -172,7 +226,7 @@ function psMpdOptions( data ) {
 		}
 		G.status[ key ] = value;
 	} );
-	if ( G.playback ) setButtonToggle();
+	if ( G.playback ) setButtonOptions();
 	$( '#button-pl-consume' ).toggleClass( 'bl', G.status.consume );
 	$( '#button-pl-random' ).toggleClass( 'bl', G.status.librandom );
 }
@@ -204,7 +258,7 @@ function psMpdUpdate( data ) {
 		if ( $( '.licover' ).length ) {
 			$( '#loader' ).removeClass( 'hide' );
 			var query = G.query[ G.query.length - 1 ];
-			$.post( 'mpdlibrary.php', query, function( data ) {
+			list( 'library', query, function( data ) {
 				data.path = query.path;
 				data.modetitle = query.modetitle;
 				renderLibraryList( data );
@@ -235,13 +289,9 @@ function psOrder( data ) {
 function psPackage( data ) {
 	if ( G.local ) return
 	
-	var data = JSON.parse( data.data );
-	var pkg = data[ 0 ];
-	var active = data[ 1 ];
-	var enable = data[ 2 ];
-	$( '#'+ pkg )
-			.data( { active: active, enabled: enable } )
-			.find( 'img' ).toggleClass( 'on', active );
+	$( '#'+ data.pkg )
+			.data( { active: data.start, enabled: data.enable } )
+			.find( 'img' ).toggleClass( 'on', data.start );
 }
 function psPlaylist( data ) {
 	if ( data.playlist === 'playlist' ) {
@@ -294,7 +344,7 @@ function psSpotify( data ) {
 			} );
 		}
 		renderPlayback();
-		setButton();
+		setButtonControl();
 		displayTopBottom();
 	} else {
 		$( '#tab-playback' ).click();
@@ -303,15 +353,25 @@ function psSpotify( data ) {
 function psVolume( data ) {
 	if ( G.local ) return
 	
+	if ( 'disable' in data ) {
+		$( '#vol-group .btn, .volmap' ).toggleClass( 'disabled', data.disable );
+		return
+	}
+	
 	clearTimeout( G.debounce );
 	G.debounce = setTimeout( function() {
-		var type = data.volume[ 0 ];
-		var vol = data.volume[ 1 ];
-		G.status.volume = vol;
-		$volumeRS.setValue( type === 'mute' ? 0 : vol );
+		var type = data.type;
+		var val = data.val;
+		if ( type === 'mute' ) {
+			G.status.volume = 0;
+			$volumeRS.setValue( 0 );
+		} else {
+			G.status.volume = val;
+			$volumeRS.setValue( val );
+		}
 		$volumehandle.rsRotate( - $volumeRS._handle1.angle );
 		if ( type === 'mute' ) {
-			muteColor( vol );
+			muteColor( val );
 		} else if ( type === 'unmute' ) {
 			unmuteColor();
 		}
@@ -345,7 +405,7 @@ function setPlayback( data ) {
 		G.status[ key ] = value;
 	} );
 	bannerHide();
-	setButton();
+	setButtonControl();
 	renderPlayback();
 	displayPlayback();
 }

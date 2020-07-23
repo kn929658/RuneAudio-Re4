@@ -1,10 +1,39 @@
 #!/bin/bash
 
+dirdata=/srv/http/data
+diraddons=/srv/http/data/addons
+dirsystem=/srv/http/data/system
+dirtmp=/srv/http/data/tmp
+dirwebradios=/srv/http/data/webradios
+
 # convert each line to each args
 readarray -t args <<< "$1"
 
-pushstream() { # $3 - can be array ['\"'$string'\"',$boolean,$number,...]
+pushstream() {
 	curl -s -X POST 'http://127.0.0.1/pub?id='$1 -d '{ "'$2'": "'$3'" }'
+}
+pushstreamVol() {
+	curl -s -X POST 'http://127.0.0.1/pub?id=volume' -d '{"type":"'$1'", "val":'$2' }'
+}
+pushstreamPkg() {
+	curl -s -X POST 'http://127.0.0.1/pub?id=package' -d '{"pkg":"'$1'", "start":'$2',"enable":'$3' }'
+}
+volumeSet() {
+	current=$1
+	target=$2
+	diff=$(( $target - $current ))
+	if (( -10 < $diff && $diff < 10 )); then
+		mpc -q volume $volume
+	else # increment
+		curl -s -X POST 'http://127.0.0.1/pub?id=volume' -d '{"disable":true}'
+		(( $diff > 0 )) && incr=5 || incr=-5
+		for i in $( seq $current $incr $target ); do
+			mpc -q volume $i
+			sleep 0.2
+		done
+		(( $i != $target )) && mpc -q volume $target
+		curl -s -X POST 'http://127.0.0.1/pub?id=volume' -d '{"disable":false}'
+	fi
 }
 
 case ${args[0]} in
@@ -13,16 +42,15 @@ addonsclose )
 	script=${args[1]}
 	alias=${args[2]}
 	killall $script wget pacman &> /dev/null
-	rm -f /var/lib/pacman/db.lck /srv/http/*.zip /srv/http/data/addons/$alias /usr/local/bin/uninstall_$alias.sh
+	rm -f /var/lib/pacman/db.lck /srv/http/*.zip $diraddons/$alias /usr/local/bin/uninstall_$alias.sh
 	;;
 addonslist )
-	wget https://github.com/rern/RuneAudio_Addons/raw/master/addons-list.json -qO /srv/http/data/addons/addons-list.json
+	wget https://github.com/rern/RuneAudio_Addons/raw/master/addons-list.json -qO $diraddons/addons-list.json
 	echo -n $?
 	# push updates
 	wget https://github.com/rern/RuneAudio_Addons/raw/master/addons-push.sh -qO - | sh
 	;;
 addonsupdate )
-	diraddons=/srv/http/data/addons
 	[[ -z ${args[1]} ]] && wget https://github.com/rern/RuneAudio_Addons/raw/master/addons-list.json -qO $diraddons/addons-list.json
 	installed=$( find "$diraddons" -type f ! -name "addons*" )
 	jsonfile=$diraddons/addons-list.json
@@ -39,7 +67,7 @@ addonsupdate )
 	;;
 color )
 	cmd=${args[1]}
-	file=/srv/http/data/system/color
+	file=$dirsystem/color
 	if [[ $cmd == reset ]]; then
 		rm $file
 	elif [[ -n $cmd && $cmd != color ]]; then # omit call from addons-functions.sh / backup-restore.sh
@@ -80,11 +108,11 @@ filemove )
 	mv -f "${args[1]}" "${args[2]}"
 	;;
 gpiotimerreset )
-	awk '/timer/ {print $NF}' /srv/http/data/system/gpio.json > /srv/http/data/tmp/gpiotimer
+	awk '/timer/ {print $NF}' $dirsystem/gpio.json > $dirtmp/gpiotimer
 	pushstream gpio state RESET
 	;;
 gpioset )
-	echo ${args[1]} | jq . > /srv/http/data/system/gpio.json
+	echo ${args[1]} | jq . > $dirsystem/gpio.json
 	;;
 ignoredir )
 	path=${args[1]}
@@ -105,7 +133,7 @@ lyrics )
 	name="$artist - $title"
 	name=${name//\/}
 	
-	lyricsfile="/srv/http/data/lyrics/${name,,}.txt"
+	lyricsfile="$dirdata/lyrics/${name,,}.txt"
 	if [[ $cmd == local ]]; then
 		[[ -e $lyricsfile ]] && echo "$title^^$( cat "$lyricsfile" )" # return with title for display
 	elif [[ $cmd == save ]]; then
@@ -212,7 +240,7 @@ mpcprevnext )
 	if [[ -n $playing ]]; then
 		mpc play $pos
 	else
-		touch /srv/http/data/tmp/nostatus
+		touch $dirtmp/nostatus
 		mpc play $pos
 		mpc stop
 	fi
@@ -242,7 +270,7 @@ packageenable )
 	pkg=${args[1]}
 	enable=${args[2]}
 	systemctl start $pkg
-	pushstream package data ['\"'$pkg'\"',true,$enable]
+	pushstreamPkg $pkg true $enable
 	;;
 packageset )
 	pkg=${args[1]}
@@ -250,7 +278,7 @@ packageset )
 	enable=${args[3]}
 	[[ $start == true ]] && systemctl start $pkg || systemctl stop $pkg
 	[[ $enable == true ]] && systemctl enable $pkg || systemctl disable $pkg
-	pushstream package data ['\"'$pkg'\"',$start,$enable]
+	pushstreamPkg $pkg $start $enable
 	;;
 playpos )
 	mpc play ${args[1]}
@@ -261,7 +289,7 @@ playrandom )
 	;;
 playseek )
 	seek=${args[1]}
-	touch /srv/http/data/tmp/nostatus
+	touch $dirtmp/nostatus
 	mpc play
 	mpc pause
 	mpc seek $seek
@@ -280,7 +308,7 @@ plrandom )
 	pushstream playlist playlist playlist
 	;;
 plrename )
-	mv "/srv/http/data/playlists/${args[1]}" "/srv/http/data/playlists/${args[2]}"
+	mv "$dirdata/playlists/${args[1]}" "$dirdata/playlists/${args[2]}"
 	;;
 plshuffle )
 	mpc shuffle
@@ -306,7 +334,7 @@ reboot )
 	/srv/http/bash/ply-image /srv/http/assets/img/splash.png &> /dev/null
 	mount | grep -q /mnt/MPD/NAS && umount -l /mnt/MPD/NAS/* &> /dev/null
 	sleep 3
-	rm -f /srv/http/data/tmp/*
+	rm -f $dirtmp/*
 	[[ ${args[1]} == off ]] && shutdown -h now || shutdown -r now
 	;;
 refreshbrowser )
@@ -321,10 +349,10 @@ soundprofile )
 	fi
 	profile=${args[1]}
 	if [[ -z $profile ]]; then
-		profile=$( cat /srv/http/data/system/soundprofile )
+		profile=$( cat $dirsystem/soundprofile )
 	elif [[ $profile == getvalue ]]; then
 		getvalue=1
-		profile=$( cat /srv/http/data/system/soundprofile )
+		profile=$( cat $dirsystem/soundprofile )
 	fi
 	case $profile in # mtu  txq  sw lat
 		RuneAudio ) val=( 1500 1000 0  ${lat[0]} );;
@@ -335,7 +363,7 @@ soundprofile )
 		iqaudio )   val=( 1000 4000 0  ${lat[5]} );;
 		berrynos )  val=( 1000 4000 60 ${lat[6]} );;
 		default )   val=( 1500 1000 60 18000000 );;
-		custom )    val=( $( cat /srv/http/data/system/soundprofile-custom ) );;
+		custom )    val=( $( cat $dirsystem/soundprofile-custom ) );;
 	esac
 	if [[ $getvalue ]]; then
 		echo -n ${val[@]}
@@ -395,11 +423,74 @@ n; s/^\(\s\+PERFORMER\).*/\1 "'${args[0]}'"/
 	fi
 	mpc update "$file"
 	;;
+volume )
+	current=${args[1]}
+	target=${args[2]}
+	filevolumemute=$dirsystem/volumemute
+	if [[ -n $target ]]; then # set
+		pushstreamVol set $target
+		volumeSet $current $target
+		rm $filevolumemute
+	else
+		if (( $current > 0 )); then # mute
+			pushstreamVol mute $current true
+			volumeSet $current 0 false
+			echo $current > $filevolumemute
+		else # unmute
+			target=$( cat $filevolumemute )
+			pushstreamVol unmute $target true
+			volumeSet 0 $target
+			rm $filevolumemute
+		fi
+	fi
+	;;
+volumeincrement )
+	target=${args[1]}
+	mpc volume $target
+	pushstreamVol set $target
+	;;
 volumenone )
-	output=$( cat "/srv/http/data/system/${args[1]}" )
+	output=$( cat "$dirsystem/${args[1]}" )
 	mixer=$( sed -n "/$output/,/^}/ p" /etc/mpd.conf \
 		| awk -F '\"' '/mixer_type/ {print $2}' )
 	echo -n $mixer
+	;;
+webradioadd )
+	name=${args[1]}
+	url=${args[2]}
+	filewebradio=$dirwebradios/${url//\//|}
+	[[ -e $filewebradio ]] && cat $filewebradio && exit
+	
+	ext=${url/*.}
+	if [[ $ext == m3u ]]; then
+		url=$( curl -s $url | grep ^http | head -1 )
+	elif [[ $ext == pls ]]; then
+		url=$( curl -s $url | grep ^File | head -1 | cut -d= -f2 )
+	fi
+	[[ -z $url ]] && echo -1 && exit
+	
+	echo $name^^Radio > $filewebradio
+	pushstream webradio webradio 1
+	;;
+webradiodelete )
+	url=${args[1]}
+	rm $dirwebradios/${url//\//|}
+	pushstream webradio webradio -1
+	;;
+webradioedit )
+	url=${args[1]}
+	newname=${args[2]}^^Radio
+	newurl=${args[3]}
+	filewebradionew=$dirwebradios/${newurl//\//|}
+	[[ -e $filewebradionew ]] && cat $filewebradionew && exit
+	
+	filewebradio=$dirwebradios/${url//\//|}
+	content=$( cat $filewebradio )
+	rm $filewebradio
+	(( $( echo $content | wc -l ) > 1 )) && newname+="
+$( echo $content | sed '1 d' )"
+	echo "$newname" > $filewebradionew # name, thumbnail, coverart
+	pushstream webradio webradio 0
 	;;
 	
 esac

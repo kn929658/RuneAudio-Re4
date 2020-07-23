@@ -1,9 +1,6 @@
 <?php
 // current, delete, edit, get, list, load, save
-$cmd = $_POST[ 'cmd' ];
-if ( isset( $argv ) ) $cmd = $argv[ 1 ];
-
-switch( $cmd ) {
+switch( $_POST[ 'cmd' ] ) {
 	
 case 'current':
 	$lists = playlist();
@@ -163,8 +160,7 @@ case 'load': // load saved playlist to current
 	echo exec( 'mpc playlist | wc -l' );
 	break;
 case 'save':
-	$name = !count( $argv ) ? $_POST[ 'name' ] : $argv[ 2 ];
-	$file = '/srv/http/data/playlists/'.$name;
+	$file = '/srv/http/data/playlists/'.$_POST[ 'name' ];
 	if ( file_exists( $file ) ) exit( '-1' );
 	
 	$list = json_encode( playlistInfo(), JSON_NUMERIC_CHECK | JSON_PRETTY_PRINT );

@@ -394,8 +394,7 @@ function psVolumeNone( data ) {
 	}
 }
 function psWebradio( data ) {
-	var count = Number( $( '#mode-webradio grl' ).text() );
-	count = count + data.webradio;
+	var count = Number( $( '#mode-webradio grl' ).text() ) + Number( data.webradio );
 	$( '#mode-webradio grl' ).text( count ? ( count ).toLocaleString() : '' );
 	if ( $( '#lib-path .lipath' ).text() === 'Webradio' ) $( '#mode-webradio' ).click();
 	if ( G.playlist && !G.savedlist ) $( '#tab-playlist' ).click();

@@ -682,16 +682,6 @@ function gpioCountdown( i, iL, delays ) {
 	}, delays[ i ] * 1000 );
 	
 }
-function gpioOnOff() {
-	if ( !G.status.gpio ) return
-	
-	bash( 'test -e /srv/http/data/tmp/gpiotimer && echo true || echo false', function( state ) {
-		G.gpio = state;
-		var prefix = G.display.time ? 'ti' : 'i';
-		$( '#'+ prefix +'-gpio' ).toggleClass( 'hide', !G.gpio );
-		$( '#gpio .fa-gpio' ).toggleClass( 'on', G.gpio );
-	}, 'json' );
-}
 function hideGuide() {
 	G.guide = false;
 	$( '.map' ).removeClass( 'mapshow' );
@@ -1525,7 +1515,8 @@ function setButtonToggle() {
 			.removeClass( 'fa-refresh-library blink' )
 			.addClass( 'fa-folder' );
 	}
-	gpioOnOff();
+	$( '#'+ ( G.display.time ? 'ti' : 'i' ) +'-gpio' ).toggleClass( 'hide', !G.status.gpioon );
+	$( '#gpio .fa-gpio' ).toggleClass( 'on', G.status.gpioon );
 	if ( !G.status.mpd ) return
 	
 	$( '#modeicon' ).toggleClass( 'hide', G.display.time );

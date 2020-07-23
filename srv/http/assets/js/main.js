@@ -302,7 +302,7 @@ $( '#displayplayback' ).click( function( e ) {
 					setButton();
 					displayPlayback();
 					renderPlayback();
-					if ( G.gpio ) $( '#ti-gpio, #i-gpio' ).toggleClass( 'hide' );
+					$( '#ti-gpio, #i-gpio' ).toggleClass( 'hide', !G.status.gpioon );
 				} else {
 					if ( G.library ) {
 						$( '.list p' ).toggleClass( 'bars-on', G.bars );
@@ -378,7 +378,7 @@ $( '#gpio' ).click( function( e ) {
 	if ( $( e.target ).hasClass( 'submenu' ) ) {
 		location.href = 'gpiosettings.php';
 	} else {
-		bash( G.gpio ? '/srv/http/bash/gpiooff.py' : '/srv/http/bash/gpioon.py' );
+		bash( G.status.gpioon ? '/srv/http/bash/gpiooff.py' : '/srv/http/bash/gpioon.py' );
 	}
 } );
 $( '#logout' ).click( function( e ) {

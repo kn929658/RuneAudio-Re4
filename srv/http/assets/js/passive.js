@@ -18,7 +18,6 @@ onVisibilityChange( function( visible ) {
 			delete G.coverTL;
 			hideGuide();
 			getPlaybackStatus();
-			gpioOnOff();
 		} else if ( G.library ) {
 			displayTopBottom();
 			if ( !$( '#lib-search-close' ).text() && !$( '#lib-mode-list' ).hasClass( 'hide' ) ) renderLibrary();
@@ -159,7 +158,7 @@ function psDisplay( data ) {
 }
 function psGPIO( response ) { // on receive broadcast
 	var state = response.state;
-	G.gpio = state;
+	G.status.gpioon = state;
 	var delay = response.delay;
 	if ( timer ) { // must clear before pnotify can remove
 		clearInterval( timer );
@@ -180,7 +179,7 @@ function psGPIO( response ) { // on receive broadcast
 		} );
 		timer = setInterval( function() {
 			if ( delay === 1 ) {
-				G.gpio = false;
+				G.status.gpioon = false;
 				setButtonToggle();
 				$( '#infoX' ).click();
 				clearInterval( timer );

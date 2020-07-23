@@ -1082,35 +1082,33 @@ $( '#lib-search-input' ).keydown( function( e ) {
 } );
 $( '#button-lib-back' ).click( function() {
 	$( '.menu' ).addClass( 'hide' );
-	if ( [ 'file', 'nas', 'sd', 'usb' ].indexOf( G.mode ) !== -1 && G.query[ 0 ] !== 'playlist' ) {
+	if ( G.query.length < 2 || G.mode === 'webradio' ) {
+		G.liscrolltop = $( window ).scrollTop();
+		$( '#button-library' ).click();
+	} else if ( [ 'file', 'nas', 'sd', 'usb' ].indexOf( G.mode ) !== -1 && G.query[ 0 ] !== 'playlist' ) {
 		if ( $( '#lib-breadcrumbs a' ).length > 1 ) {
 			$( '#lib-breadcrumbs a' ).eq( -2 ).click();
 		} else {
 			$( '#button-library' ).click();
 		}
 	} else {
-		if ( G.query.length > 1 ) {
-			G.query.pop();
-			var query = G.query[ G.query.length - 1 ];
-			if ( query === 'mode-coverart' ) {
-				$( '#mode-coverart' ).click();
-			} else if ( query === 'playlist' ) {
-				$( '#tab-playlist' ).click();
-			} else {
-				if ( query.query === 'ls' ) G.mode = 'file';
-				list( 'library', query, function( data ) {
-					if ( data != -1 ) {
-						data.path = query.path;
-						data.modetitle = query.modetitle;
-						renderLibraryList( data );
-					} else {
-						$( '#button-lib-back' ).click(); 
-					}
-				}, 'json' );
-			}
+		G.query.pop();
+		var query = G.query[ G.query.length - 1 ];
+		if ( query === 'mode-coverart' ) {
+			$( '#mode-coverart' ).click();
+		} else if ( query === 'playlist' ) {
+			$( '#tab-playlist' ).click();
 		} else {
-			G.liscrolltop = $( window ).scrollTop();
-			$( '#button-library' ).click();
+			if ( query.query === 'ls' ) G.mode = 'file';
+			list( 'library', query, function( data ) {
+				if ( data != -1 ) {
+					data.path = query.path;
+					data.modetitle = query.modetitle;
+					renderLibraryList( data );
+				} else {
+					$( '#button-lib-back' ).click(); 
+				}
+			}, 'json' );
 		}
 	}
 } );

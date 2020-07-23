@@ -632,9 +632,7 @@ function getOrientation( file, callback ) { // return: 1 - undefined
 }
 function getPlaybackStatus() {
 	if ( G.status.librandom && G.playlist && !G.savedlist && G.status.mpd ) {
-		list( 'playlist', { cmd: 'current' }, function( data ) {
-			renderPlaylist( data );
-		}, 'json' );
+		list( 'playlist', { cmd: 'current' }, renderPlaylist, 'json' );
 	}
 	G.local = 1;
 	setTimeout( function() { G.local = 0 }, 300 );
@@ -666,9 +664,7 @@ function getPlaybackStatus() {
 	}, 'json' );
 }
 function getPlaylist() {
-	list( 'playlist', { cmd: 'current' }, function( data ) {
-		renderPlaylist( data );
-	}, 'json' );
+	list( 'playlist', { cmd: 'current' }, renderPlaylist, 'json' );
 }
 function getTitleWidth() {
 	var $liactive = $( '#pl-list li.active' ); 

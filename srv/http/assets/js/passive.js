@@ -24,9 +24,7 @@ onVisibilityChange( function( visible ) {
 		} else if ( G.playlist ) {
 			displayTopBottom();
 			if ( !G.savedlist && !G.savedplaylist && !$( '#pl-search-close' ).text() ) {
-				list( 'playlist', { cmd: 'current' }, function( data ) {
-					renderPlaylist( data );
-				}, 'json' );
+				list( 'playlist', { cmd: 'current' }, renderPlaylist, 'json' );
 			}
 		}
 	} else {

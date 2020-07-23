@@ -1701,9 +1701,7 @@ $( '#button-pl-back' ).click( function() {
 	if ( G.savedplaylist ) {
 		$( '#button-pl-open' ).click();
 	} else {
-		list( 'playlist', { cmd: 'current' }, function( data ) {
-			renderPlaylist( data );
-		}, 'json' );
+		list( 'playlist', { cmd: 'current' }, renderPlaylist, 'json' );
 	}
 } );
 $( '#button-pl-open' ).click( function() {

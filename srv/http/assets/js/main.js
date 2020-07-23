@@ -640,26 +640,7 @@ $( '#volume' ).roundSlider( {
 	}
 } );
 $( '#volmute' ).click( function() {
-	var vol = G.status.volume;
-	if ( vol ) {
-		$volumeRS.setValue( 0 );
-		$volumehandle.rsRotate( - $volumeRS._handle1.angle );
-		muteColor( vol );
-		G.status.volume = 0;
-		G.status.volumemute = vol;
-	} else {
-		$volumeRS.setValue( G.status.volumemute );
-		$volumehandle.rsRotate( - $volumeRS._handle1.angle );
-		unmuteColor();
-		G.status.volume = G.status.volumemute;
-		G.status.volumemute = 0;
-	}
-	G.local = 1;
-	$( '#vol-group .btn, .volmap' ).addClass( 'disabled' );
-	bash( [ 'volume', vol ], function() {
-		G.local = 0;
-		$( '#vol-group .btn, .volmap' ).removeClass( 'disabled' );
-	} );
+	bash( [ 'volume', G.status.volume ] );
 } );
 $( '#volup, #voldn' ).click( function() {
 	var thisid = this.id;
@@ -669,8 +650,9 @@ $( '#volup, #voldn' ).click( function() {
 	G.status.volume = ( thisid === 'volup' ) ? vol + 1 : vol - 1;
 	$volumeRS.setValue( G.status.volume );
 	G.local = 1;
-	setTimeout( function() { G.local = 0 }, 600 );
-	bash( [ 'volumeincrement', G.status.volume ] );
+	bash( [ 'volumeincrement', G.status.volume ], function() {
+		G.local = 0;
+	} );
 } );
 $( '#coverTL, #timeTL' ).tap( function() {
 	var list = [ 'bars', 'time', 'cover', 'coversmall', 'volume', 'buttons', 'progressbar' ];

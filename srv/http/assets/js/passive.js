@@ -354,12 +354,22 @@ function psSpotify( data ) {
 function psVolume( data ) {
 	if ( G.local ) return
 	
+	if ( 'disable' in data ) {
+		$( '#vol-group .btn, .volmap' ).toggleClass( 'disabled', data.disable );
+		return
+	}
+	
 	clearTimeout( G.debounce );
 	G.debounce = setTimeout( function() {
 		var type = data.type;
 		var val = data.val;
-		G.status.volume = val;
-		$volumeRS.setValue( type === 'mute' ? 0 : val );
+		if ( type === 'mute' ) {
+			G.status.volume = 0;
+			$volumeRS.setValue( 0 );
+		} else {
+			G.status.volume = val;
+			$volumeRS.setValue( val );
+		}
 		$volumehandle.rsRotate( - $volumeRS._handle1.angle );
 		if ( type === 'mute' ) {
 			muteColor( val );

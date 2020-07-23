@@ -25,12 +25,14 @@ volumeSet() {
 	if (( -10 < $diff && $diff < 10 )); then
 		mpc -q volume $volume
 	else # increment
+		curl -s -X POST 'http://127.0.0.1/pub?id=volume' -d '{"disable":true}'
 		(( $diff > 0 )) && incr=5 || incr=-5
 		for i in $( seq $current $incr $target ); do
 			mpc -q volume $i
 			sleep 0.2
 		done
 		(( $i != $target )) && mpc -q volume $target
+		curl -s -X POST 'http://127.0.0.1/pub?id=volume' -d '{"disable":false}'
 	fi
 }
 
@@ -431,12 +433,12 @@ volume )
 		rm $filevolumemute
 	else
 		if (( $current > 0 )); then # mute
-			pushstreamVol mute $current
-			volumeSet $current 0
+			pushstreamVol mute $current true
+			volumeSet $current 0 false
 			echo $current > $filevolumemute
 		else # unmute
 			target=$( cat $filevolumemute )
-			pushstreamVol unmute $target
+			pushstreamVol unmute $target true
 			volumeSet 0 $target
 			rm $filevolumemute
 		fi

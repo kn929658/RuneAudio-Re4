@@ -493,7 +493,7 @@ function displayTopBottom() {
 		$( '.content-top' ).css( 'top', '40px' );
 		$( '.emptyadd' ).css( 'top', '' );
 		if ( G.status.mpd ) {
-			$( '#tab-library, #tab-playlist' ).removeClass( 'hide' );
+			$( '#tab-library, #tab-playlist, #swipeL, #swipeR' ).removeClass( 'hide' );
 			$( '#tab-playback' )
 				.css( 'width', '' )
 				.removeAttr( 'class' )
@@ -510,7 +510,7 @@ function displayTopBottom() {
 				.css( 'width', '100%' )
 				.removeAttr( 'class' )
 				.addClass( 'active fa fa-'+ icon );
-			$( '#tab-library, #tab-playlist' ).addClass( 'hide' );
+			$( '#tab-library, #tab-playlist, #swipeL, #swipeR' ).addClass( 'hide' );
 		}
 	}
 	$( '.menu' ).addClass( 'hide' );

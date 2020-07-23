@@ -674,6 +674,24 @@ function getTitleWidth() {
 	pltW = $title.width();
 	$title.removeAttr( 'style' );
 }
+function gpioCountdown( i, iL, delays ) {
+	setTimeout( function() {
+		$( '#device'+ i ).toggleClass( 'gr' );
+		i++;
+		i < iL ? gpioCountdown( i, iL, delays ) : setTimeout( infoReset, 1000 );
+	}, delays[ i ] * 1000 );
+	
+}
+function gpioOnOff() {
+	if ( !G.status.gpio ) return
+	
+	bash( 'test -e /srv/http/data/tmp/gpiotimer && echo true || echo false', function( state ) {
+		G.gpio = state;
+		var prefix = G.display.time ? 'ti' : 'i';
+		$( '#'+ prefix +'-gpio' ).toggleClass( 'hide', !G.gpio );
+		$( '#gpio .fa-gpio' ).toggleClass( 'on', G.gpio );
+	}, 'json' );
+}
 function hideGuide() {
 	G.guide = false;
 	$( '.map' ).removeClass( 'mapshow' );
@@ -1507,6 +1525,7 @@ function setButtonToggle() {
 			.removeClass( 'fa-refresh-library blink' )
 			.addClass( 'fa-folder' );
 	}
+	gpioOnOff();
 	if ( !G.status.mpd ) return
 	
 	$( '#modeicon' ).toggleClass( 'hide', G.display.time );

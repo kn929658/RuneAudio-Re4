@@ -48,6 +48,11 @@ if ( G.localhost ) {
 	var vu = '/assets/img/vu.'+ hash +'.gif';
 	var blinkdot = '<a class="dot">·</a>&ensp;<a class="dot dot2">·</a>&ensp;<a class="dot dot3">·</a>';
 }
+var stopwatch = '<span class="stopwatch">'
+				+'<i class="fa fa-stopwatch-i fa-spin"></i>'
+				+'<i class="fa fa-stopwatch-o"></i>'
+				+'</span>';
+var timer = false; // for 'setInterval' status check
 
 // get mpd status with passive.js on pushstream connect
 displayGet( function( data ) {
@@ -368,6 +373,13 @@ $( '#power' ).click( function( e ) {
 		}
 		, buttonwidth : 1
 	} );
+} );
+$( '#gpio' ).click( function( e ) {
+	if ( $( e.target ).hasClass( 'submenu' ) ) {
+		location.href = 'gpiosettings.php';
+	} else {
+		bash( G.gpio ? '/srv/http/bash/gpiooff.py' : '/srv/http/bash/gpioon.py' );
+	}
 } );
 $( '#logout' ).click( function( e ) {
 	$.post( cmdphp, { cmd: 'logout' }, function() {

@@ -1,186 +1,3 @@
-// single quotes in mpc name arguments - enclosed with double quotes + escape double quotes
-// example: mpc save "abc's \"xyz\"" 
-
-$( '.contextmenu a' ).click( function( e ) {
-	var submenu = $( e.target ).hasClass( 'submenu' );
-	if ( submenu ) {
-		var $this = $( e.target );
-	} else {
-		var $this = $( this );
-	}
-	var cmd = $this.data( 'cmd' );
-	$( '.menu' ).addClass( 'hide' );
-	$( 'li.updn' ).removeClass( 'updn' );
-	// playback //////////////////////////////////////////////////////////////
-	if ( [ 'play', 'pause', 'stop' ].indexOf( cmd ) !== -1 ) {
-		if ( cmd === 'play' ) {
-			$( '#pl-list li' ).eq( G.list.li.index() ).click();
-		} else {
-			$( '#'+ cmd ).click();
-		}
-		return
-	}
-	
-	if ( cmd === 'tag' ) {
-		tagEditor();
-		return
-	} else if ( cmd === 'update' ) {
-		G.list.li.find( '.lib-icon' )
-			.removeClass( 'fa-folder' )
-			.addClass( 'fa-refresh-library blink' );
-		if ( G.list.path.slice( -3 ) === 'cue' ) G.list.path = G.list.path.substr( 0, G.list.path.lastIndexOf( '/' ) )
-		bash( [ 'mpcupdate', G.list.path ] );
-	} else if ( cmd === 'remove' ) {
-		G.contextmenu = 1;
-		setTimeout( function() { G.contextmenu = 0 }, 500 );
-		bash( 'mpc del '+ (  G.list.li.index() + 1 ) );
-	} if ( cmd === 'replace' ) {
-		G.plreplace = 1;
-	} else if ( cmd === 'savedpladd' ) {
-		info( {
-			  icon    : 'list-ul'
-			, title   : 'Add to playlist'
-			, message : 'Open target playlist to add:'
-					   +'<br><w>'+ G.list.name +'</w>'
-			, ok      : function() {
-				G.pladd.index = G.list.li.index();
-				G.pladd.name = G.list.name;
-				$( '#button-pl-open' ).click();
-			}
-		} );
-	} else if ( cmd === 'savedplremove' ) {
-		var plname = $( '#pl-path .lipath' ).text();
-		list( 'playlist', {
-			  cmd    : 'edit'
-			, name   : plname
-			, remove : G.list.li.index()
-		} );
-		G.list.li.remove();
-//	} else if ( cmd === 'saveradio' ) {
-//		webRadioSave( '', G.list.path );
-	} else if ( cmd === 'similar' ) {
-		notify( 'Playlist - Add Similar', 'Fetch similar list ...', 'lastfm blink', -1 );
-		var url = 'http://ws.audioscrobbler.com/2.0/?method=track.getsimilar'
-				+'&artist='+ encodeURI( G.list.artist )
-				+'&track='+ encodeURI( G.list.name )
-				+'&api_key='+ G.apikeylastfm
-				+'&format=json'
-				+'&autocorrect=1';
-		$.post( url, function( data ) {
-			var title = 'Playlist - Add Similar';
-			if ( 'error' in data || !data.similartracks.track.length ) {
-				notify( title, 'Track not found.', 'lastfm' );
-			} else {
-				var val = data.similartracks.track;
-				var iL = val.length;
-				var similar = '';
-				for ( i = 0; i < iL; i++ ) {
-					similar += val[ i ].artist.name +'\n'+ val[ i ].name +'\n';
-				}
-				notify( title, 'Find similar tracks from Library ...', 'library blink',  -1 );
-				bash( [ 'mpcsimilar', similar ], function( count ) {
-					updatePlaylist();
-					setButton()
-					notify( title, count +' tracks added.', 'library' );
-				} );
-			}
-		}, 'json' );
-	} else if ( cmd === 'exclude' ) {
-		var path = G.list.path.split( '/' );
-		G.local = 1;
-		setTimeout( function() { G.local = 0 }, 2000 );
-		bash( [ 'ignoredir', G.list.path ], function() {
-			G.list.li.remove();
-		} );
-		notify( 'Exclude Directory', '<wh>'+ dir +'</wh> excluded from database.', 'folder' );
-	}
-	if ( [ 'savedpladd', 'savedplremove', 'similar', 'tag', 'remove', 'update' ].indexOf( cmd ) !== -1 ) return
-	
-	// functions with dialogue box ////////////////////////////////////////////
-	var contextFunction = {
-		  bookmark   : bookmarkNew
-		, plrename   : playlistRename
-		, pldelete   : playlistDelete
-		, thumbnail  : updateThumbnails
-		, wrcoverart : webRadioCoverart
-		, wrdelete   : webRadioDelete
-		, wredit     : webRadioEdit
-	}
-	if ( cmd in contextFunction ) {
-		contextFunction[ cmd ]();
-		return
-	}
-	
-	// replaceplay|replace|addplay|add //////////////////////////////////////////
-	var webradio = G.list.path.slice( 0, 4 ) === 'http';
-	var path = G.list.path;
-	var mpccmd;
-	// must keep order otherwise replaceplay -> play, addplay -> play
-	var mode = cmd.replace( /replaceplay|replace|addplay|add/, '' );
-	if ( [ 'album', 'artist', 'composer', 'genre' ].indexOf( G.list.mode ) !== -1 ) {
-		var artist = G.list.artist;
-		mpccmd = [ 'mpcfindadd', G.list.mode, path ];
-		if ( artist ) mpccmd.push( 'artist', artist );
-	} else if ( !mode ) {
-		if ( path.slice( -4 ) === '.cue' ) {
-			if ( G.list.track ) { // only cue has data-track
-				// individual with 'mpc --range=N load file.cue'
-				mpccmd = [ 'mpcloadrange', ( G.list.track - 1 ), path ];
-			} else {
-				mpccmd = [ 'mpcload', path ];
-			}
-		} else if ( G.list.singletrack || webradio ) { // single track
-			mpccmd = [ 'mpcadd', path ];
-		} else { // directory or album
-			mpccmd = [ 'mpcls', path ];
-		}
-	} else if ( mode === 'wr' ) {
-		cmd = cmd.slice( 2 );
-		mpccmd = [ 'mpcadd', path ];
-	} else if ( mode === 'pl' ) {
-		cmd = cmd.slice( 2 );
-		if ( G.library ) {
-			mpccmd = [ 'mpcload', path ];
-		} else { // saved playlist
-			var play = cmd.slice( -1 ) === 'y' ? 1 : 0;
-			var replace = cmd.slice( 0, 1 ) === 'r' ? 1 : 0;
-			if ( replace && G.display.plclear && G.status.playlistlength ) {
-				infoReplace( function() {
-					playlistLoad( path, play, replace );
-				} );
-			} else {
-				playlistLoad( path, play, replace );
-			}
-			return
-		}
-	}
-	
-	cmd = cmd.replace( /album|artist|composer|genre/, '' );
-	var sleep = webradio ? 1 : 0.2;
-	var contextCommand = {
-		  add         : mpccmd
-		, addplay     : mpccmd.concat( [ 'addplay', sleep ] )
-		, replace     : mpccmd.concat(  'replace' )
-		, replaceplay : mpccmd.concat( [ 'replaceplay', sleep ] )
-	}
-	if ( cmd in contextCommand ) {
-		var command = contextCommand[ cmd ];
-		if ( [ 'add', 'addplay' ].indexOf( cmd ) !== -1 ) {
-			var msg = 'Add to Playlist'+ ( cmd === 'add' ? '' : ' and play' )
-			addReplace( cmd, command, msg );
-		} else {
-			var msg = 'Replace playlist'+ ( cmd === 'replace' ? '' : ' and play' );
-			if ( G.display.plclear && G.status.playlistlength ) {
-				infoReplace( function() {
-					addReplace( cmd, command, msg );
-				} );
-			} else {
-				addReplace( cmd, command, msg );
-			}
-		}
-	}
-} );
-
 function infoReplace( callback ) {
 	info( {
 		  icon    : 'list-ul'
@@ -845,47 +662,183 @@ function webRadioNew( name, url ) {
 		}
 	} );
 }
-/*function webRadioSave( name, url ) { // for unsaved webradio
-	var urlname = url.replace( /\//g, '|' );
-	var thumb = G.list.li.find( '.lithumb' ).text();
-	var img = G.list.li.find( '.liimg' ).text();
-	bash( "test -e '/srv/http/data/webradios/"+ urlname +' && echo 0 || echo -1', function( data ) {
-		if ( data != -1 ) {
-			info( {
-				  icon    : 'webradio'
-				, title   : 'Save WebRadio'
-				, message : ( img ? '<br><img src="'+ img +'">' : '<br><i class="fa fa-webradio bookmark"></i>' )
-						   +'<br><w>'+ name +'</w>'
-						   +'<br>'+ url
-						   +'<br>Already exists.'
-			} );
-			return false
+//----------------------------------------------------------------------------------------------
+$( '.contextmenu a' ).click( function( e ) {
+	var submenu = $( e.target ).hasClass( 'submenu' );
+	if ( submenu ) {
+		var $this = $( e.target );
+	} else {
+		var $this = $( this );
+	}
+	var cmd = $this.data( 'cmd' );
+	$( '.menu' ).addClass( 'hide' );
+	$( 'li.updn' ).removeClass( 'updn' );
+	// playback //////////////////////////////////////////////////////////////
+	if ( [ 'play', 'pause', 'stop' ].indexOf( cmd ) !== -1 ) {
+		if ( cmd === 'play' ) {
+			$( '#pl-list li' ).eq( G.list.li.index() ).click();
+		} else {
+			$( '#'+ cmd ).click();
 		}
-	} );
-	info( {
-		  icon         : 'webradio'
-		, title        : 'Save WebRadio'
-		, width        : 500
-		, message      : ( img ? '<br><img src="'+ img +'">' : '<br><i class="fa fa-webradio bookmark"></i>' )
-						+'<br><w>'+ url +'</w>'
-						+'<br>As:'
-		, textlabel    : ''
-		, textvalue    : name
-		, textrequired : 0
-		, boxwidth     : 'max'
-		, ok           : function() {
-			var newname = $( '#infoTextBox' ).val();
-			if ( thumb ) newname += "\n"+ thumb +"\n"+ img;
-			$.post( cmdphp, {
-				  cmd       : 'webradios'
-				, webradios : newname
-				, url       : url
-				, new       : 1
-			} );
-			notify( 'WebRadio saved', newname, 'webradio' );
-			$( '.li1 .radioname' ).text( newname );
-			$( '.li2 .radioname' ).text( newname +' • ' );
-			G.list.li.find( '.pl-icon' ).removeClass( 'wh' );
+		return
+	}
+	
+	if ( cmd === 'tag' ) {
+		tagEditor();
+		return
+	} else if ( cmd === 'update' ) {
+		G.list.li.find( '.lib-icon' )
+			.removeClass( 'fa-folder' )
+			.addClass( 'fa-refresh-library blink' );
+		if ( G.list.path.slice( -3 ) === 'cue' ) G.list.path = G.list.path.substr( 0, G.list.path.lastIndexOf( '/' ) )
+		bash( [ 'mpcupdate', G.list.path ] );
+	} else if ( cmd === 'remove' ) {
+		G.contextmenu = 1;
+		setTimeout( function() { G.contextmenu = 0 }, 500 );
+		bash( 'mpc del '+ (  G.list.li.index() + 1 ) );
+	} if ( cmd === 'replace' ) {
+		G.plreplace = 1;
+	} else if ( cmd === 'savedpladd' ) {
+		info( {
+			  icon    : 'list-ul'
+			, title   : 'Add to playlist'
+			, message : 'Open target playlist to add:'
+					   +'<br><w>'+ G.list.name +'</w>'
+			, ok      : function() {
+				G.pladd.index = G.list.li.index();
+				G.pladd.name = G.list.name;
+				$( '#button-pl-open' ).click();
+			}
+		} );
+	} else if ( cmd === 'savedplremove' ) {
+		var plname = $( '#pl-path .lipath' ).text();
+		list( 'playlist', {
+			  cmd    : 'edit'
+			, name   : plname
+			, remove : G.list.li.index()
+		} );
+		G.list.li.remove();
+//	} else if ( cmd === 'saveradio' ) {
+//		webRadioSave( '', G.list.path );
+	} else if ( cmd === 'similar' ) {
+		notify( 'Playlist - Add Similar', 'Fetch similar list ...', 'lastfm blink', -1 );
+		var url = 'http://ws.audioscrobbler.com/2.0/?method=track.getsimilar'
+				+'&artist='+ encodeURI( G.list.artist )
+				+'&track='+ encodeURI( G.list.name )
+				+'&api_key='+ G.apikeylastfm
+				+'&format=json'
+				+'&autocorrect=1';
+		$.post( url, function( data ) {
+			var title = 'Playlist - Add Similar';
+			if ( 'error' in data || !data.similartracks.track.length ) {
+				notify( title, 'Track not found.', 'lastfm' );
+			} else {
+				var val = data.similartracks.track;
+				var iL = val.length;
+				var similar = '';
+				for ( i = 0; i < iL; i++ ) {
+					similar += val[ i ].artist.name +'\n'+ val[ i ].name +'\n';
+				}
+				notify( title, 'Find similar tracks from Library ...', 'library blink',  -1 );
+				bash( [ 'mpcsimilar', similar ], function( count ) {
+					updatePlaylist();
+					setButton()
+					notify( title, count +' tracks added.', 'library' );
+				} );
+			}
+		}, 'json' );
+	} else if ( cmd === 'exclude' ) {
+		var path = G.list.path.split( '/' );
+		G.local = 1;
+		setTimeout( function() { G.local = 0 }, 2000 );
+		bash( [ 'ignoredir', G.list.path ], function() {
+			G.list.li.remove();
+		} );
+		notify( 'Exclude Directory', '<wh>'+ dir +'</wh> excluded from database.', 'folder' );
+	}
+	if ( [ 'savedpladd', 'savedplremove', 'similar', 'tag', 'remove', 'update' ].indexOf( cmd ) !== -1 ) return
+	
+	// functions with dialogue box ////////////////////////////////////////////
+	var contextFunction = {
+		  bookmark   : bookmarkNew
+		, plrename   : playlistRename
+		, pldelete   : playlistDelete
+		, thumbnail  : updateThumbnails
+		, wrcoverart : webRadioCoverart
+		, wrdelete   : webRadioDelete
+		, wredit     : webRadioEdit
+	}
+	if ( cmd in contextFunction ) {
+		contextFunction[ cmd ]();
+		return
+	}
+	
+	// replaceplay|replace|addplay|add //////////////////////////////////////////
+	var webradio = G.list.path.slice( 0, 4 ) === 'http';
+	var path = G.list.path;
+	var mpccmd;
+	// must keep order otherwise replaceplay -> play, addplay -> play
+	var mode = cmd.replace( /replaceplay|replace|addplay|add/, '' );
+	if ( [ 'album', 'artist', 'composer', 'genre' ].indexOf( G.list.mode ) !== -1 ) {
+		var artist = G.list.artist;
+		mpccmd = [ 'mpcfindadd', G.list.mode, path ];
+		if ( artist ) mpccmd.push( 'artist', artist );
+	} else if ( !mode ) {
+		if ( path.slice( -4 ) === '.cue' ) {
+			if ( G.list.track ) { // only cue has data-track
+				// individual with 'mpc --range=N load file.cue'
+				mpccmd = [ 'mpcloadrange', ( G.list.track - 1 ), path ];
+			} else {
+				mpccmd = [ 'mpcload', path ];
+			}
+		} else if ( G.list.singletrack || webradio ) { // single track
+			mpccmd = [ 'mpcadd', path ];
+		} else { // directory or album
+			mpccmd = [ 'mpcls', path ];
 		}
-	} );
-}*/
+	} else if ( mode === 'wr' ) {
+		cmd = cmd.slice( 2 );
+		mpccmd = [ 'mpcadd', path ];
+	} else if ( mode === 'pl' ) {
+		cmd = cmd.slice( 2 );
+		if ( G.library ) {
+			mpccmd = [ 'mpcload', path ];
+		} else { // saved playlist
+			var play = cmd.slice( -1 ) === 'y' ? 1 : 0;
+			var replace = cmd.slice( 0, 1 ) === 'r' ? 1 : 0;
+			if ( replace && G.display.plclear && G.status.playlistlength ) {
+				infoReplace( function() {
+					playlistLoad( path, play, replace );
+				} );
+			} else {
+				playlistLoad( path, play, replace );
+			}
+			return
+		}
+	}
+	
+	cmd = cmd.replace( /album|artist|composer|genre/, '' );
+	var sleep = webradio ? 1 : 0.2;
+	var contextCommand = {
+		  add         : mpccmd
+		, addplay     : mpccmd.concat( [ 'addplay', sleep ] )
+		, replace     : mpccmd.concat(  'replace' )
+		, replaceplay : mpccmd.concat( [ 'replaceplay', sleep ] )
+	}
+	if ( cmd in contextCommand ) {
+		var command = contextCommand[ cmd ];
+		if ( [ 'add', 'addplay' ].indexOf( cmd ) !== -1 ) {
+			var msg = 'Add to Playlist'+ ( cmd === 'add' ? '' : ' and play' )
+			addReplace( cmd, command, msg );
+		} else {
+			var msg = 'Replace playlist'+ ( cmd === 'replace' ? '' : ' and play' );
+			if ( G.display.plclear && G.status.playlistlength ) {
+				infoReplace( function() {
+					addReplace( cmd, command, msg );
+				} );
+			} else {
+				addReplace( cmd, command, msg );
+			}
+		}
+	}
+} );

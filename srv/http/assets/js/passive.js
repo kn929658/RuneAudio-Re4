@@ -18,6 +18,7 @@ onVisibilityChange( function( visible ) {
 			delete G.coverTL;
 			hideGuide();
 			getPlaybackStatus();
+			gpioOnOff();
 		} else if ( G.library ) {
 			displayTopBottom();
 			if ( !$( '#lib-search-close' ).text() && !$( '#lib-mode-list' ).hasClass( 'hide' ) ) renderLibrary();
@@ -155,6 +156,63 @@ function psDisplay( data ) {
 		}
 	}
 	displayTopBottom();
+}
+function psGPIO( response ) { // on receive broadcast
+	var state = response.state;
+	G.gpio = state;
+	var delay = response.delay;
+	if ( timer ) { // must clear before pnotify can remove
+		clearInterval( timer );
+		timer = false;
+	}
+	if ( state === 'RESET' ) {
+		$( '#infoX' ).click();
+	} else if ( state === 'IDLE' ) {
+		info( {
+			  icon        : 'gpio'
+			, title       : 'GPIO Idle Timer'
+			, message     : 'Power Off Countdown:<br><br>'
+						   + stopwatch +'&ensp;<white>'+ delay +'</white>'
+			, oklabel     : 'Reset'
+			, ok          : function() {
+				sh( [ 'gpiotimerreset' ] );
+			}
+		} );
+		timer = setInterval( function() {
+			if ( delay === 1 ) {
+				G.gpio = false;
+				setButtonToggle();
+				$( '#infoX' ).click();
+				clearInterval( timer );
+			}
+			$( '#infoMessage white' ).text( delay-- );
+		}, 1000 );
+	} else {
+		var onoff = state === true ? 'ON' : 'OFF';
+		var order = response.order;
+		var delays = [ 0 ];
+		var devices = ''
+		$.each( order, function( i, val ) {
+			if ( i % 2 ) {
+				delays.push( val );
+			} else {
+				devices += '<br><a id="device'+ i / 2 +'" class="'+ ( state ? 'gr' : '' ) +'">'+ val +'</a>';
+			}
+		} );
+		info( {
+			  icon      : 'gpio'
+			, title     : 'GPIO'
+			, message   : stopwatch +' <wh>Power '+ onoff +'</wh><hr>'
+						+ devices
+			, nobutton  : 1
+		} );
+		var iL = delays.length;
+		var i = 0
+		gpioCountdown( i, iL, delays );
+		setTimeout( function() {
+			setButtonToggle();
+		}, delay * 1000 );
+	}
 }
 function psMpdDatabase() {
 	if ( G.mode === 'webradio' ) $( '#mode-webradio' ).tap();

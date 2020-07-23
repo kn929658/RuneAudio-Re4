@@ -59,20 +59,6 @@ $( '.help' ).click( function() {
 	$( this ).parent().parent().find( '.help-block' ).toggleClass( 'hide' );
 	$( '#help' ).toggleClass( 'blue', $( '.help-block:not(.hide)' ).length !== 0 );
 } );
-onVisibilityChange( function( visible ) {
-	if ( page === 'credits' ) return
-	
-	if ( visible ) {
-		refreshData();
-	} else {
-		if ( page === 'network' ) {
-			clearInterval( intervalscan );
-		} else if ( page === 'system' ) {
-			clearInterval( intervalcputime );
-			$( '#refresh i' ).removeClass( 'blink' );
-		}
-	}
-} );
 var pushstream = new PushStream( { modes: 'websocket' } );
 var streams = [ 'refresh', 'reload', 'restore', ];
 streams.forEach( function( stream ) {
@@ -100,29 +86,26 @@ pushstream.onmessage = function( data, id, channel ) {
 		case 'restore': psRestore( data ); break;
 	}
 }
-function bash( command, callback, json ) {
+bash = function( command, callback, json ) {
+	if ( typeof command === 'string' ) {
+		var args = { cmd: 'bash', bash : command }
+	} else {
+		var args = { cmd: 'sh', sh: [ page +'.sh' ].concat( command ) }
+	}
 	$.post( 
 		  cmdphp
-		, { cmd: 'bash', bash: command }
+		, args
 		, callback || null
 		, json || null
 	);
 }
-function sh( array, callback, json ) {
-	$.post( 
-		  cmdphp
-		, { cmd: 'sh', sh: [ page +'.sh' ].concat( array ) }
-		, callback || null
-		, json || null
-	);
-}
-function psRefresh( data ) {
+psRefresh = function( data ) {
 	if ( data.page === page ) refreshData();
 }
-function psReload() {
+psReload = function() {
 	if ( [ 'localhost', '127.0.0.1' ].indexOf( location.hostname ) !== -1 ) location.reload();
 }
-function psRestore( data ) {
+psRestore = function( data ) {
 	if ( data.restore === 'reload' ) {
 		location.reload();
 	} else if ( data.restore === 'done' ) {
@@ -134,19 +117,33 @@ function psRestore( data ) {
 	}
 }
 
-function banner( title, message, icon ) {
+banner = function( title, message, icon ) {
 	local = 1;
 	if ( typeof message === 'boolean' || typeof message === 'number' ) var message = message ? 'Enable ...' : 'Disable ...';
 	notify( title, message, icon +' blink', -1 );
 }
-function statusColor( status ) {
+statusColor = function( status ) {
 	return status
 				.replace( /(active \(running\))/, '<grn>$1</grn>' )
 				.replace( /(inactive \(dead\))/, '<red>$1</red>' );
 }
-function codeToggle( target, id, fn ) {
+codeToggle = function( target, id, fn ) {
 	if ( !$( target ).hasClass( 'help' ) ) $( '#code'+ id ).hasClass( 'hide' ) ? fn() : $( '#code'+ id ).addClass( 'hide' );
 }
+onVisibilityChange( function( visible ) {
+	if ( page === 'credits' ) return
+	
+	if ( visible ) {
+		refreshData();
+	} else {
+		if ( page === 'network' ) {
+			clearInterval( intervalscan );
+		} else if ( page === 'system' ) {
+			clearInterval( intervalcputime );
+			$( '#refresh i' ).removeClass( 'blink' );
+		}
+	}
+} );
 function onVisibilityChange( callback ) {
     var visible = 1;
     function focused() {
@@ -161,7 +158,7 @@ function onVisibilityChange( callback ) {
     window.onpageshow = window.onfocus = focused;
     window.onpagehide = window.onblur = unfocused;
 }
-function resetLocal( ms ) {
+resetLocal = function( ms ) {
 	local = 0;
 	setTimeout( function() {
 		$( '#bannerIcon i' ).removeClass( 'blink' );
@@ -169,7 +166,7 @@ function resetLocal( ms ) {
 	}, ms ? ms - 2000 : 0 );
 	setTimeout( bannerHide, ms || 2000 );
 }
-function showContent() {
+showContent = function() {
 	setTimeout( function() {
 		$( '#loader' ).addClass( 'hide' );
 		$( '.head, .container' ).removeClass( 'hide' );

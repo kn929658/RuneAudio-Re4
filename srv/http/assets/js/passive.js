@@ -15,7 +15,6 @@ function onVisibilityChange( callback ) {
 onVisibilityChange( function( visible ) {
 	if ( visible ) {
 		if ( G.playback ) {
-			delete G.coverTL;
 			hideGuide();
 			getPlaybackStatus();
 		} else if ( G.library ) {

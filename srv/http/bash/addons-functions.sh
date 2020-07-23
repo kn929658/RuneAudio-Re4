@@ -119,7 +119,7 @@ getinstallzip() {
 	chmod 755 /srv/http/* /srv/http/bash/* /srv/http/settings/*
 	chmod 777 /srv/http/data/tmp
 	
-	[[ -e /srv/http/data/system/color ]] && /srv/http/bash/setcolor.sh
+	[[ -e /srv/http/data/system/color ]] && /srv/http/bash/cmd.sh color
 }
 getuninstall() {
 	installurl=$( jq -r .$alias.installurl $addonsjson )

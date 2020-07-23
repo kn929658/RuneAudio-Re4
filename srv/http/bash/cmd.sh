@@ -377,11 +377,11 @@ soundprofile )
 	fi
 	;;
 tageditor )
-	file=${args[0]}
-	album=${args[1]}
-	cue=${args[2]}
+	file=${args[1]}
+	album=${args[2]}
+	cue=${args[3]}
 	path="/mnt/MPD/$file"
-	args=( "${args[@]:3}" )
+	args=( "${args[@]:4}" )
 	argsL=${#args[@]}
 	if (( $argsL == 3 )); then
 		keys=( artist title track )
@@ -394,7 +394,7 @@ tageditor )
 		for (( i=0; i < argsL; i++ )); do
 			key=${keys[$i]}
 			val=${args[$i]}
-			kid3-cli -c "set $key \"$val\"" "$path"
+			[[ -n $val ]] && kid3-cli -c "set $key \"$val\"" "$path"
 		done
 	else
 		if [[ $album == false ]]; then

@@ -14,7 +14,7 @@ $( '#audiooutput' ).on( 'selectric-change', function() {
 	var card = $selected.data( 'card' );
 	var hwmixer = $selected.data( 'hwmixer' );
 	banner( 'Audio Output Device', 'Change ...', 'mpd' );
-	sh( [ 'audiooutput', G.audioaplayname, card, G.audiooutput, hwmixer ], refreshData );
+	bash( [ 'audiooutput', G.audioaplayname, card, G.audiooutput, hwmixer ], refreshData );
 	$( '#divdop' ).toggleClass( 'hide', G.audioaplayname.slice( 0, 7 ) === 'bcm2835' );
 } );
 $( '#mixertype' ).on( 'selectric-change', function() {
@@ -42,7 +42,7 @@ $( '#setting-mixertype' ).click( function() { // hardware mixer
 	var card = $selectedoutput.data( 'card' );
 	var hwmixer = $selectedoutput.data( 'hwmixer' );
 	var select = $selectedoutput.data( 'mixermanual' ) ? { 'Auto select': 'auto' } : {};
-	sh( [ 'amixer', card ], function( data ) {
+	bash( [ 'amixer', card ], function( data ) {
 		var devices = data.slice( 0, -1 ).split( '\n' );
 		devices.forEach( function( val ) {
 			select[ val ] = val;
@@ -69,7 +69,7 @@ $( '#setting-mixertype' ).click( function() { // hardware mixer
 				var mixerauto = mixermanual === 'auto';
 				var mixer = mixerauto ? hwmixer : mixermanual;
 				banner( 'Hardware Mixer', 'Change ...', 'mpd' );
-				sh( [ 'mixerhw', name, mixer, mixermanual, card ], refreshData );
+				bash( [ 'mixerhw', name, mixer, mixermanual, card ], refreshData );
 			}
 		} );
 	}, 'json' );
@@ -93,7 +93,7 @@ $( '#novolume' ).click( function() {
 				G.replaygain === 'off';
 				var name = $( '#audiooutput option:selected' ).text();
 				banner( 'No Volume', 'Enable ...', 'mpd' );
-				sh( [ 'novolume', name ], refreshData );
+				bash( [ 'novolume', name ], refreshData );
 			}
 		} );
 	} else {
@@ -111,14 +111,14 @@ $( '#dop' ).click( function() {
 	var name = $selected.text();
 	$selected.data( 'dop', 1 );
 	banner( 'DSP over PCM', checked, 'mpd' );
-	sh( [ 'dop', checked, name ], refreshData );
+	bash( [ 'dop', checked, name ], refreshData );
 } );
 $( '#crossfade' ).click( function() {
 	if ( $( this ).prop( 'checked' ) ) {
 		$( '#setting-crossfade' ).click();
 	} else {
 		banner( 'Crossfade', G.crossfade > 0, 'mpd' );
-		sh( [ 'crossfade' ], refreshData );
+		bash( [ 'crossfade' ], refreshData );
 	}
 } );
 $( '#setting-crossfade' ).click( function() {
@@ -141,7 +141,7 @@ $( '#setting-crossfade' ).click( function() {
 			if ( crossfade !== G.crossfade ) {
 				G.crossfade = crossfade;
 				banner( 'Crossfade', 'Change ...', 'mpd' );
-				sh( [ 'crossfade ', G.crossfade ], refreshData );
+				bash( [ 'crossfade ', G.crossfade ], refreshData );
 			}
 		}
 	} );
@@ -149,14 +149,14 @@ $( '#setting-crossfade' ).click( function() {
 $( '#normalization' ).click( function() {
 	G.normalization = $( this ).prop( 'checked' );
 	banner( 'Normalization', G.normalization, 'mpd' );
-	sh( [ 'normalization', G.normalization ], refreshData );
+	bash( [ 'normalization', G.normalization ], refreshData );
 } );
 $( '#replaygain' ).click( function() {
 	if ( $( this ).prop( 'checked' ) ) {
 		$( '#setting-replaygain' ).click();
 	} else {
 		banner( 'Replay Gain', G.replaygain !== 'off', 'mpd' );
-		sh( [ 'replaygain' ], refreshData );
+		bash( [ 'replaygain' ], refreshData );
 	}
 } );
 $( '#setting-replaygain' ).click( function() {
@@ -179,7 +179,7 @@ $( '#setting-replaygain' ).click( function() {
 			if ( replaygain !== G.replaygain ) {
 				G.replaygain = replaygain;
 				banner( 'Replay Gain', 'Change ...', 'mpd' );
-				sh( [ 'replaygain', G.replaygain ], refreshData );
+				bash( [ 'replaygain', G.replaygain ], refreshData );
 			}
 		}
 	} );
@@ -187,14 +187,14 @@ $( '#setting-replaygain' ).click( function() {
 $( '#autoupdate' ).click( function() {
 	G.autoupdate = $( this ).prop( 'checked' );
 	banner( 'Auto Update', G.autoupdate, 'mpd' );
-	sh( [ 'autoupdate', G.autoupdate ], refreshData );
+	bash( [ 'autoupdate', G.autoupdate ], refreshData );
 } );
 $( '#buffer' ).click( function() {
 	if ( $( this ).prop( 'checked' ) ) {
 		$( '#setting-buffer' ).click();
 	} else {
 		banner( 'Custom Buffer', 'Disable ...', 'mpd' );
-		sh( [ 'buffer' ], refreshData );
+		bash( [ 'buffer' ], refreshData );
 	}
 } );
 $( '#setting-buffer' ).click( function() {
@@ -223,7 +223,7 @@ $( '#setting-buffer' ).click( function() {
 			} else if ( buffer !== G.buffer ) {
 				G.buffer = buffer;
 				banner( 'Custom Buffer', 'Change ...', 'mpd' );
-				sh( [ 'buffer', G.buffer ], refreshData );
+				bash( [ 'buffer', G.buffer ], refreshData );
 			}
 		}
 	} );
@@ -231,7 +231,7 @@ $( '#setting-buffer' ).click( function() {
 $( '#ffmpeg' ).click( function() {
 	G.ffmpeg = $( this ).prop( 'checked' );
 	banner( 'FFmpeg Decoder', G.ffmpeg, 'mpd' );
-	sh( [ 'ffmpeg', G.ffmpeg ], refreshData );
+	bash( [ 'ffmpeg', G.ffmpeg ], refreshData );
 } );
 $( '#status' ).click( function( e ) {
 	if ( $( e.target ).hasClass( 'help' ) || $( e.target ).hasClass( 'fa-reboot' ) ) return
@@ -294,7 +294,7 @@ function setMixerType( mixertype ) {
 		var hwmixer = '';
 	}
 	banner( 'Mixer Control', 'Change ...', 'mpd' );
-	sh( [ 'mixerset', mixertype, name, card, hwmixer ], refreshData );
+	bash( [ 'mixerset', mixertype, name, card, hwmixer ], refreshData );
 }
 
 refreshData = function() {

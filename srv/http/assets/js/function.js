@@ -1,12 +1,4 @@
-function cmd( command, callback, json ) { // cmd case - no args 
-	$.post( 
-		  cmdphp
-		, { cmd: command }
-		, callback || null
-		, json || null
-	);
-}
-function bash( command, callback, json ) { // single line command
+function bash( command, callback, json ) {
 	$.post( 
 		  cmdphp
 		, { cmd: 'bash', bash : command }
@@ -14,7 +6,7 @@ function bash( command, callback, json ) { // single line command
 		, json || null
 	);
 }
-function sh( array, callback, json ) { // complex commands - array
+function sh( array, callback, json ) {
 	$.post( 
 		  cmdphp
 		, { cmd: 'sh', sh: [ 'cmd.sh' ].concat( array ) }
@@ -22,7 +14,15 @@ function sh( array, callback, json ) { // complex commands - array
 		, json || null
 	);
 }
-//------------------------------------------------------------------
+function list( page, command, callback, json ) {
+	$.post(
+		  'mpd'+ page +'.php'
+		, command
+		, callback || null
+		, json || null
+	);
+}
+//----------------------------------------------------------------------
 function addonsdl( exit ) {
 	if ( exit == 1 ) {
 		info( {
@@ -455,7 +455,7 @@ function displayPlayback() {
 	displayTopBottom();
 }
 function displayGet( callback ) {
-	cmd( 'displayget', function( data ) {
+	$.post( cmdphp, { cmd: 'displayget' }, function( data ) {
 		callback( data );
 	}, 'json' );
 }
@@ -632,7 +632,7 @@ function getOrientation( file, callback ) { // return: 1 - undefined
 }
 function getPlaybackStatus() {
 	if ( G.status.librandom && G.playlist && !G.savedlist && G.status.mpd ) {
-		$.post( 'mpdplaylist.php', { current: 1 }, function( data ) {
+		list( 'playlist', { cmd: 'current' }, function( data ) {
 			renderPlaylist( data );
 		}, 'json' );
 	}
@@ -666,8 +666,7 @@ function getPlaybackStatus() {
 	}, 'json' );
 }
 function getPlaylist() {
-	$.post( 'mpdplaylist.php', { current: 1 }, function( data ) {
-		G.status.playlistlength = data.playlistlength;
+	list( 'playlist', { cmd: 'current' }, function( data ) {
 		renderPlaylist( data );
 	}, 'json' );
 }
@@ -872,8 +871,9 @@ function orderLibrary() {
 }
 function playlistInsert( indextarget ) {
 	var plname = $( '#pl-path .lipath' ).text();
-	$.post( 'mpdplaylist.php', {
-		  edit        : plname
+	list( 'playlist', {
+		  cmd         : 'edit'
+		, name        : plname
 		, index       : G.pladd.index
 		, indextarget : indextarget
 	}, function() {
@@ -1342,7 +1342,8 @@ function renderPlaybackBlank() {
 		.removeAttr( 'style' )
 		.css( 'visibility', 'visible' );
 }
-function renderPlaylist( data ) {
+renderPlaylist = function( data ) {
+	G.status.playlistlength = data.playlistlength;
 	$( '#pl-search-input' ).val( '' );
 	$( '#pl-path, #button-pl-back, #pl-savedlist, #pl-index, #pl-search' ).addClass( 'hide' );
 	$( '#lib-path>span, #button-pl-search' ).removeClass( 'hide' );
@@ -1375,7 +1376,7 @@ function renderPlaylist( data ) {
 }
 function renderPlaylistList() {
 	$( '#loader' ).removeClass( 'hide' );
-	$.post( 'mpdplaylist.php', { list: 1 }, function( data ) {
+	list( 'playlist', { cmd: 'list' }, function( data ) {
 		$( '.playlist, #button-pl-search, #menu-plaction' ).addClass( 'hide' );
 		$( '#menu-plaction' ).addClass( 'hide' );
 		
@@ -1397,7 +1398,7 @@ function renderSavedPlaylist( name ) {
 	$( '.menu' ).addClass( 'hide' );
 	$( '#loader' ).removeClass( 'hide' );
 	$( '#pl-count' ).empty();
-	$.post( 'mpdplaylist.php', { get: name }, function( data ) {
+	list( 'playlist', { cmd: 'get', name: name }, function( data ) {
 		$( '#pl-path' ).html( data.counthtml );
 		$( '#button-pl-back' ).css( 'float', G.display.backonleft ? 'left' : '' );
 		$( '#pl-path, #button-pl-back, #pl-savedlist' ).removeClass( 'hide' );

@@ -342,7 +342,7 @@ $( '.settings' ).click( function( e ) {
 } );
 $( '#power' ).click( function( e ) {
 	if ( $( e.target ).hasClass( 'submenu' ) ) {
-		cmd( 'screenoff' );
+		$.post( cmdphp, { cmd: 'screenoff' } );
 		return
 	}
 	
@@ -370,7 +370,7 @@ $( '#power' ).click( function( e ) {
 	} );
 } );
 $( '#logout' ).click( function( e ) {
-	cmd( 'logout', function() {
+	$.post( cmdphp, { cmd: 'logout' }, function() {
 		location.reload();
 	} );
 } );
@@ -1701,7 +1701,7 @@ $( '#button-pl-back' ).click( function() {
 	if ( G.savedplaylist ) {
 		$( '#button-pl-open' ).click();
 	} else {
-		$.post( 'mpdplaylist.php', { current: 1 }, function( data ) {
+		list( 'playlist', { cmd: 'current' }, function( data ) {
 			renderPlaylist( data );
 		}, 'json' );
 	}
@@ -1851,8 +1851,9 @@ var sortablesavedplaylist = new Sortable( document.getElementById( 'pl-savedlist
 		setTimeout( function() { G.sortable = 0 }, 500 );
 		
 		var plname = $( '#pl-path .lipath' ).text();
-		$.post( 'mpdplaylist.php', {
-			  edit : plname
+		list( 'playlist', {
+			  cmd  : 'edit'
+			, name : plname
 			, old  : e.oldIndex
 			, new  : e.newIndex
 		} );

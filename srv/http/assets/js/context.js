@@ -50,8 +50,9 @@ $( '.contextmenu a' ).click( function( e ) {
 		} );
 	} else if ( cmd === 'savedplremove' ) {
 		var plname = $( '#pl-path .lipath' ).text();
-		$.post( 'mpdplaylist.php', {
-			  edit   : plname
+		list( 'playlist', {
+			  cmd    : 'edit'
+			, name   : plname
 			, remove : G.list.li.index()
 		} );
 		G.list.li.remove();
@@ -405,7 +406,7 @@ function playlistAdd( name, oldname ) {
 	if ( oldname ) {
 		sh( [ 'plrename', oldname, name ] );
 	} else {
-		$.post( 'mpdplaylist.php', { save: name }, function( data ) {
+		list( 'playlist', { cmd: 'save', name: name }, function( data ) {
 			if ( data == -1 ) {
 				info( {
 					  icon        : 'list-ul'
@@ -439,15 +440,16 @@ function playlistDelete() {
 			G.status.playlists--;
 			if ( !G.status.playlists ) $( '#tab-playlist' ).click();
 			G.list.li.remove();
-			$.post( 'mpdplaylist.php', { delete: G.list.name } );
+			list( 'playlist', { cmd: 'delete', name: G.list.name } );
 		}
 	} );
 }
 function playlistLoad( path, play, replace ) {
 	G.local = 1;
 	notify( 'Saved Playlist', 'Load ...', 'list-ul blink', -1 );
-	$.post( 'mpdplaylist.php', {
-		  load    : path
+	list( 'playlist', {
+		  cmd     : 'load'
+		, name    : path
 		, play    : play
 		, replace : replace
 	}, function( data ) {
@@ -752,7 +754,12 @@ function webRadioDelete() {
 		, ok      : function() {
 			G.list.li.remove();
 			if ( !$( '#lib-list li' ).length ) $( '#button-library' ).click();
-			sh( [ 'webradiodelete', url ] );
+			$.post( cmdphp, {
+				  cmd       : 'webradios'
+				, webradios : name
+				, url       : url
+				, delete    : 1
+			} );
 		}
 	} );
 }
@@ -775,23 +782,14 @@ function webRadioEdit() {
 			var newname = $( '#infoTextBox' ).val();
 			var newurl = $( '#infoTextBox1' ).val().toString().replace( /\/\s*$/, '' ); // omit trailling / and space
 			if ( newname !== name || newurl !== url )
-				sh( [ 'webradioedit', url, newname, newurl ], function() {
-					if ( data ) {
-						var nameimg = data.split( "\n" );
-						info( {
-							  icon    : 'webradio'
-							, title   : 'Add WebRadio'
-							, message : ( nameimg[ 2 ] ? '<img src="'+ nameimg[ 2 ] +'">' : '<i class="fa fa-webradio bookmark"></i>' )
-									   +'<br><w>'+ nameimg[ 0 ] +'</w>'
-									   +'<br>'+ url
-									   +'<br>Already exists.'
-							, ok      : function() {
-								webRadioEdit();
-							}
-						} );
-					} else {
-						$( '#mode-webradio' ).click();
-					}
+				$.post( cmdphp, {
+					  cmd       : 'webradios'
+					, webradios : newname
+					, newurl    : newurl
+					, url       : url
+					, edit      : 1
+				}, function() {
+					$( '#mode-webradio' ).click();
 				} );
 		}
 	} );
@@ -810,7 +808,12 @@ function webRadioNew( name, url ) {
 		, ok           : function() {
 			var newname = $( '#infoTextBox' ).val().toString().replace( /\/\s*$/, '' ); // omit trailling / and space
 			var url = $( '#infoTextBox1' ).val();
-			sh( [ 'webradioadd', newname, url ], function( data ) {
+			$.post( cmdphp, {
+				  cmd       : 'webradios'
+				, webradios : newname
+				, url       : url
+				, new       : 1
+			}, function( data ) {
 				if ( data == -1 ) {
 					info( {
 						  icon    : 'webradio'
@@ -842,3 +845,47 @@ function webRadioNew( name, url ) {
 		}
 	} );
 }
+/*function webRadioSave( name, url ) { // for unsaved webradio
+	var urlname = url.replace( /\//g, '|' );
+	var thumb = G.list.li.find( '.lithumb' ).text();
+	var img = G.list.li.find( '.liimg' ).text();
+	bash( "test -e '/srv/http/data/webradios/"+ urlname +' && echo 0 || echo -1', function( data ) {
+		if ( data != -1 ) {
+			info( {
+				  icon    : 'webradio'
+				, title   : 'Save WebRadio'
+				, message : ( img ? '<br><img src="'+ img +'">' : '<br><i class="fa fa-webradio bookmark"></i>' )
+						   +'<br><w>'+ name +'</w>'
+						   +'<br>'+ url
+						   +'<br>Already exists.'
+			} );
+			return false
+		}
+	} );
+	info( {
+		  icon         : 'webradio'
+		, title        : 'Save WebRadio'
+		, width        : 500
+		, message      : ( img ? '<br><img src="'+ img +'">' : '<br><i class="fa fa-webradio bookmark"></i>' )
+						+'<br><w>'+ url +'</w>'
+						+'<br>As:'
+		, textlabel    : ''
+		, textvalue    : name
+		, textrequired : 0
+		, boxwidth     : 'max'
+		, ok           : function() {
+			var newname = $( '#infoTextBox' ).val();
+			if ( thumb ) newname += "\n"+ thumb +"\n"+ img;
+			$.post( cmdphp, {
+				  cmd       : 'webradios'
+				, webradios : newname
+				, url       : url
+				, new       : 1
+			} );
+			notify( 'WebRadio saved', newname, 'webradio' );
+			$( '.li1 .radioname' ).text( newname );
+			$( '.li2 .radioname' ).text( newname +' • ' );
+			G.list.li.find( '.pl-icon' ).removeClass( 'wh' );
+		}
+	} );
+}*/

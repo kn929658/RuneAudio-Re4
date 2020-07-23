@@ -24,7 +24,7 @@ onVisibilityChange( function( visible ) {
 		} else if ( G.playlist ) {
 			displayTopBottom();
 			if ( !G.savedlist && !G.savedplaylist && !$( '#pl-search-close' ).text() ) {
-				$.post( 'mpdplaylist.php', { current: 1 }, function( data ) {
+				list( 'playlist', { cmd: 'current' }, function( data ) {
 					renderPlaylist( data );
 				}, 'json' );
 			}

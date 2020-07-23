@@ -299,7 +299,7 @@ $( '#displayplayback' ).click( function( e ) {
 				G.bars = G.display.bars;
 				displayTopBottom();
 				if ( G.playback ) {
-					setButton();
+					setButtonControl();
 					displayPlayback();
 					renderPlayback();
 					$( '#ti-gpio, #i-gpio' ).toggleClass( 'hide', !G.status.gpioon );
@@ -698,7 +698,7 @@ $( '#coverTL, #timeTL' ).tap( function() {
 	$( '#volume-bar, #volume-text' ).addClass( 'hide' );
 	$( '.volumeband' ).toggleClass( 'hide', G.display.volumenone );
 	renderPlayback();
-	setButton();
+	setButtonControl();
 	displayPlayback();
 	if ( 'coverTL' in G && G.display.coversmall ) $( '#timemap' ).removeClass( 'hide' );
 } );
@@ -893,7 +893,7 @@ $( '.map' ).tap( function( e ) {
 				$( '#single' ).click();
 				G.status.repeat = false;
 				G.status.single = false;
-				setButtonToggle();
+				setButtonOptions();
 				G.local = 1;
 				setTimeout( function() { G.local = 0 }, 600 );
 				bash( 'mpc repeat 0 && mpc single 0' );
@@ -914,7 +914,7 @@ $( '.btn-cmd' ).click( function() {
 		var onoff = !G.status[ cmd ];
 		G.status[ cmd ] = onoff;
 		bash( 'mpc -q '+ cmd +' '+ onoff );
-		setButtonToggle();
+		setButtonOptions();
 		G.local = 1;
 		setTimeout( function() { G.local = 0 }, 600 );
 	} else {

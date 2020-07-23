@@ -742,7 +742,7 @@ $( '.contextmenu a' ).click( function( e ) {
 				notify( title, 'Find similar tracks from Library ...', 'library blink',  -1 );
 				bash( [ 'mpcsimilar', similar ], function( count ) {
 					updatePlaylist();
-					setButton()
+					setButtonControl()
 					notify( title, count +' tracks added.', 'library' );
 				} );
 			}

@@ -644,12 +644,12 @@ function getPlaybackStatus() {
 				} );
 				G.status.sampling = '16 bit 48 kHz 1.54 Mbit/s &bull; Snapcast';
 				renderPlayback();
-				setButton();
+				setButtonControl();
 				displayPlayback();
 			}, 'json' );
 		} else {
 			G.plreplace = 0;
-			setButton();
+			setButtonControl();
 			if ( G.playback ) {
 				renderPlayback();
 				displayPlayback();
@@ -1488,7 +1488,7 @@ function second2HMS( second ) {
 	ss = mm ? ( ss > 9 ? ss : '0'+ ss ) : ss;
 	return hh + mm + ss;
 }
-function setButton() {
+function setButtonControl() {
 	if ( G.bars ) {
 		$( '#playback-controls' ).toggleClass( 'hide', G.status.playlistlength === 0 );
 		$( '#previous, #next' ).toggleClass( 'hide', G.status.playlistlength < 2 || !G.status.mpd );
@@ -1498,9 +1498,9 @@ function setButton() {
 			$( '#'+ el ).toggleClass( 'active', G.status.state === el );
 		} );
 	}
-	setButtonToggle();
+	setButtonOptions();
 }
-function setButtonToggle() {
+function setButtonOptions() {
 	var prefix = G.display.time ? 'ti' : 'i';
 	if ( !G.bars ) {
 		$( '#'+ prefix +'-update' ).toggleClass( 'hide', !G.status.updating_db );
@@ -1581,7 +1581,7 @@ function setPlaylistScroll() {
 			$.each( status, function( key, value ) {
 				G.status[ key ] = value;
 			} );
-			if ( G.bars ) setButton();
+			if ( G.bars ) setButtonControl();
 			$( '#pl-list li:eq( 0 )' ).addClass( 'active' );
 			$( 'html, body' ).scrollTop( 0 );
 			var $linotactive = $( '#pl-list li:not(:eq( '+ status.song +' ) )' );

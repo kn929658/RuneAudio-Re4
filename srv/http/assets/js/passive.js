@@ -111,7 +111,7 @@ function psAirplay( data ) {
 		G.status[ key ] = value;
 	} );
 	renderPlayback();
-	setButton();
+	setButtonControl();
 	displayTopBottom();
 }
 function psBookmark( data ) {
@@ -144,7 +144,7 @@ function psDisplay( data ) {
 		G.display[ key ] = val;
 	} );
 	if ( G.playback ) {
-		setButton();
+		setButtonControl();
 		renderPlayback();
 		displayPlayback();
 	} else if ( G.library ) {
@@ -180,7 +180,7 @@ function psGPIO( response ) { // on receive broadcast
 		timer = setInterval( function() {
 			if ( delay === 1 ) {
 				G.status.gpioon = false;
-				setButtonToggle();
+				setButtonOptions();
 				$( '#infoX' ).click();
 				clearInterval( timer );
 			}
@@ -209,7 +209,7 @@ function psGPIO( response ) { // on receive broadcast
 		var i = 0
 		gpioCountdown( i, iL, delays );
 		setTimeout( function() {
-			setButtonToggle();
+			setButtonOptions();
 		}, delay * 1000 );
 	}
 }
@@ -227,7 +227,7 @@ function psMpdOptions( data ) {
 		}
 		G.status[ key ] = value;
 	} );
-	if ( G.playback ) setButtonToggle();
+	if ( G.playback ) setButtonOptions();
 	$( '#button-pl-consume' ).toggleClass( 'bl', G.status.consume );
 	$( '#button-pl-random' ).toggleClass( 'bl', G.status.librandom );
 }
@@ -345,7 +345,7 @@ function psSpotify( data ) {
 			} );
 		}
 		renderPlayback();
-		setButton();
+		setButtonControl();
 		displayTopBottom();
 	} else {
 		$( '#tab-playback' ).click();
@@ -396,7 +396,7 @@ function setPlayback( data ) {
 		G.status[ key ] = value;
 	} );
 	bannerHide();
-	setButton();
+	setButtonControl();
 	renderPlayback();
 	displayPlayback();
 }

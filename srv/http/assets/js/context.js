@@ -593,10 +593,11 @@ function webRadioEdit() {
 		, ok           : function() {
 			var newname = $( '#infoTextBox' ).val();
 			var newurl = $( '#infoTextBox1' ).val().toString().replace( /\/\s*$/, '' ); // omit trailling / and space
-			if ( newname !== name || newurl !== url )
+			if ( newname !== name || newurl !== url ) {
 				bash( [ 'webradioedit', url, newname, newurl ], function() {
 					$( '#mode-webradio' ).click();
 				} );
+			}
 		}
 	} );
 }

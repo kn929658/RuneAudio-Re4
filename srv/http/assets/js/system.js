@@ -1,5 +1,189 @@
 $( function() { // document ready start >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
+function getStatus( service ) {
+	var $code = $( '#code'+ service );
+	if ( service === 'mpdscribble' ) service += '@mpd';
+	bash( 'systemctl status '+ service, function( status ) {
+		if ( service === 'spotifyd' ) status = status.replace( /.*Authenticated as.*\n|.*Country:.*\n/g, '' );
+		$code
+			.html( statusColor( status ) )
+			.removeClass( 'hide' );
+	} );
+}
+function getStatusRefresh( service ) {
+	service !== 'localbrowser' ? resetLocal() : resetLocal( 7000 );
+	if ( !$( '#code'+ service ).hasClass( 'hide' ) ) getStatus( service );
+}
+function getIwregget() {
+	bash( 'iw reg get', function( status ) {
+		$( '#codeiwregget' )
+			.html( status )
+			.removeClass( 'hide' );
+	} );
+}
+function getJournalctl() {
+	if ( $( '#codejournalctl' ).text() ) {
+		$( '#codejournalctl' ).removeClass( 'hide' );
+	} else {
+		bash( [ 'statusbootlog' ], function( data ) {
+			$( '#codejournalctl' )
+				.html( data )
+				.removeClass( 'hide' );
+			$( '#journalctlicon' )
+				.removeClass( 'fa-refresh blink' )
+				.addClass( 'fa-code' );
+		} );
+		$( '#journalctlicon' )
+			.removeClass( 'fa-code' )
+			.addClass( 'fa-refresh blink' );
+	}
+}
+function getConfigtxt() {
+	bash( 'cat /boot/config.txt', function( status ) {
+		$( '#codeconfigtxt' )
+			.html( status )
+			.removeClass( 'hide' );
+	} );
+}
+function rebootText( enable, device ) {
+	G.reboot = G.reboot.filter( function( el ) {
+		return el.indexOf( device ) === -1
+	} );
+	G.reboot.push( enable +' '+ device );
+}
+function renderStatus() {
+	var undervoltage = '';
+	var warning = '<i style="width: 20px; text-align: center" class="fa fa-warning blink"></i>';
+	if ( G.undervoltage ) {
+		undervoltage = '<br><red>'+ warning +' Voltage under 4.7V</red>';
+	} else if ( G.undervdetected ) {
+		undervoltage = '<br><i class="fa fa-warning gr"></i> Voltage under 4.7V occured.';
+	}
+	return G.cpuload
+		+'<br>'+ ( G.cputemp < 80 ? G.cputemp +' °C' : '<red>'+ warning + G.cputemp +' °C</red>' )
+		+'<br>'+ G.time
+		+'<br>'+ G.uptime
+		+ undervoltage
+}
+
+refreshData = function() { // system page: use resetLocal() to aviod delay
+	bash( '/srv/http/bash/system-data.sh', function( list ) {
+		G = list;
+		G.reboot = list.reboot ? list.reboot.split( '\n' ) : [];
+		G.sources.pop(); // remove 'reboot' from sources-data.sh
+		
+		var systemlabel =
+			 'RuneAudio<br>'
+			+'Hardware<br>'
+			+'SoC<br>'
+			+'Output Device<br>'
+			+'Kernel<br>'
+			+'<span id="mpd" class="settings">MPD<i class="fa fa-gear"></i></span><br>'
+			+'<span id="network" class="settings">Network<i class="fa fa-gear"></i></span>';
+		var statuslabel =
+			 'CPU Load<br>'
+			+'CPU Temperatue<br>'
+			+'Time<br>'
+			+'Up Time';
+		var bullet = ' <gr>&bull;</gr> ';
+		if ( G.ip ) {
+			var ip = G.ip.split( ',' );
+			var iplist = '';
+			ip.forEach( function( el ) {
+				var val = el.split( ' ' ); // [ interface, mac, ip ]
+				if ( val[ 2 ] ) {
+					iplist += '<i class="fa fa-'+ ( val[ 0 ] === 'eth0' ? 'lan' : 'wifi-3' ) +' gr"></i>&ensp;';
+					iplist += val[ 1 ] +'&emsp;<gr>'+ val[ 2 ] +'</gr><br>';
+					systemlabel += '<br>';
+					if ( !G.streamingip ) G.streamingip = val[ 1 ];
+				}
+			} )
+		}
+		if ( G.sources.length ) {
+			systemlabel += '<span id="sources" class="settings">Sources<i class="fa fa-gear"></i></span>';
+			var sourcelist = '';
+			$.each( G.sources, function( i, val ) {
+				sourcelist += '<i class="fa fa-'+ val.icon +' gr"></i>&ensp;'+ val.mountpoint.replace( '/mnt/MPD/USB/', '' );
+				sourcelist += ( val.size ? bullet + val.size : '' ) +'<br>';
+				systemlabel += '<br>';
+			} );
+		}
+		$( '#systemlabel' ).html( systemlabel );
+		var mpdstats = !G.mpdstats
+							? ''
+							: '&emsp;<i class="fa fa-music gr"></i>&nbsp;'+ G.mpdstats[ 2 ].toLocaleString()
+							 +'&ensp;<i class="fa fa-album gr"></i>&ensp;'+ G.mpdstats[ 1 ].toLocaleString()
+							 +'&ensp;<i class="fa fa-artist gr"></i> '+ G.mpdstats[ 0 ].toLocaleString();
+		$( '#system' ).html(
+			  '<i class="fa fa-addons gr" style="line-height: 20px;"></i> '+ G.version +' <gr>'+ G.versionui +'</gr>'+ bullet + G.hostname +'<br>'
+			+ G.hardware +'<br>'
+			+ G.soc +'<br>'
+			+ '<span id="output">'+ G.audiooutput +'</span><br>'
+			+ G.kernel +'<br>'
+			+ G.mpd 
+			+ mpdstats
+			+'<br>'
+			+ iplist
+			+ sourcelist
+		);
+		$( '#statuslabel' ).html( statuslabel );
+		$( '#status' ).html( renderStatus );
+		$( '#airplay' ).prop( 'checked', G.airplay );
+		$( '#spotify' ).prop( 'checked', G.spotify );
+		$( '#setting-spotify' ).toggleClass( 'hide', !G.spotify );
+		$( '#upnp' ).prop( 'checked', G.upnp );
+//		$( '#setting-upnp' ).toggleClass( 'hide', !G.upnp );
+		$( '#localbrowser' ).prop( 'checked', G.localbrowser );
+		$( '#setting-localbrowser' ).toggleClass( 'hide', !G.localbrowser );
+		$( '#samba' ).prop( 'checked', G.samba );
+		$( '#setting-samba' ).toggleClass( 'hide', !G.samba );
+		$( '#snapcast' ).prop( 'checked', G.snapcast );
+		if ( G.snapcast ) {
+			$( '#divsnapclient' ).addClass( 'hide' );
+		} else {
+			$( '#divsnapclient' ).removeClass( 'hide' );
+			$( '#snapclient' )
+				.prop( 'checked', G.snapclient )
+				.data( 'latency', G.snaplatency );
+			$( '#setting-snapclient' ).toggleClass( 'hide', !G.snapclient );
+		}
+		$( '#streaming' ).prop( 'checked', G.streaming );
+		$( '#ip' ).text( G.streamingip +':8000' );
+		$( '#gpio' ).prop( 'checked', G.gpio );
+		$( '#mpdscribble' ).prop( 'checked', G.mpdscribble );
+		$( '#setting-mpdscribble' ).toggleClass( 'hide', !G.mpdscribble );
+		$( '#login' ).prop( 'checked', G.login );
+		$( '#setting-login' ).toggleClass( 'hide', !G.login );
+		$( '#avahi' ).prop( 'checked', G.avahi );
+		$( '#avahiname' ).text( G.hostname.toLowerCase() );
+		$( '#autoplay' ).prop( 'checked', G.autoplay );
+		$( '#i2smodule' ).val( 'none' );
+		$( '#i2smodule option' ).filter( function() {
+			var $this = $( this );
+			return $this.text() === G.audiooutput && $this.val() === G.audioaplayname;
+		} ).prop( 'selected', true );
+		$( '#i2smodule' ).selectric( 'refresh' );
+		var i2senabled = $( '#i2smodule' ).val() === 'none' ? false : true;
+		$( '#divi2smodulesw' ).toggleClass( 'hide', i2senabled );
+		$( '#divi2smodule' ).toggleClass( 'hide', !i2senabled );
+		$( '#soundprofile' ).prop( 'checked', G.soundprofile !== '' );
+		$( '#setting-soundprofile' ).toggleClass( 'hide', G.soundprofile === '' );
+		$( '#eth0help' ).toggleClass( 'hide', G.ip.slice( 0, 4 ) !== 'eth0' );
+		$( '#onboardaudio' ).prop( 'checked', G.onboardaudio );
+		$( '#bluetooth' ).prop( 'checked', G.bluetooth );
+		$( '#wlan' ).prop( 'checked', G.wlan );
+		$( '#hostname' ).val( G.hostname );
+		$( '#timezone' )
+			.val( G.timezone )
+			.selectric( 'refresh' );
+		$( 'pre:not(.hide)' ).each( function() {
+			getStatus( this.id.replace( 'code', '' ) );
+		} );
+		showContent();
+	}, 'json' );
+}
+refreshData();
+//---------------------------------------------------------------------------------------
 $( '#timezone, #i2smodule' ).selectric( { maxHeight: 400 } );
 $( '.selectric-input' ).prop( 'readonly', 1 ); // fix - suppress screen keyboard
 
@@ -651,188 +835,5 @@ $( '#backuprestore' ).click( function( e ) {
 		}
 	} );
 } );
-function getStatus( service ) {
-	var $code = $( '#code'+ service );
-	if ( service === 'mpdscribble' ) service += '@mpd';
-	bash( 'systemctl status '+ service, function( status ) {
-		if ( service === 'spotifyd' ) status = status.replace( /.*Authenticated as.*\n|.*Country:.*\n/g, '' );
-		$code
-			.html( statusColor( status ) )
-			.removeClass( 'hide' );
-	} );
-}
-function getStatusRefresh( service ) {
-	service !== 'localbrowser' ? resetLocal() : resetLocal( 7000 );
-	if ( !$( '#code'+ service ).hasClass( 'hide' ) ) getStatus( service );
-}
-function getIwregget() {
-	bash( 'iw reg get', function( status ) {
-		$( '#codeiwregget' )
-			.html( status )
-			.removeClass( 'hide' );
-	} );
-}
-function getJournalctl() {
-	if ( $( '#codejournalctl' ).text() ) {
-		$( '#codejournalctl' ).removeClass( 'hide' );
-	} else {
-		bash( [ 'statusbootlog' ], function( data ) {
-			$( '#codejournalctl' )
-				.html( data )
-				.removeClass( 'hide' );
-			$( '#journalctlicon' )
-				.removeClass( 'fa-refresh blink' )
-				.addClass( 'fa-code' );
-		} );
-		$( '#journalctlicon' )
-			.removeClass( 'fa-code' )
-			.addClass( 'fa-refresh blink' );
-	}
-}
-function getConfigtxt() {
-	bash( 'cat /boot/config.txt', function( status ) {
-		$( '#codeconfigtxt' )
-			.html( status )
-			.removeClass( 'hide' );
-	} );
-}
-function rebootText( enable, device ) {
-	G.reboot = G.reboot.filter( function( el ) {
-		return el.indexOf( device ) === -1
-	} );
-	G.reboot.push( enable +' '+ device );
-}
-function renderStatus() {
-	var undervoltage = '';
-	var warning = '<i style="width: 20px; text-align: center" class="fa fa-warning blink"></i>';
-	if ( G.undervoltage ) {
-		undervoltage = '<br><red>'+ warning +' Voltage under 4.7V</red>';
-	} else if ( G.undervdetected ) {
-		undervoltage = '<br><i class="fa fa-warning gr"></i> Voltage under 4.7V occured.';
-	}
-	return G.cpuload
-		+'<br>'+ ( G.cputemp < 80 ? G.cputemp +' °C' : '<red>'+ warning + G.cputemp +' °C</red>' )
-		+'<br>'+ G.time
-		+'<br>'+ G.uptime
-		+ undervoltage
-}
-
-refreshData = function() { // system page: use resetLocal() to aviod delay
-	bash( '/srv/http/bash/system-data.sh', function( list ) {
-		G = list;
-		G.reboot = list.reboot ? list.reboot.split( '\n' ) : [];
-		G.sources.pop(); // remove 'reboot' from sources-data.sh
-		
-		var systemlabel =
-			 'RuneAudio<br>'
-			+'Hardware<br>'
-			+'SoC<br>'
-			+'Output Device<br>'
-			+'Kernel<br>'
-			+'<span id="mpd" class="settings">MPD<i class="fa fa-gear"></i></span><br>'
-			+'<span id="network" class="settings">Network<i class="fa fa-gear"></i></span>';
-		var statuslabel =
-			 'CPU Load<br>'
-			+'CPU Temperatue<br>'
-			+'Time<br>'
-			+'Up Time';
-		var bullet = ' <gr>&bull;</gr> ';
-		if ( G.ip ) {
-			var ip = G.ip.split( ',' );
-			var iplist = '';
-			ip.forEach( function( el ) {
-				var val = el.split( ' ' ); // [ interface, mac, ip ]
-				if ( val[ 2 ] ) {
-					iplist += '<i class="fa fa-'+ ( val[ 0 ] === 'eth0' ? 'lan' : 'wifi-3' ) +' gr"></i>&ensp;';
-					iplist += val[ 1 ] +'&emsp;<gr>'+ val[ 2 ] +'</gr><br>';
-					systemlabel += '<br>';
-					if ( !G.streamingip ) G.streamingip = val[ 1 ];
-				}
-			} )
-		}
-		if ( G.sources.length ) {
-			systemlabel += '<span id="sources" class="settings">Sources<i class="fa fa-gear"></i></span>';
-			var sourcelist = '';
-			$.each( G.sources, function( i, val ) {
-				sourcelist += '<i class="fa fa-'+ val.icon +' gr"></i>&ensp;'+ val.mountpoint.replace( '/mnt/MPD/USB/', '' );
-				sourcelist += ( val.size ? bullet + val.size : '' ) +'<br>';
-				systemlabel += '<br>';
-			} );
-		}
-		$( '#systemlabel' ).html( systemlabel );
-		var mpdstats = !G.mpdstats
-							? ''
-							: '&emsp;<i class="fa fa-music gr"></i>&nbsp;'+ G.mpdstats[ 2 ].toLocaleString()
-							 +'&ensp;<i class="fa fa-album gr"></i>&ensp;'+ G.mpdstats[ 1 ].toLocaleString()
-							 +'&ensp;<i class="fa fa-artist gr"></i> '+ G.mpdstats[ 0 ].toLocaleString();
-		$( '#system' ).html(
-			  '<i class="fa fa-addons gr" style="line-height: 20px;"></i> '+ G.version +' <gr>'+ G.versionui +'</gr>'+ bullet + G.hostname +'<br>'
-			+ G.hardware +'<br>'
-			+ G.soc +'<br>'
-			+ '<span id="output">'+ G.audiooutput +'</span><br>'
-			+ G.kernel +'<br>'
-			+ G.mpd 
-			+ mpdstats
-			+'<br>'
-			+ iplist
-			+ sourcelist
-		);
-		$( '#statuslabel' ).html( statuslabel );
-		$( '#status' ).html( renderStatus );
-		$( '#airplay' ).prop( 'checked', G.airplay );
-		$( '#spotify' ).prop( 'checked', G.spotify );
-		$( '#setting-spotify' ).toggleClass( 'hide', !G.spotify );
-		$( '#upnp' ).prop( 'checked', G.upnp );
-//		$( '#setting-upnp' ).toggleClass( 'hide', !G.upnp );
-		$( '#localbrowser' ).prop( 'checked', G.localbrowser );
-		$( '#setting-localbrowser' ).toggleClass( 'hide', !G.localbrowser );
-		$( '#samba' ).prop( 'checked', G.samba );
-		$( '#setting-samba' ).toggleClass( 'hide', !G.samba );
-		$( '#snapcast' ).prop( 'checked', G.snapcast );
-		if ( G.snapcast ) {
-			$( '#divsnapclient' ).addClass( 'hide' );
-		} else {
-			$( '#divsnapclient' ).removeClass( 'hide' );
-			$( '#snapclient' )
-				.prop( 'checked', G.snapclient )
-				.data( 'latency', G.snaplatency );
-			$( '#setting-snapclient' ).toggleClass( 'hide', !G.snapclient );
-		}
-		$( '#streaming' ).prop( 'checked', G.streaming );
-		$( '#ip' ).text( G.streamingip +':8000' );
-		$( '#gpio' ).prop( 'checked', G.gpio );
-		$( '#mpdscribble' ).prop( 'checked', G.mpdscribble );
-		$( '#setting-mpdscribble' ).toggleClass( 'hide', !G.mpdscribble );
-		$( '#login' ).prop( 'checked', G.login );
-		$( '#setting-login' ).toggleClass( 'hide', !G.login );
-		$( '#avahi' ).prop( 'checked', G.avahi );
-		$( '#avahiname' ).text( G.hostname.toLowerCase() );
-		$( '#autoplay' ).prop( 'checked', G.autoplay );
-		$( '#i2smodule' ).val( 'none' );
-		$( '#i2smodule option' ).filter( function() {
-			var $this = $( this );
-			return $this.text() === G.audiooutput && $this.val() === G.audioaplayname;
-		} ).prop( 'selected', true );
-		$( '#i2smodule' ).selectric( 'refresh' );
-		var i2senabled = $( '#i2smodule' ).val() === 'none' ? false : true;
-		$( '#divi2smodulesw' ).toggleClass( 'hide', i2senabled );
-		$( '#divi2smodule' ).toggleClass( 'hide', !i2senabled );
-		$( '#soundprofile' ).prop( 'checked', G.soundprofile !== '' );
-		$( '#setting-soundprofile' ).toggleClass( 'hide', G.soundprofile === '' );
-		$( '#eth0help' ).toggleClass( 'hide', G.ip.slice( 0, 4 ) !== 'eth0' );
-		$( '#onboardaudio' ).prop( 'checked', G.onboardaudio );
-		$( '#bluetooth' ).prop( 'checked', G.bluetooth );
-		$( '#wlan' ).prop( 'checked', G.wlan );
-		$( '#hostname' ).val( G.hostname );
-		$( '#timezone' )
-			.val( G.timezone )
-			.selectric( 'refresh' );
-		$( 'pre:not(.hide)' ).each( function() {
-			getStatus( this.id.replace( 'code', '' ) );
-		} );
-		showContent();
-	}, 'json' );
-}
-refreshData();
 
 } ); // document ready end <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<

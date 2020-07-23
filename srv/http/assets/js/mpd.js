@@ -1,5 +1,136 @@
 $( function() { // document ready start >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
+function getAplay() {
+	bash( 'aplay -l', function( status ) {
+		$( '#codeaplay' )
+			.html( status )
+			.removeClass( 'hide' );
+	} );
+}
+function getAmixer() {
+	var card = $( '#audiooutput option:selected' ).data( 'card' );
+	bash( 'amixer -c '+ card, function( status ) {
+		$( '#codeamixer' )
+			.html( status || '(none)' )
+			.removeClass( 'hide' );
+	} );
+}
+function getMpdconf() {
+	bash( 'cat /etc/mpd.conf', function( status ) {
+		$( '#codempdconf' )
+			.html( status )
+			.removeClass( 'hide' );
+	} );
+}
+function getStatus() {
+	bash( 'systemctl status mpd', function( status ) {
+		$( '#codestatus' )
+			.html( statusColor( status ) )
+			.removeClass( 'hide' );
+	} );
+}
+function setMixerType( mixertype ) {
+	var $output = $( '#audiooutput option:selected' );
+	var name = $output.text();
+	var cmd = [];
+	if ( mixertype === 'none' ) {
+		var card = $output.data( 'card' );
+		var hwmixer = $output.data( 'hwmixer' );
+	} else {
+		var card = '';
+		var hwmixer = '';
+	}
+	banner( 'Mixer Control', 'Change ...', 'mpd' );
+	bash( [ 'mixerset', mixertype, name, card, hwmixer ], refreshData );
+}
+refreshData = function() {
+	bash( '/srv/http/bash/mpd-data.sh', function( list ) {
+		G = list;
+		G.reboot = list.reboot ? list.reboot.split( '\n' ) : [];
+		var htmldevices = '';
+		$.each( G.devices, function() {
+			htmldevices += '<option '
+				+'value="'+ this.aplayname +'" '
+				+'data-card="'+ this.card +'" '
+				+'data-device="'+ this.device +'" '
+			if ( this.mixercount ) {
+				htmldevices += 'data-hwmixer="'+ this.hwmixer +'" '
+							  +'data-mixercount="'+ this.mixercount +'" '
+			}
+			if ( this.mixertype ) {
+				htmldevices += 'data-mixertype="'+ this.mixertype +'" '
+			} else if ( this.mixercount ) {
+				htmldevices += 'data-mixertype="hardware" '
+			} else {
+				htmldevices += 'data-mixertype="software" '
+			}
+			if ( this.mixermanual ) htmldevices += 'data-mixermanual="'+ this.mixermanual +'" ';
+			htmldevices += 'data-dop="'+ this.dop +'" '
+						  +'>'+ this.name +'</option>';
+		} );
+		$( '#audiooutput' ).html( htmldevices );
+		if ( G.devices.length === 1 ) $( '#audiooutput' ).prop( 'disabled', 1 );
+		if ( G.usbdac ) {
+			$( '#audiooutput' ).val( G.usbdac );
+		} else {
+			$( '#audiooutput option' ).filter( function() {
+				var $this = $( this );
+				return $this.text() === G.audiooutput && $this.val() === G.audioaplayname;
+			} ).prop( 'selected', true );
+		}
+		if ( $( '#audiooutput option:selected' ).data( 'hwmixer' ) ) {
+			var mixerhtml =  '<option value="none">Disable</option>'
+							+'<option value="hardware">DAC hardware</option>'
+							+'<option value="software">MPD software</option>';
+			$( '#hwmixertxt' ).show();
+		} else {
+			var mixerhtml =  '<option value="none">Disable</option>'
+							+'<option value="software">MPD software</option>';
+			$( '#hwmixertxt' ).hide();
+		}
+		var $selected = $( '#audiooutput option:selected' );
+		$( '#mixertype' ).html( mixerhtml ).val( $selected.data( 'mixertype' ) );
+		$( '#audiooutput, #mixertype' ).selectric( 'refresh' );
+		if ( $( '#mixertype' ).val() === 'hardware' && $selected.data( 'mixercount' ) > 1 ) {
+			$( '.hwmixer' ).removeClass( 'hide' );
+		} else {
+			$( '.hwmixer' ).addClass( 'hide' );
+		}
+		$( '#divmixer' ).toggleClass( 'hide', $selected.data( 'hwmixer' ) === '' );
+		var $selected = $( '#audiooutput option:selected' );
+		if ( $( '#mixertype' ).val() === 'none'
+			&& G.crossfade === 0
+			&& G.normalization === false
+			&& G.replaygain === 'off'
+		) {
+			G.novolume = true;
+		} else {
+			G.novolume = false;
+		}
+		$( '#novolume' ).prop( 'checked', G.novolume );
+		$( '#divdop' ).toggleClass( 'hide', $selected.val().slice( 0, 7 ) === 'bcm2835' );
+		$( '#dop' ).prop( 'checked', $selected.data( 'dop' ) );
+		$( '#crossfade' ).prop( 'checked', G.crossfade > 0 );
+		$( '#setting-crossfade' ).toggleClass( 'hide', G.crossfade === 0 );
+		$( '#normalization' ).prop( 'checked', G.normalization );
+		$( '#replaygain' ).prop( 'checked', G.replaygain !== 'off' );
+		$( '#setting-replaygain' ).toggleClass( 'hide', G.replaygain === 'off' );
+		$( '#autoupdate' ).prop( 'checked', G.autoupdate );
+		$( '#buffer' ).prop( 'checked', G.buffer > 4096 );
+		$( '#setting-buffer' ).toggleClass( 'hide', G.buffer === '' );
+		$( '#ffmpeg' ).prop( 'checked', G.ffmpeg );
+		if ( !$( '#codeaplay' ).hasClass( 'hide' ) ) getAplay();
+		if ( !$( '#codestatus' ).hasClass( 'hide' ) ) getStatus();
+		if ( !$( '#codempdconf' ).hasClass( 'hide' ) ) getMpdconf();
+		if ( !$( '#codeamixer' ).hasClass( 'hide' ) ) getAmixer();
+		if ( !$( '#codestatus' ).hasClass( 'hide' ) ) getStatus();
+		if ( !$( '#codempdconf' ).hasClass( 'hide' ) ) getMpdconf();
+		resetLocal();
+		showContent();
+	}, 'json' );
+}
+refreshData();
+//---------------------------------------------------------------------------------------
 $( '#audiooutput, #mixertype' ).selectric();
 $( '.selectric-input' ).prop( 'readonly', 1 ); // fix - suppress screen keyboard
 var setmpdconf = '/srv/http/bash/mpd-conf.sh';
@@ -253,136 +384,5 @@ $( '#restart' ).click( function( e ) {
 $( '#mpdconf' ).click( function( e ) {
 	codeToggle( e.target, this.id, getMpdconf );
 } );
-function getAplay() {
-	bash( 'aplay -l', function( status ) {
-		$( '#codeaplay' )
-			.html( status )
-			.removeClass( 'hide' );
-	} );
-}
-function getAmixer() {
-	var card = $( '#audiooutput option:selected' ).data( 'card' );
-	bash( 'amixer -c '+ card, function( status ) {
-		$( '#codeamixer' )
-			.html( status || '(none)' )
-			.removeClass( 'hide' );
-	} );
-}
-function getMpdconf() {
-	bash( 'cat /etc/mpd.conf', function( status ) {
-		$( '#codempdconf' )
-			.html( status )
-			.removeClass( 'hide' );
-	} );
-}
-function getStatus() {
-	bash( 'systemctl status mpd', function( status ) {
-		$( '#codestatus' )
-			.html( statusColor( status ) )
-			.removeClass( 'hide' );
-	} );
-}
-function setMixerType( mixertype ) {
-	var $output = $( '#audiooutput option:selected' );
-	var name = $output.text();
-	var cmd = [];
-	if ( mixertype === 'none' ) {
-		var card = $output.data( 'card' );
-		var hwmixer = $output.data( 'hwmixer' );
-	} else {
-		var card = '';
-		var hwmixer = '';
-	}
-	banner( 'Mixer Control', 'Change ...', 'mpd' );
-	bash( [ 'mixerset', mixertype, name, card, hwmixer ], refreshData );
-}
-
-refreshData = function() {
-	bash( '/srv/http/bash/mpd-data.sh', function( list ) {
-		G = list;
-		G.reboot = list.reboot ? list.reboot.split( '\n' ) : [];
-		var htmldevices = '';
-		$.each( G.devices, function() {
-			htmldevices += '<option '
-				+'value="'+ this.aplayname +'" '
-				+'data-card="'+ this.card +'" '
-				+'data-device="'+ this.device +'" '
-			if ( this.mixercount ) {
-				htmldevices += 'data-hwmixer="'+ this.hwmixer +'" '
-							  +'data-mixercount="'+ this.mixercount +'" '
-			}
-			if ( this.mixertype ) {
-				htmldevices += 'data-mixertype="'+ this.mixertype +'" '
-			} else if ( this.mixercount ) {
-				htmldevices += 'data-mixertype="hardware" '
-			} else {
-				htmldevices += 'data-mixertype="software" '
-			}
-			if ( this.mixermanual ) htmldevices += 'data-mixermanual="'+ this.mixermanual +'" ';
-			htmldevices += 'data-dop="'+ this.dop +'" '
-						  +'>'+ this.name +'</option>';
-		} );
-		$( '#audiooutput' ).html( htmldevices );
-		if ( G.devices.length === 1 ) $( '#audiooutput' ).prop( 'disabled', 1 );
-		if ( G.usbdac ) {
-			$( '#audiooutput' ).val( G.usbdac );
-		} else {
-			$( '#audiooutput option' ).filter( function() {
-				var $this = $( this );
-				return $this.text() === G.audiooutput && $this.val() === G.audioaplayname;
-			} ).prop( 'selected', true );
-		}
-		if ( $( '#audiooutput option:selected' ).data( 'hwmixer' ) ) {
-			var mixerhtml =  '<option value="none">Disable</option>'
-							+'<option value="hardware">DAC hardware</option>'
-							+'<option value="software">MPD software</option>';
-			$( '#hwmixertxt' ).show();
-		} else {
-			var mixerhtml =  '<option value="none">Disable</option>'
-							+'<option value="software">MPD software</option>';
-			$( '#hwmixertxt' ).hide();
-		}
-		var $selected = $( '#audiooutput option:selected' );
-		$( '#mixertype' ).html( mixerhtml ).val( $selected.data( 'mixertype' ) );
-		$( '#audiooutput, #mixertype' ).selectric( 'refresh' );
-		if ( $( '#mixertype' ).val() === 'hardware' && $selected.data( 'mixercount' ) > 1 ) {
-			$( '.hwmixer' ).removeClass( 'hide' );
-		} else {
-			$( '.hwmixer' ).addClass( 'hide' );
-		}
-		$( '#divmixer' ).toggleClass( 'hide', $selected.data( 'hwmixer' ) === '' );
-		var $selected = $( '#audiooutput option:selected' );
-		if ( $( '#mixertype' ).val() === 'none'
-			&& G.crossfade === 0
-			&& G.normalization === false
-			&& G.replaygain === 'off'
-		) {
-			G.novolume = true;
-		} else {
-			G.novolume = false;
-		}
-		$( '#novolume' ).prop( 'checked', G.novolume );
-		$( '#divdop' ).toggleClass( 'hide', $selected.val().slice( 0, 7 ) === 'bcm2835' );
-		$( '#dop' ).prop( 'checked', $selected.data( 'dop' ) );
-		$( '#crossfade' ).prop( 'checked', G.crossfade > 0 );
-		$( '#setting-crossfade' ).toggleClass( 'hide', G.crossfade === 0 );
-		$( '#normalization' ).prop( 'checked', G.normalization );
-		$( '#replaygain' ).prop( 'checked', G.replaygain !== 'off' );
-		$( '#setting-replaygain' ).toggleClass( 'hide', G.replaygain === 'off' );
-		$( '#autoupdate' ).prop( 'checked', G.autoupdate );
-		$( '#buffer' ).prop( 'checked', G.buffer > 4096 );
-		$( '#setting-buffer' ).toggleClass( 'hide', G.buffer === '' );
-		$( '#ffmpeg' ).prop( 'checked', G.ffmpeg );
-		if ( !$( '#codeaplay' ).hasClass( 'hide' ) ) getAplay();
-		if ( !$( '#codestatus' ).hasClass( 'hide' ) ) getStatus();
-		if ( !$( '#codempdconf' ).hasClass( 'hide' ) ) getMpdconf();
-		if ( !$( '#codeamixer' ).hasClass( 'hide' ) ) getAmixer();
-		if ( !$( '#codestatus' ).hasClass( 'hide' ) ) getStatus();
-		if ( !$( '#codempdconf' ).hasClass( 'hide' ) ) getMpdconf();
-		resetLocal();
-		showContent();
-	}, 'json' );
-}
-refreshData();
 
 } ); // document ready end <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<

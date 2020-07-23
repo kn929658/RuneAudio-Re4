@@ -1,5 +1,115 @@
 $( function() { // document ready start >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
+function getMounts() {
+	bash( 'mount | grep " / \\|MPD"', function( status ) {
+		$( '#codemount' )
+			.html( status )
+			.removeClass( 'hide' );
+	} );
+}
+function getFstab() {
+	bash( 'cat /etc/fstab', function( status ) {
+		$( '#codefstab' )
+			.html( status )
+			.removeClass( 'hide' );
+	} );
+}
+function infoMount( formdata, cifs ) {
+	info( {
+		  icon    : 'network'
+		, title   : 'Mount Share'
+		, content : html
+		, preshow : function() {
+			if ( $.isEmptyObject( formdata ) ) {
+				$( '#infoRadio input' ).eq( 0 ).prop( 'checked', 1 );
+				$( '#infotextbox input:eq( 1 )' ).val( '192.168.1.' );
+			} else {
+				if ( formdata.protocol === 'cifs' ) {
+					$( '#infoRadio input' ).eq( 0 ).prop( 'checked', 1 );
+					$( '#infotextbox input:eq( 3 )' ).val( formdata.user );
+					$( '#infotextbox input:eq( 4 )' ).val( formdata.password );
+				} else {
+					$( '#infoRadio input' ).eq( 1 ).prop( 'checked', 1 );
+					$( '.guest' ).addClass( 'hide' );
+				}
+				$( '#infotextbox input:eq( 0 )' ).val( formdata.name );
+				$( '#infotextbox input:eq( 1 )' ).val( formdata.ip );
+				$( '#infotextbox input:eq( 2 )' ).val( formdata.directory );
+				$( '#infotextbox input:eq( 5 )' ).val( formdata.options );
+			}
+			if ( cifs ) $( '#infoRadio' ).hide();
+		}
+		, ok      : function() {
+			var formmount = $( '#formmount' ).serializeArray();
+			var data = {};
+			$.map( formmount, function( val ) {
+				data[ val[ 'name' ] ] = val[ 'value' ];
+			});
+			var mountpoint = data.name;
+			var directory = data.directory.replace( /^\//, '' );
+			if ( data.protocol === 'cifs' ) {
+				var options = 'noauto';
+				options += ( !data.user ) ? ',username=guest,password=' : ',username='+ data.user +',password='+ data.password;
+				options += ',uid='+ $( '#list' ).data( 'uid' ) +',gid='+ $( '#list' ).data( 'gid' ) +',iocharset=utf8';
+				options += data.options ? ','+ data.options : '';
+				var device = '//'+ data.ip +'/'+ directory;
+			} else {
+				var options = 'defaults,noauto,bg,soft,timeo=5';
+				options += data.options ? ','+ data.options : '';
+				var device = data.ip +':/'+ directory;
+			}
+			banner( 'Network Mount', 'Mount ...', 'network' );
+			bash( [ 'mount', mountpoint, data.ip, device, data.protocol, options ], function( std ) {
+				if ( std !== 0 ) {
+					formdata = data;
+					info( {
+						  icon    : 'network'
+						, title   : 'Mount Share'
+						, message : std
+						, ok      : function() {
+							infoMount( formdata );
+						}
+					} );
+				} else {
+					refreshData();
+					formdata = {}
+				}
+				$( '#refreshing' ).addClass( 'hide' );
+			}, 'json' );
+			$( '#refreshing' ).removeClass( 'hide' );
+		}
+	} );
+}
+
+refreshData = function() {
+	$( '#refreshing' ).removeClass( 'hide' );
+	bash( '/srv/http/bash/sources-data.sh', function( list ) {
+		reboot = list.pop();
+		G.reboot = reboot ? reboot.split( '\n' ) : [];
+		var html = '';
+		$.each( list, function( i, val ) {
+			if ( val.mounted ) {
+				var dataunmounted = '';
+				var dot = '<grn>&ensp;&bull;&ensp;</grn>';
+			} else {
+				var dataunmounted = ' data-unmounted="1"';
+				var dot = '<red>&ensp;&bull;&ensp;</red>';
+			}
+			html += '<li '+ dataunmounted;
+			html += '><i class="fa fa-'+ val.icon +'"></i><wh class="mountpoint">'+ val.mountpoint +'</wh>'+ dot
+			html += '<gr class="source">'+ val.source +'</gr>';
+			html +=  val.size ? '&ensp;'+ val.size +'</li>' : '</li>';
+		} );
+		$( '#list' ).html( html );
+		$( '#refreshing' ).addClass( 'hide' );
+		if ( !$( '#codemount' ).hasClass( 'hide' ) ) getMounts();
+		if ( !$( '#codefstab' ).hasClass( 'hide' ) ) getFstab();
+		resetLocal();
+		showContent();
+	}, 'json' );
+}
+refreshData();
+//---------------------------------------------------------------------------------------
 var formdata = {}
 var html = heredoc( function() { /*
 	<form id="formmount">
@@ -136,115 +246,5 @@ $( '#mount' ).click( function( e ) {
 $( '#fstab' ).click( function( e ) {
 	codeToggle( e.target, this.id, getFstab );
 } );
-
-function getMounts() {
-	bash( 'mount | grep " / \\|MPD"', function( status ) {
-		$( '#codemount' )
-			.html( status )
-			.removeClass( 'hide' );
-	} );
-}
-function getFstab() {
-	bash( 'cat /etc/fstab', function( status ) {
-		$( '#codefstab' )
-			.html( status )
-			.removeClass( 'hide' );
-	} );
-}
-function infoMount( formdata, cifs ) {
-	info( {
-		  icon    : 'network'
-		, title   : 'Mount Share'
-		, content : html
-		, preshow : function() {
-			if ( $.isEmptyObject( formdata ) ) {
-				$( '#infoRadio input' ).eq( 0 ).prop( 'checked', 1 );
-				$( '#infotextbox input:eq( 1 )' ).val( '192.168.1.' );
-			} else {
-				if ( formdata.protocol === 'cifs' ) {
-					$( '#infoRadio input' ).eq( 0 ).prop( 'checked', 1 );
-					$( '#infotextbox input:eq( 3 )' ).val( formdata.user );
-					$( '#infotextbox input:eq( 4 )' ).val( formdata.password );
-				} else {
-					$( '#infoRadio input' ).eq( 1 ).prop( 'checked', 1 );
-					$( '.guest' ).addClass( 'hide' );
-				}
-				$( '#infotextbox input:eq( 0 )' ).val( formdata.name );
-				$( '#infotextbox input:eq( 1 )' ).val( formdata.ip );
-				$( '#infotextbox input:eq( 2 )' ).val( formdata.directory );
-				$( '#infotextbox input:eq( 5 )' ).val( formdata.options );
-			}
-			if ( cifs ) $( '#infoRadio' ).hide();
-		}
-		, ok      : function() {
-			var formmount = $( '#formmount' ).serializeArray();
-			var data = {};
-			$.map( formmount, function( val ) {
-				data[ val[ 'name' ] ] = val[ 'value' ];
-			});
-			var mountpoint = data.name;
-			var directory = data.directory.replace( /^\//, '' );
-			if ( data.protocol === 'cifs' ) {
-				var options = 'noauto';
-				options += ( !data.user ) ? ',username=guest,password=' : ',username='+ data.user +',password='+ data.password;
-				options += ',uid='+ $( '#list' ).data( 'uid' ) +',gid='+ $( '#list' ).data( 'gid' ) +',iocharset=utf8';
-				options += data.options ? ','+ data.options : '';
-				var device = '//'+ data.ip +'/'+ directory;
-			} else {
-				var options = 'defaults,noauto,bg,soft,timeo=5';
-				options += data.options ? ','+ data.options : '';
-				var device = data.ip +':/'+ directory;
-			}
-			banner( 'Network Mount', 'Mount ...', 'network' );
-			bash( [ 'mount', mountpoint, data.ip, device, data.protocol, options ], function( std ) {
-				if ( std !== 0 ) {
-					formdata = data;
-					info( {
-						  icon    : 'network'
-						, title   : 'Mount Share'
-						, message : std
-						, ok      : function() {
-							infoMount( formdata );
-						}
-					} );
-				} else {
-					refreshData();
-					formdata = {}
-				}
-				$( '#refreshing' ).addClass( 'hide' );
-			}, 'json' );
-			$( '#refreshing' ).removeClass( 'hide' );
-		}
-	} );
-}
-
-refreshData = function() {
-	$( '#refreshing' ).removeClass( 'hide' );
-	bash( '/srv/http/bash/sources-data.sh', function( list ) {
-		reboot = list.pop();
-		G.reboot = reboot ? reboot.split( '\n' ) : [];
-		var html = '';
-		$.each( list, function( i, val ) {
-			if ( val.mounted ) {
-				var dataunmounted = '';
-				var dot = '<grn>&ensp;&bull;&ensp;</grn>';
-			} else {
-				var dataunmounted = ' data-unmounted="1"';
-				var dot = '<red>&ensp;&bull;&ensp;</red>';
-			}
-			html += '<li '+ dataunmounted;
-			html += '><i class="fa fa-'+ val.icon +'"></i><wh class="mountpoint">'+ val.mountpoint +'</wh>'+ dot
-			html += '<gr class="source">'+ val.source +'</gr>';
-			html +=  val.size ? '&ensp;'+ val.size +'</li>' : '</li>';
-		} );
-		$( '#list' ).html( html );
-		$( '#refreshing' ).addClass( 'hide' );
-		if ( !$( '#codemount' ).hasClass( 'hide' ) ) getMounts();
-		if ( !$( '#codefstab' ).hasClass( 'hide' ) ) getFstab();
-		resetLocal();
-		showContent();
-	}, 'json' );
-}
-refreshData();
 
 } ); // document ready end <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<

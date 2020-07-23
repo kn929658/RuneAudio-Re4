@@ -1,267 +1,5 @@
 $( function() { // document ready start >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-var accesspoint = $( '#accesspoint' ).length;
-
-$( '.back' ).click( function() {
-	G.wlcurrent = '';
-	clearTimeout( intervalscan );
-	$( '#divinterface, #divwebui, #divaccesspoint' ).removeClass( 'hide' );
-	$( '#divwifi, #divbluetooth' ).addClass( 'hide' );
-	$( '#listwifi, #listbt' ).empty();
-	nicsStatus();
-	if ( 'bluetooth' in G ) bash( 'bluetoothctl scan off' );
-} );
-$( '#listinterfaces' ).on( 'click', 'li', function() {
-	var $this = $( this );
-	G.wlcurrent = $this.prop( 'class' );
-	if ( G.wlcurrent !== 'eth0' ) {
-		if ( G.wlcurrent !== 'bt' ) {
-			if ( G.hostapd && G.wlcurrent === 'wlan0' ) {
-				info( {
-					  icon    : 'wifi-3'
-					, title   : 'Wi-Fi'
-					, message : 'Access Point must be disabled.'
-				} );
-				return
-			} else {
-				wlanStatus();
-			}
-		} else {
-			bash( 'bluetoothctl scan on' );
-			btStatus();
-		}
-	} else {
-		if ( !$this.find( 'grn' ).length ) return
-		
-		editLAN( {
-			  ip      : $this.data( 'ip' ) || ''
-			, gateway : $this.data( 'gateway' ) || ''
-			, dhcp    : $this.data( 'dhcp' )
-		} );
-		$( '#infoCheckBox' ).on( 'click', 'input', function() {
-			$( '#infoText' ).toggle( $( this ).prop( 'checked' ) );
-		} );
-	}
-} );
-$( '#listwifi' ).on( 'click', 'li', function( e ) {
-	var $this = $( this );
-	var connected = $this.data( 'connected' );
-	var profile = $this.data( 'profile' ) || connected;
-	var ssid = $this.data( 'ssid' );
-	var ip = $this.data( 'ip' );
-	var gw = $this.data( 'gateway' );
-	var wpa = $this.data( 'wpa' ) || 'wep';
-	var dhcp = $this.data( 'dhcp' );
-	var encrypt = $this.data( 'encrypt' ) === 'on';
-	var password = $this.data( 'password' );
-	if ( !profile ) {
-		if ( encrypt ) {
-			info( {
-				  icon          : 'wifi-3'
-				, title         : ssid
-				, passwordlabel : 'Password'
-				, oklabel       : 'Connect'
-				, ok            : function() {
-					connect( [ ssid, 'dhcp', wpa, $( '#infoPasswordBox' ).val() ] );
-				}
-			} );
-		} else {
-			connect( [ ssid, 'dhcp' ] );
-		}
-		return
-	}
-	
-	info( {
-		  icon        : 'wifi-3'
-		, title       : ssid
-		, message     : !connected ? 'Saved connection' : '<div class="colL">'
-				+ ( dhcp === 'dhcp' ? 'DHCP IP' : 'Static IP' ) +'<br>'
-				+'Gateway :'
-			+'</div>'
-			+'<div class="colR wh" style="text-align: left;">'
-				+ ip +'<br>'
-				+ gw
-			+'</div>'
-		, buttonwidth : 1
-		, buttonlabel : [
-			  '<i class="fa fa-minus-circle"></i> Forget'
-			, '<i class="fa fa-edit-circle"></i> IP'
-		]
-		, buttoncolor : [
-			  '#bb2828'
-			, ''
-		]
-		, button      : [
-			  function() {
-				clearTimeout( intervalscan );
-				banner( ssid, 'Forget ...', 'wifi-3' );
-				bash( [ 'disconnect', G.wlcurrent, ssid ], refreshData );
-			}
-			, function() {
-				if ( connected ) {
-					var data = {
-						  Address  : ip
-						, Gateway  : gw
-						, Security : wpa
-						, Key      : password
-						, dhcp     : dhcp
-					}
-					editWiFi( ssid, data );
-				} else {
-					editWiFi( ssid, 0 );
-				}
-			}
-		]
-		, oklabel : connected ? 'Disconnect' : 'Connect'
-		, okcolor : connected ? '#de810e' : ''
-		, ok      : function() {
-			clearTimeout( intervalscan );
-			banner( ssid, connected ? 'Disconnect ...' : 'Connect ...', 'wifi-3 blink' );
-			if ( connected ) {
-				bash( [ 'disconnect', G.wlcurrent ], refreshData );
-			} else {
-				connect( [ ssid ] );
-			}
-		}
-	} );
-} );
-$( '#add' ).click( function() {
-	editWiFi();
-} );
-$( '#listbt' ).on( 'click', 'li', function( e ) {
-	$this = $( this );
-	var mac = $this.data( 'mac' );
-	var name = '<wh>'+ $this.find( '.liname' ).text() +'</wh>';
-	var connected = $this.data( 'connected' ) === 'yes';
-	if ( $( e.target ).hasClass( 'fa-edit-circle' ) ) {
-		var jsoninfo = {
-			  icon        : 'bluetooth'
-			, title       : 'Bluetooth'
-			, message     : name
-			, buttonlabel : '<i class="fa fa-minus-circle"></i>Remove'
-			, buttoncolor : '#bb2828'
-			, buttonwidth : 1
-			, button      : function() {
-				$this.remove();
-				bash( 'bluetoothctl remove '+ mac );
-			}
-		}
-		if ( connected ) {
-			jsoninfo.oklabel = 'Disconnect';
-			jsoninfo.ok      = function() {
-				$this.find( 'grn' ).remove();
-				bash( 'bluetoothctl disconnect '+ mac );
-			}
-		} else {
-			jsoninfo.oklabel = 'Connect';
-			jsoninfo.ok      = function() {
-				bash( 'bluetoothctl connect '+ mac, btScan );
-			}
-		}
-		info( jsoninfo );
-		return
-	}
-	
-	if ( connected ) {
-		info( {
-			  icon    : 'bluetooth'
-			, title   : 'Bluetooth'
-			, message : 'Disconnect <wh>'+ name +'</wh> ?'
-			, oklabel : 'Disconnect'
-			, ok      : function() {
-				$this.find( 'grn' ).remove();
-				banner( 'Bluetooth', 'Disonnect ...', 'bluetooth' );
-				bash( 'bluetoothctl disconnect '+ mac );
-			}
-		} );
-	} else {
-		if ( $this.find( 'fa-edit-circle' ).length ) {
-			banner( 'Bluetooth', 'Connect ...', 'bluetooth' );
-			bash( 'bluetoothctl connect '+ mac, btScan );
-		} else {
-			banner( 'Bluetooth', 'Pair ...', 'bluetooth' );
-			bash( [ 'btconnect', mac ], function( data ) {
-				if ( data != -1 ) {
-					notify( 'Bluetooth', name +' paired', 'bluetooth' );
-				} else {
-					info( {
-						  icon      : 'bluetooth'
-						, title     : 'Bluetooth'
-						, message   : 'Pair '+ name +' failed'
-					} );
-				}
-				btScan();
-			} );
-		}
-	}
-} );
-$( '#accesspoint' ).change( function() {
-	if ( !$( '#divinterface li.wlan0' ).length ) {
-		info( {
-			  icon    : 'wifi-3'
-			, title   : 'Wi-Fi'
-			, message : 'Wi-Fi device not available.'
-					   +'<br>Enable in Sysytem settings.'
-		} );
-		$( this ).prop( 'checked', 0 );
-		return
-	}
-	
-	hostapd = $( this ).prop( 'checked' );
-	if ( hostapd ) {
-		if ( $( '#divinterface li.wlan0' ).data( 'gateway' ) ) {
-			info( {
-				  icon    : 'network'
-				, title   : 'Access Point'
-				, message : 'Wi-Fi wlan0 must be disconnected.'
-			} );
-			$( this ).prop( 'checked', 0 );
-			return
-		}
-		
-	} else {
-		$( '#boxqr, #settings-accesspoint' ).addClass( 'hide' );
-	}
-	G.hostapd = hostapd;
-	banner( 'RPi Access Point', G.hostapd, 'wifi-3' );
-	bash( [ 'accesspoint', G.hostapd, G.hostapdip ], refreshData );
-} );
-$( '#settings-accesspoint' ).click( function() {
-	info( {
-		  icon      : 'network'
-		, title     : 'Access Point Settings'
-		, message   : 'Password - at least 8 characters'
-		, textlabel : [ 'Password', 'IP' ]
-		, textvalue : [ G.passphrase, G.hostapdip ]
-		, textrequired : [ 0, 1 ]
-		, ok      : function() {
-			var ip = $( '#infoTextBox1' ).val();
-			var passphrase = $( '#infoTextBox' ).val();
-			if ( ip === G.hostapdip && passphrase === G.passphrase ) return
-			
-			if ( passphrase.length < 8 ) {
-				info( 'Password must be at least 8 characters.' );
-				return
-			}
-			
-			G.hostapdip = ip;
-			G.passphrase = passphrase;
-			var ips = ip.split( '.' );
-			var ip3 = ips.pop();
-			var ip012 = ips.join( '.' );
-			var iprange = ip012 +'.'+ ( +ip3 + 1 ) +','+ ip012 +'.254,24h';
-			banner( 'RPi Access Point', 'Change ...', 'wifi-3' );
-			bash( [ 'accesspointset', iprange, ip, passphrase ], refreshData );
-		}
-	} );
-} );
-$( '#ifconfig' ).click( function( e ) {
-	codeToggle( e.target, this.id, getIfconfig );
-} );
-$( '#netctl' ).click( function( e ) {
-	codeToggle( e.target, this.id, getNetctl );
-} );
-
 function btRender( data ) {
 	var html = '';
 	data.forEach( function( list ) {
@@ -608,5 +346,266 @@ refreshData = function() {
 	resetLocal();
 }
 refreshData();
+//---------------------------------------------------------------------------------------
+var accesspoint = $( '#accesspoint' ).length;
+$( '.back' ).click( function() {
+	G.wlcurrent = '';
+	clearTimeout( intervalscan );
+	$( '#divinterface, #divwebui, #divaccesspoint' ).removeClass( 'hide' );
+	$( '#divwifi, #divbluetooth' ).addClass( 'hide' );
+	$( '#listwifi, #listbt' ).empty();
+	nicsStatus();
+	if ( 'bluetooth' in G ) bash( 'bluetoothctl scan off' );
+} );
+$( '#listinterfaces' ).on( 'click', 'li', function() {
+	var $this = $( this );
+	G.wlcurrent = $this.prop( 'class' );
+	if ( G.wlcurrent !== 'eth0' ) {
+		if ( G.wlcurrent !== 'bt' ) {
+			if ( G.hostapd && G.wlcurrent === 'wlan0' ) {
+				info( {
+					  icon    : 'wifi-3'
+					, title   : 'Wi-Fi'
+					, message : 'Access Point must be disabled.'
+				} );
+				return
+			} else {
+				wlanStatus();
+			}
+		} else {
+			bash( 'bluetoothctl scan on' );
+			btStatus();
+		}
+	} else {
+		if ( !$this.find( 'grn' ).length ) return
+		
+		editLAN( {
+			  ip      : $this.data( 'ip' ) || ''
+			, gateway : $this.data( 'gateway' ) || ''
+			, dhcp    : $this.data( 'dhcp' )
+		} );
+		$( '#infoCheckBox' ).on( 'click', 'input', function() {
+			$( '#infoText' ).toggle( $( this ).prop( 'checked' ) );
+		} );
+	}
+} );
+$( '#listwifi' ).on( 'click', 'li', function( e ) {
+	var $this = $( this );
+	var connected = $this.data( 'connected' );
+	var profile = $this.data( 'profile' ) || connected;
+	var ssid = $this.data( 'ssid' );
+	var ip = $this.data( 'ip' );
+	var gw = $this.data( 'gateway' );
+	var wpa = $this.data( 'wpa' ) || 'wep';
+	var dhcp = $this.data( 'dhcp' );
+	var encrypt = $this.data( 'encrypt' ) === 'on';
+	var password = $this.data( 'password' );
+	if ( !profile ) {
+		if ( encrypt ) {
+			info( {
+				  icon          : 'wifi-3'
+				, title         : ssid
+				, passwordlabel : 'Password'
+				, oklabel       : 'Connect'
+				, ok            : function() {
+					connect( [ ssid, 'dhcp', wpa, $( '#infoPasswordBox' ).val() ] );
+				}
+			} );
+		} else {
+			connect( [ ssid, 'dhcp' ] );
+		}
+		return
+	}
+	
+	info( {
+		  icon        : 'wifi-3'
+		, title       : ssid
+		, message     : !connected ? 'Saved connection' : '<div class="colL">'
+				+ ( dhcp === 'dhcp' ? 'DHCP IP' : 'Static IP' ) +'<br>'
+				+'Gateway :'
+			+'</div>'
+			+'<div class="colR wh" style="text-align: left;">'
+				+ ip +'<br>'
+				+ gw
+			+'</div>'
+		, buttonwidth : 1
+		, buttonlabel : [
+			  '<i class="fa fa-minus-circle"></i> Forget'
+			, '<i class="fa fa-edit-circle"></i> IP'
+		]
+		, buttoncolor : [
+			  '#bb2828'
+			, ''
+		]
+		, button      : [
+			  function() {
+				clearTimeout( intervalscan );
+				banner( ssid, 'Forget ...', 'wifi-3' );
+				bash( [ 'disconnect', G.wlcurrent, ssid ], refreshData );
+			}
+			, function() {
+				if ( connected ) {
+					var data = {
+						  Address  : ip
+						, Gateway  : gw
+						, Security : wpa
+						, Key      : password
+						, dhcp     : dhcp
+					}
+					editWiFi( ssid, data );
+				} else {
+					editWiFi( ssid, 0 );
+				}
+			}
+		]
+		, oklabel : connected ? 'Disconnect' : 'Connect'
+		, okcolor : connected ? '#de810e' : ''
+		, ok      : function() {
+			clearTimeout( intervalscan );
+			banner( ssid, connected ? 'Disconnect ...' : 'Connect ...', 'wifi-3 blink' );
+			if ( connected ) {
+				bash( [ 'disconnect', G.wlcurrent ], refreshData );
+			} else {
+				connect( [ ssid ] );
+			}
+		}
+	} );
+} );
+$( '#add' ).click( function() {
+	editWiFi();
+} );
+$( '#listbt' ).on( 'click', 'li', function( e ) {
+	$this = $( this );
+	var mac = $this.data( 'mac' );
+	var name = '<wh>'+ $this.find( '.liname' ).text() +'</wh>';
+	var connected = $this.data( 'connected' ) === 'yes';
+	if ( $( e.target ).hasClass( 'fa-edit-circle' ) ) {
+		var jsoninfo = {
+			  icon        : 'bluetooth'
+			, title       : 'Bluetooth'
+			, message     : name
+			, buttonlabel : '<i class="fa fa-minus-circle"></i>Remove'
+			, buttoncolor : '#bb2828'
+			, buttonwidth : 1
+			, button      : function() {
+				$this.remove();
+				bash( 'bluetoothctl remove '+ mac );
+			}
+		}
+		if ( connected ) {
+			jsoninfo.oklabel = 'Disconnect';
+			jsoninfo.ok      = function() {
+				$this.find( 'grn' ).remove();
+				bash( 'bluetoothctl disconnect '+ mac );
+			}
+		} else {
+			jsoninfo.oklabel = 'Connect';
+			jsoninfo.ok      = function() {
+				bash( 'bluetoothctl connect '+ mac, btScan );
+			}
+		}
+		info( jsoninfo );
+		return
+	}
+	
+	if ( connected ) {
+		info( {
+			  icon    : 'bluetooth'
+			, title   : 'Bluetooth'
+			, message : 'Disconnect <wh>'+ name +'</wh> ?'
+			, oklabel : 'Disconnect'
+			, ok      : function() {
+				$this.find( 'grn' ).remove();
+				banner( 'Bluetooth', 'Disonnect ...', 'bluetooth' );
+				bash( 'bluetoothctl disconnect '+ mac );
+			}
+		} );
+	} else {
+		if ( $this.find( 'fa-edit-circle' ).length ) {
+			banner( 'Bluetooth', 'Connect ...', 'bluetooth' );
+			bash( 'bluetoothctl connect '+ mac, btScan );
+		} else {
+			banner( 'Bluetooth', 'Pair ...', 'bluetooth' );
+			bash( [ 'btconnect', mac ], function( data ) {
+				if ( data != -1 ) {
+					notify( 'Bluetooth', name +' paired', 'bluetooth' );
+				} else {
+					info( {
+						  icon      : 'bluetooth'
+						, title     : 'Bluetooth'
+						, message   : 'Pair '+ name +' failed'
+					} );
+				}
+				btScan();
+			} );
+		}
+	}
+} );
+$( '#accesspoint' ).change( function() {
+	if ( !$( '#divinterface li.wlan0' ).length ) {
+		info( {
+			  icon    : 'wifi-3'
+			, title   : 'Wi-Fi'
+			, message : 'Wi-Fi device not available.'
+					   +'<br>Enable in Sysytem settings.'
+		} );
+		$( this ).prop( 'checked', 0 );
+		return
+	}
+	
+	hostapd = $( this ).prop( 'checked' );
+	if ( hostapd ) {
+		if ( $( '#divinterface li.wlan0' ).data( 'gateway' ) ) {
+			info( {
+				  icon    : 'network'
+				, title   : 'Access Point'
+				, message : 'Wi-Fi wlan0 must be disconnected.'
+			} );
+			$( this ).prop( 'checked', 0 );
+			return
+		}
+		
+	} else {
+		$( '#boxqr, #settings-accesspoint' ).addClass( 'hide' );
+	}
+	G.hostapd = hostapd;
+	banner( 'RPi Access Point', G.hostapd, 'wifi-3' );
+	bash( [ 'accesspoint', G.hostapd, G.hostapdip ], refreshData );
+} );
+$( '#settings-accesspoint' ).click( function() {
+	info( {
+		  icon      : 'network'
+		, title     : 'Access Point Settings'
+		, message   : 'Password - at least 8 characters'
+		, textlabel : [ 'Password', 'IP' ]
+		, textvalue : [ G.passphrase, G.hostapdip ]
+		, textrequired : [ 0, 1 ]
+		, ok      : function() {
+			var ip = $( '#infoTextBox1' ).val();
+			var passphrase = $( '#infoTextBox' ).val();
+			if ( ip === G.hostapdip && passphrase === G.passphrase ) return
+			
+			if ( passphrase.length < 8 ) {
+				info( 'Password must be at least 8 characters.' );
+				return
+			}
+			
+			G.hostapdip = ip;
+			G.passphrase = passphrase;
+			var ips = ip.split( '.' );
+			var ip3 = ips.pop();
+			var ip012 = ips.join( '.' );
+			var iprange = ip012 +'.'+ ( +ip3 + 1 ) +','+ ip012 +'.254,24h';
+			banner( 'RPi Access Point', 'Change ...', 'wifi-3' );
+			bash( [ 'accesspointset', iprange, ip, passphrase ], refreshData );
+		}
+	} );
+} );
+$( '#ifconfig' ).click( function( e ) {
+	codeToggle( e.target, this.id, getIfconfig );
+} );
+$( '#netctl' ).click( function( e ) {
+	codeToggle( e.target, this.id, getNetctl );
+} );
 
 } );

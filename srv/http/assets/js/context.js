@@ -509,7 +509,7 @@ function tagEditor() {
 	}
 	if ( cue ) query.track = G.list.track || 'cover';
 	if ( G.playlist ) query.coverart = 1;
-	$.post( 'mpdlibrary.php', query, function( value ) {
+	list( 'library', query, function( value ) {
 		var label = [];
 		format.forEach( function( el, i ) {
 			label.push( '<i class="fa fa-'+ el +' wh" data-mode="'+ el +'"></i>' );
@@ -558,7 +558,7 @@ function tagEditor() {
 						, format : [ 'file' ]
 					}
 					$( '#tab-library' ).click();
-					$.post( 'mpdlibrary.php', query, function( data ) {
+					list( 'library', query, function( data ) {
 						G.mode = 'file';
 						data.path = path;
 						data.modetitle = path;
@@ -606,7 +606,7 @@ function tagEditor() {
 						$( '#tab-library' ).click();
 						G.query = [ 'playlist', 'playlist', query ];
 					}
-					$.post( 'mpdlibrary.php', query, function( data ) {
+					list( 'library', query, function( data ) {
 						data.path = path;
 						data.modetitle = mode.toUpperCase();
 						if ( mode !== 'album' ) {

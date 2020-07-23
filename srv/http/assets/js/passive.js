@@ -204,7 +204,7 @@ function psMpdUpdate( data ) {
 		if ( $( '.licover' ).length ) {
 			$( '#loader' ).removeClass( 'hide' );
 			var query = G.query[ G.query.length - 1 ];
-			$.post( 'mpdlibrary.php', query, function( data ) {
+			list( 'library', query, function( data ) {
 				data.path = query.path;
 				data.modetitle = query.modetitle;
 				renderLibraryList( data );

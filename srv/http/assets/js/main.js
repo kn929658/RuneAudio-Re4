@@ -353,14 +353,14 @@ $( '#power' ).click( function( e ) {
 		, buttoncolor : '#de810e'
 		, button      : function() {
 			$( '#stop' ).click();
-			sh( [ 'reboot' ] );
+			bash( [ 'reboot' ] );
 			notify( 'Power', 'Reboot ...', 'reboot blink', -1 );
 		}
 		, oklabel     : '<i class="fa fa-power"></i>Off'
 		, okcolor     : '#bb2828'
 		, ok          : function() {
 			$( '#stop' ).click();
-			sh( [ 'reboot', 'off' ] );
+			bash( [ 'reboot', 'off' ] );
 			$( '#loader' )
 				.css( 'background', '#000000' )
 				.find( 'svg' ).css( 'animation', 'unset' );
@@ -380,7 +380,7 @@ $( '#addons' ).click( function ( e ) {
 		return
 	}
 	
-	sh( [ 'addonslist' ], function( std ) {
+	bash( [ 'addonslist' ], function( std ) {
 		if ( std != 0 ) {
 			info( {
 				  icon    : 'info-circle'
@@ -419,11 +419,11 @@ $( '#colorok' ).click( function() {
 	if ( hsl === G.display.color ) {
 		$( '#colorcancel' ).click();
 	} else {
-		sh( [ 'color', hsl ] );
+		bash( [ 'color', hsl ] );
 	}
 } );
 $( '#colorreset' ).click( function() {
-	sh( [ 'color', 'reset' ] );
+	bash( [ 'color', 'reset' ] );
 } );
 $( '#colorcancel' ).click( function() {
 	G.color = 0;
@@ -614,7 +614,7 @@ $( '#volume' ).roundSlider( {
 			G.local = 1;
 			$( '#volume' ).addClass( 'disabled' );
 			//setTimeout( function() { G.local = 0 }, 300 );
-			sh( [ 'volume', G.status.volume, e.value ], function() {
+			bash( [ 'volume', G.status.volume, e.value ], function() {
 				G.local = 0;
 				G.status.volume = e.value;
 				$( '#volume' ).removeClass( 'disabled' );
@@ -644,7 +644,7 @@ $( '#volmute' ).click( function() {
 	}
 	G.local = 1;
 	$( '#vol-group .btn, .volmap' ).addClass( 'disabled' );
-	sh( [ 'volume', vol ], function() {
+	bash( [ 'volume', vol ], function() {
 		G.local = 0;
 		$( '#vol-group .btn, .volmap' ).removeClass( 'disabled' );
 	} );
@@ -986,7 +986,7 @@ $( '.btn-cmd' ).click( function() {
 					$( '#loader' ).removeClass( 'hide' );
 				}, 300 );
 			}
-			sh( [ 'mpcprevnext', cmd, G.status.song + 1, length ], function() {
+			bash( [ 'mpcprevnext', cmd, G.status.song + 1, length ], function() {
 				clearTimeout( prevnext );
 			} );
 		}
@@ -996,7 +996,7 @@ $( '.btn-cmd' ).click( function() {
 		} );
 	}
 	// for gpio
-	if ( $( '#gpio' ).hasClass( 'on' ) && command === 'mpc play' ) sh( [ 'gpiotimerreset' ] );
+	if ( $( '#gpio' ).hasClass( 'on' ) && command === 'mpc play' ) bash( [ 'gpiotimerreset' ] );
 } );
 $( '#biocontent' ).on( 'click', '.biosimilar', function() {
 	getBio( $( this ).text() );
@@ -1728,7 +1728,7 @@ $( '#button-pl-random' ).click( function() {
 		G.status.librandom = false;
 		$( this ).removeClass( 'bl' );
 		notify( 'Roll The Dice', 'Off ...', 'dice' );
-		sh( [ 'plrandom', false ] );
+		bash( [ 'plrandom', false ] );
 	} else {
 		info( {
 			  icon    : 'dice'
@@ -1738,7 +1738,7 @@ $( '#button-pl-random' ).click( function() {
 				G.status.librandom = true;
 				$( this ).addClass( 'bl' );
 				notify( 'Roll The Dice', 'Add+play ...', 'dice' );
-				sh( [ 'plrandom', true ] );
+				bash( [ 'plrandom', true ] );
 			}
 		} );
 	}
@@ -1751,7 +1751,7 @@ $( '#button-pl-shuffle' ).click( function() {
 		, title   : 'Shuffle Playlist'
 		, message : 'Shuffle all tracks in playlist?'
 		, ok      : function() {
-			sh( [ 'plshuffle' ] );
+			bash( [ 'plshuffle' ] );
 		}
 	} );
 } );
@@ -1768,7 +1768,7 @@ $( '#button-pl-crop' ).click( function() {
 				G.local = 1;
 				setTimeout( function() { G.local = 0 }, 300 );
 			}
-			sh( [ 'plcrop' ] );
+			bash( [ 'plcrop' ] );
 		}
 	} );
 } );
@@ -1834,7 +1834,7 @@ var sortableplaylist = new Sortable( document.getElementById( 'pl-list' ), {
 		}
 		G.sortable = 1;
 		setTimeout( function() { G.sortable = 0 }, 500 );
-		sh( [ 'plorder', ( e.oldIndex + 1 ), ( e.newIndex + 1 ) ], function() {
+		bash( [ 'plorder', ( e.oldIndex + 1 ), ( e.newIndex + 1 ) ], function() {
 			setTimeout( setPlaylistScroll, 600 );
 		} );
 	}

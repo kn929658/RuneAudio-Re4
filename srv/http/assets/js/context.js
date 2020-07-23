@@ -29,7 +29,7 @@ $( '.contextmenu a' ).click( function( e ) {
 			.removeClass( 'fa-folder' )
 			.addClass( 'fa-refresh-library blink' );
 		if ( G.list.path.slice( -3 ) === 'cue' ) G.list.path = G.list.path.substr( 0, G.list.path.lastIndexOf( '/' ) )
-		sh( [ 'mpcupdate', G.list.path ] );
+		bash( [ 'mpcupdate', G.list.path ] );
 	} else if ( cmd === 'remove' ) {
 		G.contextmenu = 1;
 		setTimeout( function() { G.contextmenu = 0 }, 500 );
@@ -78,7 +78,7 @@ $( '.contextmenu a' ).click( function( e ) {
 					similar += val[ i ].artist.name +'\n'+ val[ i ].name +'\n';
 				}
 				notify( title, 'Find similar tracks from Library ...', 'library blink',  -1 );
-				sh( [ 'mpcsimilar', similar ], function( count ) {
+				bash( [ 'mpcsimilar', similar ], function( count ) {
 					updatePlaylist();
 					setButton()
 					notify( title, count +' tracks added.', 'library' );
@@ -89,7 +89,7 @@ $( '.contextmenu a' ).click( function( e ) {
 		var path = G.list.path.split( '/' );
 		G.local = 1;
 		setTimeout( function() { G.local = 0 }, 2000 );
-		sh( [ 'ignoredir', G.list.path ], function() {
+		bash( [ 'ignoredir', G.list.path ], function() {
 			G.list.li.remove();
 		} );
 		notify( 'Exclude Directory', '<wh>'+ dir +'</wh> excluded from database.', 'folder' );
@@ -191,7 +191,7 @@ function infoReplace( callback ) {
 }
 function addReplace( cmd, command, title ) {
 	var playbackswitch = G.display.playbackswitch && ( cmd === 'addplay' || cmd === 'replaceplay' );
-	sh( command, function() {
+	bash( command, function() {
 		if ( playbackswitch ) {
 			$( '#tab-playback' ).click();
 		} else {
@@ -313,7 +313,7 @@ function bookmarkNew() {
 		return
 	}
 	
-	sh( [ 'coverartthumb', path, 200 ], function( base64img ) {
+	bash( [ 'coverartthumb', path, 200 ], function( base64img ) {
 		if ( base64img ) {
 			if ( base64img.slice( -3 ) !== 'gif' ) {
 				info( {
@@ -404,7 +404,7 @@ function bookmarkRename( name, path, $block ) {
 }
 function playlistAdd( name, oldname ) {
 	if ( oldname ) {
-		sh( [ 'plrename', oldname, name ] );
+		bash( [ 'plrename', oldname, name ] );
 	} else {
 		list( 'playlist', { cmd: 'save', name: name }, function( data ) {
 			if ( data == -1 ) {
@@ -634,7 +634,7 @@ function tagEditor() {
 				
 				tag.unshift( file, G.list.licover, cue );
 				notify( 'Tag Editor', 'Change ...', 'tag blink', -1 );
-				sh( tag );
+				bash( tag );
 			}
 		} );
 	}, 'json' );

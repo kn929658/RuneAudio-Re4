@@ -1,23 +1,20 @@
 function bash( command, callback, json ) {
+	if ( typeof command === 'string' ) {
+		var args = { cmd: 'bash', bash : command }
+	} else {
+		var args = { cmd: 'sh', sh: [ 'cmd.sh' ].concat( command ) }
+	}
 	$.post( 
 		  cmdphp
-		, { cmd: 'bash', bash : command }
+		, args
 		, callback || null
 		, json || null
 	);
 }
-function sh( array, callback, json ) {
-	$.post( 
-		  cmdphp
-		, { cmd: 'sh', sh: [ 'cmd.sh' ].concat( array ) }
-		, callback || null
-		, json || null
-	);
-}
-function list( page, command, callback, json ) {
+function list( page, args, callback, json ) {
 	$.post(
 		  'mpd'+ page +'.php'
-		, command
+		, args
 		, callback || null
 		, json || null
 	);
@@ -793,14 +790,14 @@ function menuPackage( $this, $target ) {
 		if ( $this.data( 'active' ) ) {
 			window.open( url[ id ] );
 		} else {
-			sh( [ 'packageenable', id, $this.data( 'enabled' ) ], window.open( url[ id ] ) );
+			bash( [ 'packageenable', id, $this.data( 'enabled' ) ], window.open( url[ id ] ) );
 		}
 	}
 }
 function menuPackageSet( pkg, active, enable ) {
 	G.local = 1;
 	setTimeout( function() { G.local = 0 }, 1000 );
-	sh( [ 'packageset', pkg, active, enable ] );
+	bash( [ 'packageset', pkg, active, enable ] );
 	$( '#'+ pkg )
 		.data( 'enabled', enable )
 		.data( 'active', active )
@@ -827,8 +824,8 @@ function mpdSeek( seekto ) {
 			$( '#song' ).addClass( 'gr' );
 		}
 		G.local = 1;
-		setTimeout( function() { G.local = 0 }, 300 );
-		sh( [ 'playseek', seektime ] );
+		setTimeout( function() { G.local = 0 }, 600 );
+		bash( [ 'playseek', seektime ] );
 	}
 }
 function mpdSeekBar( pageX, set ) {
@@ -1227,7 +1224,7 @@ function renderPlayback() {
 			$( '#coverart' ).prop( 'src', coverrune );
 			if ( 'file' in status ) { // retry
 				setTimeout( function() {
-					sh( [ 'coverartget', status.file, 'pushstream' ], function( coverart ) {
+					bash( [ 'coverartget', status.file, 'pushstream' ], function( coverart ) {
 						if ( !coverart ) {
 							$( '#divcover, #coverart' ).addClass( 'coverrune' );
 							$( '#coverart' ).prop( 'src', coverrune );
@@ -1671,7 +1668,7 @@ function volumeSet( pageX ) {
 		if ( !G.drag ) $( '#volume-bar' ).animate( { width: vol +'%' }, 600 );
 		G.local = 1;
 		$( '.volumeband' ).addClass( 'disabled' );
-		sh( [ 'volume', G.status.volume, vol ], function() {
+		bash( [ 'volume', G.status.volume, vol ], function() {
 			G.local = 0;
 			G.status.volume = vol;
 			$( '.volumeband' ).removeClass( 'disabled' );

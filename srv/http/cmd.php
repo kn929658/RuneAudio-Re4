@@ -68,7 +68,7 @@ case 'bookmarks':
 				rename( $dirtmp.'base64', $file );
 				$html.='<img class="bkcoverart" src="'.file_get_contents( $file ).'">';
 			} else if ( $base64 === 1 ) {
-				$cover = cmdsh( [ 'coverartget', $path, 200 ] );
+				$cover = coverartGet( $path, 200 );
 				file_put_contents( $file, $cover );
 				$html.='<img class="bkcoverart" src="'.$cover.'">';
 			} else {
@@ -101,8 +101,7 @@ case 'bookmarks':
 	pushstream( 'bookmark', $data );
 	break;
 case 'coverartget';
-	$size = $_POST[ 'size' ] ?? '';
-	echo exec( '/srv/http/bash/cmd-coverart.sh "'.escape( $_POST[ 'path' ] ).'" '.$size );
+	echo coverartGet( $_POST[ 'path' ], $_POST[ 'size' ] ?? '' );
 	break;
 case 'displayget':
 	$data = json_decode( file_get_contents( $dirsystem.'display' ) );
@@ -171,7 +170,7 @@ case 'imagefile':
 		exit;
 	} else if ( isset( $_POST[ 'bookmarkfile' ] ) ) { // # bookmark thumbnail
 		$bookmarkfile = $_POST[ 'bookmarkfile' ];
-		$thumbnail = cmdsh( [ 'coverartget', $imagefile, 200 ] );
+		$thumbnail = coverartGet( $imagefile, 200 );
 		file_put_contents( $bookmarkfile, $thumbnail ? $thumbnail : $_POST[ 'label' ] );
 		echo $thumbnail;
 		exit;
@@ -183,7 +182,7 @@ case 'imagefile':
 	if ( $srcfile ) {
 		cmdsh( [ 'filemove', $srcfile, $srcfile.'.backup' ] );
 		if ( isset( $_POST[ 'remove' ] ) ) {
-			echo cmdsh( [ 'coverartget', $imagefile ] );
+			coverartGet( $imagefile );
 			exit;
 		}
 	} else {
@@ -241,6 +240,9 @@ function cmdsh( $sh ) {
 	$script = '/usr/bin/sudo /srv/http/bash/cmd.sh "';
 	$script.= escape( implode( "\n", $sh ) ).'"';
 	return shell_exec( $script );
+}
+function coverartGet( $path, $size = '' ) {
+	return exec( '/srv/http/bash/cmd-coverart.sh "'.escape( $path ).'" '.$size );
 }
 function escape( $string ) {
 	return preg_replace( '/(["`])/', '\\\\\1', $string );

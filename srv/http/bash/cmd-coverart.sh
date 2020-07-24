@@ -37,11 +37,12 @@ fi
 # convert % > ^
 # replace " > %20
 # convert ^ > %
-coverfile=$( sed 's/%/\^/g; s/"/%22/g; s/\^/%25/g' <<< $coverfile )
-[[ -z $size || $ext == gif ]] && echo -n ${coverfile%.*}.$( date +%s ).${coverfile/*.} && exit
-
-# resize
-base64file=/srv/http/data/tmp/base64
-convert "$coverfile" -thumbnail ${size}x${size} -unsharp 0x.5 inline:$base64file
-cat $base64file
+if [[ -z $size || $ext == gif ]]; then
+	coverfile=$( sed 's/%/\^/g; s/"/%22/g; s/\^/%25/g' <<< $coverfile )
+	echo -n ${coverfile%.*}.$( date +%s ).${coverfile/*.}
+else # resize
+	base64file=/srv/http/data/tmp/base64
+	convert "$coverfile" -thumbnail ${size}x${size} -unsharp 0x.5 inline:$base64file
+	cat $base64file
+fi
 

@@ -168,7 +168,7 @@ case 'track': // for tag editor
 		} else {
 			$lists = exec( 'mpc ls -f "'.$format.'" "'.$file.'"' );
 			$array = explode( '^^', $lists );
-			if ( isset( $_POST[ 'coverart' ] ) ) $array[] = exec( '/srv/http/bash/cmd-coverart.sh "'.$file.'"' );
+			if ( isset( $_POST[ 'coverart' ] ) ) $array[] = exec( '/srv/http/bash/cmd-coverart.sh "'.escape( $file ).'"' );
 		}
 	}
 	break;

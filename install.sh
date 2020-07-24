@@ -53,7 +53,7 @@ if [[ -e $dirsystem/sound-eth0mtu ]]; then
 	$( cat $dirsystem/sound-eth0txq ) \
 	$( cat $dirsystem/sound-sysswap ) \
 	$( cat $dirsystem/sound-syslatency ) \
-	> $dirsystem/soundprofile
+	> $dirsystem/soundprofile-custom
 	rm $dirsystem/sound-*
 fi
 if grep -q shairport-startstop /etc/shairport-sync.conf; then

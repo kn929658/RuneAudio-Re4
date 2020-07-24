@@ -569,7 +569,10 @@ $( '#soundprofile' ).click( function( e ) {
 	var checked = $( this ).prop( 'checked' );
 	rebootText( checked ? 'Enable' : 'Disable', 'sound profile' );
 	banner( 'Sound Profile', checked, 'volume' );
-	bash( [ 'soundprofile', checked ], resetLocal );
+	$.post( 'cmd.php', { cmd: 'sh', sh: [ 'cmd-soundprofile.sh' ] }, function( data ) {
+		G.soundprofilecus = data;
+		resetLocal();
+	} );
 	$( '#setting-soundprofile' ).toggleClass( 'hide', !checked );
 	G.soundprofile = checked ? 'RuneAudio' : '';
 } );
@@ -593,7 +596,7 @@ $( '#infoOverlay' ).on( 'click', '#custom', function() {
 				G.soundprofileval = soundprofileval;
 				G.soundprofile = 'custom';
 				banner( 'Sound Profile', 'Change ...', 'volume' );
-				bash( [ 'soundprofileset', 'custom', soundprofileval ], resetLocal );
+				$.post( 'cmd.php', { cmd: 'sh', sh: [ 'cmd-soundprofile.sh', 'custom', soundprofileval ] }, resetLocal );
 			}
 		}
 	} );
@@ -635,11 +638,9 @@ $( '#setting-soundprofile' ).click( function() {
 				rebootText( G.soundprofile ? 'Change' : 'Enable', 'sound profile' );
 				G.soundprofile = soundprofile;
 				banner( 'Sound Profile', 'Change ...', 'volume' );
-				bash( [ 'soundprofileset', soundprofile ], function() {
+				$.post( 'cmd.php', { cmd: 'sh', sh: [ 'cmd-soundprofile.sh', soundprofile ] }, function( data ) {
+					G.soundprofileval = data;
 					resetLocal();
-					bash( '/srv/http/bash/cmd.sh "soundprofile\ngetvalue"', function( data ) {
-						G.soundprofileval = data;
-					} );
 				} );
 			}
 		}

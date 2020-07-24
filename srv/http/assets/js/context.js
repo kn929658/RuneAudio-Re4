@@ -130,13 +130,13 @@ function bookmarkNew() {
 		return
 	}
 	
-	$.post( 'cmd.php', { cmd: 'coverartget', path: path }, function( base64img ) {
-		if ( base64img ) {
-			if ( base64img.slice( -3 ) !== 'gif' ) {
+	$.post( 'cmd.php', { cmd: 'coverartget', path: path, size: 200 }, function( coverart ) {
+		if ( coverart ) {
+			if ( coverart.slice( -3 ) !== 'gif' ) {
 				info( {
 					  icon    : 'bookmark'
 					, title   : 'Add Bookmark'
-					, message : '<img src="'+ base64img +'">'
+					, message : '<img src="'+ coverart +'">'
 							   +'<br><w>'+ path +'</w>'
 					, ok      : function() {
 						$.post( cmdphp, {
@@ -150,12 +150,12 @@ function bookmarkNew() {
 					}
 				} );
 			} else {
-				var giffile = base64img.substr( 0, base64img.lastIndexOf( '.' ) );
+				var giffile = coverart.substr( 0, coverart.lastIndexOf( '.' ) );
 				giffile = giffile.substr( 0, giffile.lastIndexOf( '.' ) ) +'.gif';
 				info( {
 					  icon    : 'bookmark'
 					, title   : 'Add Bookmark'
-					, message : '<img src="'+ base64img +'">'
+					, message : '<img src="'+ coverart +'">'
 							   +'<br><w>'+ path +'</w>'
 					, ok      : function() {
 						var img0 = $( '#infoMessage img' )[ 0 ];

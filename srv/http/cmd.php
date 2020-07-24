@@ -100,6 +100,10 @@ case 'bookmarks':
 	}
 	pushstream( 'bookmark', $data );
 	break;
+case 'coverartget';
+	$size = $_POST[ 'size' ] ?? '';
+	echo exec( '/srv/http/bash/cmd-coverart.sh "'.escape( $_POST[ 'path' ] ).'" '.$size );
+	break;
 case 'displayget':
 	$data = json_decode( file_get_contents( $dirsystem.'display' ) );
 	$data->color = rtrim( @file_get_contents( $dirsystem.'color' ) ) ?: '200 100 35';

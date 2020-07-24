@@ -1231,7 +1231,7 @@ function renderPlayback() {
 			$( '#coverart' ).prop( 'src', coverrune );
 			if ( 'file' in status ) { // retry
 				setTimeout( function() {
-					bash( [ 'coverartget', status.file ], function( coverart ) {
+					$.post( 'cmd.php', { cmd: 'coverartget', path: status.file }, function( coverart ) {
 						if ( !coverart ) {
 							$( '#divcover, #coverart' ).addClass( 'coverrune' );
 							$( '#coverart' ).prop( 'src', coverrune );

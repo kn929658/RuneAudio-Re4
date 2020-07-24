@@ -1117,7 +1117,6 @@ function renderLibraryList( data ) {
 }
 function renderPlayback() {
 	clearIntervalAll();
-	$( '#loader' ).addClass( 'hide' );
 	var status = G.status;
 	// song and album before update for song/album change detection
 	var previousartist = $( '#artist' ).text();
@@ -1327,22 +1326,18 @@ function renderPlayback() {
 	}
 }
 function renderPlaybackBlank() {
-	$( '#playback-controls, #infoicon i' ).addClass( 'hide' );
-	$( '#page-playback .emptyadd' ).toggleClass( 'hide', !G.status.mpd );
-	$( '#divartist, #divsong, #divalbum' ).removeClass( 'scroll-left' );
-	$( '#artist, #song, #album, #sampling, #progress, #elapsed, #total' ).empty();
-	if ( G.display.time ) $( '#time' ).roundSlider( 'setValue', 0 );
-	$( '#time-bar' ).css( 'width', 0 );
-	$( '#coverart' )
-		.prop( 'src', coverrune )
-		.removeClass( 'vu' );
-	$( '#divcover, #coverart' ).addClass( 'coverrune' );
-	$( '#artist, #song, #album' )
-		.removeClass( 'scrollleft' )
-		.removeAttr( 'style' )
-		.css( 'visibility', 'visible' );
 	bash( "ip r | awk '/default/ {print $9}'", function( ip ) {
 		$( '#sampling' ).text( 'http://'+ ip );
+		$( '#playback-controls, #infoicon i' ).addClass( 'hide' );
+		$( '#page-playback .emptyadd' ).toggleClass( 'hide', !G.status.mpd );
+		$( '#divartist, #divsong, #divalbum' ).removeClass( 'scroll-left' );
+		$( '#artist, #song, #album, #progress, #elapsed, #total' ).empty();
+		if ( G.display.time ) $( '#time' ).roundSlider( 'setValue', 0 );
+		$( '#time-bar' ).css( 'width', 0 );
+		$( '#coverart' )
+			.prop( 'src', coverrune )
+			.removeClass( 'vu' );
+		$( '#divcover, #coverart' ).addClass( 'coverrune' );
 	} );
 }
 renderPlaylist = function( data ) {

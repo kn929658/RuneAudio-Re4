@@ -34,8 +34,10 @@ fi
 
 [[ $found != 1 ]] && exit
 
-coverfile=${coverfile//\"/%22}
-coverfile=${coverfile//%/%25}
+# convert % > ^
+# replace " > %20
+# convert ^ > %
+coverfile=$( sed 's/%/\^/g; s/"/%22/g; s/\^/%25/g' <<< $coverfile )
 [[ -z $size || $ext == gif ]] && echo -n ${coverfile%.*}.$( date +%s ).${coverfile/*.} && exit
 
 # resize

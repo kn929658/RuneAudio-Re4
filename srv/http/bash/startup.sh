@@ -21,6 +21,10 @@ rm -f $playerfile-*
 touch $playerfile-mpd
 rm -rf /srv/http/data/tmp/*
 
+if [[ -e /boot/pointer ]]; then
+	sed -i 's/\(-use_cursor \).*/\1"on" \&/' /etc/X11/xinit/xinitrc
+	mv /boot/pointer{,0} 2> /dev/null
+fi
 if [[ -e /boot/wifi ]]; then
 	ssid=$( grep '^ESSID' /boot/wifi | cut -d'"' -f2 )
 	sed -i -e '/^#\|^$/ d' -e 's/\r//' /boot/wifi
@@ -35,7 +39,7 @@ fi
 
 [[ -e $dirsystem/onboard-wlan ]] && ifconfig wlan0 up || rmmod brcmfmac
 
-[[ -e $dirsystem/soundprofile ]] && /srv/http/bash/cmd.sh soundprofile
+[[ -e $dirsystem/soundprofile ]] && /srv/http/bash/cmd-soundprofile.sh
 
 /srv/http/bash/mpd-conf.sh # mpd start by this script
 

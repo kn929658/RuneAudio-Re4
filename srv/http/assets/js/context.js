@@ -441,7 +441,7 @@ function tagEditor() {
 			, ok           : function() {
 				var diff = 0;
 				var fL = format.length;
-				var tag = [ 'tageditor', file, G.list.licover, cue ];
+				var tag = [ 'cmd-tageditor.sh', file, G.list.licover, cue ];
 				for ( i = 0; i < fL; i++ ) {
 					var val = $( '.infoinput:eq( '+ i +' )' ).val();
 					tag.push( val );
@@ -450,7 +450,8 @@ function tagEditor() {
 				if ( diff === 0 ) return
 				
 				notify( 'Tag Editor', 'Change ...', 'tag blink', -1 );
-				bash( tag );
+				//bash( tag );
+				$.post( 'cmd.php', { cmd: 'sh', sh: tag } );
 			}
 		} );
 	}, 'json' );

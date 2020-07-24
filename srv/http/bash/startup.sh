@@ -21,10 +21,6 @@ rm -f $playerfile-*
 touch $playerfile-mpd
 rm -rf /srv/http/data/tmp/*
 
-if [[ -e /boot/pointer ]]; then
-	sed -i 's/\(-use_cursor \).*/\1"on" \&/' /etc/X11/xinit/xinitrc
-	mv /boot/pointer{,0} 2> /dev/null
-fi
 if [[ -e /boot/wifi ]]; then
 	ssid=$( grep '^ESSID' /boot/wifi | cut -d'"' -f2 )
 	sed -i -e '/^#\|^$/ d' -e 's/\r//' /boot/wifi

@@ -168,7 +168,7 @@ case 'track': // for tag editor
 		} else {
 			$lists = exec( 'mpc ls -f "'.$format.'" "'.$file.'"' );
 			$array = explode( '^^', $lists );
-			if ( isset( $_POST[ 'coverart' ] ) ) $array[] = exec( '/srv/http/bash/cmd-coverart.sh "'.escape( $file ).'"' );
+			if ( isset( $_POST[ 'coverart' ] ) ) $array[] = coverartGet( $file );
 		}
 	}
 	break;
@@ -364,7 +364,7 @@ function htmlTracks( $lists, $f, $filemode = '', $string = '' ) { // track list 
 		$icon = 'artist';
 	}
 	$dir = dirname( $file0 );
-	$coverart = exec( '/srv/http/bash/cmd-coverart.sh "'.escape( $file0 ).'"' );
+	$coverart = coverartGet( $file0 );
 	$nocover = '';
 	if ( !$coverart ) {
 		$coverart = '/assets/img/cover.'.( time() ).'.svg';
@@ -401,6 +401,9 @@ function htmlTracks( $lists, $f, $filemode = '', $string = '' ) { // track list 
 	$coverhtml.= '</div></li>';
 	
 	return [ 'html' => $coverhtml.$html ];
+}
+function coverartGet( $path ) {
+	return exec( '/srv/http/bash/cmd-coverart.sh "'.escape( $path ).'"' );
 }
 function HMS2second( $time ) {
 	$HMS = explode( ':', $time );

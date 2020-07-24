@@ -404,6 +404,7 @@ tageditor )
 				-c "set date \"${args[5]}\"" \
 				"$path/"*.*
 		fi
+		mpc update "$file"
 	else
 		if [[ $album == false ]]; then
 			sed -i '/^\s\+TRACK '${args[2]}'/ {
@@ -420,16 +421,15 @@ n; s/^\(\s\+PERFORMER\).*/\1 "'${args[0]}'"/
 				[[ -z $val ]] && continue
 				
 				case $key in
-					album )       sed -i '1 i\TITLE "'$val'"' "$path";;
-					albumartist ) sed -i '/^TITLE/ a\PERFORMER "'$val'"' "$path";;
-					composer )    sed -i '1 i\REM COMPOSER "'$val'"' "$path";;
-					date )        sed -i '1 i\REM DATE "'$val'"' "$path";;
-					genre )       sed -i '1 a\REM GENRE "'$val'"' "$path";;
+					album )       sed -i "1 i\TITLE \"$val\"" "$path";;
+					albumartist ) sed -i "/^TITLE/ a\PERFORMER \"$val\"" "$path";;
+					composer )    sed -i "1 i\REM COMPOSER \"$val\"" "$path";;
+					date )        sed -i "1 i\REM DATE \"$val\"" "$path";;
+					genre )       sed -i "1 i\REM GENRE \"$val\"" "$path";;
 				esac
 			done
 		fi
 	fi
-	mpc update "$file"
 	;;
 volume )
 	current=${args[1]}

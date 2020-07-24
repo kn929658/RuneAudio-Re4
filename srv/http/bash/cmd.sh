@@ -96,15 +96,6 @@ s|\(--cg60: *hsl\).*;|\1(${hsg}60%);|
 " /srv/http/assets/css/colors.css
 	pushstream reload reload all
 	;;
-coverartget )
-	file=${args[1]}
-	arg=${args[2]}
-	if [[ -z $arg ]]; then
-		/srv/http/bash/cmd-coverart.sh "$file"
-	else # resize
-		/srv/http/bash/cmd-coverart.sh "$file" $arg
-	fi
-	;;
 filemove )
 	mv -f "${args[1]}" "${args[2]}"
 	;;

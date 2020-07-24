@@ -130,8 +130,7 @@ function bookmarkNew() {
 		return
 	}
 	
-	bash( [ 'coverartget', path, 200 ], function( base64img ) {
-		console.log(base64img)
+	$.post( 'cmd.php', { cmd: 'coverartget', path: path }, function( base64img ) {
 		if ( base64img ) {
 			if ( base64img.slice( -3 ) !== 'gif' ) {
 				info( {

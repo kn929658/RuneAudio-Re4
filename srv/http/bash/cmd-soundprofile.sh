@@ -4,6 +4,7 @@ readarray -t args <<< "$1"
 profile=${args[0]}
 val=${args[1]}
 
+dirsystem=/srv/http/data/system
 [[ -z $profile || $profile == getvalue ]] && profile=$( cat $dirsystem/soundprofile )
 [[ -n $val ]] && echo $val > $dirsystem/soundprofile-custom
 
@@ -24,7 +25,7 @@ case $profile in #    mtu  txq  sw lat
 	default )   val=( 1500 1000 60 18000000 );;
 	custom )    val=( $( cat $dirsystem/soundprofile-custom ) );;
 esac
-if [[ $profile != getvalue ]]; then
+if [[ ${args[0]} != getvalue ]]; then
 	if ifconfig | grep -q eth0; then
 		ip link set eth0 mtu ${val[0]}
 		ip link set eth0 txqueuelen ${val[1]}
@@ -32,5 +33,4 @@ if [[ $profile != getvalue ]]; then
 	sysctl vm.swappiness=${val[2]}
 	sysctl kernel.sched_latency_ns=${val[3]}
 fi
-echo -n ${val[@]}
-
+echo "${val[@]}"

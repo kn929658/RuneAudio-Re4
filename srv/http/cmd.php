@@ -10,20 +10,31 @@ $dirwebradios = $dirdata.'webradios/';
 
 switch( $_POST[ 'cmd' ] ) {
 
+// arguments passing to bash
+//  - no each argument quote
+//  - escape ["`] once by php
+//    js   -> php  - string / array for multiple arguments
+//    php  -> bash - string / array > multiline string ( escaped ["`] )
+//    bash         - multiline string > arguments = array by line
+//    bash -> php  - string / json literal
+//    php  -> js   - string / array / json literal( response type 'json' )
+//
 case 'sh': // multiple commands / scripts: no pre-escaped characters - js > php > bash
-	$sh = $_POST[ 'sh' ];                                // 1 - get js array
-	$script = '/srv/http/bash/'.array_shift( $sh ).' "'; // 2 - extract script from 1st element
-	$script.= escape( implode( "\n", $sh ) ).'"';        // 3 - convert array to multi-line string and escape ` "
-	echo shell_exec( $sudo.$script );                    // 4 - pass string to bash > convert each line to each args
+	$sh = $_POST[ 'sh' ];                                // php array = js array
+	$script = '/srv/http/bash/'.array_shift( $sh ).' "'; // script    = 1st element
+	$script.= escape( implode( "\n", $sh ) ).'"';        // arguments = array > escaped multiline string
+	echo shell_exec( $sudo.$script );                    // bash arguments = multiline string > array by line
 	break;
 case 'bash': // single / one-line command - return string
-	$cmd = $_POST[ 'bash' ];
+	$cmd = escape( $_POST[ 'bash' ] );
 	echo shell_exec( $cmd[ 0 ] === '/' ? $sudo.$cmd : $sudobin.$cmd );
 	break;
 case 'exec': // single / one-line command - return array of lines to js
-	exec( $sudobin.$_POST[ 'exec' ], $output, $std );
+	$cmd = escape( $_POST[ 'exec' ] );
+	exec( $sudobin.$cmd, $output, $std );
 	echo json_encode( $output );
 	break;
+	
 case 'backuprestore':
 	$type = $_POST[ 'backuprestore' ];
 	$scriptfile = $dirbash.'backup-restore.sh ';
@@ -68,7 +79,7 @@ case 'bookmarks':
 				rename( $dirtmp.'base64', $file );
 				$html.='<img class="bkcoverart" src="'.file_get_contents( $file ).'">';
 			} else if ( $base64 === 1 ) {
-				$cover = cmdsh( [ 'coverartthumb', $path, 200 ] );
+				$cover = coverartGet( $path, 200 );
 				file_put_contents( $file, $cover );
 				$html.='<img class="bkcoverart" src="'.$cover.'">';
 			} else {
@@ -99,6 +110,9 @@ case 'bookmarks':
 		];
 	}
 	pushstream( 'bookmark', $data );
+	break;
+case 'coverartget';
+	echo coverartGet( $_POST[ 'path' ], $_POST[ 'size' ] ?? '' );
 	break;
 case 'displayget':
 	$data = json_decode( file_get_contents( $dirsystem.'display' ) );
@@ -167,7 +181,7 @@ case 'imagefile':
 		exit;
 	} else if ( isset( $_POST[ 'bookmarkfile' ] ) ) { // # bookmark thumbnail
 		$bookmarkfile = $_POST[ 'bookmarkfile' ];
-		$thumbnail = cmdsh( [ 'coverartthumb', $imagefile, 200 ] );
+		$thumbnail = coverartGet( $imagefile, 200 );
 		file_put_contents( $bookmarkfile, $thumbnail ? $thumbnail : $_POST[ 'label' ] );
 		echo $thumbnail;
 		exit;
@@ -179,7 +193,7 @@ case 'imagefile':
 	if ( $srcfile ) {
 		cmdsh( [ 'filemove', $srcfile, $srcfile.'.backup' ] );
 		if ( isset( $_POST[ 'remove' ] ) ) {
-			echo cmdsh( [ 'coverartget', $imagefile ] );
+			coverartGet( $imagefile );
 			exit;
 		}
 	} else {
@@ -237,6 +251,9 @@ function cmdsh( $sh ) {
 	$script = '/usr/bin/sudo /srv/http/bash/cmd.sh "';
 	$script.= escape( implode( "\n", $sh ) ).'"';
 	return shell_exec( $script );
+}
+function coverartGet( $path, $size = '' ) {
+	return exec( '/srv/http/bash/cmd-coverart.sh "'.escape( $path ).'" '.$size );
 }
 function escape( $string ) {
 	return preg_replace( '/(["`])/', '\\\\\1', $string );

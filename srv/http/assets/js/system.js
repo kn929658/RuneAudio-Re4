@@ -65,13 +65,20 @@ function renderStatus() {
 		+'<br>'+ G.uptime
 		+ undervoltage
 }
+function soundProfile( arg, callback ) {
+	var cmd = [ 'cmd-soundprofile.sh' ];
+	if ( arg ) cmd.concat( arg );
+	$.post( 'cmd.php', { cmd: 'sh', sh: cmd }, function( data ) {
+		G.soundprofilecus = data;
+		resetLocal();
+	} );
+}
 
 refreshData = function() { // system page: use resetLocal() to aviod delay
 	bash( '/srv/http/bash/system-data.sh', function( list ) {
 		G = list;
 		G.reboot = list.reboot ? list.reboot.split( '\n' ) : [];
 		G.sources.pop(); // remove 'reboot' from sources-data.sh
-		
 		var systemlabel =
 			 'RuneAudio<br>'
 			+'Hardware<br>'
@@ -569,17 +576,21 @@ $( '#soundprofile' ).click( function( e ) {
 	var checked = $( this ).prop( 'checked' );
 	rebootText( checked ? 'Enable' : 'Disable', 'sound profile' );
 	banner( 'Sound Profile', checked, 'volume' );
-	bash( [ 'soundprofile', checked ], resetLocal );
+	soundProfile( '', function( data ) {
+		G.soundprofilecus = data;
+		resetLocal();
+	} );
 	$( '#setting-soundprofile' ).toggleClass( 'hide', !checked );
 	G.soundprofile = checked ? 'RuneAudio' : '';
 } );
 $( '#infoOverlay' ).on( 'click', '#custom', function() {
+	var val = G.soundprofilecus || G.soundprofileval;
 	info( {
 		  icon      : 'volume'
 		, title     : 'Sound Profile'
 		, message   : 'Custom value (Current value shown)'
 		, textlabel : [ 'eth0 mtu (byte)', 'eth0 txqueuelen', 'vm.swappiness (0-100)', 'kernel.sched_latency_ns (ns)' ]
-		, textvalue : G.soundprofilecus.split( ' ' )
+		, textvalue : val.split( ' ' )
 		, boxwidth  : 110
 		, preshow   : function() {
 			if ( G.ip.slice( 0, 4 ) !== 'eth0' ) $( '#infoTextBox, #infoTextBox1' ).hide();
@@ -593,7 +604,7 @@ $( '#infoOverlay' ).on( 'click', '#custom', function() {
 				G.soundprofileval = soundprofileval;
 				G.soundprofile = 'custom';
 				banner( 'Sound Profile', 'Change ...', 'volume' );
-				bash( [ 'soundprofileset', 'custom', soundprofileval ], resetLocal );
+				soundProfile( [ 'custom', soundprofileval ], resetLocal );
 			}
 		}
 	} );
@@ -621,9 +632,8 @@ $( '#setting-soundprofile' ).click( function() {
 			}
 		}
 		, preshow : function() {
-			$( '#infoRadio input[value=custom]' ).click( function() {
+			$( '#infoRadio input[value=custom]' ).click( function( e ) {
 				if ( !G.soundprofilecus ) {
-					G.soundprofilecus = G.soundprofileval;
 					$( '#infoOverlay #custom' ).click();
 					return
 				}
@@ -635,11 +645,9 @@ $( '#setting-soundprofile' ).click( function() {
 				rebootText( G.soundprofile ? 'Change' : 'Enable', 'sound profile' );
 				G.soundprofile = soundprofile;
 				banner( 'Sound Profile', 'Change ...', 'volume' );
-				bash( [ 'soundprofileset', soundprofile ], function() {
+				soundProfile( [ soundprofile ], function( data ) {
+					G.soundprofileval = data;
 					resetLocal();
-					bash( '/srv/http/bash/cmd.sh "soundprofile\ngetvalue"', function( data ) {
-						G.soundprofileval = data;
-					} );
 				} );
 			}
 		}

@@ -23,7 +23,7 @@ onVisibilityChange( function( visible ) {
 		} else if ( G.playlist ) {
 			displayTopBottom();
 			if ( !G.savedlist && !G.savedplaylist && !$( '#pl-search-close' ).text() ) {
-				list( 'playlist', { cmd: 'current' }, renderPlaylist, 'json' );
+				list( { cmd: 'current' }, renderPlaylist, 'json' );
 			}
 		}
 	} else {
@@ -258,7 +258,7 @@ function psMpdUpdate( data ) {
 		if ( $( '.licover' ).length ) {
 			$( '#loader' ).removeClass( 'hide' );
 			var query = G.query[ G.query.length - 1 ];
-			list( 'library', query, function( data ) {
+			list( query, function( data ) {
 				data.path = query.path;
 				data.modetitle = query.modetitle;
 				renderLibraryList( data );
@@ -394,8 +394,7 @@ function psVolumeNone( data ) {
 	}
 }
 function psWebradio( data ) {
-	var count = Number( $( '#mode-webradio grl' ).text() );
-	count = count + data.webradio;
+	var count = Number( $( '#mode-webradio grl' ).text() ) + Number( data.webradio );
 	$( '#mode-webradio grl' ).text( count ? ( count ).toLocaleString() : '' );
 	if ( $( '#lib-path .lipath' ).text() === 'Webradio' ) $( '#mode-webradio' ).click();
 	if ( G.playlist && !G.savedlist ) $( '#tab-playlist' ).click();

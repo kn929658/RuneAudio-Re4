@@ -104,11 +104,11 @@ $( '#coverart' ).on( 'error', function() {
 			.removeClass( 'vu' );
 	}
 } ).one( 'load', function() {
-	$( '#splash' ).remove();
 	$( '#coverart' ).removeClass( 'hide' );
 	$( '.rs-animation .rs-transition' ).css( 'transition-property', '' ); // restore animation after load
 	$( 'html, body' ).scrollTop( 0 );
 	if ( $( '#lib-cover-list' ).html() ) new LazyLoad( { elements_selector: '.lazy' } );
+	$( '#splash' ).remove();
 } );
 // COMMON /////////////////////////////////////////////////////////////////////////////////////
 $( '#button-settings, #badge' ).click( function() {

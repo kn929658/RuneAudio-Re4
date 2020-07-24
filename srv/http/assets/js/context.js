@@ -130,13 +130,13 @@ function bookmarkNew() {
 		return
 	}
 	
-	bash( [ 'coverartthumb', path, 200 ], function( base64img ) {
-		if ( base64img ) {
-			if ( base64img.slice( -3 ) !== 'gif' ) {
+	$.post( 'cmd.php', { cmd: 'coverartget', path: path, size: 200 }, function( coverart ) {
+		if ( coverart ) {
+			if ( coverart.slice( -3 ) !== 'gif' ) {
 				info( {
 					  icon    : 'bookmark'
 					, title   : 'Add Bookmark'
-					, message : '<img src="'+ base64img +'">'
+					, message : '<img src="'+ coverart +'">'
 							   +'<br><w>'+ path +'</w>'
 					, ok      : function() {
 						$.post( cmdphp, {
@@ -150,12 +150,12 @@ function bookmarkNew() {
 					}
 				} );
 			} else {
-				var giffile = base64img.substr( 0, base64img.lastIndexOf( '.' ) );
+				var giffile = coverart.substr( 0, coverart.lastIndexOf( '.' ) );
 				giffile = giffile.substr( 0, giffile.lastIndexOf( '.' ) ) +'.gif';
 				info( {
 					  icon    : 'bookmark'
 					, title   : 'Add Bookmark'
-					, message : '<img src="'+ base64img +'">'
+					, message : '<img src="'+ coverart +'">'
 							   +'<br><w>'+ path +'</w>'
 					, ok      : function() {
 						var img0 = $( '#infoMessage img' )[ 0 ];
@@ -223,7 +223,7 @@ function playlistAdd( name, oldname ) {
 	if ( oldname ) {
 		bash( [ 'plrename', oldname, name ] );
 	} else {
-		list( 'playlist', { cmd: 'save', name: name }, function( data ) {
+		list( { cmd: 'save', name: name }, function( data ) {
 			if ( data == -1 ) {
 				info( {
 					  icon        : 'list-ul'
@@ -257,14 +257,14 @@ function playlistDelete() {
 			G.status.playlists--;
 			if ( !G.status.playlists ) $( '#tab-playlist' ).click();
 			G.list.li.remove();
-			list( 'playlist', { cmd: 'delete', name: G.list.name } );
+			list( { cmd: 'delete', name: G.list.name } );
 		}
 	} );
 }
 function playlistLoad( path, play, replace ) {
 	G.local = 1;
 	notify( 'Saved Playlist', 'Load ...', 'list-ul blink', -1 );
-	list( 'playlist', {
+	list( {
 		  cmd     : 'load'
 		, name    : path
 		, play    : play
@@ -326,7 +326,7 @@ function tagEditor() {
 	}
 	if ( cue ) query.track = G.list.track || 'cover';
 	if ( G.playlist ) query.coverart = 1;
-	list( 'library', query, function( value ) {
+	list( query, function( value ) {
 		var label = [];
 		format.forEach( function( el, i ) {
 			label.push( '<i class="fa fa-'+ el +' wh" data-mode="'+ el +'"></i>' );
@@ -357,7 +357,7 @@ function tagEditor() {
 					if ( $el.val() === '*' ) $el.val( '' ).prop( 'placeholder', '*various' );
 					if ( G.playlist && !$el.val() ) $( '.infolabel:eq( '+ i +' ), .infoinput:eq( '+ i +' )' ).hide();
 				} );
-				if ( cue && !G.list.licover ) $( '.infolabel:eq( 2 ), .infoinput:eq( 2 )' ).hide();
+				if ( cue ) $( '.infolabel:eq( 2 ), .infoinput:eq( 2 )' ).hide();
 				var plcue = !$( '.infoinput' ).filter( function() {
 					return $( this ).val() !== '';
 				} ).length
@@ -375,7 +375,7 @@ function tagEditor() {
 						, format : [ 'file' ]
 					}
 					$( '#tab-library' ).click();
-					list( 'library', query, function( data ) {
+					list( query, function( data ) {
 						G.mode = 'file';
 						data.path = path;
 						data.modetitle = path;
@@ -423,7 +423,7 @@ function tagEditor() {
 						$( '#tab-library' ).click();
 						G.query = [ 'playlist', 'playlist', query ];
 					}
-					list( 'library', query, function( data ) {
+					list( query, function( data ) {
 						data.path = path;
 						data.modetitle = mode.toUpperCase();
 						if ( mode !== 'album' ) {
@@ -441,7 +441,7 @@ function tagEditor() {
 			, ok           : function() {
 				var diff = 0;
 				var fL = format.length;
-				var tag = [ 'tageditor' ];
+				var tag = [ 'cmd-tageditor.sh', file, G.list.licover, cue ];
 				for ( i = 0; i < fL; i++ ) {
 					var val = $( '.infoinput:eq( '+ i +' )' ).val();
 					tag.push( val );
@@ -449,9 +449,9 @@ function tagEditor() {
 				}
 				if ( diff === 0 ) return
 				
-				tag.unshift( file, G.list.licover, cue );
 				notify( 'Tag Editor', 'Change ...', 'tag blink', -1 );
-				bash( tag );
+				//bash( tag );
+				$.post( 'cmd.php', { cmd: 'sh', sh: tag } );
 			}
 		} );
 	}, 'json' );
@@ -571,12 +571,7 @@ function webRadioDelete() {
 		, ok      : function() {
 			G.list.li.remove();
 			if ( !$( '#lib-list li' ).length ) $( '#button-library' ).click();
-			$.post( cmdphp, {
-				  cmd       : 'webradios'
-				, webradios : name
-				, url       : url
-				, delete    : 1
-			} );
+			bash( ['webradiodelete', url ] );
 		}
 	} );
 }
@@ -598,20 +593,15 @@ function webRadioEdit() {
 		, ok           : function() {
 			var newname = $( '#infoTextBox' ).val();
 			var newurl = $( '#infoTextBox1' ).val().toString().replace( /\/\s*$/, '' ); // omit trailling / and space
-			if ( newname !== name || newurl !== url )
-				$.post( cmdphp, {
-					  cmd       : 'webradios'
-					, webradios : newname
-					, newurl    : newurl
-					, url       : url
-					, edit      : 1
-				}, function() {
+			if ( newname !== name || newurl !== url ) {
+				bash( [ 'webradioedit', url, newname, newurl ], function() {
 					$( '#mode-webradio' ).click();
 				} );
+			}
 		}
 	} );
 }
-function webRadioNew( name, url ) {
+webRadioNew = function( name, url ) {
 	info( {
 		  icon         : 'webradio'
 		, title        : 'Add WebRadio'
@@ -625,20 +615,13 @@ function webRadioNew( name, url ) {
 		, ok           : function() {
 			var newname = $( '#infoTextBox' ).val().toString().replace( /\/\s*$/, '' ); // omit trailling / and space
 			var url = $( '#infoTextBox1' ).val();
-			$.post( cmdphp, {
-				  cmd       : 'webradios'
-				, webradios : newname
-				, url       : url
-				, new       : 1
-			}, function( data ) {
+			bash( [ 'webradioadd',newname,url ], function( data ) {
 				if ( data == -1 ) {
 					info( {
 						  icon    : 'webradio'
 						, title   : 'Add WebRadio'
 						, message : '<wh>'+ url +'</wh><br>contains no valid URL.'
-						, ok      : function() {
-							webRadioNew( newname, url );
-						}
+						, ok      : webRadioNew( newname, url )
 					} );
 				} else if ( data ) {
 					var nameimg = data.split( "\n" );
@@ -649,9 +632,7 @@ function webRadioNew( name, url ) {
 								   +'<br><w>'+ nameimg[ 0 ] +'</w>'
 								   +'<br>'+ url
 								   +'<br>Already exists.'
-						, ok      : function() {
-							webRadioNew( newname, url );
-						}
+						, ok      : webRadioNew( newname, url )
 					} );
 				} else {
 					$( '#mode-webradio' ).click();
@@ -712,7 +693,7 @@ $( '.contextmenu a' ).click( function( e ) {
 		} );
 	} else if ( cmd === 'savedplremove' ) {
 		var plname = $( '#pl-path .lipath' ).text();
-		list( 'playlist', {
+		list( {
 			  cmd    : 'edit'
 			, name   : plname
 			, remove : G.list.li.index()

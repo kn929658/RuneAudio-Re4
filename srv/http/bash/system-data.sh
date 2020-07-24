@@ -97,7 +97,7 @@ data+='
 	, "snaplatency"     : '$snaplatency'
 	, "soc"             : "'$soc'"
 	, "soundprofile"    : "'$soundprofile'"
-	, "soundprofileval" : "'$( /srv/http/bash/cmd.sh soundprofile$'\n'getvalue )'"
+	, "soundprofileval" : "'$( /srv/http/bash/cmd-soundprofile.sh getvalue )'"
 	, "soundprofilecus" : "'$( cat /srv/http/data/system/soundprofile-custom 2> /dev/null )'"
 	, "sources"         : '$( /srv/http/bash/sources-data.sh )'
 	, "streaming"       : '$( grep -q 'type.*"httpd"' /etc/mpd.conf && echo true || echo false )'

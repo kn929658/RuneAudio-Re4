@@ -96,14 +96,6 @@ s|\(--cg60: *hsl\).*;|\1(${hsg}60%);|
 " /srv/http/assets/css/colors.css
 	pushstream reload reload all
 	;;
-coverartget )
-	coverart=$( /srv/http/bash/cmd-coverart.sh "${args[1]}" )
-	echo -n $coverart
-	[[ -n ${args[2]} ]] && pushstream coverart coverart $coverart
-	;;
-coverartthumb )
-	/srv/http/bash/cmd-coverart.sh "${args[1]}" ${args[2]}
-	;;
 filemove )
 	mv -f "${args[1]}" "${args[2]}"
 	;;
@@ -341,18 +333,18 @@ refreshbrowser )
 	curl -s -X POST 'http://127.0.0.1/pub?id=reload' -d '{ "reload": 1 }'
 	;;
 soundprofile )
-	hwcode=$( awk '/Revision/ {print substr($NF, 4, 2)}' /proc/cpuinfo )
-	if [[ $hwcode =~ ^(04|08|0d|0e|11)$ ]]; then # not RPi 1
-		lat=( 4500000 3500075 1000000 2000000 3700000 1500000 145655 6000000 )
-	else
-		lat=( 1500000 850000 500000 120000 500000 1500000 145655 6000000 )
-	fi
 	profile=${args[1]}
 	if [[ -z $profile ]]; then
 		profile=$( cat $dirsystem/soundprofile )
 	elif [[ $profile == getvalue ]]; then
 		getvalue=1
 		profile=$( cat $dirsystem/soundprofile )
+	fi
+	hwcode=$( awk '/Revision/ {print substr($NF, 4, 2)}' /proc/cpuinfo )
+	if [[ $hwcode =~ ^(04|08|0d|0e|11)$ ]]; then # not RPi 1
+		lat=( 4500000 3500075 1000000 2000000 3700000 1500000 145655 6000000 )
+	else
+		lat=( 1500000 850000 500000 120000 500000 1500000 145655 6000000 )
 	fi
 	case $profile in # mtu  txq  sw lat
 		RuneAudio ) val=( 1500 1000 0  ${lat[0]} );;
@@ -375,53 +367,6 @@ soundprofile )
 		sysctl vm.swappiness=${val[2]}
 		sysctl kernel.sched_latency_ns=${val[3]}
 	fi
-	;;
-tageditor )
-	file=${args[0]}
-	album=${args[1]}
-	cue=${args[2]}
-	path="/mnt/MPD/$file"
-	args=( "${args[@]:3}" )
-	argsL=${#args[@]}
-	if (( $argsL == 3 )); then
-		keys=( artist title track )
-	else
-		keys=( album albumartist artist composer genre date )
-		(( $argsL == 8 )) && keys+=( title track )
-	fi
-	if [[ $cue == false ]]; then
-		[[ $album == true ]] && path="/mnt/MPD/$file/"*.*
-		for (( i=0; i < argsL; i++ )); do
-			key=${keys[$i]}
-			val=${args[$i]}
-			kid3-cli -c "set $key \"$val\"" "$path"
-		done
-	else
-		if [[ $album == false ]]; then
-			sed -i '/^\s\+TRACK '${args[2]}'/ {
-n; s/^\(\s\+TITLE\).*/\1 "'${args[1]}'"/
-n; s/^\(\s\+PERFORMER\).*/\1 "'${args[0]}'"/
-}
-' "$path"
-		else
-			sed -i '/^PERFORMER\|^REM COMPOSER\|^REM DATE\|^REM GENRE/ d' "$path"
-			for (( i=0; i < argsL; i++ )); do
-				key=${keys[$i]}
-				val=${args[$i]}
-				[[ -z $val ]] && continue
-				
-				case $key in
-					albumartist ) sed -i '/^TITLE/ i\PERFORMER "'$val'"' "$path";;
-					composer )    sed i '1 i\REM COMPOSER "'$val'"' "$path";;
-					date )        sed -i '1 i\REM DATE "'$val'"' "$path";;
-					genre )       sed -i '1 a\REM GENRE "'$val'"' "$path";;
-					album )       sed -i 's/^\(\s\+PERFORMER \).*/\1 "'$val'"/' "$path";;
-					artist )      sed -i 's/^\(TITLE\).*/\1 "'$val'"/' "$path";;
-				esac
-			done
-		fi
-	fi
-	mpc update "$file"
 	;;
 volume )
 	current=${args[1]}

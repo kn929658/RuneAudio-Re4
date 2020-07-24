@@ -1341,6 +1341,9 @@ function renderPlaybackBlank() {
 		.removeClass( 'scrollleft' )
 		.removeAttr( 'style' )
 		.css( 'visibility', 'visible' );
+	bash( "ip r | awk '/default/ {print $9}'", function( ip ) {
+		$( '#sampling' ).text( 'http://'+ ip );
+	} );
 }
 renderPlaylist = function( data ) {
 	G.status.playlistlength = data.playlistlength;

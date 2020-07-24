@@ -10,6 +10,7 @@ $dirwebradios = $dirdata.'webradios/';
 
 switch( $_POST[ 'cmd' ] ) {
 
+// arguments passed to bash must be escaped for ["`], double quote and tilde
 case 'sh': // multiple commands / scripts: no pre-escaped characters - js > php > bash
 	$sh = $_POST[ 'sh' ];                                // 1 - get js array
 	$script = '/srv/http/bash/'.array_shift( $sh ).' "'; // 2 - extract script from 1st element
@@ -17,13 +18,15 @@ case 'sh': // multiple commands / scripts: no pre-escaped characters - js > php 
 	echo shell_exec( $sudo.$script );                    // 4 - pass string to bash > convert each line to each args
 	break;
 case 'bash': // single / one-line command - return string
-	$cmd = $_POST[ 'bash' ];
+	$cmd = escape( $_POST[ 'bash' ] );
 	echo shell_exec( $cmd[ 0 ] === '/' ? $sudo.$cmd : $sudobin.$cmd );
 	break;
 case 'exec': // single / one-line command - return array of lines to js
-	exec( $sudobin.$_POST[ 'exec' ], $output, $std );
+	$cmd = escape( $_POST[ 'exec' ] );
+	exec( $sudobin.$cmd, $output, $std );
 	echo json_encode( $output );
 	break;
+	
 case 'backuprestore':
 	$type = $_POST[ 'backuprestore' ];
 	$scriptfile = $dirbash.'backup-restore.sh ';

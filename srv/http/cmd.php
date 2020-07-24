@@ -10,12 +10,20 @@ $dirwebradios = $dirdata.'webradios/';
 
 switch( $_POST[ 'cmd' ] ) {
 
-// arguments passed to bash must be escaped for ["`], double quote and tilde
+// arguments passing to bash
+//  - no each argument quote
+//  - escape ["`] once by php
+//    js   -> php  - string / array for multiple arguments
+//    php  -> bash - string / array > multiline string ( escaped ["`] )
+//    bash         - multiline string > arguments = array by line
+//    bash -> php  - string / json literal
+//    php  -> js   - string / array / json literal( response type 'json' )
+//
 case 'sh': // multiple commands / scripts: no pre-escaped characters - js > php > bash
-	$sh = $_POST[ 'sh' ];                                // 1 - get js array
-	$script = '/srv/http/bash/'.array_shift( $sh ).' "'; // 2 - extract script from 1st element
-	$script.= escape( implode( "\n", $sh ) ).'"';        // 3 - convert array to multi-line string and escape ` "
-	echo shell_exec( $sudo.$script );                    // 4 - pass string to bash > convert each line to each args
+	$sh = $_POST[ 'sh' ];                                // php array = js array
+	$script = '/srv/http/bash/'.array_shift( $sh ).' "'; // script    = 1st element
+	$script.= escape( implode( "\n", $sh ) ).'"';        // arguments = array > escaped multiline string
+	echo shell_exec( $sudo.$script );                    // bash arguments = multiline string > array by line
 	break;
 case 'bash': // single / one-line command - return string
 	$cmd = escape( $_POST[ 'bash' ] );

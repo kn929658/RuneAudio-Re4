@@ -130,7 +130,8 @@ function bookmarkNew() {
 		return
 	}
 	
-	bash( [ 'coverartthumb', path, 200 ], function( base64img ) {
+	bash( [ 'coverartget', path, 200 ], function( base64img ) {
+		console.log(base64img)
 		if ( base64img ) {
 			if ( base64img.slice( -3 ) !== 'gif' ) {
 				info( {

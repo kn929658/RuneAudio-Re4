@@ -68,7 +68,7 @@ case 'bookmarks':
 				rename( $dirtmp.'base64', $file );
 				$html.='<img class="bkcoverart" src="'.file_get_contents( $file ).'">';
 			} else if ( $base64 === 1 ) {
-				$cover = cmdsh( [ 'coverartthumb', $path, 200 ] );
+				$cover = cmdsh( [ 'coverartget', $path, 200 ] );
 				file_put_contents( $file, $cover );
 				$html.='<img class="bkcoverart" src="'.$cover.'">';
 			} else {
@@ -167,7 +167,7 @@ case 'imagefile':
 		exit;
 	} else if ( isset( $_POST[ 'bookmarkfile' ] ) ) { // # bookmark thumbnail
 		$bookmarkfile = $_POST[ 'bookmarkfile' ];
-		$thumbnail = cmdsh( [ 'coverartthumb', $imagefile, 200 ] );
+		$thumbnail = cmdsh( [ 'coverartget', $imagefile, 200 ] );
 		file_put_contents( $bookmarkfile, $thumbnail ? $thumbnail : $_POST[ 'label' ] );
 		echo $thumbnail;
 		exit;

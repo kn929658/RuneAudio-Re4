@@ -97,12 +97,13 @@ s|\(--cg60: *hsl\).*;|\1(${hsg}60%);|
 	pushstream reload reload all
 	;;
 coverartget )
-	coverart=$( /srv/http/bash/cmd-coverart.sh "${args[1]}" )
-	echo -n $coverart
-	[[ -n ${args[2]} ]] && pushstream coverart coverart $coverart
-	;;
-coverartthumb )
-	/srv/http/bash/cmd-coverart.sh "${args[1]}" ${args[2]}
+	file=${args[1]}
+	arg=${args[2]}
+	if [[ -z $arg ]]; then
+		/srv/http/bash/cmd-coverart.sh "$file"
+	else # resize
+		/srv/http/bash/cmd-coverart.sh "$file" $arg
+	fi
 	;;
 filemove )
 	mv -f "${args[1]}" "${args[2]}"

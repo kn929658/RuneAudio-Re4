@@ -223,7 +223,7 @@ function playlistAdd( name, oldname ) {
 	if ( oldname ) {
 		bash( [ 'plrename', oldname, name ] );
 	} else {
-		list( 'playlist', { cmd: 'save', name: name }, function( data ) {
+		list( { cmd: 'save', name: name }, function( data ) {
 			if ( data == -1 ) {
 				info( {
 					  icon        : 'list-ul'
@@ -257,14 +257,14 @@ function playlistDelete() {
 			G.status.playlists--;
 			if ( !G.status.playlists ) $( '#tab-playlist' ).click();
 			G.list.li.remove();
-			list( 'playlist', { cmd: 'delete', name: G.list.name } );
+			list( { cmd: 'delete', name: G.list.name } );
 		}
 	} );
 }
 function playlistLoad( path, play, replace ) {
 	G.local = 1;
 	notify( 'Saved Playlist', 'Load ...', 'list-ul blink', -1 );
-	list( 'playlist', {
+	list( {
 		  cmd     : 'load'
 		, name    : path
 		, play    : play
@@ -326,7 +326,7 @@ function tagEditor() {
 	}
 	if ( cue ) query.track = G.list.track || 'cover';
 	if ( G.playlist ) query.coverart = 1;
-	list( 'library', query, function( value ) {
+	list( query, function( value ) {
 		var label = [];
 		format.forEach( function( el, i ) {
 			label.push( '<i class="fa fa-'+ el +' wh" data-mode="'+ el +'"></i>' );
@@ -375,7 +375,7 @@ function tagEditor() {
 						, format : [ 'file' ]
 					}
 					$( '#tab-library' ).click();
-					list( 'library', query, function( data ) {
+					list( query, function( data ) {
 						G.mode = 'file';
 						data.path = path;
 						data.modetitle = path;
@@ -423,7 +423,7 @@ function tagEditor() {
 						$( '#tab-library' ).click();
 						G.query = [ 'playlist', 'playlist', query ];
 					}
-					list( 'library', query, function( data ) {
+					list( query, function( data ) {
 						data.path = path;
 						data.modetitle = mode.toUpperCase();
 						if ( mode !== 'album' ) {
@@ -692,7 +692,7 @@ $( '.contextmenu a' ).click( function( e ) {
 		} );
 	} else if ( cmd === 'savedplremove' ) {
 		var plname = $( '#pl-path .lipath' ).text();
-		list( 'playlist', {
+		list( {
 			  cmd    : 'edit'
 			, name   : plname
 			, remove : G.list.li.index()

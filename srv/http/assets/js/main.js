@@ -1010,7 +1010,7 @@ $( '#lib-breadcrumbs' ).on( 'click', 'a', function() {
 		, string : path
 		, format : [ 'file' ]
 	}
-	list( 'library', query, function( data ) {
+	list( query, function( data ) {
 		data.path = path;
 		data.modetitle = path;
 		renderLibraryList( data );
@@ -1041,7 +1041,7 @@ $( '#lib-search-btn' ).click( function() { // search
 			  query  : 'search'
 			, string : keyword
 		}
-		list( 'library', query, function( data ) {
+		list( query, function( data ) {
 			if ( data != -1 ) {
 				data.modetitle = 'search';
 				renderLibraryList( data );
@@ -1068,7 +1068,7 @@ $( '#lib-search-close' ).click( function() {
 		$( '#mode-coverart' ).click();
 	} else if ( G.query.length ) {
 		var query = G.query[ G.query.length - 1 ];
-		list( 'library', query, function( data ) {
+		list( query, function( data ) {
 			data.path = query.path;
 			data.modetitle = query.modetitle;
 			renderLibraryList( data );
@@ -1100,7 +1100,7 @@ $( '#button-lib-back' ).click( function() {
 			$( '#tab-playlist' ).click();
 		} else {
 			if ( query.query === 'ls' ) G.mode = 'file';
-			list( 'library', query, function( data ) {
+			list( query, function( data ) {
 				if ( data != -1 ) {
 					data.path = query.path;
 					data.modetitle = query.modetitle;
@@ -1152,7 +1152,7 @@ $( '.mode' ).click( function() {
 			, format : [ G.mode ]
 		}
 	}
-	list( 'library', query, function( data ) {
+	list( query, function( data ) {
 		data.path = path;
 		data.modetitle = path;
 		renderLibraryList( data );
@@ -1328,7 +1328,7 @@ $( '#lib-mode-list' ).on( 'tap', '.mode-bookmark', function( e ) { // delegate -
 			, format : [ 'file' ]
 		}
 		$( '#loader' ).removeClass( 'hide' );
-		list( 'library', query, function( data ) {
+		list( query, function( data ) {
 			data.path = path;
 			data.modetitle = path;
 			renderLibraryList( data );
@@ -1440,7 +1440,7 @@ $( '.coverart' ).tap( function( e ) {
 		}
 	}
 	$( '#loader' ).removeClass( 'hide' );
-	list( 'library', query, function( data ) {
+	list( query, function( data ) {
 		data.modetitle = 'COVERART';
 		renderLibraryList( data );
 	}, 'json' );
@@ -1659,7 +1659,7 @@ $( '#lib-list' ).on( 'taphold', '.licoverimg',  function() {
 	}
 	G.scrolltop[ libpath ] = $( window ).scrollTop();
 	$( '#loader' ).removeClass( 'hide' );
-	list( 'library', query, function( data ) {
+	list( query, function( data ) {
 		data.path = path;
 		data.modetitle = modetitle;
 		renderLibraryList( data );
@@ -1695,7 +1695,7 @@ $( '#button-pl-back' ).click( function() {
 	if ( G.savedplaylist ) {
 		$( '#button-pl-open' ).click();
 	} else {
-		list( 'playlist', { cmd: 'current' }, renderPlaylist, 'json' );
+		list( { cmd: 'current' }, renderPlaylist, 'json' );
 	}
 } );
 $( '#button-pl-open' ).click( function() {
@@ -1843,7 +1843,7 @@ var sortablesavedplaylist = new Sortable( document.getElementById( 'pl-savedlist
 		setTimeout( function() { G.sortable = 0 }, 500 );
 		
 		var plname = $( '#pl-path .lipath' ).text();
-		list( 'playlist', {
+		list( {
 			  cmd  : 'edit'
 			, name : plname
 			, old  : e.oldIndex

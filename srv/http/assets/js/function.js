@@ -11,9 +11,9 @@ function bash( command, callback, json ) {
 		, json || null
 	);
 }
-function list( page, args, callback, json ) {
+function list( args, callback, json ) {
 	$.post(
-		  'mpd'+ page +'.php'
+		  ( 'cmd' in args  ? 'mpdplaylist.php' : 'mpdlibrary.php' )
 		, args
 		, callback || null
 		, json || null
@@ -628,7 +628,7 @@ function getOrientation( file, callback ) { // return: 1 - undefined
 }
 function getPlaybackStatus() {
 	if ( G.status.librandom && G.playlist && !G.savedlist && G.status.mpd ) {
-		list( 'playlist', { cmd: 'current' }, renderPlaylist, 'json' );
+		list( { cmd: 'current' }, renderPlaylist, 'json' );
 	}
 	G.local = 1;
 	setTimeout( function() { G.local = 0 }, 300 );
@@ -660,7 +660,7 @@ function getPlaybackStatus() {
 	}, 'json' );
 }
 function getPlaylist() {
-	list( 'playlist', { cmd: 'current' }, renderPlaylist, 'json' );
+	list( { cmd: 'current' }, renderPlaylist, 'json' );
 }
 function getTitleWidth() {
 	var $liactive = $( '#pl-list li.active' ); 
@@ -871,7 +871,7 @@ function orderLibrary() {
 }
 function playlistInsert( indextarget ) {
 	var plname = $( '#pl-path .lipath' ).text();
-	list( 'playlist', {
+	list( {
 		  cmd         : 'edit'
 		, name        : plname
 		, index       : G.pladd.index
@@ -1376,7 +1376,7 @@ renderPlaylist = function( data ) {
 }
 function renderPlaylistList() {
 	$( '#loader' ).removeClass( 'hide' );
-	list( 'playlist', { cmd: 'list' }, function( data ) {
+	list( { cmd: 'list' }, function( data ) {
 		$( '.playlist, #button-pl-search, #menu-plaction' ).addClass( 'hide' );
 		$( '#menu-plaction' ).addClass( 'hide' );
 		
@@ -1398,7 +1398,7 @@ function renderSavedPlaylist( name ) {
 	$( '.menu' ).addClass( 'hide' );
 	$( '#loader' ).removeClass( 'hide' );
 	$( '#pl-count' ).empty();
-	list( 'playlist', { cmd: 'get', name: name }, function( data ) {
+	list( { cmd: 'get', name: name }, function( data ) {
 		$( '#pl-path' ).html( data.counthtml );
 		$( '#button-pl-back' ).css( 'float', G.display.backonleft ? 'left' : '' );
 		$( '#pl-path, #button-pl-back, #pl-savedlist' ).removeClass( 'hide' );

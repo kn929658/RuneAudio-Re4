@@ -382,20 +382,28 @@ tageditor )
 	cue=${args[3]}
 	path="/mnt/MPD/$file"
 	args=( "${args[@]:4}" )
-	argsL=${#args[@]}
-	if (( $argsL == 3 )); then
-		keys=( artist title track )
-	else
-		keys=( album albumartist artist composer genre date )
-		(( $argsL == 8 )) && keys+=( title track )
-	fi
 	if [[ $cue == false ]]; then
-		[[ $album == true ]] && path="/mnt/MPD/$file/"*.*
-		for (( i=0; i < argsL; i++ )); do
-			key=${keys[$i]}
-			val=${args[$i]}
-			kid3-cli -c "set $key \"$val\"" "$path"
-		done
+		if [[ $album == false ]]; then
+			kid3-cli \
+				-c "set album \"${args[0]}\"" \
+				-c "set albumartist \"${args[1]}\"" \
+				-c "set artist \"${args[2]}\"" \
+				-c "set composer \"${args[3]}\"" \
+				-c "set genre \"${args[4]}\"" \
+				-c "set date \"${args[5]}\"" \
+				-c "set title \"${args[6]}\"" \
+				-c "set track \"${args[7]}\"" \
+				"$path"
+		else
+			kid3-cli \
+				-c "set album \"${args[0]}\"" \
+				-c "set albumartist \"${args[1]}\"" \
+				-c "set artist \"${args[2]}\"" \
+				-c "set composer \"${args[3]}\"" \
+				-c "set genre \"${args[4]}\"" \
+				-c "set date \"${args[5]}\"" \
+				"$path/"*.*
+		fi
 	else
 		if [[ $album == false ]]; then
 			sed -i '/^\s\+TRACK '${args[2]}'/ {
@@ -404,19 +412,19 @@ n; s/^\(\s\+PERFORMER\).*/\1 "'${args[0]}'"/
 }
 ' "$path"
 		else
-			sed -i '/^PERFORMER\|^REM COMPOSER\|^REM DATE\|^REM GENRE/ d' "$path"
-			for (( i=0; i < argsL; i++ )); do
+			sed -i '/^TITLE\|^PERFORMER\|^REM COMPOSER\|^REM DATE\|^REM GENRE/ d' "$path"
+			keys=( album albumartist artist composer genre date )
+			for (( i=0; i < 6; i++ )); do
 				key=${keys[$i]}
 				val=${args[$i]}
 				[[ -z $val ]] && continue
 				
 				case $key in
-					albumartist ) sed -i '/^TITLE/ i\PERFORMER "'$val'"' "$path";;
-					composer )    sed i '1 i\REM COMPOSER "'$val'"' "$path";;
+					album )       sed -i '1 i\TITLE "'$val'"' "$path";;
+					albumartist ) sed -i '/^TITLE/ a\PERFORMER "'$val'"' "$path";;
+					composer )    sed -i '1 i\REM COMPOSER "'$val'"' "$path";;
 					date )        sed -i '1 i\REM DATE "'$val'"' "$path";;
 					genre )       sed -i '1 a\REM GENRE "'$val'"' "$path";;
-					album )       sed -i 's/^\(\s\+PERFORMER \).*/\1 "'$val'"/' "$path";;
-					artist )      sed -i 's/^\(TITLE\).*/\1 "'$val'"/' "$path";;
 				esac
 			done
 		fi

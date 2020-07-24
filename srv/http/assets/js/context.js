@@ -357,7 +357,7 @@ function tagEditor() {
 					if ( $el.val() === '*' ) $el.val( '' ).prop( 'placeholder', '*various' );
 					if ( G.playlist && !$el.val() ) $( '.infolabel:eq( '+ i +' ), .infoinput:eq( '+ i +' )' ).hide();
 				} );
-				if ( cue && !G.list.licover ) $( '.infolabel:eq( 2 ), .infoinput:eq( 2 )' ).hide();
+				if ( cue ) $( '.infolabel:eq( 2 ), .infoinput:eq( 2 )' ).hide();
 				var plcue = !$( '.infoinput' ).filter( function() {
 					return $( this ).val() !== '';
 				} ).length

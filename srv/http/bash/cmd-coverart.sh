@@ -3,13 +3,13 @@
 path="/mnt/MPD/$1"
 size=$2
 # get coverfile in directory
-[[ -d "$path" ]] && dir="$path" || dir=$( dirname "$path" )
+[[ -d $path ]] && dir=$path || dir=$( dirname "$path" )
 for name in cover folder front thumb album; do
 	for ext in jpg png gif; do
 		coverfile="$dir/$name.$ext"
-		[[ -e "$coverfile" ]] && found=1 && break
+		[[ -e $coverfile ]] && found=1 && break
 		coverfile="$dir/${name^}.$ext" # capitalize
-		[[ -e "$coverfile" ]] && found=1 && break
+		[[ -e $coverfile ]] && found=1 && break
 	done
 	[[ $found == 1 ]] && break
 done
@@ -35,6 +35,7 @@ fi
 [[ $found != 1 ]] && exit
 
 coverfile=${coverfile//\"/%22}
+coverfile=${coverfile//%/%25}
 [[ -z $size || $ext == gif ]] && echo -n ${coverfile%.*}.$( date +%s ).${coverfile/*.} && exit
 
 # resize

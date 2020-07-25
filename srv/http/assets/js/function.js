@@ -1316,30 +1316,32 @@ function renderPlayback() {
 }
 function renderPlaybackBlank() {
 	bash( "ip r | awk '/default/ {print $9}'", function( ip ) {
-		$( '#sampling' ).text( 'http://'+ ip );
+		var webui = ip ? 'http://'+ ip : '(No IP address)'
+		$( '#sampling' ).text( webui );
 		$( '#playback-controls, #infoicon i' ).addClass( 'hide' );
 		$( '#page-playback .emptyadd' ).toggleClass( 'hide', !G.status.mpd );
 		$( '#divartist, #divsong, #divalbum' ).removeClass( 'scroll-left' );
 		$( '#artist, #song, #album, #progress, #elapsed, #total' ).empty();
 		if ( G.display.time ) $( '#time' ).roundSlider( 'setValue', 0 );
 		$( '#time-bar' ).css( 'width', 0 );
+		if ( !ip ) {
+			$( '#coverart' )
+				.prop( 'src', coverrune )
+				.removeClass( 'vu' );
+			$( '#divcover, #coverart' ).addClass( 'coverrune' );
+			return
+		}
+		
 		if ( $( '#qrwebui' ).html() ) return
 		
-		$( '#coverart' )
-			.prop( 'src', coverrune )
-			.removeClass( 'vu' );
-		$( '#divcover, #coverart' ).addClass( 'coverrune' );
-		var cW = $( '#coverart' ).width;
+		$( '#splash' ).remove();
 		var qrweb = new QRCode( {
-			  msg : 'http://'+ ip
-			, dim : cW
+			  msg : webui
+			, dim : 230
 			, pad : 1
 			, pal : [ '#e6e6e6', '#000' ]
 		} );
-		setTimeout( function() {
-			$( '#coverart' ).addClass( 'hide' );
-			$( '#qrwebui' ).html( qrweb );
-		}, 3000 );
+		$( '#qrwebui' ).html( qrweb );
 	} );
 }
 renderPlaylist = function( data ) {

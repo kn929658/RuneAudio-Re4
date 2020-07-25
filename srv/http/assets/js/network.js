@@ -273,27 +273,28 @@ function nicsStatus() {
 		showContent();
 	}, 'json' );
 }
+function qr( msg ) {
+	return new QRCode( {
+		  msg : msg
+		, dim : 130
+		, pad : 1
+	} );
+}
 function renderQR() {
-	var qroptions = { width  : 120, height : 120 }
 	$( 'li' ).each( function() {
 		var ip = $( this ).data( 'ip' );
 		var gateway = $( this ).data( 'gateway' );
 		if ( ip && gateway ) {
-			$( '#qrwebui' ).empty();
 			$( '#ipwebui' ).text( ip );
-			qroptions.text = 'http://'+ ip;
-			$( '#qrwebui' ).qrcode( qroptions );
+			$( '#qrwebui' ).html( qr( 'http://'+ ip ) );
 			$( '#divwebui' ).removeClass( 'hide' );
 			return false
 		}
 	} );
 	if ( !accesspoint || !G.hostapd ) return
 	
-	$( '#qraccesspoint, #qrwebuiap' ).empty();
-	qroptions.text = 'WIFI:S:'+ G.ssid +';T:WPA;P:'+ G.passphrase +';';
-	$( '#qraccesspoint' ).qrcode( qroptions );
-	qroptions.text = 'http://'+ G.hostapdip;
-	$( '#qrwebuiap' ).qrcode( qroptions );
+	$( '#qraccesspoint' ).html( qr( 'WIFI:S:'+ G.ssid +';T:WPA;P:'+ G.passphrase +';' ) );
+	$( '#qrwebuiap' ).html( qr( 'http://'+ G.hostapdip ) );
 	$( '#boxqr' ).removeClass( 'hide' );
 }
 function wlanScan() {
@@ -555,7 +556,7 @@ $( '#accesspoint' ).change( function() {
 	
 	hostapd = $( this ).prop( 'checked' );
 	if ( hostapd ) {
-		if ( $( '#divinterface li.wlan0' ).data( 'gateway' ) ) {
+		if ( $( '#divinterface li.wlan0' ).data( 'connected' ) ) {
 			info( {
 				  icon    : 'network'
 				, title   : 'Access Point'

@@ -165,7 +165,6 @@ pre {
 	background: var( --cgd );
 	font-family: 'Inconsolata';
 	font-size: 14px;
-	line-height: 20px;
 	overflow-x: scroll;
 }
 .btn {

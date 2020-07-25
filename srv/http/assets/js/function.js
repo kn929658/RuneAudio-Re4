@@ -634,6 +634,7 @@ function getPlaybackStatus() {
 	setTimeout( function() { G.local = 0 }, 300 );
 	bash( '/srv/http/bash/status.sh', function( status ) {
 		if ( !status ) return
+		
 		$.each( status, function( key, value ) {
 			G.status[ key ] = value;
 		} );
@@ -653,6 +654,11 @@ function getPlaybackStatus() {
 			if ( G.playback ) {
 				renderPlayback();
 				displayPlayback();
+			} else if ( G.library && $( '#qrwebui' ).html() ) {
+				$( '#qrwebui' ).empty();
+				$( '#coverart' )
+					.prop( 'src', status.coverart || coverrune )
+					.removeClass( 'hide' );
 			} else if ( G.playlist && !G.savedlist && !G.savedplaylist ) {
 				setPlaylistScroll();
 			}
@@ -1330,6 +1336,7 @@ function renderPlaybackBlank() {
 				.removeClass( 'vu' );
 			$( '#divcover, #coverart' ).addClass( 'coverrune' );
 		} else {
+			$( '#coverart' ).addClass( 'hide' );
 			$( '#splash' ).remove();
 			var qrweb = new QRCode( {
 				  msg : webui

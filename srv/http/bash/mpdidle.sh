@@ -18,11 +18,6 @@ mpc idleloop | while read changed; do
 			curlPost mpdoptions "$( /srv/http/bash/status.sh statusonly )"
 			;;
 		player )
-			if [[ -e /srv/http/data/tmp/nostatus ]]; then
-				rm /srv/http/data/tmp/nostatus
-				continue
-			fi
-			
 			status=$( /srv/http/bash/status.sh )
 			if [[ ! -e /srv/http/data/system/player-snapclient ]]; then
 				curlPost mpdplayer "$status"

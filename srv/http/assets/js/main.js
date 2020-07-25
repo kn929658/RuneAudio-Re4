@@ -978,6 +978,7 @@ $( '.btn-cmd' ).click( function() {
 			if ( length === 1 ) return
 			
 			if ( G.status.state !== 'play' ) {
+				G.prevnext = 1;
 				var prevnext = setTimeout( function() {
 					$( '#loader' ).removeClass( 'hide' );
 				}, 300 );

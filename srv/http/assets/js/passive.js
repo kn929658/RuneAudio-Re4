@@ -233,7 +233,16 @@ function psMpdOptions( data ) {
 function psMpdPlayer( data ) {
 	if ( G.local ) return
 	
-	G.playback ? setPlayback( data ) : setPlaylistScroll();
+	if ( G.prevnext ) { // fix: prev / next while stop
+		clearTimeout( G.debounce );
+		G.debounce = setTimeout( function() {
+			G.prevnext = 0;
+			delete data.playlistlength;
+			setPlayback( data );
+		}, 600 );
+	} else {
+		G.playback ? setPlayback( data ) : setPlaylistScroll();
+	}
 }
 function psMpdUpdate( data ) {
 	if ( G.local ) return

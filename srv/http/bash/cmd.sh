@@ -229,13 +229,8 @@ mpcprevnext )
 			(( $current != 1 )) && pos=$(( current - 1 )) || pos=$length
 		fi
 	fi
-	if [[ -n $playing ]]; then
-		mpc play $pos
-	else
-		touch $dirtmp/nostatus
-		mpc play $pos
-		mpc stop
-	fi
+	mpc play $pos
+	[[ -z $playing ]] && mpc stop
 	;;
 mpcsimilar )
 	plL=$( mpc playlist | wc -l )

@@ -75,4 +75,6 @@ getinstallzip
 
 installfinish
 
+systemctl restart mpdidle
+
 restartlocalbrowser

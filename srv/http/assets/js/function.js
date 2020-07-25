@@ -1323,10 +1323,23 @@ function renderPlaybackBlank() {
 		$( '#artist, #song, #album, #progress, #elapsed, #total' ).empty();
 		if ( G.display.time ) $( '#time' ).roundSlider( 'setValue', 0 );
 		$( '#time-bar' ).css( 'width', 0 );
+		if ( $( '#qrwebui' ).html() ) return
+		
 		$( '#coverart' )
 			.prop( 'src', coverrune )
 			.removeClass( 'vu' );
 		$( '#divcover, #coverart' ).addClass( 'coverrune' );
+		var cW = $( '#coverart' ).width;
+		var qrweb = new QRCode( {
+			  msg : 'http://'+ ip
+			, dim : cW
+			, pad : 1
+			, pal : [ '#e6e6e6', '#000' ]
+		} );
+		setTimeout( function() {
+			$( '#coverart' ).addClass( 'hide' );
+			$( '#qrwebui' ).html( qrweb );
+		}, 3000 );
 	} );
 }
 renderPlaylist = function( data ) {

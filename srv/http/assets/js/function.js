@@ -656,9 +656,8 @@ function getPlaybackStatus() {
 				displayPlayback();
 			} else if ( G.library && $( '#qrwebui' ).html() ) {
 				$( '#qrwebui' ).empty();
-				$( '#coverart' )
-					.prop( 'src', status.coverart || coverrune )
-					.removeClass( 'hide' );
+				$( '#coverart' ).removeClass( 'hide' );
+				renderPlayback();
 			} else if ( G.playlist && !G.savedlist && !G.savedplaylist ) {
 				setPlaylistScroll();
 			}

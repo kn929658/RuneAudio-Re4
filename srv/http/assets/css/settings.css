@@ -460,7 +460,6 @@ input:checked + .switchlabel:after {
 	margin: 5px 0 10px;
 	width: 130px;
 	height: 130px;
-	background: var( --cw );
 }
 .container {
 	max-width: 768px;

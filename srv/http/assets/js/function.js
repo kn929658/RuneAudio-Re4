@@ -1329,19 +1329,16 @@ function renderPlaybackBlank() {
 				.prop( 'src', coverrune )
 				.removeClass( 'vu' );
 			$( '#divcover, #coverart' ).addClass( 'coverrune' );
-			return
+		} else {
+			$( '#splash' ).remove();
+			var qrweb = new QRCode( {
+				  msg : webui
+				, dim : 230
+				, pad : 1
+				, pal : [ '#e6e6e6', '#000' ]
+			} );
+			$( '#qrwebui' ).html( qrweb );
 		}
-		
-		if ( $( '#qrwebui' ).html() ) return
-		
-		$( '#splash' ).remove();
-		var qrweb = new QRCode( {
-			  msg : webui
-			, dim : 230
-			, pad : 1
-			, pal : [ '#e6e6e6', '#000' ]
-		} );
-		$( '#qrwebui' ).html( qrweb );
 	} );
 }
 renderPlaylist = function( data ) {

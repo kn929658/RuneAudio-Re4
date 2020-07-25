@@ -16,7 +16,7 @@ fi
 
 dirsystem=/srv/http/data/system
 
-if ls /usr/lib/python*/site-packages/RPi.GPIO* &> /dev/null && [[ ! -e /srv/http/data/system/gpio.json ]]; then
+if [[ ! -e /srv/http/data/system/gpio.json ]] && python -c "import RPi.GPIO" &> /dev/null; then
 	echo '{
   "name": {
     "11": "DAC",

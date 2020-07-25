@@ -601,7 +601,7 @@ function webRadioEdit() {
 		}
 	} );
 }
-webRadioNew = function( name, url ) {
+function webRadioNew( name, url ) {
 	info( {
 		  icon         : 'webradio'
 		, title        : 'Add WebRadio'
@@ -621,7 +621,9 @@ webRadioNew = function( name, url ) {
 						  icon    : 'webradio'
 						, title   : 'Add WebRadio'
 						, message : '<wh>'+ url +'</wh><br>contains no valid URL.'
-						, ok      : webRadioNew( newname, url )
+						, ok      : function() {
+							webRadioNew( newname, url );
+						}
 					} );
 				} else if ( data ) {
 					var nameimg = data.split( "\n" );
@@ -629,10 +631,12 @@ webRadioNew = function( name, url ) {
 						  icon    : 'webradio'
 						, title   : 'Add WebRadio'
 						, message : ( nameimg[ 2 ] ? '<img src="'+ nameimg[ 2 ] +'">' : '<i class="fa fa-webradio bookmark"></i>' )
-								   +'<br><w>'+ nameimg[ 0 ] +'</w>'
+								   +'<br><w>'+ nameimg[ 0 ].split( '^^' )[ 0 ] +'</w>'
 								   +'<br>'+ url
 								   +'<br>Already exists.'
-						, ok      : webRadioNew( newname, url )
+						, ok      : function() {
+							webRadioNew( newname, url );
+						}
 					} );
 				} else {
 					$( '#mode-webradio' ).click();

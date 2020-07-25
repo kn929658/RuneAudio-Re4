@@ -1117,6 +1117,7 @@ function renderLibraryList( data ) {
 }
 function renderPlayback() {
 	clearIntervalAll();
+	$( '#loader' ).addClass( 'hide' );
 	var status = G.status;
 	// song and album before update for song/album change detection
 	var previousartist = $( '#artist' ).text();
@@ -1228,19 +1229,7 @@ function renderPlayback() {
 			$( '#coverart' ).prop( 'src', status.coverart );
 		} else {
 			$( '#coverart' ).prop( 'src', coverrune );
-			if ( 'file' in status ) { // retry
-				setTimeout( function() {
-					$.post( 'cmd.php', { cmd: 'coverartget', path: status.file }, function( coverart ) {
-						if ( !coverart ) {
-							$( '#divcover, #coverart' ).addClass( 'coverrune' );
-							$( '#coverart' ).prop( 'src', coverrune );
-							coverartGet( status.Artist, status.Album );
-						}
-					} );
-				}, 300 );
-			} else {
-				coverartGet( status.Artist, status.Album );
-			}
+			coverartGet( status.Artist, status.Album );
 		}
 	}
 	// time

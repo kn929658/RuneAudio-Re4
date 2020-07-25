@@ -341,7 +341,7 @@ i.bookmark,
 	height: 35px;
 	margin-top: 2px;
 }
-svg {
+svg.logo {
 	-webkit-filter: drop-shadow( 1px 1px 1px #000000 );
 	filter: drop-shadow( 1px 1px 1px #000000 );
 }

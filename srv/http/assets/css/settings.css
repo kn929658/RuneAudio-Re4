@@ -89,10 +89,6 @@
 .fa-wifi-2:before { content: "\f571" }
 .fa-wifi-3:before { content: "\f570" }
 #infoMessage .fa-wifi-3:before { font-size: 20px }
-svg {
-	-webkit-filter: drop-shadow( 1px 1px 1px #000000 );
-	filter: drop-shadow( 1px 1px 1px #000000 );
-}
 svg path.st0 {
 	fill: var( --cm );
 }
@@ -460,17 +456,11 @@ input:checked + .switchlabel:after {
 .cga {
 	background: var( --cga ) !important;
 }
-.divqr {
-	text-align: left;
-	margin-bottom: 10px;
-	padding-right: 15px;
-}
 .qr {
+	margin: 5px 0 10px;
 	width: 130px;
 	height: 130px;
-	margin: 4px 0 7px 0;
-	padding: 5px;
-	background: #ffffff;
+	background: var( --cw );
 }
 .container {
 	max-width: 768px;

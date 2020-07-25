@@ -70,7 +70,7 @@ include "settings/$page.php";
 	<?php	if ( $page === 'mpd' || $page === 'system' ) { ?>
 <script src="/assets/js/plugin/jquery.selectric.min.<?=$time?>.js"></script>
 	<?php	} else if ( $page === 'network' ) { ?>
-<script src="/assets/js/plugin/jquery.qrcode.min.<?=$time?>.js"></script>
+<script src="/assets/js/plugin/qrcode.min.<?=$time?>.js"></script>
 	<?php	}
 		  } ?>
 	<?php if ( $localhost ) { ?>

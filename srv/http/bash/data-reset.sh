@@ -90,7 +90,7 @@ echo 0 0 0 > $dirsystem/mpddb
 echo '$2a$12$rNJSBU0FOJM/jP98tA.J7uzFWAnpbXFYx5q1pmNhPnXnUu3L1Zz6W' > $dirsystem/password
 [[ -n $1 ]] && echo $1 > $dirsystem/version
 # gpio
-[[ ! -e $dirsystem/gpio.json ]] && echo '{
+python -c "import RPi.GPIO" &> /dev/null && echo '{
   "name": {
     "11": "DAC",
     "13": "PreAmp",

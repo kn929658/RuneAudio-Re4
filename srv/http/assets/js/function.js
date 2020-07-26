@@ -651,15 +651,15 @@ function getPlaybackStatus() {
 		} else {
 			G.plreplace = 0;
 			setButtonControl();
+			if ( $( '#qrwebui' ).html() ) {
+				$( '#qrwebui' ).empty();
+				$( '#coverTR' ).removeClass( 'blankTR' );
+				$( '#coverart' ).removeClass( 'hide' );
+			}
 			if ( G.playback ) {
 				renderPlayback();
 				displayPlayback();
 			} else if ( G.library ) {
-				if ( $( '#qrwebui' ).html() ) {
-					$( '#qrwebui' ).empty();
-					$( '#coverTR' ).removeClass( 'blankTR' );
-					$( '#coverart' ).removeClass( 'hide' );
-				}
 				renderPlayback();
 			} else if ( G.playlist && !G.savedlist && !G.savedplaylist ) {
 				setPlaylistScroll();

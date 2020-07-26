@@ -220,7 +220,7 @@ function coverartChange() {
 			} );
 		}
 	}
-	if ( ( G.playback && pbembedded ) || ( G.library && liembedded ) ) jsoninfo.footer = '<i class="fa fa-coverart"></i>embedded';
+	if ( ( G.playback && pbembedded ) || ( G.library && liembedded ) ) jsoninfo.footer = '<i class="fa fa-coverart"></i>&ensp;embedded';
 	info( jsoninfo );
 }
 function coverartGet( artist, album, track ) {

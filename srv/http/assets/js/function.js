@@ -655,11 +655,6 @@ function getPlaybackStatus() {
 				renderPlayback();
 				displayPlayback();
 			} else if ( G.library ) {
-				if ( $( '#qrwebui' ).html() ) {
-					$( '#qrwebui' ).empty();
-					$( '#coverTR' ).removeClass( 'blankTR' );
-					$( '#coverart' ).removeClass( 'hide' );
-				}
 				renderPlayback();
 			} else if ( G.playlist && !G.savedlist && !G.savedplaylist ) {
 				setPlaylistScroll();
@@ -1147,7 +1142,12 @@ function renderPlayback() {
 		return
 	}
 	
-	$( '.emptyadd' ).addClass( 'hide' );
+	if ( $( '#qrwebui' ).html() ) {
+		$( '.emptyadd' ).addClass( 'hide' );
+		$( '#qrwebui' ).empty();
+		$( '#coverTR' ).removeClass( 'blankTR' );
+		$( '#coverart' ).removeClass( 'hide' );
+	}
 	$( '.playback-controls' ).css( 'visibility', 'visible' );
 	$( '#artist, #song, #album' ).css( 'width', '' );
 	$( '#artist' ).text( status.Artist );

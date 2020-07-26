@@ -1346,7 +1346,7 @@ function renderPlaybackBlank() {
 				, pad : 10
 			} );
 			$( '#qrwebui' ).html( qrweb );
-			if ( $('#bar-top' ).hasClass( 'hide' ) ) $( '#coverTR' ).addClass( 'blankTR' );
+			$( '#coverTR' ).toggleClass( 'blankTR', !G.bars );
 		}
 	} );
 }

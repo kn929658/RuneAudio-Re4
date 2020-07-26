@@ -39,7 +39,7 @@ image=$( jq -r .image <<< "$album" )
 
 if [[ $image != null ]]; then
 	extralarge=$( jq -r .[3] <<< "$image" | sed 's/^\s*"#text"/"url"/' )
-	url=$( jq -r .url <<< "$extralarge" )
+	url=$( jq -r .url <<< "$extralarge" | sed 's|/300x300/|/_/|' ) # get larger size than 300x300
 else
 	mbid=$( jq -r .mbid <<< "$album" )
 	if [[ $mbid == null ]]; then

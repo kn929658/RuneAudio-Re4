@@ -239,44 +239,17 @@ function coverartGet( artist, album, track, nopush ) {
 		}
 	);
 }
-function coverartLoad( image ) {
-	var image = image.replace( '/300x300/', '/_/' );
-	if ( G.status.webradio ) {
-		$( '#coverart' )
-			.prop( 'src', image )
-			.on( 'load', function() {
-				$( '#divcover, #coverart' ).removeClass( 'vu coverrune' );
-			} );
-		return
-	}
-	
+function coverartSave() {
 	var img = new Image();
 	img.crossOrigin = 'anonymous';
-	img.src = image;
+	img.src = $( '#coverart' ).prop( 'src' );
 	img.onload = function() {
 		var canvas = document.createElement( 'canvas' );
 		canvas.width = this.width;
 		canvas.height = this.height;
 		canvas.getContext( '2d' ).drawImage( this, 0, 0 );
-		G.status.coverart = canvas.toDataURL( 'image/jpeg' );
-		$( '#divcover, #coverart' ).removeClass( 'vu coverrune' );
-		if ( G.library ) {
-			$( '.licoverimg img' )
-				.prop( 'src', G.status.coverart )
-				.after( '<div class="liedit cover-save"><i class="fa fa-save"></i></div>' )
-				.on( 'load', function() {
-					$( '.liinfo' ).css( 'width', ( window.innerWidth - $( this ).width() - 50 ) +'px' );
-				} );
-		} else {
-			$( '#coverart' ).prop( 'src', G.status.coverart );
-			if ( G.status.mpd && !G.status.webradio ) {
-				G.coversave = 1;
-				$( '#divcover' ).append( '<div class="cover-save"><i class="fa fa-save"></i></div>' );
-			}
-		}
+		base64 = canvas.toDataURL( 'image/jpeg' );
 	}
-}
-function coverartSave() {
 	if ( G.playback ) {
 		var src = $( '#coverart' ).prop( 'src' );
 		var file = G.status.file;
@@ -302,7 +275,7 @@ function coverartSave() {
 			$.post( cmdphp, {
 				  cmd       : 'imagefile'
 				, imagefile : coverfile
-				, base64    : src.split( ',' ).pop()
+				, base64    : base64
 			}, function( std ) {
 				coverartSuccess( 'Save', src, std );
 				$( '.cover-save' ).remove();

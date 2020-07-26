@@ -133,6 +133,8 @@ function psBookmark( data ) {
 	}, G.debouncems );
 }
 function psCoverart( data ) {
+	G.status.coverart = data.url;
+	$( '#divcover, #coverart' ).removeClass( 'vu coverrune' );
 	$( '#coverart' ).prop( 'src', data.url );
 	if ( G.status.mpd && !G.status.webradio ) {
 		G.coversave = 1;

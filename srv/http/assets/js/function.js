@@ -654,9 +654,11 @@ function getPlaybackStatus() {
 			if ( G.playback ) {
 				renderPlayback();
 				displayPlayback();
-			} else if ( G.library && $( '#qrwebui' ).html() ) {
-				$( '#qrwebui' ).empty();
-				$( '#coverart' ).removeClass( 'hide' );
+			} else if ( G.library ) {
+				if ( $( '#qrwebui' ).html() ) {
+					$( '#qrwebui' ).empty();
+					$( '#coverart' ).removeClass( 'hide' );
+				}
 				renderPlayback();
 			} else if ( G.playlist && !G.savedlist && !G.savedplaylist ) {
 				setPlaylistScroll();
@@ -1340,7 +1342,7 @@ function renderPlaybackBlank() {
 			var qrweb = new QRCode( {
 				  msg : webui
 				, dim : 230
-				, pad : 0
+				, pad : 10
 				, pal : [ '#e6e6e6', '#000' ]
 			} );
 			$( '#qrwebui' ).html( qrweb );

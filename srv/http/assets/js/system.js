@@ -368,7 +368,7 @@ $( '#setting-localbrowser' ).click( function( e ) {
 		, buttonlabel : '<i class="fa fa-refresh"></i>Refresh'
 		, buttoncolor : '#de810e'
 		, button      : function() {
-			bash( [ 'refreshbrowser' ] );
+			bash( 'curl -s -X POST http://127.0.0.1/pub?id=reload -d 1' );
 		}
 		, buttonwidth : 1
 		, ok          : function() {

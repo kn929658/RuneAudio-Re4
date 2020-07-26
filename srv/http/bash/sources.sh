@@ -6,7 +6,7 @@ dirsystem=/srv/http/data/system
 readarray -t args <<< "$1"
 
 pushRefresh() {
-	curl -s -X POST 'http://127.0.0.1/pub?id=refresh' -d '{ "page": "sources" }'
+	curl -s -X POST http://127.0.0.1/pub?id=refresh -d '{ "page": "sources" }'
 }
 
 case ${args[0]} in

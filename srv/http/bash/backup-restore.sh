@@ -230,7 +230,7 @@ fi
 [[ -n $config ]] && echo -n "$config" >> /boot/config.txt
 
 notify() {
-	curl -s -X POST 'http://127.0.0.1/pub?id=restore' -d '{"restore":"'$1'"}' &> /dev/null
+	curl -s -X POST http://127.0.0.1/pub?id=restore -d '{"restore":"'$1'"}' &> /dev/null
 }
 
 if [[ -z $reboot ]]; then

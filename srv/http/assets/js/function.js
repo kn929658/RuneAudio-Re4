@@ -383,10 +383,10 @@ function cssKeyframes( name, trx0, trx100 ) {
 	);
 }
 function curl( channel, key, value ) {
-	return 'curl -s -X POST "http://127.0.0.1/pub?id='+ channel +'" -d \'{ "'+ key +'": "'+ value +'" }\''
+	return 'curl -s -X POST http://127.0.0.1/pub?id='+ channel +' -d \'{ "'+ key +'": "'+ value +'" }\''
 }
 function curlPackage( pkg, active, enabled ) {
-	return 'curl -s -X POST "http://127.0.0.1/pub?id=package" -d \'[ "'+ pkg +'", '+ active +', '+ enabled +' ]\''
+	return 'curl -s -X POST http://127.0.0.1/pub?id=package -d \'[ "'+ pkg +'", '+ active +', '+ enabled +' ]\''
 }
 function disableCheckbox( name, enable, check ) {
 	$( 'input[name="'+ name +'"]' )
@@ -651,15 +651,15 @@ function getPlaybackStatus() {
 		} else {
 			G.plreplace = 0;
 			setButtonControl();
-			if ( $( '#qrwebui' ).html() ) {
-				$( '#qrwebui' ).empty();
-				$( '#coverTR' ).removeClass( 'blankTR' );
-				$( '#coverart' ).removeClass( 'hide' );
-			}
 			if ( G.playback ) {
 				renderPlayback();
 				displayPlayback();
 			} else if ( G.library ) {
+				if ( $( '#qrwebui' ).html() ) {
+					$( '#qrwebui' ).empty();
+					$( '#coverTR' ).removeClass( 'blankTR' );
+					$( '#coverart' ).removeClass( 'hide' );
+				}
 				renderPlayback();
 			} else if ( G.playlist && !G.savedlist && !G.savedplaylist ) {
 				setPlaylistScroll();

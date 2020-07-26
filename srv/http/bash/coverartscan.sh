@@ -324,7 +324,7 @@ echo
 echo -e                       "      Total thumbnails : $( tcolor $( numfmt --g $( ls -1 $dircoverarts | wc -l ) ) )"
 echo -e  "      Parsed directory : $( tcolor "$path" )"
 
-curl -s -v -X POST 'http://localhost/pub?id=notify' \
+curl -s -v -X POST http://localhost/pub?id=notify \
 	-d '{ "title": "'"Browse By CoverArt"'", "text": "'"Thumbnails ${update}d."'" }' \
 	&> /dev/null
 

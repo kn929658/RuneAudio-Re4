@@ -50,7 +50,7 @@ if [[ -n "$mountpoints" ]]; then
 		(( i++ ))
 		if (( i > 20 )); then
 			echo 'NAS mount failed.<br><br><gr>Try reboot again.</gr>' > /srv/http/data/tmp/reboot
-			curl -s -X POST 'http://127.0.0.1/pub?id=reload' -d 1
+			curl -s -X POST http://127.0.0.1/pub?id=reload -d 1
 			exit
 		fi
 	done

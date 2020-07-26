@@ -27,7 +27,7 @@ cat /tmp/shairport-sync-metadata | while read line; do
 	if [[ $code == coverart ]]; then
 		base64 -d <<< $base64 > /srv/http/data/tmp/airplay-coverart.jpg
 		data=/data/tmp/airplay-coverart.$( date +%s ).jpg
-		curl -s -X POST 'http://127.0.0.1/pub?id=airplay' -d '{"coverart":"/data/tmp/airplay-coverart.'$( date +%s )'.jpg"}'
+		curl -s -X POST http://127.0.0.1/pub?id=airplay -d '{"coverart":"/data/tmp/airplay-coverart.'$( date +%s )'.jpg"}'
 	else
 		data=$( echo $base64 | base64 --decode 2> /dev/null )
 		if [[ $code == Time ]]; then # format: start/elapsed/end @44100
@@ -38,7 +38,7 @@ cat /tmp/shairport-sync-metadata | while read line; do
 			
 			elapsedms=$( awk "BEGIN { printf \"%.0f\n\", $(( current - start )) / 44.1 }" )
 			(( $elapsedms > 0 )) && elapsed=$(( ( elapsedms + 500 ) / 1000 )) || elapsed=0
-			curl -s -X POST 'http://127.0.0.1/pub?id=airplay' -d '{"elapsed":'$elapsed'}'
+			curl -s -X POST http://127.0.0.1/pub?id=airplay -d '{"elapsed":'$elapsed'}'
 			
 			starttime=$(( timestamp - elapsedms ))
 			echo $starttime > /srv/http/data/tmp/airplay-start
@@ -51,7 +51,7 @@ cat /tmp/shairport-sync-metadata | while read line; do
 		
 		[[ ' start Time volume ' =~ " $code " ]] && payload='"'$code'":'$data || payload='"'$code'":"'${data//\"/\\\"}'"'
 		
-		curl -s -X POST 'http://127.0.0.1/pub?id=airplay' -d "{$payload}"
+		curl -s -X POST http://127.0.0.1/pub?id=airplay -d "{$payload}"
 	fi
 	code= # reset code= and start over
 done

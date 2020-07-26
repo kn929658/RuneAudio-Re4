@@ -7,5 +7,5 @@ if [[ -e $playerfile-upnp ]]; then
 	rm -f $playerfile-*
 	touch $playerfile-mpd
 	mpc del 1
-	curl -s -X POST "http://127.0.0.1/pub?id=mpdplayer" -d "$( /srv/http/bash/status.sh )"
+	curl -s -X POST http://127.0.0.1/pub?id=mpdplayer -d "$( /srv/http/bash/status.sh )"
 fi

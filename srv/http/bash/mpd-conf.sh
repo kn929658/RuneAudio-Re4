@@ -117,7 +117,7 @@ echo "$mpdconf" > $mpdfile
 usbdacfile=/srv/http/data/system/usbdac
 
 systemctl restart mpd  # "restart" while not running = start + stop + start
-curl -s -X POST 'http://127.0.0.1/pub?id=refresh' -d '{ "page": "mpd" }'
+curl -s -X POST http://127.0.0.1/pub?id=refresh -d '{ "page": "mpd" }'
 
 # udev rules - usb dac
 if [[ $# -gt 0 && $1 != bt ]]; then
@@ -137,11 +137,11 @@ if [[ $# -gt 0 && $1 != bt ]]; then
 		echo $aplayname > $usbdacfile # flag - active usb
 	fi
 	
-	curl -s -X POST 'http://127.0.0.1/pub?id=notify' -d '{ "title": "Audio Output", "text": "'"$name"'", "icon": "output" }'
+	curl -s -X POST http://127.0.0.1/pub?id=notify -d '{ "title": "Audio Output", "text": "'"$name"'", "icon": "output" }'
 	
 	mixertype=$( sed -n "/$name/,/^}/ p" /etc/mpd.conf | grep mixer_type | cut -d\" -f2 )
 	[[ $mixertype == 'none' ]] && volumenone=true || volumenone=false
-	curl -s -X POST 'http://127.0.0.1/pub?id=display' -d '{ "volumenone": '$volumenone' }'
+	curl -s -X POST http://127.0.0.1/pub?id=display -d '{ "volumenone": '$volumenone' }'
 else
 	aplayname=$audioaplayname
 fi
@@ -167,7 +167,7 @@ if [[ -e /usr/bin/shairport-sync ]]; then
 	sed -i '/^alsa =/,$ d' /etc/shairport-sync.conf
 	echo "$alsa" >> /etc/shairport-sync.conf
 
-	curl -s -X POST 'http://127.0.0.1/pub?id=airplay' -d '{"stop":"switchoutput"}'
+	curl -s -X POST http://127.0.0.1/pub?id=airplay -d '{"stop":"switchoutput"}'
 	systemctl try-restart shairport-sync
 fi
 

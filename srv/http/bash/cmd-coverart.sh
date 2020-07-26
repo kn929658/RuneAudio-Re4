@@ -28,7 +28,7 @@ if [[ $found != 1 ]]; then
 	fi
 	tmpfile=/srv/http/data/tmp/coverart.jpg
 	kid3-cli -c "select \"$file\"" -c "get picture:$tmpfile" &> /dev/null # suppress '1 space' stdout
-	#(( $? == 0 )) && found=1 && coverfile=/data/tmp/coverart.jpg
+	(( $? == 0 )) && found=1 && coverfile=/data/tmp/coverart.jpg
 fi
 
 [[ -z $found ]] && exit

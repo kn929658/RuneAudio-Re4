@@ -286,6 +286,7 @@ pre {
 	background-color: var( --cgd );
 	font-family: 'Inconsolata';
 	font-size: 15px;
+	line-height: 20px;
 	white-space: pre-wrap;
 	overflow-x: hidden;
 	overflow-y: auto;

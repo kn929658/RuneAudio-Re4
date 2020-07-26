@@ -1118,7 +1118,10 @@ svg path.st1 {
 #volB {
 	top: 150px;
 }
-
+.blankTR {
+	background: none;
+	opacity: 1;
+}
 #page-playback .btn-group i {
 	height: 40px;
 	width: 40px;

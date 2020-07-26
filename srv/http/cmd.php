@@ -10,11 +10,11 @@ $dirwebradios = $dirdata.'webradios/';
 
 switch( $_POST[ 'cmd' ] ) {
 
-// arguments passing to bash
+// multiple arguments passing to bash as array
 //  - no each argument quote
-//  - escape ["`] once by php
-//    js   -> php  - string / array for multiple arguments
-//    php  -> bash - string / array > multiline string ( escaped ["`] )
+//  - escape ["`] in mutiline once by php
+//    js   -> php  - array
+//    php  -> bash - array > multiline string ( escaped ["`] )
 //    bash         - multiline string > arguments = array by line
 //    bash -> php  - string / json literal
 //    php  -> js   - string / array / json literal( response type 'json' )
@@ -26,11 +26,11 @@ case 'sh': // multiple commands / scripts: no pre-escaped characters - js > php 
 	echo shell_exec( $sudo.$script );                    // bash arguments = multiline string > array by line
 	break;
 case 'bash': // single / one-line command - return string
-	$cmd = escape( $_POST[ 'bash' ] );
+	$cmd = $_POST[ 'bash' ];
 	echo shell_exec( $cmd[ 0 ] === '/' ? $sudo.$cmd : $sudobin.$cmd );
 	break;
 case 'exec': // single / one-line command - return array of lines to js
-	$cmd = escape( $_POST[ 'exec' ] );
+	$cmd = $_POST[ 'exec' ];
 	exec( $sudobin.$cmd, $output, $std );
 	echo json_encode( $output );
 	break;

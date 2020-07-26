@@ -133,8 +133,13 @@ function psBookmark( data ) {
 	}, G.debouncems );
 }
 function psCoverart( data ) {
-	$( '#coverart' ).prop( 'src', data.coverart );
-	$( '#divcover .cover-save' ).remove();
+	G.status.coverart = data.url;
+	$( '#divcover, #coverart' ).removeClass( 'vu coverrune' );
+	$( '#coverart' ).prop( 'src', data.url );
+	if ( G.status.mpd && !G.status.webradio ) {
+		G.coversave = 1;
+		$( '#divcover' ).append( '<div class="cover-save"><i class="fa fa-save"></i></div>' );
+	}
 }
 function psDisplay( data ) {
 	if ( G.local ) return
@@ -233,7 +238,16 @@ function psMpdOptions( data ) {
 function psMpdPlayer( data ) {
 	if ( G.local ) return
 	
-	G.playback ? setPlayback( data ) : setPlaylistScroll();
+	if ( G.prevnext ) { // fix: prev / next while stop
+		clearTimeout( G.debounce );
+		G.debounce = setTimeout( function() {
+			G.prevnext = 0;
+			delete data.playlistlength;
+			setPlayback( data );
+		}, 600 );
+	} else {
+		G.playback ? setPlayback( data ) : setPlaylistScroll();
+	}
 }
 function psMpdUpdate( data ) {
 	if ( G.local ) return

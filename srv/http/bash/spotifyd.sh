@@ -22,7 +22,7 @@ if (( $# > 0 )); then
 	echo '"mpd":true,"airplay":false,"snapclient":false,"spotify":false,"upnp":false' > $playerfile
 	rm -f $playerfile-*
 	touch $playerfile-mpd
-	curl -s -X POST "http://127.0.0.1/pub?id=mpdplayer" -d "$( /srv/http/bash/status.sh )"
+	curl -s -X POST http://127.0.0.1/pub?id=mpdplayer -d "$( /srv/http/bash/status.sh )"
 	exit
 fi
 	
@@ -48,7 +48,7 @@ else
 	if [[ -e $file-start ]]; then
 		start=$( cat $file-start )
 		elapsed=$(( elapsed + timestamp - start ))
-		curl -s -X POST "http://127.0.0.1/pub?id=spotify" -d '{"pause":'$(( ( elapsed + 500 ) / 1000 ))'}'
+		curl -s -X POST http://127.0.0.1/pub?id=spotify -d '{"pause":'$(( ( elapsed + 500 ) / 1000 ))'}'
 		echo $elapsed > $file-elapsed
 		exit
 	else
@@ -107,4 +107,4 @@ else
 	status+=', "elapsed" : '$(( ( $(( $( date +%s%3N ) - $timestamp )) + 500 ) / 1000 ))
 fi
 
-curl -s -X POST "http://127.0.0.1/pub?id=spotify" -d "{$status}"
+curl -s -X POST http://127.0.0.1/pub?id=spotify -d "{$status}"

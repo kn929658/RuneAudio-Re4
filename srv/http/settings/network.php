@@ -15,9 +15,7 @@
 		<div class="col-l">Web UI</div>
 		<div class="col-r">
 			<gr>http://</gr><span id="ipwebui"></span><br>
-			<div class="divqr">
-				<div id="qrwebui" class="qr"></div>
-			</div>
+			<div id="qrwebui" class="qr"></div>
 			<span class="help-block hide">Scan QR code or use IP address to connect RuneAudio web user interface.</span>
 		</div>
 	</div>
@@ -72,9 +70,7 @@
 		<div class="col-r">
 			<gr>SSID:</gr> <span id="ssid"></span><br>
 			<gr>Password:</gr> <span id="passphrase"></span>
-			<div class="divqr">
-				<div id="qraccesspoint" class="qr"></div>
-			</div>
+			<div id="qraccesspoint" class="qr"></div>
 			<span class="help-block hide">Scan QR code or find the SSID and use the password to connect remote devices with RPi access point.</span>
 		</div>
 		<div class="col-l">Web UI</div>

@@ -4,7 +4,7 @@ $list05 = [
 	, 'janui'    => [ 'https://github.com/janui', 'RuneUI - Shairport sync with metadata, random play and autostart rework, Samba optimisation and 101 bugfixes' ]
 ];
 $list04 = [
-	 'Frank Friedmann' => [ 'https://github.com/hondagx35', 'A grand solo effort, AP, Local Browser, Lyrics, many upgrades, bugfixes and other improvements', 'hondagx35' ]
+	 'Frank Friedmann' => [ 'https://github.com/hondagx35', 'AP, Local Browser, Lyrics, many upgrades, bugfixes and other improvements', 'hondagx35' ]
 ];
 $list0103 = [
 	  'Andrea Coiutti'        => [ 'http://www.runeaudio.com/team/', 'RuneUI frontend design - frontend HTML/JS/CSS coding', 'ACX' ]
@@ -21,26 +21,26 @@ $list0103 = [
 ];
 $list05html = '';
 foreach( $list05 as $name => $value ) {
-	$list05html.= '<a href="'.$value[ 0 ].'" target="_blank">'.$name.'</a><br><span class="help-block hide">'.$value[ 1 ].'<br></span>';
+	$list05html.= '<a href="'.$value[ 0 ].'" target="_blank">'.$name.'</a><br>'.$value[ 1 ].'<br>';
 }
 $list04html = '';
 foreach( $list04 as $name => $value ) {
-	$list04html.= '<a href="'.$value[ 0 ].'" target="_blank">'.$name.' <gr>(aka '.$value[ 2 ].')</gr></a><span class="help-block hide">'.$value[ 1 ].'</span><br>';
+	$list04html.= '<a href="'.$value[ 0 ].'" target="_blank">'.$name.' <gr>(aka '.$value[ 2 ].')</gr><br></a>'.$value[ 1 ].'<br>';
 }
 $list0103html = '';
 foreach( $list0103 as $name => $value ) {
 	$aka = isset( $value[ 2 ] ) ? ' <gr>(aka '.$value[ 2 ].')</gr>' : '';
-	$list0103html.= '<a href="'.$value[ 0 ].'" target="_blank">'.$name.$aka.'</a><br><span class="help-block hide">'.$value[ 1 ].'<br></span>';
+	$list0103html.= '<a href="'.$value[ 0 ].'" target="_blank">'.$name.$aka.'</a><br>'.$value[ 1 ].'<br>';
 }
 $listruneui = [
 	  'HTML5-Color-Picker'  => 'https://github.com/NC22/HTML5-Color-Picker'
 	, 'jQuery'              => 'https://jquery.com/'
 	, 'jQuery Mobile'       => 'https://jquerymobile.com/'
-	, 'jquery.qrcode.js'    => 'https://github.com/jeromeetienne/jquery-qrcode'
 	, 'jQuery Selectric'    => 'https://github.com/lcdsantos/jQuery-Selectric'
 	, 'Lato-Fonts'          => 'http://www.latofonts.com/lato-free-fonts'
 	, 'LazyLoad'            => 'https://github.com/verlok/lazyload'
 	, 'pica'                => 'https://github.com/nodeca/pica'
+	, 'QR Code generator'   => 'https://github.com/datalog/qrcode-svg'
 	, 'roundSlider'         => 'https://github.com/soundar24/roundSlider'
 	, 'simple-keyboard'     => 'https://github.com/hodgef/simple-keyboard/'
 	, 'Sortable'            => 'https://github.com/SortableJS/Sortable'
@@ -97,42 +97,61 @@ foreach( $listruneos as $name => $link ) {
 <span class="help-block hide">
 	System-wide improvement with features based on <a href="https://www.runeaudio.com/forum/runeui-enhancement-t4207.html">RuneUI Enhancement</a><br>
 </span>
-<heading>Version 0.5</heading>
-<?=$list05html?>
-<heading>Version 0.4</heading>
-<?=$list04html?>
-<heading>Version 0.1 - 0.3</heading>
-<?=$list0103html?>
-<heading>Support us</heading>
-<form id="form-paypal" action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
-	<input type="hidden" name="cmd" value="_s-xclick">
-	<input type="hidden" name="hosted_button_id" value="AZ5L5M5PGHJNJ">
-	<input type="image" src="/assets/img/donate.png" name="submit" style="height: 55px">
-</form>
-<heading>License &amp; Copyright</heading>
-	<gr>This Program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation either version 3, 
-	or (at your option) any later version. This Program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
-	See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with RuneAudio; see the file COPYING. 
-	If not, see <a href="http://www.gnu.org/licenses/gpl-3.0.txt" target="_blank" rel="nofollow">http://www.gnu.org/licenses/gpl-3.0.txt</a></gr>
-<p>
-	Copyright (C) 2013-2014 RuneAudio Team
-	<br><gr>Andrea Coiutti &amp; Simone De Gregori &amp; Carmelo San Giovanni</gr><br>
-	RuneUI
-	<br><gr>copyright (C) 2013-2014 – Andrea Coiutti (aka ACX) &amp; Simone De Gregori (aka Orion)</gr><br>
-	RuneOS
-	<br><gr>copyright (C) 2013-2014 – Simone De Gregori (aka Orion) &amp; Carmelo San Giovanni (aka Um3ggh1U)</gr>
-</p>
-
-<heading>RuneUI</heading>
-<?=$runeuihtml?>
-<br>
-
-<heading>RuneOS</heading>
-<a href="https://www.archlinuxarm.org" style="font-size: 20px;">ArchLinuxArm</a> + default pakages<br>
-<?=$runeoshtml?>
-<br>
-
-<heading>Data</heading>
-<a href="https://www.last.fm">last.fm</a><gr> - Coverarts and artist biographies</gr><br>
-<a href="https://webservice.fanart.tv">fanart.tv</a><gr> - Coverarts and artist images</gr>
+<div>
+	<heading>Version 0.1 - 0.5<?=$help?></heading>
+	<span class="help-block hide">
+		<heading class="noline">Version 0.5</heading>
+		<?=$list05html?>
+		<heading class="noline">Version 0.4</heading>
+		<?=$list04html?>
+		<heading class="noline">Version 0.1 - 0.3</heading>
+		<?=$list0103html?>
+	</span>
+</div>
+<div>
+	<heading>Support us<?=$help?></heading>
+	<span class="help-block hide">
+		<form id="form-paypal" action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
+			<input type="hidden" name="cmd" value="_s-xclick">
+			<input type="hidden" name="hosted_button_id" value="AZ5L5M5PGHJNJ">
+			<input type="image" src="/assets/img/donate.png" name="submit" style="height: 55px">
+		</form>
+	</span>
+</div>
+<div>
+	<heading>License &amp; Copyright<?=$help?></heading>
+	<span class="help-block hide">
+		<gr>This Program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation either version 3, 
+		or (at your option) any later version. This Program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+		See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with RuneAudio; see the file COPYING. 
+		If not, see <a href="http://www.gnu.org/licenses/gpl-3.0.txt" target="_blank" rel="nofollow">http://www.gnu.org/licenses/gpl-3.0.txt</a></gr><br>
+		<br>
+		Copyright (C) 2013-2014 RuneAudio Team
+		<br><gr>Andrea Coiutti &amp; Simone De Gregori &amp; Carmelo San Giovanni</gr><br>
+		RuneUI
+		<br><gr>copyright (C) 2013-2014 – Andrea Coiutti (aka ACX) &amp; Simone De Gregori (aka Orion)</gr><br>
+		RuneOS
+		<br><gr>copyright (C) 2013-2014 – Simone De Gregori (aka Orion) &amp; Carmelo San Giovanni (aka Um3ggh1U)</gr>
+	</span>
+</div>
+<div>
+	<heading>RuneUI<?=$help?></heading>
+	<span class="help-block hide">
+		<?=$runeuihtml?>
+	</span>
+</div>
+<div>
+	<heading>RuneOS<?=$help?></heading>
+	<span class="help-block hide">
+		<a href="https://www.archlinuxarm.org" style="font-size: 20px;">ArchLinuxArm</a> + default pakages<br>
+		<?=$runeoshtml?>
+	</span>
+</div>
+<div>
+	<heading>Data<?=$help?></heading>
+	<span class="help-block hide">
+		<a href="https://www.last.fm">last.fm</a><gr> - Coverarts and artist biographies</gr><br>
+		<a href="https://webservice.fanart.tv">fanart.tv</a><gr> - Coverarts and artist images</gr>
+	</span>
+</div>
 <div style="clear: both"></div>

@@ -10,13 +10,13 @@ dirwebradios=/srv/http/data/webradios
 readarray -t args <<< "$1"
 
 pushstream() {
-	curl -s -X POST 'http://127.0.0.1/pub?id='$1 -d '{ "'$2'": "'$3'" }'
+	curl -s -X POST http://127.0.0.1/pub?id=$1 -d '{ "'$2'": "'$3'" }'
 }
 pushstreamVol() {
-	curl -s -X POST 'http://127.0.0.1/pub?id=volume' -d '{"type":"'$1'", "val":'$2' }'
+	curl -s -X POST http://127.0.0.1/pub?id=volume -d '{"type":"'$1'", "val":'$2' }'
 }
 pushstreamPkg() {
-	curl -s -X POST 'http://127.0.0.1/pub?id=package' -d '{"pkg":"'$1'", "start":'$2',"enable":'$3' }'
+	curl -s -X POST http://127.0.0.1/pub?id=package -d '{"pkg":"'$1'", "start":'$2',"enable":'$3' }'
 }
 volumeSet() {
 	current=$1
@@ -25,14 +25,14 @@ volumeSet() {
 	if (( -10 < $diff && $diff < 10 )); then
 		mpc -q volume $volume
 	else # increment
-		curl -s -X POST 'http://127.0.0.1/pub?id=volume' -d '{"disable":true}'
+		curl -s -X POST http://127.0.0.1/pub?id=volume -d '{"disable":true}'
 		(( $diff > 0 )) && incr=5 || incr=-5
 		for i in $( seq $current $incr $target ); do
 			mpc -q volume $i
 			sleep 0.2
 		done
 		(( $i != $target )) && mpc -q volume $target
-		curl -s -X POST 'http://127.0.0.1/pub?id=volume' -d '{"disable":false}'
+		curl -s -X POST http://127.0.0.1/pub?id=volume -d '{"disable":false}'
 	fi
 }
 
@@ -229,13 +229,8 @@ mpcprevnext )
 			(( $current != 1 )) && pos=$(( current - 1 )) || pos=$length
 		fi
 	fi
-	if [[ -n $playing ]]; then
-		mpc play $pos
-	else
-		touch $dirtmp/nostatus
-		mpc play $pos
-		mpc stop
-	fi
+	mpc play $pos
+	[[ -z $playing ]] && mpc stop
 	;;
 mpcsimilar )
 	plL=$( mpc playlist | wc -l )
@@ -330,7 +325,7 @@ reboot )
 	[[ ${args[1]} == off ]] && shutdown -h now || shutdown -r now
 	;;
 refreshbrowser )
-	curl -s -X POST 'http://127.0.0.1/pub?id=reload' -d '{ "reload": 1 }'
+	curl -s -X POST http://127.0.0.1/pub?id=reload -d '{ "reload": 1 }'
 	;;
 soundprofile )
 	profile=${args[1]}

@@ -69,9 +69,9 @@ $code = '<i class="fa fa-code"></i>';
 	<?php }
 		  if ( file_exists( '/usr/bin/snapserver' ) ) { ?>
 <div id="divsnapclient">
-	<div class="col-l double status" data-service="snapclient">
+	<div class="col-l double">
 		<a>SnapClient
-		<br><gr>Snapcast<?=$code?></gr></a><i class="fa fa-snapcast fa-lg"></i>
+		<br><gr>Snapcast</gr></a><i class="fa fa-snapcast fa-lg"></i>
 	</div>
 	<div class="col-r">
 		<input id="snapclient" type="checkbox">
@@ -83,7 +83,6 @@ $code = '<i class="fa fa-code"></i>';
 			<br>(Note: Not available while Snapcast server enabled.)
 		</span>
 	</div>
-	<pre id="codesnapclient" class="hide"></pre>
 </div>
 	<?php }
 		  if ( file_exists( '/usr/bin/spotifyd' ) ) { ?>

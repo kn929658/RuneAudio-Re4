@@ -692,16 +692,18 @@ $( '#coverT, #timeT' ).tap( function() {
 	G.guide = !$( this ).hasClass( 'mapshow' );
 	if ( $( this ).hasClass( 'mapshow' ) ) {
 		hideGuide();
+		$( '#coverTR' ).toggleClass( 'blankTR', !G.bars );
 		return
 	}
 	
 	$( '.covermap, .guide' ).addClass( 'mapshow' );
+	$( '#coverTR' ).removeClass( 'blankTR' );
 	$( '.guide' ).toggleClass( 'hide', !G.status.playlistlength && G.status.mpd );
 	$( '#guide-artist, #guide-album' ).toggleClass( 'hide', G.status.webradio || !G.status.playlistlength );
 	$( '#volume-text' ).addClass( 'hide' );
 	if ( !G.display.cover ) $( '.timemap' ).addClass( 'mapshow' );
 	if ( !G.display.volumenone && G.display.volume ) $( '.volmap' ).addClass( 'mapshow' );
-	if ( !G.bars ) $( '#swipebar' ).removeClass( 'transparent' );
+	if ( !G.bars ) $( '#swipebar' ).toggleClass( 'transparent' );
 	if ( G.display.time || ( G.display.volume && !G.display.volumenone ) ) {
 		$( '#coverTL' )
 			.removeClass( 'fa-scale-dn' )
@@ -978,6 +980,7 @@ $( '.btn-cmd' ).click( function() {
 			if ( length === 1 ) return
 			
 			if ( G.status.state !== 'play' ) {
+				G.prevnext = 1;
 				var prevnext = setTimeout( function() {
 					$( '#loader' ).removeClass( 'hide' );
 				}, 300 );

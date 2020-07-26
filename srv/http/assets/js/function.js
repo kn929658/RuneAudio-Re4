@@ -220,90 +220,36 @@ function coverartChange() {
 			} );
 		}
 	}
-	if ( ( G.playback && pbembedded ) || ( G.library && liembedded ) ) jsoninfo.footer = '<i class="fa fa-coverart"></i>embedded';
+	if ( ( G.playback && pbembedded ) || ( G.library && liembedded ) ) jsoninfo.footer = '<i class="fa fa-coverart"></i>&ensp;embedded';
 	info( jsoninfo );
 }
-function coverartGet( artist, album, track ) {
-	var jsondata = { 
-		  api_key     : G.apikeylastfm
-		, autocorrect : 1
-		, format      : 'json'
-		, method      : 'album.getInfo'
-		, artist      : artist
-		, album       : album
-	}
-	if ( track ) {
-		jsondata.method = 'track.getInfo'
-		jsondata.track = track
-		delete jsondata.album
-	}
-	$.ajax( {
-		  type     : 'post'
-		, url      : 'http://ws.audioscrobbler.com/2.0/'
-		, data     : jsondata
-		, timeout  : 5000
-		, dataType : 'json'
-		, success  : function( data ) {
-			if ( 'error' in data
-				|| !track && !( 'album' in data )
-				|| track && !( 'album' in data.track )
-			) return
-			
-			var album = !track ? data.album : data.track.album;
-			if ( album.image ) {
-				var image = album.image[ 3 ][ '#text' ];
-				if ( image ) {
-					clearTimeout( G.coverdefault );
-					coverartLoad( image );
-				} else if ( 'mbid' in album ) {
-					$.post( 'https://coverartarchive.org/release/'+ album.mbid, function( data ) {
-						var image = data.images[ 0 ][ 'image' ];
-						if ( image ) coverartLoad( image );
-					}, 'json' );
-				}
-
+function coverartGet( artist, album, track, nopush ) {
+	$.post(
+		  cmdphp
+		, { cmd: 'sh', sh: [ 'cmd-coverartget.sh', artist, album, track, nopush ] }
+		, function( url ) {
+			if ( nopush ) { // for library tracks view
+				$( '.licoverimg img' )
+					.prop( 'src', url )
+					.after( '<div class="liedit cover-save"><i class="fa fa-save"></i></div>' )
+					.on( 'load', function() {
+						$( '.liinfo' ).css( 'width', ( window.innerWidth - $( this ).width() - 50 ) +'px' );
+					} );
 			}
 		}
-	} );
+	);
 }
-function coverartLoad( image ) {
-	var image = image.replace( '/300x300/', '/_/' );
-	if ( G.status.webradio ) {
-		$( '#coverart' )
-			.prop( 'src', image )
-			.on( 'load', function() {
-				$( '#divcover, #coverart' ).removeClass( 'vu coverrune' );
-			} );
-		return
-	}
-	
+function coverartSave() {
 	var img = new Image();
 	img.crossOrigin = 'anonymous';
-	img.src = image;
+	img.src = $( '#coverart' ).prop( 'src' );
 	img.onload = function() {
 		var canvas = document.createElement( 'canvas' );
 		canvas.width = this.width;
 		canvas.height = this.height;
 		canvas.getContext( '2d' ).drawImage( this, 0, 0 );
-		G.status.coverart = canvas.toDataURL( 'image/jpeg' );
-		$( '#divcover, #coverart' ).removeClass( 'vu coverrune' );
-		if ( G.library ) {
-			$( '.licoverimg img' )
-				.prop( 'src', G.status.coverart )
-				.after( '<div class="liedit cover-save"><i class="fa fa-save"></i></div>' )
-				.on( 'load', function() {
-					$( '.liinfo' ).css( 'width', ( window.innerWidth - $( this ).width() - 50 ) +'px' );
-				} );
-		} else {
-			$( '#coverart' ).prop( 'src', G.status.coverart );
-			if ( G.status.mpd && !G.status.webradio ) {
-				G.coversave = 1;
-				$( '#divcover' ).append( '<div class="cover-save"><i class="fa fa-save"></i></div>' );
-			}
-		}
+		base64 = canvas.toDataURL( 'image/jpeg' );
 	}
-}
-function coverartSave() {
 	if ( G.playback ) {
 		var src = $( '#coverart' ).prop( 'src' );
 		var file = G.status.file;
@@ -329,7 +275,7 @@ function coverartSave() {
 			$.post( cmdphp, {
 				  cmd       : 'imagefile'
 				, imagefile : coverfile
-				, base64    : src.split( ',' ).pop()
+				, base64    : base64
 			}, function( std ) {
 				coverartSuccess( 'Save', src, std );
 				$( '.cover-save' ).remove();
@@ -383,10 +329,10 @@ function cssKeyframes( name, trx0, trx100 ) {
 	);
 }
 function curl( channel, key, value ) {
-	return 'curl -s -X POST "http://127.0.0.1/pub?id='+ channel +'" -d \'{ "'+ key +'": "'+ value +'" }\''
+	return 'curl -s -X POST http://127.0.0.1/pub?id='+ channel +' -d \'{ "'+ key +'": "'+ value +'" }\''
 }
 function curlPackage( pkg, active, enabled ) {
-	return 'curl -s -X POST "http://127.0.0.1/pub?id=package" -d \'[ "'+ pkg +'", '+ active +', '+ enabled +' ]\''
+	return 'curl -s -X POST http://127.0.0.1/pub?id=package -d \'[ "'+ pkg +'", '+ active +', '+ enabled +' ]\''
 }
 function disableCheckbox( name, enable, check ) {
 	$( 'input[name="'+ name +'"]' )
@@ -634,6 +580,7 @@ function getPlaybackStatus() {
 	setTimeout( function() { G.local = 0 }, 300 );
 	bash( '/srv/http/bash/status.sh', function( status ) {
 		if ( !status ) return
+		
 		$.each( status, function( key, value ) {
 			G.status[ key ] = value;
 		} );
@@ -653,6 +600,8 @@ function getPlaybackStatus() {
 			if ( G.playback ) {
 				renderPlayback();
 				displayPlayback();
+			} else if ( G.library ) {
+				renderPlayback();
 			} else if ( G.playlist && !G.savedlist && !G.savedplaylist ) {
 				setPlaylistScroll();
 			}
@@ -1117,6 +1066,7 @@ function renderLibraryList( data ) {
 }
 function renderPlayback() {
 	clearIntervalAll();
+	$( '#loader' ).addClass( 'hide' );
 	var status = G.status;
 	// song and album before update for song/album change detection
 	var previousartist = $( '#artist' ).text();
@@ -1138,7 +1088,12 @@ function renderPlayback() {
 		return
 	}
 	
-	$( '.emptyadd' ).addClass( 'hide' );
+	if ( $( '#qrwebui' ).html() ) {
+		$( '.emptyadd' ).addClass( 'hide' );
+		$( '#qrwebui' ).empty();
+		$( '#coverTR' ).removeClass( 'blankTR' );
+		$( '#coverart' ).removeClass( 'hide' );
+	}
 	$( '.playback-controls' ).css( 'visibility', 'visible' );
 	$( '#artist, #song, #album' ).css( 'width', '' );
 	$( '#artist' ).text( status.Artist );
@@ -1228,19 +1183,7 @@ function renderPlayback() {
 			$( '#coverart' ).prop( 'src', status.coverart );
 		} else {
 			$( '#coverart' ).prop( 'src', coverrune );
-			if ( 'file' in status ) { // retry
-				setTimeout( function() {
-					$.post( 'cmd.php', { cmd: 'coverartget', path: status.file }, function( coverart ) {
-						if ( !coverart ) {
-							$( '#divcover, #coverart' ).addClass( 'coverrune' );
-							$( '#coverart' ).prop( 'src', coverrune );
-							coverartGet( status.Artist, status.Album );
-						}
-					} );
-				}, 300 );
-			} else {
-				coverartGet( status.Artist, status.Album );
-			}
+			coverartGet( status.Artist, status.Album );
 		}
 	}
 	// time
@@ -1327,17 +1270,23 @@ function renderPlayback() {
 }
 function renderPlaybackBlank() {
 	bash( "ip r | awk '/default/ {print $9}'", function( ip ) {
-		$( '#sampling' ).text( 'http://'+ ip );
+		var webui = ip ? 'http://'+ ip : 'No connection - Click&ensp;<i class="fa fa-gear"></i>&ensp;to setup'
+		$( '#sampling' ).html( webui );
 		$( '#playback-controls, #infoicon i' ).addClass( 'hide' );
 		$( '#page-playback .emptyadd' ).toggleClass( 'hide', !G.status.mpd );
 		$( '#divartist, #divsong, #divalbum' ).removeClass( 'scroll-left' );
 		$( '#artist, #song, #album, #progress, #elapsed, #total' ).empty();
 		if ( G.display.time ) $( '#time' ).roundSlider( 'setValue', 0 );
 		$( '#time-bar' ).css( 'width', 0 );
-		$( '#coverart' )
-			.prop( 'src', coverrune )
-			.removeClass( 'vu' );
-		$( '#divcover, #coverart' ).addClass( 'coverrune' );
+		$( '#coverart' ).addClass( 'hide' );
+		$( '#splash' ).remove();
+		var qrweb = new QRCode( {
+			  msg : ip ? webui : 'No connection'
+			, dim : 230
+			, pad : 10
+		} );
+		$( '#qrwebui' ).html( qrweb );
+		$( '#coverTR' ).toggleClass( 'blankTR', !G.bars );
 	} );
 }
 renderPlaylist = function( data ) {
@@ -1542,7 +1491,7 @@ function setTrackCoverart() {
 			$( '#lib-list li:eq( 1 )' ).removeClass( 'track1' );
 		}
 		if ( $( '.licoverimg' ).hasClass( 'nocover' ) ) {
-			coverartGet( $( '.liartist' ).text(), $( '.lialbum' ).text() );
+			coverartGet( $( '.liartist' ).text(), $( '.lialbum' ).text(), '', 'nopush' );
 		} else {
 			$( '.licoverimg img' ).on( 'load', function() {
 				$( '.liinfo' ).css( 'width', ( window.innerWidth - $( this ).width() - 50 ) +'px' );

@@ -6,7 +6,7 @@ dirsystem=/srv/http/data/system
 readarray -t args <<< "$1"
 
 pushRefresh() {
-	curl -s -X POST 'http://127.0.0.1/pub?id=refresh' -d '{ "page": "mpd" }'
+	curl -s -X POST http://127.0.0.1/pub?id=refresh -d '{ "page": "mpd" }'
 }
 restartMPD() {
 	/srv/http/bash/mpd-conf.sh
@@ -153,7 +153,7 @@ mixerset )
 	fi
 	restartMPD
 	pushRefresh
-	curl -s -X POST 'http://127.0.0.1/pub?id=volumenone' -d '{ "pvolumenone": "'$volumenone'" }'
+	curl -s -X POST http://127.0.0.1/pub?id=volumenone -d '{ "pvolumenone": "'$volumenone'" }'
 	;;
 normalization )
 	if [[ ${args[1]} == true ]]; then
@@ -175,7 +175,7 @@ novolume )
 	rm $dirsystem/{mpd-crossfade,mpd-replaygain,mpd-normalization}
 	restartMPD
 	pushRefresh
-	curl -s -X POST 'http://127.0.0.1/pub?id=volumenone' -d '{ "pvolumenone": "1" }'
+	curl -s -X POST http://127.0.0.1/pub?id=volumenone -d '{ "pvolumenone": "1" }'
 	;;
 replaygain )
 	replaygain=${args[1]}

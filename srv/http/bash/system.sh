@@ -7,7 +7,7 @@ filereboot=/srv/http/data/tmp/reboot
 readarray -t args <<< "$1"
 
 pushRefresh() {
-	curl -s -X POST 'http://127.0.0.1/pub?id=refresh' -d '{ "page": "system" }'
+	curl -s -X POST http://127.0.0.1/pub?id=refresh -d '{ "page": "system" }'
 }
 enable() {
 	if systemctl start $1; then

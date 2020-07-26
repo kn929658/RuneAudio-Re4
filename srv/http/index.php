@@ -68,6 +68,7 @@ $desktop = isset( $_SERVER[ 'HTTP_USER_AGENT' ] )
 <script src="/assets/js/plugin/lazyload.min.<?=$time?>.js"></script>
 <script src="/assets/js/plugin/pica.<?=$time?>.js"></script>
 <script src="/assets/js/plugin/html5kellycolorpicker.min.<?=$time?>.js"></script>
+<script src="/assets/js/plugin/qrcode.min.<?=$time?>.js"></script>
 <script src="/assets/js/info.<?=$time?>.js"></script>
 <script src="/assets/js/function.<?=$time?>.js"></script>
 <script src="/assets/js/main.<?=$time?>.js"></script>

@@ -341,7 +341,7 @@ i.bookmark,
 	height: 35px;
 	margin-top: 2px;
 }
-svg {
+svg.logo {
 	-webkit-filter: drop-shadow( 1px 1px 1px #000000 );
 	filter: drop-shadow( 1px 1px 1px #000000 );
 }
@@ -877,6 +877,10 @@ svg path.st1 {
 #controls-cover.notime.novolume {
 	width: 50vh;
 }
+#qrwebui svg {
+	fill: var( --cg60 );
+	background: #000000;
+}
 #coverart,
 .licover img {
 	border: 1px solid hsl(0,0%,15%);
@@ -1118,7 +1122,10 @@ svg path.st1 {
 #volB {
 	top: 150px;
 }
-
+.blankTR {
+	background: none;
+	opacity: 1;
+}
 #page-playback .btn-group i {
 	height: 40px;
 	width: 40px;

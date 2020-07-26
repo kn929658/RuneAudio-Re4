@@ -2032,7 +2032,7 @@ $( '#pl-index' ).on( 'click', 'a', function() {
 	var index = $this.text();
 	if ( index === '#' ) {
 		$( 'html, body' ).scrollTop( 0 );
-	} else
+	} else {
 		var offsettop = $( '#pl-savedlist li[data-index='+ index +']:eq( 0 )' ).offset().top;
 		$( 'html, body' ).scrollTop( offsettop - ( G.bars ? 80 : 40 ) );
 	}

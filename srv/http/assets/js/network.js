@@ -278,7 +278,6 @@ function qr( msg ) {
 		  msg : msg
 		, dim : 130
 		, pad : 0
-		, pal : [ '#e6e6e6', '#000' ]
 	} );
 }
 function renderQR() {

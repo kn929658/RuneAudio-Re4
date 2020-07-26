@@ -1678,16 +1678,14 @@ $( '#lib-index' ).on( 'click', 'a', function() {
 	var index = $this.text();
 	if ( index === '#' ) {
 		$( 'html, body' ).scrollTop( 0 );
-		return
-	}
-	
-	var $el = $( '#lib-cover-list' ).hasClass( 'hide' ) ? $( '#lib-list li' ) : $( '.coverart' );
-	$el.each( function() {
-		if ( $( this ).data( 'index' ) === index ) {
-			$( 'html, body' ).scrollTop( this.offsetTop - ( G.bars ? 80 : 40 ) );
-			return false
+	} else {
+		if ( $( '#lib-cover-list' ).hasClass( 'hide' ) ) {
+			var offsettop = $( '#lib-list' ).find( 'li[data-index='+ index +']:eq( 0 )' ).offset().top;
+		} else {
+			var offsettop = $( '.coverart[data-index='+ index +']:eq( 0 )' ).offset().top;
 		}
-	} );
+		$( 'html, body' ).scrollTop( offsettop - ( G.bars ? 80 : 40 ) );
+	}
 } );
 // PLAYLIST /////////////////////////////////////////////////////////////////////////////////////
 $( '#button-playlist' ).click( function() {
@@ -2034,15 +2032,10 @@ $( '#pl-index' ).on( 'click', 'a', function() {
 	var index = $this.text();
 	if ( index === '#' ) {
 		$( 'html, body' ).scrollTop( 0 );
-		return
+	} else
+		var offsettop = $( '#pl-savedlist li[data-index='+ index +']:eq( 0 )' ).offset().top;
+		$( 'html, body' ).scrollTop( offsettop - ( G.bars ? 80 : 40 ) );
 	}
-	
-	$( '#pl-savedlist li' ).each( function() {
-		if ( $( this ).data( 'index' ) === index ) {
-			$( 'html, body' ).scrollTop( this.offsetTop - ( G.bars ? 80 : 40 ) );
-			return false
-		}
-	} );
 } );
 
 } ); // document ready end <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<

@@ -461,6 +461,10 @@ input:checked + .switchlabel:after {
 	width: 130px;
 	height: 130px;
 }
+.qr svg {
+	fill: var( --cg60 );
+	background: #000000;
+}
 .container {
 	max-width: 768px;
 	padding: 40px 55px 100px 55px;

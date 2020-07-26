@@ -657,6 +657,7 @@ function getPlaybackStatus() {
 			} else if ( G.library ) {
 				if ( $( '#qrwebui' ).html() ) {
 					$( '#qrwebui' ).empty();
+					$( '#coverTR' ).removeClass( 'blankTR' );
 					$( '#coverart' ).removeClass( 'hide' );
 				}
 				renderPlayback();
@@ -1342,10 +1343,11 @@ function renderPlaybackBlank() {
 			var qrweb = new QRCode( {
 				  msg : webui
 				, dim : 230
-				, pad : 10
+				, pad : 9
 				, pal : [ '#e6e6e6', '#000' ]
 			} );
 			$( '#qrwebui' ).html( qrweb );
+			if ( $('#bar-top' ).hasClass( 'hide' ) ) $( '#coverTR' ).addClass( 'blankTR' );
 		}
 	} );
 }

@@ -1344,7 +1344,6 @@ function renderPlaybackBlank() {
 				  msg : webui
 				, dim : 230
 				, pad : 10
-				, pal : [ '#e6e6e6', '#000' ]
 			} );
 			$( '#qrwebui' ).html( qrweb );
 			if ( $('#bar-top' ).hasClass( 'hide' ) ) $( '#coverTR' ).addClass( 'blankTR' );

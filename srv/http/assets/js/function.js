@@ -1343,7 +1343,7 @@ function renderPlaybackBlank() {
 			var qrweb = new QRCode( {
 				  msg : webui
 				, dim : 230
-				, pad : 9
+				, pad : 10
 				, pal : [ '#e6e6e6', '#000' ]
 			} );
 			$( '#qrwebui' ).html( qrweb );

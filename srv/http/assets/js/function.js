@@ -220,24 +220,51 @@ function coverartChange() {
 			} );
 		}
 	}
-	if ( ( G.playback && pbembedded ) || ( G.library && liembedded ) ) jsoninfo.footer = '<i class="fa fa-coverart"></i>&ensp;embedded';
+	if ( ( G.playback && pbembedded ) || ( G.library && liembedded ) ) jsoninfo.footer = '<i class="fa fa-coverart"></i>embedded';
 	info( jsoninfo );
 }
-function coverartGet( artist, album, track, nopush ) {
-	$.post(
-		  cmdphp
-		, { cmd: 'sh', sh: [ 'cmd-coverartget.sh', artist, album, track, nopush ] }
-		, function( url ) {
-			if ( nopush ) { // for library tracks view
-				$( '.licoverimg img' )
-					.prop( 'src', url )
-					.after( '<div class="liedit cover-save"><i class="fa fa-save"></i></div>' )
-					.on( 'load', function() {
-						$( '.liinfo' ).css( 'width', ( window.innerWidth - $( this ).width() - 50 ) +'px' );
-					} );
+function coverartGet( artist, album, track ) {
+	var jsondata = { 
+		  api_key     : G.apikeylastfm
+		, autocorrect : 1
+		, format      : 'json'
+		, method      : 'album.getInfo'
+		, artist      : artist
+		, album       : album
+	}
+	if ( track ) {
+		jsondata.method = 'track.getInfo'
+		jsondata.track = track
+		delete jsondata.album
+	}
+	$.ajax( {
+		  type     : 'post'
+		, url      : 'http://ws.audioscrobbler.com/2.0/'
+		, data     : jsondata
+		, timeout  : 5000
+		, dataType : 'json'
+		, success  : function( data ) {
+			if ( 'error' in data
+				|| !track && !( 'album' in data )
+				|| track && !( 'album' in data.track )
+			) return
+			
+			var album = !track ? data.album : data.track.album;
+			if ( album.image ) {
+				var image = album.image[ 3 ][ '#text' ];
+				if ( image ) {
+					clearTimeout( G.coverdefault );
+					coverartLoad( image );
+				} else if ( 'mbid' in album ) {
+					$.post( 'https://coverartarchive.org/release/'+ album.mbid, function( data ) {
+						var image = data.images[ 0 ][ 'image' ];
+						if ( image ) coverartLoad( image );
+					}, 'json' );
+				}
+
 			}
 		}
-	);
+	} );
 }
 function coverartLoad( image ) {
 	var image = image.replace( '/300x300/', '/_/' );
@@ -628,6 +655,11 @@ function getPlaybackStatus() {
 				renderPlayback();
 				displayPlayback();
 			} else if ( G.library ) {
+				if ( $( '#qrwebui' ).html() ) {
+					$( '#qrwebui' ).empty();
+					$( '#coverTR' ).removeClass( 'blankTR' );
+					$( '#coverart' ).removeClass( 'hide' );
+				}
 				renderPlayback();
 			} else if ( G.playlist && !G.savedlist && !G.savedplaylist ) {
 				setPlaylistScroll();
@@ -1115,12 +1147,7 @@ function renderPlayback() {
 		return
 	}
 	
-	if ( $( '#qrwebui' ).html() ) {
-		$( '.emptyadd' ).addClass( 'hide' );
-		$( '#qrwebui' ).empty();
-		$( '#coverTR' ).removeClass( 'blankTR' );
-		$( '#coverart' ).removeClass( 'hide' );
-	}
+	$( '.emptyadd' ).addClass( 'hide' );
 	$( '.playback-controls' ).css( 'visibility', 'visible' );
 	$( '#artist, #song, #album' ).css( 'width', '' );
 	$( '#artist' ).text( status.Artist );
@@ -1518,7 +1545,7 @@ function setTrackCoverart() {
 			$( '#lib-list li:eq( 1 )' ).removeClass( 'track1' );
 		}
 		if ( $( '.licoverimg' ).hasClass( 'nocover' ) ) {
-			coverartGet( $( '.liartist' ).text(), $( '.lialbum' ).text(), '', 'nopush' );
+			coverartGet( $( '.liartist' ).text(), $( '.lialbum' ).text() );
 		} else {
 			$( '.licoverimg img' ).on( 'load', function() {
 				$( '.liinfo' ).css( 'width', ( window.innerWidth - $( this ).width() - 50 ) +'px' );

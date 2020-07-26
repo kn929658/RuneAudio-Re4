@@ -11,7 +11,7 @@ for name in cover folder front thumb album; do
 		coverfile="$dir/${name^}.$ext" # capitalize
 		[[ -e $coverfile ]] && found=1 && break
 	done
-	[[ -n $found ]] && break
+	[[ $found == 1 ]] && break
 done
 
 # get embedded in file
@@ -27,11 +27,12 @@ if [[ $found != 1 ]]; then
 		done
 	fi
 	tmpfile=/srv/http/data/tmp/coverart.jpg
+	rm -f $tmpfile
 	kid3-cli -c "select \"$file\"" -c "get picture:$tmpfile" &> /dev/null # suppress '1 space' stdout
-	#(( $? == 0 )) && found=1 && coverfile=/data/tmp/coverart.jpg
+	[[ -e $tmpfile ]] && found=1 && coverfile=/data/tmp/coverart.jpg
 fi
 
-[[ -z $found ]] && exit
+[[ $found != 1 ]] && exit
 
 # convert % > ^
 # replace " > %20

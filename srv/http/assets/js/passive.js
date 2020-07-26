@@ -133,11 +133,8 @@ function psBookmark( data ) {
 	}, G.debouncems );
 }
 function psCoverart( data ) {
-	$( '#coverart' ).prop( 'src', data.url );
-	if ( G.status.mpd && !G.status.webradio ) {
-		G.coversave = 1;
-		$( '#divcover' ).append( '<div class="cover-save"><i class="fa fa-save"></i></div>' );
-	}
+	$( '#coverart' ).prop( 'src', data.coverart );
+	$( '#divcover .cover-save' ).remove();
 }
 function psDisplay( data ) {
 	if ( G.local ) return

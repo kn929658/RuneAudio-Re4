@@ -109,6 +109,11 @@ $( '#coverart' ).on( 'error', function() {
 	$( '.rs-animation .rs-transition' ).css( 'transition-property', '' ); // restore animation after load
 	$( 'html, body' ).scrollTop( 0 );
 	if ( $( '#lib-cover-list' ).html() ) new LazyLoad( { elements_selector: '.lazy' } );
+} ).on( 'load', function() {
+	if ( G.status.mpd && !G.status.webradio && G.status.coverart.slice( 0, 4 ) === 'http' ) {
+		G.coversave = 1;
+		$( '#divcover' ).append( '<div class="cover-save"><i class="fa fa-save"></i></div>' );
+	}
 } );
 // COMMON /////////////////////////////////////////////////////////////////////////////////////
 $( '#button-settings, #badge' ).click( function() {
@@ -1678,14 +1683,15 @@ $( '#lib-index' ).on( 'click', 'a', function() {
 	var index = $this.text();
 	if ( index === '#' ) {
 		$( 'html, body' ).scrollTop( 0 );
-	} else {
-		if ( $( '#lib-cover-list' ).hasClass( 'hide' ) ) {
-			var offsettop = $( '#lib-list' ).find( 'li[data-index='+ index +']:eq( 0 )' ).offset().top;
-		} else {
-			var offsettop = $( '.coverart[data-index='+ index +']:eq( 0 )' ).offset().top;
-		}
-		$( 'html, body' ).scrollTop( offsettop - ( G.bars ? 80 : 40 ) );
+		return
 	}
+	
+	if ( $( '#lib-cover-list' ).hasClass( 'hide' ) ) {
+		var offsettop = $( '#lib-list li[data-index='+ index +']' ).offset().top;
+	} else {
+		var offsettop = $( '.coverart[data-index='+ index +']' ).offset().top;
+	}
+	$( 'html, body' ).scrollTop( offsettop - ( G.bars ? 80 : 40 ) );
 } );
 // PLAYLIST /////////////////////////////////////////////////////////////////////////////////////
 $( '#button-playlist' ).click( function() {
@@ -2032,10 +2038,11 @@ $( '#pl-index' ).on( 'click', 'a', function() {
 	var index = $this.text();
 	if ( index === '#' ) {
 		$( 'html, body' ).scrollTop( 0 );
-	} else {
-		var offsettop = $( '#pl-savedlist li[data-index='+ index +']:eq( 0 )' ).offset().top;
-		$( 'html, body' ).scrollTop( offsettop - ( G.bars ? 80 : 40 ) );
+		return
 	}
+	
+	var offsettop = $( '#pl-savedlist li[data-index='+ index +']' ).offset().top;
+	$( 'html, body' ).scrollTop( offsettop - ( G.bars ? 80 : 40 ) );
 } );
 
 } ); // document ready end <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<

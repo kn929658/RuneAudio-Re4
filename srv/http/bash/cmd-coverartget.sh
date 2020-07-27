@@ -1,11 +1,16 @@
 #!/bin/bash
 
+flag=/srv/http/data/tmp/coverartget
+[[ -e $flag ]] && exit
+
+touch $flag
+
 readarray -t args <<< "$1"
 
 artist=${args[0]}
 arg1=${args[1]}
-arg2=${args[2]}
-if [[ $arg2 != title ]]; then
+type=${args[2]}
+if [[ $type != title ]]; then
 	param="album=$arg1"
 	method='method=album.getInfo'
 else
@@ -21,14 +26,14 @@ data=$( curl -G \
 	--data-urlencode "format=json" \
 	http://ws.audioscrobbler.com/2.0/ )
 error=$( jq -r .error <<< "$data" )
-[[ $error != null ]] && exit
+[[ $error != null ]] && rm -f $flag && exit
 
-if [[ -n $title ]]; then
+if [[ $type == 'title' ]]; then
 	album=$( jq -r .track.album <<< "$data" )
 else
 	album=$( jq -r .album <<< "$data" )
 fi
-[[ $album == null ]] && exit
+[[ $album == null ]] && rm -f $flag && exit
 
 image=$( jq -r .image <<< "$album" )
 
@@ -44,6 +49,11 @@ else
 	fi
 fi
 if [[ $url != null ]]; then
-	[[ $arg2 != licover ]] && data='{ "url": "'$url'" }' || data='{ "url": "'$url'", "licover": 1 }'
-	curl -s -X POST http://127.0.0.1/pub?id=coverart -d "$data"
+	if [[ $type != 'licover' ]]; then
+		curl -s -X POST http://127.0.0.1/pub?id=coverart -d '{ "url": "'$url'" }'
+	else
+		echo $url
+	fi
 fi
+
+rm -f $flag

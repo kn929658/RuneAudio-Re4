@@ -133,27 +133,11 @@ function psBookmark( data ) {
 	}, G.debouncems );
 }
 function psCoverart( data ) {
-	if ( 'licover' in data ) {
-		$( '.licoverimg img' )
-			.prop( 'src', data.url )
-			.on( 'load', function() {
-				$( '.liinfo' ).css( 'width', ( window.innerWidth - $( this ).width() - 50 ) +'px' );
-				if ( data.url.slice( 0, 4 ) === 'http' ) $( '.licoverimg img' ).after( '<div class="liedit cover-save"><i class="fa fa-save"></i></div>' );
-			} );
-	} else {
-		G.status.coverart = data.url;
-		G.coversave = ( G.status.mpd && !G.status.webradio ) ? 1 : 0;
-		$( '#divcover, #coverart' ).removeClass( 'vu coverrune' );
-		$( '#coverart' )
-			.prop( 'src', data.url )
-			.on( 'load', function() {
-				if ( G.status.coverart.slice( 0, 4 ) === 'http' && !G.status.webradio ) {
-					$( '#divcover' ).append( '<div class="cover-save"><i class="fa fa-save"></i></div>' );
-				} else {
-					$( '.cover-save' ).remove();
-				}
-			} );
-	}
+	if ( G.local ) return
+	
+	G.status.coverart = data.url;
+	$( '#divcover, #coverart' ).removeClass( 'vu coverrune' );
+	$( '#coverart' ).prop( 'src', data.url );
 }
 function psDisplay( data ) {
 	if ( G.local ) return

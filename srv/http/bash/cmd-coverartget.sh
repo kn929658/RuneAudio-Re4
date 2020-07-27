@@ -1,39 +1,34 @@
 #!/bin/bash
 
-flagfile=/srv/http/data/tmp/coverart
-[[ -e $flagfile ]] && exit
-
-touch $flagfile
-
-pushstream() {
-	curl -s -X POST http://127.0.0.1/pub?id=coverart -d '{ "url": "'$1'" }'
-}
 readarray -t args <<< "$1"
 
 artist=${args[0]}
-album=${args[1]}
-title=${args[2]}
-nopush=${args[3]}
-url="http://ws.audioscrobbler.com/2.0/\
-?api_key=ba8ad00468a50732a3860832eaed0882\
-&autocorrect=1\
-&format=json\
-&artist=$artist"
-if [[ -n $title ]]; then
-	url+="&method=track.getInfo&track=$title"
+arg1=${args[1]}
+arg2=${args[2]}
+if [[ $arg2 != title ]]; then
+	param="album=$arg1"
+	method='method=album.getInfo'
 else
-	url+="&method=album.getInfo&album=$album"
+	param="track=$arg1"
+	method='method=track.getInfo'
 fi
-data=$( curl -s "$url" )
+data=$( curl -G \
+	--data-urlencode "artist=$artist" \
+	--data-urlencode "$param" \
+	--data-urlencode "$method" \
+	--data-urlencode "api_key=ba8ad00468a50732a3860832eaed0882" \
+	--data-urlencode "autocorrect=1" \
+	--data-urlencode "format=json" \
+	http://ws.audioscrobbler.com/2.0/ )
 error=$( jq -r .error <<< "$data" )
-[[ $error != null ]] && rm $flagfile && exit
+[[ $error != null ]] && exit
 
 if [[ -n $title ]]; then
 	album=$( jq -r .track.album <<< "$data" )
 else
 	album=$( jq -r .album <<< "$data" )
 fi
-[[ $album == null ]] && rm $flagfile && exit
+[[ $album == null ]] && exit
 
 image=$( jq -r .image <<< "$album" )
 
@@ -49,7 +44,6 @@ else
 	fi
 fi
 if [[ $url != null ]]; then
-	[[ -z $nopush ]] && pushstream $url || echo $url
+	[[ $arg2 != licover ]] && data='{ "url": "'$url'" }' || data='{ "url": "'$url'", "licover": 1 }'
+	curl -s -X POST http://127.0.0.1/pub?id=coverart -d "$data"
 fi
-
-rm $flagfile

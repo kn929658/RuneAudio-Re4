@@ -1,7 +1,17 @@
 #!/bin/bash
 
-path="/mnt/MPD/$1"
-size=$2
+readarray -t args <<< "$1"
+
+if [[ -z ${args[0]} ]]; then # webradio
+	/srv/http/bash/cmd-coverartget.sh "$( sed '1 d' <<< "$1" )" &> /dev/null &
+	exit
+fi
+
+path="/mnt/MPD/${args[0]}"
+arg1=${args[1]}
+argsL=${#args[@]}
+(( $argsL == 2 )) && size=${args[1]}
+
 # get coverfile in directory
 [[ -d $path ]] && dir=$path || dir=$( dirname "$path" )
 for name in cover folder front thumb album; do
@@ -29,14 +39,16 @@ if [[ $found != 1 ]]; then
 	tmpfile=/srv/http/data/tmp/coverart0.jpg
 	kid3-cli -c "select \"$file\"" -c "get picture:$tmpfile" &> /dev/null # suppress '1 space' stdout
 	if (( $? == 0 )); then
-		found=1
+		#found=1
 		mv /srv/http/data/tmp/coverart{0,}.jpg &> /dev/null
 		coverfile=/data/tmp/coverart.jpg
 	fi
 fi
 
-[[ -z $found ]] && exit
-
+if [[ -z $found && -z $size ]]; then
+	/srv/http/bash/cmd-coverartget.sh "$( sed '1 d' <<< "$1" )" &> /dev/null &
+	exit
+fi
 # convert % > ^
 # replace " > %20
 # convert ^ > %

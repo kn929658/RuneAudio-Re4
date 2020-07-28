@@ -228,7 +228,7 @@ function coverartGet( artist, album, type ) {
 		  cmdphp
 		, { cmd: 'sh', sh: [ 'cmd-coverartget.sh', artist, album, type ] }
 		, function( url ) {
-			if ( type === 'licover' ) { // for library tracks view
+			if ( type === 'licover' && url.trim() ) { // for library tracks view
 				$( '.licoverimg img' )
 					.prop( 'src', url )
 					.on( 'load', function() {

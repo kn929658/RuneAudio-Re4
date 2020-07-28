@@ -1091,7 +1091,7 @@ function renderPlayback() {
 	if ( $( '#qrwebui' ).html() ) {
 		$( '.emptyadd' ).addClass( 'hide' );
 		$( '#qrwebui' ).empty();
-		$( '#coverTR' ).removeClass( 'blankTR' );
+//		$( '#coverTR' ).removeClass( 'blankTR' );
 		$( '#coverart' ).removeClass( 'hide' );
 	}
 	$( '.playback-controls' ).css( 'visibility', 'visible' );
@@ -1291,12 +1291,16 @@ function renderPlaybackBlank() {
 		$( '#coverart' ).addClass( 'hide' );
 		$( '#splash' ).remove();
 		var qrweb = new QRCode( {
-			  msg : ip ? webui : 'No connection'
+			  msg : ip ? webui : ''
 			, dim : 230
 			, pad : 10
 		} );
 		$( '#qrwebui' ).html( qrweb );
-		$( '#coverTR' ).toggleClass( 'blankTR', !G.bars );
+		if ( !ip ) {
+			$( '#page-playback .emptyadd' ).html( '<i class="fa fa-gear"></i>' );
+			$( '#qrwebui svg' ).css( 'fill', '#000000' );
+		}
+//		$( '#coverTR' ).toggleClass( 'blankTR', !G.bars );
 	} );
 }
 renderPlaylist = function( data ) {

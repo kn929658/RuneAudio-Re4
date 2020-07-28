@@ -17,7 +17,7 @@ else
 	param="track=$arg1"
 	method='method=track.getInfo'
 fi
-data=$( curl -G \
+data=$( curl -s -G \
 	--data-urlencode "artist=$artist" \
 	--data-urlencode "$param" \
 	--data-urlencode "$method" \

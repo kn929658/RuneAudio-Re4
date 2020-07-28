@@ -215,6 +215,7 @@ mpcprevnext )
 	direction=${args[1]}
 	current=${args[2]}
 	length=${args[3]}
+	mpc | grep -q '^\[playing\]' && playing=1
 	if [[ $( mpc | awk '/random/ {print $6}' ) == on ]]; then
 		pos=$( shuf -n 1 -i 1-$length )
 		if (( $pos == $current )); then
@@ -223,12 +224,22 @@ mpcprevnext )
 		mpc play $pos
 	else
 		if [[ $direction == next ]]; then
-			(( $current != $length )) && mpc next || mpc play 1
+			if (( $current != $length )); then
+				[[ -z $playing ]] && mpc play
+				mpc next
+			else
+				mpc play 1
+			fi
 		else
-			(( $current != 1 )) && mpc prev || mpc play $length
+			if (( $current != 1 )); then
+				[[ -z $playing ]] && mpc play
+				mpc prev
+			else
+				mpc play $length
+			fi
 		fi
 	fi
-	mpc | grep -q '^\[playing\]' || mpc stop
+	[[ -z $playing ]] && mpc stop
 	;;
 mpcsimilar )
 	plL=$( mpc playlist | wc -l )

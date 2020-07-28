@@ -1182,6 +1182,7 @@ function renderPlayback() {
 		if ( status.coverart ) {
 			$( '#coverart' ).prop( 'src', status.coverart );
 		} else {
+			// fix: sometime missing embedded coverart
 			G.local = 1;
 			$.post( cmdphp, { cmd: 'sh', sh: [ 'cmd-coverart.sh', status.file ] }, function( url ) {
 				G.local = 0;

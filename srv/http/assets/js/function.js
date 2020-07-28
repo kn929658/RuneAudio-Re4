@@ -1083,7 +1083,7 @@ function renderPlayback() {
 		}
 	}
 	// empty queue
-	if ( !status.playlistlength && G.status.mpd ) {
+	if ( !status.playlistlength && G.status.mpd && status.state === 'stop' ) {
 		renderPlaybackBlank();
 		return
 	}

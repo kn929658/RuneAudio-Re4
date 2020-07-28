@@ -199,7 +199,7 @@ fi
 
 # coverart
 if [[ $ext != Radio ]]; then
-	rm -f /srv/http/data/tmp/coverart # running flag
+	rm -f /srv/http/data/tmp/{coverart,coverartfetch} # clear running flag in case of errors
 	coverart=$( /srv/http/bash/cmd-coverart.sh "$file0" ) # no escape needed
 elif [[ -e $radiofile ]]; then
 	coverart=$( sed -n '3 p' $radiofile )

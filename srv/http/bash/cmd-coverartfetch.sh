@@ -1,6 +1,6 @@
 #!/bin/bash
 
-flag=/srv/http/data/tmp/coverartget
+flag=/srv/http/data/tmp/coverartfetch
 [[ -e $flag ]] && exit
 
 touch $flag

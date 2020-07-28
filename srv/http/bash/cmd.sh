@@ -212,18 +212,17 @@ mpcls )
 	mpc play $pos
 	;;
 mpcprevnext )
-	dir=${args[1]}
+	direction=${args[1]}
 	current=${args[2]}
 	length=${args[3]}
-	random=$( mpc | awk '/random/ {print $6}' )
-	if [[ $random == on ]]; then
+	if [[ $( mpc | awk '/random/ {print $6}' ) == on ]]; then
 		pos=$( shuf -n 1 -i 1-$length )
 		if (( $pos == $current )); then
 			(( $pos == $length )) && (( pos-- )) || (( pos++ ))
 		fi
 		mpc play $pos
 	else
-		if [[ $dir == next ]]; then
+		if [[ $direction == next ]]; then
 			(( $current != $length )) && mpc next || mpc play 1
 		else
 			(( $current != 1 )) && mpc prev || mpc play $length

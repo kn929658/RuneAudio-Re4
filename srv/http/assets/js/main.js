@@ -93,7 +93,6 @@ for( i = 0; i < 360; i += 0.25 ) {
 }
 $( '#coverart' ).on( 'error', function() {
 	var $this = $( this );
-	$this.unbind( 'error' );
 	if ( G.status.webradio ) {
 		$this
 			.prop( 'src', status.state === 'play' ? vu : vustop )
@@ -254,7 +253,7 @@ $( '#displayplayback' ).click( function( e ) {
 				if ( !G.display.bars ) disableCheckbox( 'barsalways' );  // disable by bars hide
 				if ( G.display.time ) disableCheckbox( 'progressbar' );  // disable by time
 				if ( !G.display.cover ) disableCheckbox( 'coversmall' ); // disable by cover
-				if ( G.display.volumenone ) disableCheckbox( 'volume' ); // disable by mpd volume
+				if ( G.display.volumenone ) disableCheckbox( 'volume', false, false ); // disable by mpd volume
 				if ( !G.display.time && !G.display.volume ) {
 					disableCheckbox( 'cover' ); // disable by autohide
 					disableCheckbox( 'buttons' );

@@ -215,22 +215,21 @@ mpcprevnext )
 	dir=${args[1]}
 	current=${args[2]}
 	length=${args[3]}
-	mpc | grep -q '^\[playing\]' && playing=1 
 	random=$( mpc | awk '/random/ {print $6}' )
 	if [[ $random == on ]]; then
 		pos=$( shuf -n 1 -i 1-$length )
 		if (( $pos == $current )); then
 			(( $pos == $length )) && (( pos-- )) || (( pos++ ))
 		fi
+		mpc play $pos
 	else
 		if [[ $dir == next ]]; then
-			(( $current != $length )) && pos=$(( current + 1 )) || pos=1
+			(( $current != $length )) && mpc next || mpc play 1
 		else
-			(( $current != 1 )) && pos=$(( current - 1 )) || pos=$length
+			(( $current != 1 )) && mpc prev || mpc play $length
 		fi
 	fi
-	mpc play $pos
-	[[ -z $playing ]] && mpc stop
+	mpc | grep -q '^\[playing\]' || mpc stop
 	;;
 mpcsimilar )
 	plL=$( mpc playlist | wc -l )

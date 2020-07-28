@@ -226,7 +226,7 @@ function coverartChange() {
 function coverartGet( artist, album, type ) {
 	$.post(
 		  cmdphp
-		, { cmd: 'sh', sh: [ 'cmd-coverartget.sh', artist, album, type ] }
+		, { cmd: 'sh', sh: [ 'cmd-coverartfetch.sh', artist, album, type ] }
 		, function( url ) {
 			if ( type === 'licover' && url.trim() ) { // for library tracks view
 				$( '.licoverimg img' )

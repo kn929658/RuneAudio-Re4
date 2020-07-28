@@ -241,8 +241,7 @@ mpcprevnext )
 			fi
 		fi
 	fi
-	rm -f $flag
-	[[ -z $playing ]] && mpc stop
+	[[ -z $playing ]] && rm -f $flag && mpc stop
 	;;
 mpcsimilar )
 	plL=$( mpc playlist | wc -l )

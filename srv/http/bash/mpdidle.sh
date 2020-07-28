@@ -18,7 +18,9 @@ mpc idleloop | while read changed; do
 			curlPost mpdoptions "$( /srv/http/bash/status.sh statusonly )"
 			;;
 		player )
-			if [[ ! -e /srv/http/data/tmp/prevnext ]]; then # suppress prev/next while stop - mpc play
+			flag=/srv/http/data/tmp/prevnext
+			if [[ ! -e $flag ]]; then # suppress prev/next while stop - mpc play
+				touch $flag
 				status=$( /srv/http/bash/status.sh )
 				if [[ ! -e /srv/http/data/system/player-snapclient ]]; then
 					curlPost mpdplayer "$status"
@@ -33,6 +35,7 @@ mpc idleloop | while read changed; do
 						rm $snapclientfile
 					fi
 				fi
+				rm -f $flag
 			fi
 			;;
 		playlistplayer )

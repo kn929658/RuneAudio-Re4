@@ -990,6 +990,7 @@ $( '.btn-cmd' ).click( function() {
 				}, 300 );
 			}
 			bash( [ 'mpcprevnext', cmd, G.status.song + 1, length ], function() {
+				G.prevnext = 0;
 				clearTimeout( prevnext );
 			} );
 		}

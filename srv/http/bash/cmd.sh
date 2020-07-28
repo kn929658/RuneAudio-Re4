@@ -212,25 +212,36 @@ mpcls )
 	mpc play $pos
 	;;
 mpcprevnext )
-	dir=${args[1]}
+	direction=${args[1]}
 	current=${args[2]}
 	length=${args[3]}
-	mpc | grep -q '^\[playing\]' && playing=1 
-	random=$( mpc | awk '/random/ {print $6}' )
-	if [[ $random == on ]]; then
+	mpc | grep -q '^\[playing\]' && playing=1
+	flag=/srv/http/data/tmp/prevnext
+	[[ -z $playing ]] && touch $flag # suppress mpdidle until before mpc stop
+	if [[ $( mpc | awk '/random/ {print $6}' ) == on ]]; then
 		pos=$( shuf -n 1 -i 1-$length )
 		if (( $pos == $current )); then
 			(( $pos == $length )) && (( pos-- )) || (( pos++ ))
 		fi
+		mpc play $pos
 	else
-		if [[ $dir == next ]]; then
-			(( $current != $length )) && pos=$(( current + 1 )) || pos=1
+		if [[ $direction == next ]]; then
+			if (( $current != $length )); then
+				[[ -z $playing ]] && mpc play
+				mpc next
+			else
+				mpc play 1
+			fi
 		else
-			(( $current != 1 )) && pos=$(( current - 1 )) || pos=$length
+			if (( $current != 1 )); then
+				[[ -z $playing ]] && mpc play
+				mpc prev
+			else
+				mpc play $length
+			fi
 		fi
 	fi
-	mpc play $pos
-	[[ -z $playing ]] && mpc stop
+	[[ -z $playing ]] && rm -f $flag && mpc stop
 	;;
 mpcsimilar )
 	plL=$( mpc playlist | wc -l )

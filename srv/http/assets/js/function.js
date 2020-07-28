@@ -223,17 +223,17 @@ function coverartChange() {
 	if ( ( G.playback && pbembedded ) || ( G.library && liembedded ) ) jsoninfo.footer = '<i class="fa fa-coverart"></i>&ensp;embedded';
 	info( jsoninfo );
 }
-function coverartGet( artist, album, track, nopush ) {
+function coverartGet( artist, album, type ) {
 	$.post(
 		  cmdphp
-		, { cmd: 'sh', sh: [ 'cmd-coverartget.sh', artist, album, track, nopush ] }
+		, { cmd: 'sh', sh: [ 'cmd-coverartfetch.sh', artist, album, type ] }
 		, function( url ) {
-			if ( nopush ) { // for library tracks view
+			if ( type === 'licover' && url.trim() ) { // for library tracks view
 				$( '.licoverimg img' )
 					.prop( 'src', url )
-					.after( '<div class="liedit cover-save"><i class="fa fa-save"></i></div>' )
 					.on( 'load', function() {
 						$( '.liinfo' ).css( 'width', ( window.innerWidth - $( this ).width() - 50 ) +'px' );
+						if ( url.slice( 0, 4 ) === 'http' ) $( '.licoverimg img' ).after( '<div class="liedit cover-save"><i class="fa fa-save"></i></div>' );
 					} );
 			}
 		}
@@ -1083,7 +1083,7 @@ function renderPlayback() {
 		}
 	}
 	// empty queue
-	if ( !status.playlistlength && G.status.mpd ) {
+	if ( !status.playlistlength && G.status.mpd && status.state === 'stop' ) {
 		renderPlaybackBlank();
 		return
 	}
@@ -1091,7 +1091,7 @@ function renderPlayback() {
 	if ( $( '#qrwebui' ).html() ) {
 		$( '.emptyadd' ).addClass( 'hide' );
 		$( '#qrwebui' ).empty();
-		$( '#coverTR' ).removeClass( 'blankTR' );
+//		$( '#coverTR' ).removeClass( 'blankTR' );
 		$( '#coverart' ).removeClass( 'hide' );
 	}
 	$( '.playback-controls' ).css( 'visibility', 'visible' );
@@ -1138,7 +1138,7 @@ function renderPlayback() {
 				if ( artist_title.length === 2 ) {
 					var artist = artist_title[ 0 ]
 					var title = artist_title[ 1 ].replace( / $| \(.*$/, '' ) // remove trailing space and extra tag
-					coverartGet( artist, '', title );
+					coverartGet( artist, title, 'title' );
 				}
 			}
 		}
@@ -1182,8 +1182,18 @@ function renderPlayback() {
 		if ( status.coverart ) {
 			$( '#coverart' ).prop( 'src', status.coverart );
 		} else {
-			$( '#coverart' ).prop( 'src', coverrune );
-			coverartGet( status.Artist, status.Album );
+			// fix: sometime missing embedded coverart
+			G.local = 1;
+			$.post( cmdphp, { cmd: 'sh', sh: [ 'cmd-coverart.sh', status.file ] }, function( url ) {
+				G.local = 0;
+				if ( url ) {
+					G.status.coverart = url;
+					$( '#coverart' ).prop( 'src', url );
+				} else {
+					$( '#coverart' ).prop( 'src', coverrune );
+					coverartGet( status.Artist, status.Album );
+				}
+			} );
 		}
 	}
 	// time
@@ -1281,12 +1291,16 @@ function renderPlaybackBlank() {
 		$( '#coverart' ).addClass( 'hide' );
 		$( '#splash' ).remove();
 		var qrweb = new QRCode( {
-			  msg : ip ? webui : 'No connection'
+			  msg : ip ? webui : ''
 			, dim : 230
 			, pad : 10
 		} );
 		$( '#qrwebui' ).html( qrweb );
-		$( '#coverTR' ).toggleClass( 'blankTR', !G.bars );
+		if ( !ip ) {
+			$( '#page-playback .emptyadd' ).html( '<i class="fa fa-gear"></i>' );
+			$( '#qrwebui svg' ).css( 'fill', '#000000' );
+		}
+//		$( '#coverTR' ).toggleClass( 'blankTR', !G.bars );
 	} );
 }
 renderPlaylist = function( data ) {
@@ -1491,7 +1505,7 @@ function setTrackCoverart() {
 			$( '#lib-list li:eq( 1 )' ).removeClass( 'track1' );
 		}
 		if ( $( '.licoverimg' ).hasClass( 'nocover' ) ) {
-			coverartGet( $( '.liartist' ).text(), $( '.lialbum' ).text(), '', 'nopush' );
+			coverartGet( $( '.liartist' ).text(), $( '.lialbum' ).text(), 'licover' );
 		} else {
 			$( '.licoverimg img' ).on( 'load', function() {
 				$( '.liinfo' ).css( 'width', ( window.innerWidth - $( this ).width() - 50 ) +'px' );

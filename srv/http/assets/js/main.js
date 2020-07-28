@@ -93,7 +93,6 @@ for( i = 0; i < 360; i += 0.25 ) {
 }
 $( '#coverart' ).on( 'error', function() {
 	var $this = $( this );
-	$this.unbind( 'error' );
 	if ( G.status.webradio ) {
 		$this
 			.prop( 'src', status.state === 'play' ? vu : vustop )
@@ -109,6 +108,11 @@ $( '#coverart' ).on( 'error', function() {
 	$( '.rs-animation .rs-transition' ).css( 'transition-property', '' ); // restore animation after load
 	$( 'html, body' ).scrollTop( 0 );
 	if ( $( '#lib-cover-list' ).html() ) new LazyLoad( { elements_selector: '.lazy' } );
+} ).on( 'load', function() {
+	if ( G.status.mpd && !G.status.webradio && G.status.coverart.slice( 0, 4 ) === 'http' ) {
+		G.coversave = 1;
+		$( '#divcover' ).append( '<div class="cover-save"><i class="fa fa-save"></i></div>' );
+	}
 } );
 // COMMON /////////////////////////////////////////////////////////////////////////////////////
 $( '#button-settings, #badge' ).click( function() {
@@ -249,7 +253,7 @@ $( '#displayplayback' ).click( function( e ) {
 				if ( !G.display.bars ) disableCheckbox( 'barsalways' );  // disable by bars hide
 				if ( G.display.time ) disableCheckbox( 'progressbar' );  // disable by time
 				if ( !G.display.cover ) disableCheckbox( 'coversmall' ); // disable by cover
-				if ( G.display.volumenone ) disableCheckbox( 'volume' ); // disable by mpd volume
+				if ( G.display.volumenone ) disableCheckbox( 'volume', false, false ); // disable by mpd volume
 				if ( !G.display.time && !G.display.volume ) {
 					disableCheckbox( 'cover' ); // disable by autohide
 					disableCheckbox( 'buttons' );
@@ -561,7 +565,11 @@ $( '#lib-list, #pl-list, #pl-savedlist' ).on( 'click', 'p', function() {
 } );
 // PLAYBACK /////////////////////////////////////////////////////////////////////////////////////
 $( '.emptyadd' ).click( function( e ) {
-	if ( $( e.target ).hasClass( 'fa' ) ) $( '#tab-library' ).click();
+	if( $( e.target ).hasClass( 'fa-gear' ) ) {
+		location.href = 'index-settings.php?p=network';
+	} else if ( $( e.target ).hasClass( 'fa' ) ) {
+		$( '#tab-library' ).click();
+	}
 } );
 $( '#artist, #guide-bio' ).click( function() {
 	if ( G.status.webradio ) return
@@ -692,12 +700,12 @@ $( '#coverT, #timeT' ).tap( function() {
 	G.guide = !$( this ).hasClass( 'mapshow' );
 	if ( $( this ).hasClass( 'mapshow' ) ) {
 		hideGuide();
-		$( '#coverTR' ).toggleClass( 'blankTR', !G.bars );
+//		$( '#coverTR' ).toggleClass( 'blankTR', !G.bars );
 		return
 	}
 	
 	$( '.covermap, .guide' ).addClass( 'mapshow' );
-	$( '#coverTR' ).removeClass( 'blankTR' );
+//	$( '#coverTR' ).removeClass( 'blankTR' );
 	$( '.guide' ).toggleClass( 'hide', !G.status.playlistlength && G.status.mpd );
 	$( '#guide-artist, #guide-album' ).toggleClass( 'hide', G.status.webradio || !G.status.playlistlength );
 	$( '#volume-text' ).addClass( 'hide' );
@@ -986,6 +994,7 @@ $( '.btn-cmd' ).click( function() {
 				}, 300 );
 			}
 			bash( [ 'mpcprevnext', cmd, G.status.song + 1, length ], function() {
+				G.prevnext = 0;
 				clearTimeout( prevnext );
 			} );
 		}
@@ -1681,13 +1690,12 @@ $( '#lib-index' ).on( 'click', 'a', function() {
 		return
 	}
 	
-	var $el = $( '#lib-cover-list' ).hasClass( 'hide' ) ? $( '#lib-list li' ) : $( '.coverart' );
-	$el.each( function() {
-		if ( $( this ).data( 'index' ) === index ) {
-			$( 'html, body' ).scrollTop( this.offsetTop - ( G.bars ? 80 : 40 ) );
-			return false
-		}
-	} );
+	if ( $( '#lib-cover-list' ).hasClass( 'hide' ) ) {
+		var offsettop = $( '#lib-list li[data-index='+ index +']' ).offset().top;
+	} else {
+		var offsettop = $( '.coverart[data-index='+ index +']' ).offset().top;
+	}
+	$( 'html, body' ).scrollTop( offsettop - ( G.bars ? 80 : 40 ) );
 } );
 // PLAYLIST /////////////////////////////////////////////////////////////////////////////////////
 $( '#button-playlist' ).click( function() {
@@ -2037,12 +2045,8 @@ $( '#pl-index' ).on( 'click', 'a', function() {
 		return
 	}
 	
-	$( '#pl-savedlist li' ).each( function() {
-		if ( $( this ).data( 'index' ) === index ) {
-			$( 'html, body' ).scrollTop( this.offsetTop - ( G.bars ? 80 : 40 ) );
-			return false
-		}
-	} );
+	var offsettop = $( '#pl-savedlist li[data-index='+ index +']' ).offset().top;
+	$( 'html, body' ).scrollTop( offsettop - ( G.bars ? 80 : 40 ) );
 } );
 
 } ); // document ready end <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<

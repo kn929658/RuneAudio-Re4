@@ -1,5 +1,7 @@
 #!/bin/bash
 
+rm -f /srv/http/data/tmp/{coverart,coverartfetch,prevnext} # clear running flag in case still left
+
 playerfile=/srv/http/data/system/player
 ########
 status=$( cat $playerfile )
@@ -73,7 +75,7 @@ fi
 
 filter='Album\|Artist\|audio\|bitrate\|consume\|duration\|elapsed\|file\|Name\|playlistlength\|random\|repeat\|single\|^song:\|state\|Time\|Title\|updating_db\|volume'
 mpdStatus() {
-	mpdtelnet=$( { echo clearerror; echo status; echo $1; sleep 0.05; } \
+	mpdtelnet=$( { echo clearerror; echo status; echo $1; sleep 0.05; close; } \
 		| telnet 127.0.0.1 6600 2> /dev/null \
 		| grep "$filter" )
 }

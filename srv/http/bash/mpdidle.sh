@@ -18,18 +18,20 @@ mpc idleloop | while read changed; do
 			curlPost mpdoptions "$( /srv/http/bash/status.sh statusonly )"
 			;;
 		player )
-			status=$( /srv/http/bash/status.sh )
-			if [[ ! -e /srv/http/data/system/player-snapclient ]]; then
-				curlPost mpdplayer "$status"
-			else
-				sed -i '/^$/d' $snapclientfile # remove blank lines
-				if [[ -s $snapclientfile ]]; then
-					mapfile -t clientip < $snapclientfile
-					for ip in "${clientip[@]}"; do
-						curlPost mpdplayer "$status"
-					done
+			if [[ ! -e /srv/http/data/tmp/prevnext ]]; then # suppress prev/next while stop - mpc play
+				status=$( /srv/http/bash/status.sh )
+				if [[ ! -e /srv/http/data/system/player-snapclient ]]; then
+					curlPost mpdplayer "$status"
 				else
-					rm $snapclientfile
+					sed -i '/^$/d' $snapclientfile # remove blank lines
+					if [[ -s $snapclientfile ]]; then
+						mapfile -t clientip < $snapclientfile
+						for ip in "${clientip[@]}"; do
+							curlPost mpdplayer "$status"
+						done
+					else
+						rm $snapclientfile
+					fi
 				fi
 			fi
 			;;

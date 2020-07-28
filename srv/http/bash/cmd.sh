@@ -216,6 +216,8 @@ mpcprevnext )
 	current=${args[2]}
 	length=${args[3]}
 	mpc | grep -q '^\[playing\]' && playing=1
+	flag=/srv/http/data/tmp/prevnext
+	[[ -z $playing ]] && touch $flag # suppress mpdidle - mpc play
 	if [[ $( mpc | awk '/random/ {print $6}' ) == on ]]; then
 		pos=$( shuf -n 1 -i 1-$length )
 		if (( $pos == $current )); then
@@ -239,6 +241,7 @@ mpcprevnext )
 			fi
 		fi
 	fi
+	rm -f $flag
 	[[ -z $playing ]] && mpc stop
 	;;
 mpcsimilar )

@@ -1276,7 +1276,7 @@ function renderPlayback() {
 }
 function renderPlaybackBlank() {
 	bash( "ip r | awk '/default/ {print $9}'", function( ip ) {
-		var webui = ip ? 'http://'+ ip : 'No connection - Click&ensp;<i class="fa fa-gear"></i>&ensp;to setup'
+		var webui = ip ? 'http://'+ ip : 'Network not connected - Click&ensp;<i class="fa fa-gear"></i>&ensp;to setup'
 		$( '#sampling' ).html( webui );
 		$( '#playback-controls, #infoicon i' ).addClass( 'hide' );
 		$( '#page-playback .emptyadd' ).toggleClass( 'hide', !G.status.mpd );

@@ -669,6 +669,8 @@ $( '#volup, #voldn' ).click( function() {
 	} );
 } );
 $( '#coverTL, #timeTL' ).tap( function() {
+	if ( !G.status.playlistlength ) return
+	
 	var list = [ 'bars', 'time', 'cover', 'coversmall', 'volume', 'buttons', 'progressbar' ];
 	if ( 'coverTL' in G ) {
 		list.forEach( function( el ) {
@@ -702,6 +704,8 @@ $( '#coverTL, #timeTL' ).tap( function() {
 } );
 $( '#coverT, #timeT' ).tap( function() {
 	clearTimeout( G.volumebar );
+	if ( !G.status.playlistlength ) return
+	
 	$( '#swipeL, #swipebar .fa-swipe, #swipeR' ).show();
 	G.guide = !$( this ).hasClass( 'mapshow' );
 	if ( $( this ).hasClass( 'mapshow' ) ) {
@@ -876,7 +880,9 @@ var btnctrl = {
 }
 $( '.map' ).tap( function( e ) {
 	e.preventDefault()
-	if ( [ 'coverTL', 'coverT', 'timeT' ].indexOf( this.id ) !== -1 ) return
+	if ( [ 'coverTL', 'coverT', 'timeT' ].indexOf( this.id ) !== -1
+		|| ( !G.status.playlistlength && this.id !== 'coverTR' )
+	) return
 	
 	hideGuide();
 	var cmd = btnctrl[ this.id ];

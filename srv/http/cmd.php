@@ -115,14 +115,19 @@ case 'coverartget';
 	echo coverartGet( $_POST[ 'path' ], $_POST[ 'size' ] ?? '' );
 	break;
 case 'displayget':
-	echo json_encode( getDisplay() );
+	$data = json_decode( file_get_contents( $dirsystem.'display' ) );
+	$data->color = rtrim( @file_get_contents( $dirsystem.'color' ) ) ?: '200 100 35';
+	$data->order = json_decode( file_get_contents( $dirsystem.'order' ) );
+	$audiooutputfile = file_exists( $dirsystem.'usbdac' ) ? 'usbdac' : 'audio-output';
+	$data->volumenone = cmdsh( [ 'volumenone', $audiooutputfile ] ) === 'none';
+	echo json_encode( $data );
 	break;
 case 'displayset':
 	$data = json_decode( $_POST[ 'displayset' ] );
-	$remove = [ 'color', 'order', 'updating_db', 'update', 'volumenone' ];
+	$remove = [ 'color', 'order', 'update', 'updating_db', 'volumenone' ];
 	foreach( $remove as $key ) unset( $data->$key );
 	file_put_contents( $dirsystem.'display', json_encode( $data, JSON_PRETTY_PRINT ) );
-	pushstream( 'display', getDisplay() );
+	pushstream( 'display', $data );
 	break;
 case 'getbookmarks':
 	$files = array_slice( scandir( $dirbookmarks ), 2 );
@@ -251,15 +256,6 @@ function cmdsh( $sh ) {
 }
 function coverartGet( $path, $size = '' ) {
 	return exec( '/srv/http/bash/cmd-coverart.sh "'.escape( $path ).'" '.$size );
-}
-function getDisplay() {
-	$dirsystem = '/srv/http/data/system/';
-	$data = json_decode( file_get_contents( $dirsystem.'display' ) );
-	$data->color = rtrim( @file_get_contents( $dirsystem.'color' ) ) ?: '200 100 35';
-	$data->order = json_decode( file_get_contents( $dirsystem.'order' ) );
-	$audiooutputfile = file_exists( $dirsystem.'usbdac' ) ? 'usbdac' : 'audio-output';
-	$data->volumenone = cmdsh( [ 'volumenone', $audiooutputfile ] ) === 'none';
-	return $data;
 }
 function escape( $string ) {
 	return preg_replace( '/(["`])/', '\\\\\1', $string );

@@ -219,26 +219,13 @@ mpcprevnext )
 	flag=/srv/http/data/tmp/prevnext
 	[[ -z $playing ]] && touch $flag # suppress mpdidle until before mpc stop
 	if [[ $( mpc | awk '/random/ {print $6}' ) == on ]]; then
-		pos=$( shuf -n 1 -i 1-$length )
-		if (( $pos == $current )); then
-			(( $pos == $length )) && (( pos-- )) || (( pos++ ))
-		fi
+		pos=$( shuf -n 1 <( seq $length | grep -v $current ) )
 		mpc play $pos
 	else
 		if [[ $direction == next ]]; then
-			if (( $current != $length )); then
-				[[ -z $playing ]] && mpc play
-				mpc next
-			else
-				mpc play 1
-			fi
+			(( $current != $length )) && mpc play $(( current + 1 )) || mpc play 1
 		else
-			if (( $current != 1 )); then
-				[[ -z $playing ]] && mpc play
-				mpc prev
-			else
-				mpc play $length
-			fi
+			(( $current != 1 )) && mpc play $(( current - 1 )) || mpc play $length
 		fi
 	fi
 	[[ -z $playing ]] && rm -f $flag && mpc stop

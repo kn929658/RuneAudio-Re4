@@ -1276,26 +1276,28 @@ function renderPlayback() {
 }
 function renderPlaybackBlank() {
 	bash( "ip r | awk '/default/ {print $9}'", function( ip ) {
-		var webui = ip ? 'http://'+ ip : 'Network not connected - Click&ensp;<i class="fa fa-gear"></i>&ensp;to setup'
-		$( '#sampling' ).html( webui );
 		$( '#playback-controls, #infoicon i' ).addClass( 'hide' );
 		$( '#page-playback .emptyadd' ).toggleClass( 'hide', !G.status.mpd );
 		$( '#divartist, #divsong, #divalbum' ).removeClass( 'scroll-left' );
 		$( '#artist, #song, #album, #progress, #elapsed, #total' ).empty();
 		if ( G.display.time ) $( '#time' ).roundSlider( 'setValue', 0 );
 		$( '#time-bar' ).css( 'width', 0 );
-		$( '#coverart' ).addClass( 'hide' );
-		$( '#splash' ).remove();
-		var qrweb = new QRCode( {
-			  msg : ip ? webui : ''
-			, dim : 230
-			, pad : 10
-		} );
-		$( '#qrwebui' ).html( qrweb );
-		if ( !ip ) {
+		if ( ip ) {
+			$( '#sampling' ).html( 'http://'+ ip );
+			$( '#coverart' ).addClass( 'hide' );
+			var qrweb = new QRCode( {
+				  msg : 'http://'+ ip
+				, dim : 230
+				, pad : 10
+			} );
+			$( '#qrwebui' ).html( qrweb );
+		} else {
+			G.status.coverart = '';
+			$( '#sampling' ).html( 'Network not connected - Click&ensp;<i class="fa fa-gear"></i>&ensp;to setup' );
 			$( '#page-playback .emptyadd' ).html( '<i class="fa fa-gear"></i>' );
-			$( '#qrwebui svg' ).css( 'fill', '#000000' );
+			$( '#coverart' ).prop( 'src', coverrune );
 		}
+		$( '#splash' ).remove();
 		if ( $( '#lib-cover-list' ).html() ) new LazyLoad( { elements_selector: '.lazy' } );
 	} );
 }

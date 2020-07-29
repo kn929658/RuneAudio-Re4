@@ -73,6 +73,17 @@ case 'find':
 case 'list':
 	exec( 'mpc list '.$mode.' | awk NF'
 		, $lists );
+	$cuelistfile = '/srv/http/data/mpd/cuelist';
+	$modes = [ 'album', 'albumartist', 'artist' ];
+	if ( file_exists( $cuelistfile ) && in_array( $mode, $modes ) ) {
+		$cuelist = file( $cuelistfile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES );
+		$i = array_search( $mode, $modes );
+		foreach( $cuelist as $cue ) {
+			$data = explode( '^^', $cue );
+			$val = $data[ $i ];
+			if ( !in_array( $val, $lists ) ) $lists[] = $val.'^^'.$data[ 3 ]; // album^^albumartisst^^artist^^path
+		}
+	}
 	$array = htmlList( $mode, $lists );
 	break;
 case 'ls':
@@ -277,6 +288,10 @@ function htmlList( $mode, $lists ) { // non-file 'list' command
 	if ( !count( $lists ) ) exit( '-1' );
 	
 	foreach( $lists as $list ) {
+		if ( is_array( $list ) ) {
+			$list = $list[ 0 ];
+			$path = $list[ 1 ];
+		}
 		$sort = stripLeading( $list );
 		$each = ( object )[];  // or: new stdClass()
 		$each->$mode = $list;
@@ -288,12 +303,20 @@ function htmlList( $mode, $lists ) { // non-file 'list' command
 	} );
 	$html = '';
 	foreach( $array as $each ) {
+		$name = $path = $each->$mode;
+		$datamode = $mode;
+		if ( strpos( $name, '^^' ) ) {
+			$data = explode( '^^', $name );
+			$name = $data[ 0 ];
+			$path = $data[ 1 ];
+			$datamode = 'file';
+		}
 		$index = mb_substr( $each->sort, 0, 1, 'UTF-8' );
 		$indexes[] = $index;
-		$html.= '<li data-mode="'.$mode.'" data-index="'.$index.'">'
-					.'<a class="lipath">'.$each->$mode.'</a>'
+		$html.= '<li data-mode="'.$datamode.'" data-index="'.$index.'">'
+					.'<a class="lipath">'.$path.'</a>'
 					.'<i class="fa fa-'.$mode.' lib-icon"></i>'
-					.'<span class="single">'.$each->$mode.'</span>'
+					.'<span class="single">'.$name.'</span>'
 				.'</li>';
 	}
 	$indexes = array_keys( array_flip( $indexes ) ); // faster than array_unique

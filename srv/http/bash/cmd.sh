@@ -250,6 +250,23 @@ mpcsimilar )
 	;;
 mpcupdate )
 	mpc update "${args[1]}"
+	exit
+	#########################################################################
+	cuelistfile=/srv/http/data/mpd/cuelist
+	cuelist=$( find /mnt/MPD -type f -name *.cue )
+	[[ -z $cuelist ]] && rm -f $cuelistfile && exit
+	
+	readarray -t cuelist <<< "$cuelist"
+	for file in "${cuelist[@]}"; do # album^^albumartisst^^artist^^path
+		lines=$( grep '^TITLE\|^PERFORMER\|^\s\+PERFORMER' "$file" )
+		list+=$( grep '^TITLE' <<< "$lines" | cut -d\" -f2 )^^
+		list+=$( grep '^PERFORMER' <<< "$lines" | cut -d\" -f2 )^^
+		list+=$( grep -m1 '^\s\+PERFORMER' <<< "$lines" | cut -d\" -f2 )^^
+		list+=$( dirname "$file" | sed 's|/mnt/MPD/||' )
+		list+='
+	'
+	done
+	echo "$list" > $cuelistfile
 	;;
 packageenable )
 	pkg=${args[1]}

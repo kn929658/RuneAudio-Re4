@@ -1088,7 +1088,6 @@ function renderPlayback() {
 	if ( $( '#qrwebui' ).html() ) {
 		$( '.emptyadd' ).addClass( 'hide' );
 		$( '#qrwebui' ).empty();
-//		$( '#coverTR' ).removeClass( 'blankTR' );
 		$( '#coverart' ).removeClass( 'hide' );
 	}
 	$( '.playback-controls' ).css( 'visibility', 'visible' );
@@ -1297,7 +1296,7 @@ function renderPlaybackBlank() {
 			$( '#page-playback .emptyadd' ).html( '<i class="fa fa-gear"></i>' );
 			$( '#qrwebui svg' ).css( 'fill', '#000000' );
 		}
-//		$( '#coverTR' ).toggleClass( 'blankTR', !G.bars );
+		if ( $( '#lib-cover-list' ).html() ) new LazyLoad( { elements_selector: '.lazy' } );
 	} );
 }
 renderPlaylist = function( data ) {

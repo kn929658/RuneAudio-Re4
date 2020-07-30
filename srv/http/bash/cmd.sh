@@ -68,11 +68,12 @@ count() {
 	, "genre"       : '$(( igenre + genre ))'
 	, "nas"         : '$NAS'
 	, "sd"          : '$SD'
-	, "song"        : '$(( isong + ${stats[2]} ))'
+	, "title"       : '$(( isong + ${stats[2]} ))'
 	, "usb"         : '$USB'
 	, "webradio"    : '$( ls -U /srv/http/data/webradios/* 2> /dev/null | wc -l )
 	
 	echo {$counts} | jq . > /srv/http/data/mpd/counts
+	curl -s -X POST http://127.0.0.1/pub?id=mpdupdate -d "{$counts}"
 }
 pushstream() {
 	curl -s -X POST http://127.0.0.1/pub?id=$1 -d '{ "'$2'": "'$3'" }'
@@ -320,12 +321,13 @@ mpcsimilar )
 	echo $(( $( mpc playlist | wc -l ) - plL ))
 	;;
 mpcupdate )
+	curl -s -X POST http://127.0.0.1/pub?id=mpdupdate -d 1
 	mpc update "${args[1]}"
 	cuescan
 	;;
 mpcrescan )
+	curl -s -X POST http://127.0.0.1/pub?id=mpdupdate -d 1
 	mpc rescan
-	# for faster listing
 	for type in album albumartist artist composer date genre; do
 		mpc list $type | sed '/^$/ d' > /srv/http/data/mpd/$type
 	done

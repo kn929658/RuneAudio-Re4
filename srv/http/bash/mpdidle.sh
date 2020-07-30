@@ -45,12 +45,5 @@ mpc idleloop | while read changed; do
 		playlist )
 			curlPost playlist '{"playlist":"playlist"}'
 			;;
-		update )
-			if mpc | grep -q '^Updating DB ('; then
-				curlPost mpdupdate 1
-			else
-				curlPost mpdupdate "$( cat /srv/http/data/mpd/counts )"
-			fi
-			;;
 	esac
 done

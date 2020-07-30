@@ -342,7 +342,7 @@ $( '.settings' ).click( function( e ) {
 		} );
 		notify( 'Snapcast - Sync Streaming Client', ( G.status.snapclient ? 'Stop ...' : 'Start ...' ), 'snapcast blink', -1 );
 	} else if ( id !== 'update' ) {
-		location.href = 'index-settings.php?p='+ id
+		location.href = 'index-settings.php?p='+ id;
 	} else {
 		info( {
 			  icon    : 'refresh-library'
@@ -351,6 +351,7 @@ $( '.settings' ).click( function( e ) {
 			, ok      : function() {
 				G.status.updating_db = true;
 				bash( [ $( '#infoRadio input:checked' ).val() ] );
+//				notify( 'Library Database', 'Update ...', 'library blink' );
 			}
 		} );
 	}

@@ -414,7 +414,7 @@ $addonsupdate = @file_get_contents( '/srv/http/data/addons/update' ) ?: false;
 			<span class="lipath"></span>
 		</div>
 	</div>
-	<div id="lib-mode-list" class="list" data-count="<?=$counts->song?>"><?=$modehtml?></div>
+	<div id="lib-mode-list" class="list" data-count="<?=$counts->title?>"><?=$modehtml?></div>
 	<ul id="lib-list" class="list"></ul>
 	<div id="lib-index" class="hide"></div>
 	<div id="lib-cover-list" class="list hide"><?=$coverartshtml?></div>

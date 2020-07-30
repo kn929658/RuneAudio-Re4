@@ -245,11 +245,9 @@ function psMpdPlayer( data ) {
 	}
 }
 function psMpdUpdate( data ) {
-	if ( G.local ) return
-	
-	if ( data === 1 ) {
+	if ( data == 1 ) {
 		G.status.updating_db = true;
-		if ( !G.localhost ) $( '#tab-library i, #button-library i' ).addClass( 'blink' );
+		if ( !G.localhost ) $( '#tab-library, #button-library' ).addClass( 'blink' );
 		if ( G.playback && !G.bars ) {
 			if ( $( '#time-knob' ).hasClass( 'hide' ) ) {
 				$( '#posupdate' ).removeClass( 'hide' );
@@ -261,7 +259,7 @@ function psMpdUpdate( data ) {
 		}
 	} else {
 		G.status.updating_db = false;
-		if ( !G.localhost ) $( '#tab-library i, #button-library i, .lib-icon' ).removeClass( 'blink' );
+		if ( !G.localhost ) $( '#tab-library, #button-library, .lib-icon' ).removeClass( 'blink' );
 		$( '#posupdate, #iupdate' ).addClass( 'hide' );
 		notify( 'Library Update', 'Done', 'library' );
 		if ( $( '.licover' ).length ) {
@@ -273,8 +271,9 @@ function psMpdUpdate( data ) {
 				renderLibraryList( data );
 			}, 'json' );
 		}
-		$( '#li-count' ).html( data.song.toLocaleString() +' <i class="fa fa-music gr"></i>' );
-		delete data.song;
+		$( '#lib-mode-list' ).data( 'count', data.title )
+		$( '#li-count' ).html( data.title.toLocaleString() +' <i class="fa fa-music gr"></i>' );
+		delete data.title;
 		$.each( data, function( key, val ) {
 			$( '#mode-'+ key ).find( 'grl' ).text( val ? val.toLocaleString() : '' );
 		} );

@@ -47,7 +47,9 @@ cuescan() {
 <?php
 \$cuedb = $cuedb;
 EOF
-	# count
+	count
+}
+count() {
 	stats=( $( mpc stats | head -3 | awk '{print $2,$4,$6}' ) )
 	for type in albumartist composer date genre; do
 		printf -v $type '%s' $( mpc list $type | awk NF | wc -l )
@@ -158,6 +160,9 @@ s|\(--cg60: *hsl\).*;|\1(${hsg}60%);|
  s|\(--cgd: *hsl\).*;|\1(${hsg}10%);|
 " /srv/http/assets/css/colors.css
 	pushstream reload reload all
+	;;
+count )
+	count
 	;;
 cuescan )
 	cuescan

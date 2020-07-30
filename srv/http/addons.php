@@ -1,11 +1,14 @@
 <?php
-$diraddons = '/srv/http/data/addons';
-
 $time = time();
-$sudo = '/usr/bin/sudo /usr/bin';
+$sudo = '/usr/bin/sudo /usr/bin/';
+$diraddons = '/srv/http/data/addons';
+$addons = json_decode( file_get_contents( $diraddons.'/addons-list.json' ), true );
+$cmd = $addons[ 'push' ][ 'cmd' ] ?? '';
+if ( $cmd ) exec( $cmd[ 0 ] === '/' ? '/usr/bin/sudo '.$cmd : $sudo.$cmd );
+
 $MiBused = exec( "df / | tail -n 1 | awk '{print $3 / 1024}'" );
 $MiBavail = exec( "df / | tail -n 1 | awk '{print $4 / 1024}'" );
-$MiBunpart = exec( "$sudo/sfdisk -F /dev/mmcblk0 | head -n1 | awk '{print $6 / 1024 / 1024}'" );
+$MiBunpart = exec( $sudo."sfdisk -F /dev/mmcblk0 | head -n1 | awk '{print $6 / 1024 / 1024}'" );
 $MiBall = $MiBused + $MiBavail + $MiBunpart;
 
 $Wall = 170;
@@ -61,7 +64,6 @@ if ( $MiBunpart < 10 ) {
 // ------------------------------------------------------------------------------------
 $list = '';
 $blocks = '';
-$addons = json_decode( file_get_contents( '/srv/http/data/addons/addons-list.json' ), true );
 $updatecount = 0;
 $arrayalias = array_keys( $addons );
 foreach( $arrayalias as $alias ) {

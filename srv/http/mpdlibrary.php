@@ -38,6 +38,8 @@ $f = $_POST[ 'format' ] ?? $formatall;
 $format = '%'.implode( '%^^%', $f ).'%';
 $indexarray = range( 'A', 'Z' );
 $indexbar = '<a class="wh">#</a>';
+$cuefile = '/srv/http/data/mpd/cuedb.php';
+$modes = [ 'album' => 0, 'albumartist' => 1, 'artist' => 2, 'composer' => 3, 'date' => 4, 'genre' => 5 ];
 
 switch( $_POST[ 'query' ] ) {
 
@@ -60,9 +62,36 @@ case 'find':
 			exec( 'mpc find -f "'.$format.'" album "'.$string.'" 2> /dev/null'." | awk 'NF && !a[$0]++'"
 				, $lists );
 		}
+		if ( file_exists( $cuefile ) ) { // cue ///////////////////////////////////
+			include $cuefile;
+			foreach( $cuedb as $each ) {
+				$album = $each[ 0 ];
+				$artist = $each[ 1 ] ?: $each[ 2 ];
+				if ( $album === $string ) $lists[] = $album.'^^'.$artist.'^^'.end( $each );
+			}
+		} // cue //////////////////////////////////////////////////////////////////
 	} else {
 		exec( 'mpc find -f "'.$format.'" '.$mode.' "'.$string.'" 2> /dev/null'." | awk 'NF && !a[$0]++'"
 			, $lists);
+		if ( file_exists( $cuefile ) ) { // cue ///////////////////////////////////
+			include $cuefile;
+			$ifind = $modes[ $mode ];
+			if ( $mode === 'date' || $mode === 'genre' ) {
+				foreach( $cuedb as $each ) {
+					$find = $each[ $ifind ];
+					$album = $each[ 0 ];
+					$artist = $each[ 1 ] ?: $each[ 2 ];
+					if ( $find === $string ) $lists[] = $album.'^^'.$artist.'^^'.end( $each );
+				}
+			} else {
+				$ival = $modes[ str_replace( '%', '', $format ) ];
+				foreach( $cuedb as $each ) {
+					$find = $each[ $ifind ];
+					$val = $each[ $ival ];
+					if ( $val && $find === $string ) $lists[] = $val.'^^'.end( $each );
+				}
+			}
+		} // cue //////////////////////////////////////////////////////////////////
 	}
 	if ( count( $f ) > 2 ) {
 		$array = htmlTracks( $lists, $f );
@@ -71,19 +100,16 @@ case 'find':
 	}
 	break;
 case 'list':
-	exec( 'mpc list '.$mode.' | awk NF'
-		, $lists );
-	$cuelistfile = '/srv/http/data/mpd/cuelist';
-	$modes = [ 'album', 'albumartist', 'artist' ];
-	if ( file_exists( $cuelistfile ) && in_array( $mode, $modes ) ) {
-		$cuelist = file( $cuelistfile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES );
-		$i = array_search( $mode, $modes );
-		foreach( $cuelist as $cue ) {
-			$data = explode( '^^', $cue );
-			$val = $data[ $i ];
-			if ( !in_array( $val, $lists ) ) $lists[] = $val.'^^'.$data[ 3 ]; // album^^albumartisst^^artist^^path
+	$lists = file( '/srv/http/data/mpd/'.$mode, FILE_IGNORE_NEW_LINES );
+	if ( !count( $lists ) ) exec( 'mpc list '.$mode.' | awk NF', $lists ); // if file missing
+	if ( file_exists( $cuefile ) ) { // cue /////////////////////////////////
+		include $cuefile;
+		$i = $modes[ $mode ];
+		foreach( $cuedb as $each ) {
+			$val = $each[ $i ];
+			if ( $val && !in_array( $val, $lists ) ) $lists[] = $val.'^^'.end( $each );
 		}
-	}
+	} // cue //////////////////////////////////////////////////////////////////
 	$array = htmlList( $mode, $lists );
 	break;
 case 'ls':
@@ -247,6 +273,7 @@ function htmlFind( $mode, $lists, $f ) { // non-file 'find' command
 			$each->$key = $list[ $i ];
 			$each->sort = stripLeading( $sort );
 		}
+		if ( isset( $list[ $fL ] ) ) $each->path = $list[ $fL ];
 		$array[] = $each;
 	}
 	usort( $array, function( $a, $b ) {
@@ -267,8 +294,15 @@ function htmlFind( $mode, $lists, $f ) { // non-file 'find' command
 		}
 		if ( $name === '<gr> • </gr>' || !name ) continue;
 		
-		$html.= '<li data-mode="album" data-index="'.$index.'">'
-					.'<a class="lipath">'.$val1.'</a>'
+		if ( property_exists( $each, 'path' ) ) { // cue //////////////////////////
+			$path = $each->path;
+			$datamode = 'file';
+		} else {
+			$path = $val1;
+			$datamode = 'album';
+		} // cue //////////////////////////////////////////////////////////////////
+		$html.= '<li data-mode="'.$datamode.'" data-index="'.$index.'">'
+					.'<a class="lipath">'.$path.'</a>'
 					.'<a class="liname">'.$val0.'</a>'
 					.'<i class="fa fa-'.$mode.' lib-icon"></i>'
 					.'<span class="single">'.$name.'</span>'
@@ -303,14 +337,19 @@ function htmlList( $mode, $lists ) { // non-file 'list' command
 	} );
 	$html = '';
 	foreach( $array as $each ) {
-		$name = $path = $each->$mode;
+		$name = $each->$mode;
+		$path = $name;
 		$datamode = $mode;
-		if ( strpos( $name, '^^' ) ) {
+		if ( strpos( $name, '^^' ) ) { // cue ////////////////////////////////////
 			$data = explode( '^^', $name );
 			$name = $data[ 0 ];
-			$path = $data[ 1 ];
-			$datamode = 'file';
-		}
+			if ( $mode === 'album' ) {
+				$path = $data[ 1 ];
+				$datamode = 'file';
+			} else {
+				$path = $name;
+			}
+		} // cue //////////////////////////////////////////////////////////////////
 		$index = mb_substr( $each->sort, 0, 1, 'UTF-8' );
 		$indexes[] = $index;
 		$html.= '<li data-mode="'.$datamode.'" data-index="'.$index.'">'
@@ -450,10 +489,12 @@ function second2HMS( $second ) {
 function stripLeading( $string ) {
 	$names = strtoupper( strVal( $string ) ); // strVal make all as string for strtoupper
 	return preg_replace(
-		  [ '/^A\s+|^AN\s+|^THE\s+|[^\w\p{L}\p{N}\p{Pd} ~]/u',
+		  [ '/\^\^.*$/', // cue path
+			'/^A\s+|^AN\s+|^THE\s+|[^\w\p{L}\p{N}\p{Pd} ~]/u',
 			'/\s+|^_/'
 		  ]
-		, [ '',  // strip articles | non utf-8 normal alphanumerics | tilde(blank data)
+		, [ '',
+			'',  // strip articles | non utf-8 normal alphanumerics | tilde(blank data)
 			'-'  // fix: php strnatcmp ignores spaces | sort underscore to before 0
 		  ]
 		, $names

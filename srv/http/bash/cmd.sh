@@ -250,23 +250,35 @@ mpcsimilar )
 	;;
 mpcupdate )
 	mpc update "${args[1]}"
-	exit
-	#########################################################################
-	cuelistfile=/srv/http/data/mpd/cuelist
-	cuelist=$( find /mnt/MPD -type f -name *.cue )
-	[[ -z $cuelist ]] && rm -f $cuelistfile && exit
-	
-	readarray -t cuelist <<< "$cuelist"
-	for file in "${cuelist[@]}"; do # album^^albumartisst^^artist^^path
-		lines=$( grep '^TITLE\|^PERFORMER\|^\s\+PERFORMER' "$file" )
-		list+=$( grep '^TITLE' <<< "$lines" | cut -d\" -f2 )^^
-		list+=$( grep '^PERFORMER' <<< "$lines" | cut -d\" -f2 )^^
-		list+=$( grep -m1 '^\s\+PERFORMER' <<< "$lines" | cut -d\" -f2 )^^
-		list+=$( dirname "$file" | sed 's|/mnt/MPD/||' )
-		list+='
-	'
+	;;
+mpcrescan )
+	mpc rescan
+	# for faster listing
+	for type in album albumartist artist composer date genre; do
+		mpc list $type | sed '/^$/ d' > /srv/http/data/mpd/$type
 	done
-	echo "$list" > $cuelistfile
+	#########################################################################
+	cuedbfile=/srv/http/data/mpd/cuedb.php
+	files=$( find /mnt/MPD -type f -name *.cue )
+	[[ -z $files ]] && rm -f $cuedbfile && exit
+	
+	readarray -t files <<< "$files"
+	for file in "${files[@]}"; do # album^^albumartisst^^artist^^path
+		lines=$( grep '^TITLE\|^PERFORMER\|^\s\+PERFORMER\|^REM GENRE\|REM DATE' "$file" )
+		album=$( grep '^TITLE' <<< "$lines" | sed 's/^TITLE "*//; s/"*.$//' )
+		albumartist=$( grep '^PERFORMER' <<< "$lines" | sed 's/^PERFORMER "*//; s/"*.$//' )
+		artist=$( grep -m1 '^\s\+PERFORMER' <<< "$lines" | sed 's/^\s\+PERFORMER "*//; s/"*.$//' )
+		composer=$( grep '^REM COMPOSER' <<< "$lines" | sed 's/^REM COMPOSER "*//; s/"*.$//' )
+		date=$( grep '^REM DATE' <<< "$lines" | sed 's/^REM DATE "*//; s/"*.$//' )
+		genre=$( grep '^REM GENRE' <<< "$lines" | sed 's/^REM GENRE "*//; s/"*.$//' )
+		path=$( dirname "$file" | sed 's|/mnt/MPD/||' )
+		cue+=',["'$album'","'$albumartist'","'$artist'","'$composer'","'$date'","'$genre'","'$path'"]'
+	done
+	cuedb=$( jq . <<< "[ ${cue:1} ]" ) # remove 1st comma
+	cat << EOF > /srv/http/data/mpd/cuedb.php
+<?php
+\$cuedb = $cuedb;
+EOF
 	;;
 packageenable )
 	pkg=${args[1]}

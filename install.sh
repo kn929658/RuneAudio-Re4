@@ -4,6 +4,10 @@ alias=rre4
 
 . /srv/http/bash/addons-functions.sh
 
+for type in album albumartist artist composer date genre; do
+	mpc list $type | sed '/^$/ d' > /srv/http/data/mpd/$type
+done
+
 if grep -q usr/local/bin /etc/systemd/system/bootsplash.service &> /dev/null; then
 	sed -i 's|usr/local/bin|srv/http/bash|' /etc/systemd/system/bootsplash.service
 	systemctl try-restart bootsplash

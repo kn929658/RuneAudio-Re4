@@ -347,10 +347,10 @@ $( '.settings' ).click( function( e ) {
 		info( {
 			  icon    : 'refresh-library'
 			, title   : 'Update Library Database'
-			, radio   : { 'Only changed files' : 'update', 'Rebuild entire database': 'rescan' }
+			, radio   : { 'Only changed files' : 'mpcupdate', 'Rebuild entire database': 'mpcrescan' }
 			, ok      : function() {
 				G.status.updating_db = true;
-				bash( 'mpc '+ $( '#infoRadio input:checked' ).val() );
+				bash( [ $( '#infoRadio input:checked' ).val() ] );
 			}
 		} );
 	}

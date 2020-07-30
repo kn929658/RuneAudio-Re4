@@ -133,8 +133,6 @@ function psBookmark( data ) {
 	}, G.debouncems );
 }
 function psCoverart( data ) {
-	if ( G.local ) return
-	
 	G.status.coverart = data.url;
 	$( '#divcover, #coverart' ).removeClass( 'vu coverrune' );
 	$( '#coverart' ).prop( 'src', data.url );

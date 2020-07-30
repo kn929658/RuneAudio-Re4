@@ -9,6 +9,19 @@ dirwebradios=/srv/http/data/webradios
 # convert each line to each args
 readarray -t args <<< "$1"
 
+pushstream0() {
+	curl -s -X POST http://127.0.0.1/pub?id=$1 -d "$2"
+}
+pushstream() {
+	curl -s -X POST http://127.0.0.1/pub?id=$1 -d '{ "'$2'": "'$3'" }'
+}
+pushstreamVol() {
+	curl -s -X POST http://127.0.0.1/pub?id=volume -d '{"type":"'$1'", "val":'$2' }'
+}
+pushstreamPkg() {
+	curl -s -X POST http://127.0.0.1/pub?id=package -d '{"pkg":"'$1'", "start":'$2',"enable":'$3' }'
+}
+
 cuescan() {
 	cuedbfile=/srv/http/data/mpd/cuedb.php
 	files=$( find /mnt/MPD -type f -name *.cue )
@@ -22,7 +35,7 @@ cuescan() {
 	icomposer=0
 	idate=0
 	igenre=0
-	isong=0
+	ititle=0
 		
 	for file in "${files[@]}"; do # album^^albumartisst^^artist^^path
 		lines=$( grep '^TITLE\|^PERFORMER\|^\s\+PERFORMER\|^REM GENRE\|REM DATE' "$file" )
@@ -39,7 +52,7 @@ cuescan() {
 		[[ -n $composer ]] && (( icomposer++ ))
 		[[ -n $date ]] && (( idate++ ))
 		[[ -n $genre ]] && (( igenre++ ))
-		isong=$(( isong + $( grep -c '^\s\+TRACK' "$file" ) ))
+		ititle=$(( ititle + $( grep -c '^\s\+TRACK' "$file" ) ))
 		cue+=',["'$album'","'$albumartist'","'$artist'","'$composer'","'$date'","'$genre'","'$path'"]'
 	done
 	cuedb=$( jq . <<< "[ ${cue:1} ]" ) # remove 1st comma
@@ -50,14 +63,14 @@ EOF
 	count
 }
 count() {
-	stats=( $( mpc stats | head -3 | awk '{print $2,$4,$6}' ) )
+	# pre-fetched - browse by mode
 	for type in albumartist composer date genre; do
 		printf -v $type '%s' $( mpc list $type | awk NF | wc -l )
 	done
 	for type in NAS SD USB; do
 		printf -v $type '%s' $( mpc ls $type 2> /dev/null | wc -l )
 	done
-	
+	stats=( $( mpc stats | head -3 | awk '{print $2,$4,$6}' ) )
 	counts='
 	  "album"       : '$(( ialbum + ${stats[1]} ))'
 	, "albumartist" : '$(( ialbumartist + albumartist ))'
@@ -68,21 +81,12 @@ count() {
 	, "genre"       : '$(( igenre + genre ))'
 	, "nas"         : '$NAS'
 	, "sd"          : '$SD'
-	, "title"       : '$(( isong + ${stats[2]} ))'
+	, "title"       : '$(( ititle + ${stats[2]} ))'
 	, "usb"         : '$USB'
 	, "webradio"    : '$( ls -U /srv/http/data/webradios/* 2> /dev/null | wc -l )
 	
 	echo {$counts} | jq . > /srv/http/data/mpd/counts
-	curl -s -X POST http://127.0.0.1/pub?id=mpdupdate -d "{$counts}"
-}
-pushstream() {
-	curl -s -X POST http://127.0.0.1/pub?id=$1 -d '{ "'$2'": "'$3'" }'
-}
-pushstreamVol() {
-	curl -s -X POST http://127.0.0.1/pub?id=volume -d '{"type":"'$1'", "val":'$2' }'
-}
-pushstreamPkg() {
-	curl -s -X POST http://127.0.0.1/pub?id=package -d '{"pkg":"'$1'", "start":'$2',"enable":'$3' }'
+	pushstream0 mpdupdate "{$counts}"
 }
 volumeSet() {
 	current=$1
@@ -91,14 +95,14 @@ volumeSet() {
 	if (( -10 < $diff && $diff < 10 )); then
 		mpc -q volume $volume
 	else # increment
-		curl -s -X POST http://127.0.0.1/pub?id=volume -d '{"disable":true}'
+		pushstream0 volume '{"disable":true}'
 		(( $diff > 0 )) && incr=5 || incr=-5
 		for i in $( seq $current $incr $target ); do
 			mpc -q volume $i
 			sleep 0.2
 		done
 		(( $i != $target )) && mpc -q volume $target
-		curl -s -X POST http://127.0.0.1/pub?id=volume -d '{"disable":false}'
+		pushstream0 volume '{"disable":false}'
 	fi
 }
 
@@ -321,12 +325,12 @@ mpcsimilar )
 	echo $(( $( mpc playlist | wc -l ) - plL ))
 	;;
 mpcupdate )
-	curl -s -X POST http://127.0.0.1/pub?id=mpdupdate -d 1
+	pushstream0 mpdupdate 1
 	mpc update "${args[1]}"
 	cuescan
 	;;
 mpcrescan )
-	curl -s -X POST http://127.0.0.1/pub?id=mpdupdate -d 1
+	pushstream0 mpdupdate 1
 	mpc rescan
 	for type in album albumartist artist composer date genre; do
 		mpc list $type | sed '/^$/ d' > /srv/http/data/mpd/$type
@@ -405,7 +409,7 @@ reboot )
 	[[ ${args[1]} == off ]] && shutdown -h now || shutdown -r now
 	;;
 refreshbrowser )
-	curl -s -X POST http://127.0.0.1/pub?id=reload -d '{ "reload": 1 }'
+	pushstream0 reload '{ "reload": 1 }'
 	;;
 soundprofile )
 	profile=${args[1]}

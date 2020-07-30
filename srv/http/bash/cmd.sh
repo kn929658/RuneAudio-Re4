@@ -9,6 +9,69 @@ dirwebradios=/srv/http/data/webradios
 # convert each line to each args
 readarray -t args <<< "$1"
 
+cuescan() {
+	cuedbfile=/srv/http/data/mpd/cuedb.php
+	files=$( find /mnt/MPD -type f -name *.cue )
+	[[ -z $files ]] && rm -f $cuedbfile && exit
+	
+	readarray -t files <<< "$files"
+	
+	ialbum=0
+	ialbumartist=0
+	iartist=0
+	icomposer=0
+	idate=0
+	igenre=0
+	isong=0
+		
+	for file in "${files[@]}"; do # album^^albumartisst^^artist^^path
+		lines=$( grep '^TITLE\|^PERFORMER\|^\s\+PERFORMER\|^REM GENRE\|REM DATE' "$file" )
+		album=$( grep '^TITLE' <<< "$lines" | sed 's/^TITLE "*//; s/"*.$//' )
+		albumartist=$( grep '^PERFORMER' <<< "$lines" | sed 's/^PERFORMER "*//; s/"*.$//' )
+		artist=$( grep -m1 '^\s\+PERFORMER' <<< "$lines" | sed 's/^\s\+PERFORMER "*//; s/"*.$//' )
+		composer=$( grep '^REM COMPOSER' <<< "$lines" | sed 's/^REM COMPOSER "*//; s/"*.$//' )
+		date=$( grep '^REM DATE' <<< "$lines" | sed 's/^REM DATE "*//; s/"*.$//' )
+		genre=$( grep '^REM GENRE' <<< "$lines" | sed 's/^REM GENRE "*//; s/"*.$//' )
+		path=$( dirname "$file" | sed 's|/mnt/MPD/||' )
+		[[ -n $album ]] && (( ialbum++ ))
+		[[ -n $albumartist ]] && (( ialbumartist++ ))
+		[[ -n $artist ]] && (( iartist++ ))
+		[[ -n $composer ]] && (( icomposer++ ))
+		[[ -n $date ]] && (( idate++ ))
+		[[ -n $genre ]] && (( igenre++ ))
+		isong=$(( $isong + $( grep -c '^\s\+TRACK' "$file" ) ))
+		cue+=',["'$album'","'$albumartist'","'$artist'","'$composer'","'$date'","'$genre'","'$path'"]'
+	done
+	cuedb=$( jq . <<< "[ ${cue:1} ]" ) # remove 1st comma
+	cat << EOF > $cuedbfile
+<?php
+\$cuedb = $cuedb;
+EOF
+	# count
+	stats=( $( mpc stats | head -3 | awk '{print $2,$4,$6}' ) )
+	for type in albumartist composer date genre; do
+		printf -v $type '%s' $( mpc list $type | awk NF | wc -l )
+	done
+	for type in NAS SD USB; do
+		printf -v $type '%s' $( mpc ls $type 2> /dev/null | wc -l )
+	done
+	
+	counts='
+	  "album"       : '$(( ialbum + ${stats[1]} ))'
+	, "albumartist" : '$(( ialbumartist + albumartist ))'
+	, "artist"      : '$(( iartist + ${stats[0]} ))'
+	, "composer"    : '$(( icomposer + composer ))'
+	, "coverart"    : '$( ls -1q /srv/http/data/coverarts | wc -l )'
+	, "date"        : '$(( idate + date ))'
+	, "genre"       : '$(( igenre + genre ))'
+	, "nas"         : '$NAS'
+	, "sd"          : '$SD'
+	, "song"        : '${stats[2]}'
+	, "usb"         : '$USB'
+	, "webradio"    : '$( ls -U /srv/http/data/webradios/* 2> /dev/null | wc -l )
+	
+	echo {$counts} | jq . > /srv/http/data/mpd/counts
+}
 pushstream() {
 	curl -s -X POST http://127.0.0.1/pub?id=$1 -d '{ "'$2'": "'$3'" }'
 }
@@ -95,6 +158,9 @@ s|\(--cg60: *hsl\).*;|\1(${hsg}60%);|
  s|\(--cgd: *hsl\).*;|\1(${hsg}10%);|
 " /srv/http/assets/css/colors.css
 	pushstream reload reload all
+	;;
+cuescan )
+	cuescan
 	;;
 filemove )
 	mv -f "${args[1]}" "${args[2]}"
@@ -250,6 +316,7 @@ mpcsimilar )
 	;;
 mpcupdate )
 	mpc update "${args[1]}"
+	cuescan
 	;;
 mpcrescan )
 	mpc rescan
@@ -257,28 +324,7 @@ mpcrescan )
 	for type in album albumartist artist composer date genre; do
 		mpc list $type | sed '/^$/ d' > /srv/http/data/mpd/$type
 	done
-	#########################################################################
-	cuedbfile=/srv/http/data/mpd/cuedb.php
-	files=$( find /mnt/MPD -type f -name *.cue )
-	[[ -z $files ]] && rm -f $cuedbfile && exit
-	
-	readarray -t files <<< "$files"
-	for file in "${files[@]}"; do # album^^albumartisst^^artist^^path
-		lines=$( grep '^TITLE\|^PERFORMER\|^\s\+PERFORMER\|^REM GENRE\|REM DATE' "$file" )
-		album=$( grep '^TITLE' <<< "$lines" | sed 's/^TITLE "*//; s/"*.$//' )
-		albumartist=$( grep '^PERFORMER' <<< "$lines" | sed 's/^PERFORMER "*//; s/"*.$//' )
-		artist=$( grep -m1 '^\s\+PERFORMER' <<< "$lines" | sed 's/^\s\+PERFORMER "*//; s/"*.$//' )
-		composer=$( grep '^REM COMPOSER' <<< "$lines" | sed 's/^REM COMPOSER "*//; s/"*.$//' )
-		date=$( grep '^REM DATE' <<< "$lines" | sed 's/^REM DATE "*//; s/"*.$//' )
-		genre=$( grep '^REM GENRE' <<< "$lines" | sed 's/^REM GENRE "*//; s/"*.$//' )
-		path=$( dirname "$file" | sed 's|/mnt/MPD/||' )
-		cue+=',["'$album'","'$albumartist'","'$artist'","'$composer'","'$date'","'$genre'","'$path'"]'
-	done
-	cuedb=$( jq . <<< "[ ${cue:1} ]" ) # remove 1st comma
-	cat << EOF > /srv/http/data/mpd/cuedb.php
-<?php
-\$cuedb = $cuedb;
-EOF
+	cuescan
 	;;
 packageenable )
 	pkg=${args[1]}

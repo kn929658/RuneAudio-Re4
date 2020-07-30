@@ -67,10 +67,8 @@ done
 
 dirsystem=/srv/http/data/system
 version=$( cat $dirsystem/version )
-mpdstats=$( systemctl -q is-active mpd && mpc stats | head -3 | awk '{print $NF}' | tr '\n' ',' | head -c -1 )
 soundprofile=$( cat $dirsystem/soundprofile )
 snaplatency=$( grep OPTS= /etc/default/snapclient | sed 's/.*latency=\(.*\)"/\1/' )
-[[ -n $mpdstats ]] && mpdstats=[$mpdstats] || mpdstats=false
 [[ -z $snaplatency ]] && snaplatency=0
 
 data+='
@@ -86,7 +84,7 @@ data+='
 	, "mpd"             : "'$( pacman -Q mpd 2> /dev/null |  cut -d' ' -f2 )'"
 	, "mpdscribble"     : '$( systemctl -q is-active mpdscribble@mpd && echo true || echo false )'
 	, "mpdscribbleuser" : "'$( grep ^username /etc/mpdscribble.conf | cut -d' ' -f3- )'"
-	, "mpdstats"        : '$mpdstats'
+	, "mpdstats"        : "'$( jq '.song, .album, .artist' /srv/http/data/mpd/counts 2> /dev/null )'"
 	, "ntp"             : "'$( grep '^NTP' /etc/systemd/timesyncd.conf | cut -d= -f2 )'"
 	, "onboardaudio"    : '$( grep -q 'dtparam=audio=on' /boot/config.txt && echo true || echo false )'
 	, "passworddefault" : '$( grep -q '$2a$12$rNJSBU0FOJM/jP98tA.J7uzFWAnpbXFYx5q1pmNhPnXnUu3L1Zz6W' $dirsystem/password && echo true || echo false )'

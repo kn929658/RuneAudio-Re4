@@ -116,11 +116,13 @@ refreshData = function() { // system page: use resetLocal() to aviod delay
 			} );
 		}
 		$( '#systemlabel' ).html( systemlabel );
-		var mpdstats = !G.mpdstats
-							? ''
-							: '&emsp;<i class="fa fa-music gr"></i>&nbsp;'+ G.mpdstats[ 2 ].toLocaleString()
-							 +'&ensp;<i class="fa fa-album gr"></i>&ensp;'+ G.mpdstats[ 1 ].toLocaleString()
-							 +'&ensp;<i class="fa fa-artist gr"></i> '+ G.mpdstats[ 0 ].toLocaleString();
+		var mpdstats = '';
+		if ( G.mpdstats ) {
+		var counts = G.mpdstats.split( ' ' );
+		var mpdstats = '&emsp;<i class="fa fa-music gr"></i>&nbsp;'+ Number( counts[ 0 ] ).toLocaleString()
+					  +'&ensp;<i class="fa fa-album gr"></i>&ensp;'+ Number( counts[ 1 ] ).toLocaleString()
+					  +'&ensp;<i class="fa fa-artist gr"></i> '+ Number( counts[ 2 ] ).toLocaleString();
+		}
 		$( '#system' ).html(
 			  '<i class="fa fa-addons gr" style="line-height: 20px;"></i> '+ G.version +' <gr>'+ G.versionui +'</gr>'+ bullet + G.hostname +'<br>'
 			+ G.hardware +'<br>'

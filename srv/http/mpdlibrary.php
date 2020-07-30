@@ -101,7 +101,7 @@ case 'find':
 	break;
 case 'list':
 	$lists = file( '/srv/http/data/mpd/'.$mode, FILE_IGNORE_NEW_LINES );
-	if ( !count( $lists ) ) exec( 'mpc list '.$mode.' | awk NF', $lists ); // if file missing
+	if ( !$lists ) exec( 'mpc list '.$mode.' | awk NF', $lists ); // if file missing
 	if ( file_exists( $cuefile ) ) { // cue /////////////////////////////////
 		include $cuefile;
 		$i = $modes[ $mode ];

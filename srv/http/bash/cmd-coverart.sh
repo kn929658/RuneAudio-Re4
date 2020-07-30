@@ -1,12 +1,7 @@
 #!/bin/bash
 
-flag=/srv/http/data/tmp/coverart
-[[ -e $flag ]] && exit
-
-touch $flag
-
 path="/mnt/MPD/$1"
-[[ $2 == pushstream ]] && pushstream=1 || size=$2
+(( $# > 1 )) && size=$2
 # get coverfile in directory
 [[ -d $path ]] && dir=$path || dir=$( dirname "$path" )
 for name in cover folder front thumb album; do
@@ -37,20 +32,16 @@ else
 	tmpfile=/srv/http/data/tmp/coverart.jpg
 	rm -f $tmpfile
 	kid3-cli -c "select \"$file\"" -c "get picture:$tmpfile" &> /dev/null # suppress '1 space' stdout
-	[[ ! -e $tmpfile ]] && rm -f $flag && exit
+	[[ ! -e $tmpfile ]] && exit
 	
 	coverfile=/data/tmp/coverart
 	ext=jpg
 fi
 
 if [[ -z $size || $ext == gif ]]; then
-	url="$coverfile.$( date +%s ).$ext"
-	echo $url
-	[[ -n $pushstream ]] && curl -s -X POST http://127.0.0.1/pub?id=coverart -d '{ "url": "'$url'" }'
+	echo "$coverfile.$( date +%s ).$ext"
 else # resize
 	base64file=/srv/http/data/tmp/base64
 	convert "$coverfile" -thumbnail ${size}x${size} -unsharp 0x.5 inline:$base64file
 	cat $base64file
 fi
-
-rm -f $flag

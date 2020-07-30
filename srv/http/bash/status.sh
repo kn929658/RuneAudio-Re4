@@ -1,6 +1,6 @@
 #!/bin/bash
 
-rm -f /srv/http/data/tmp/{coverart,coverartfetch,prevnext} # clear running flag in case still left
+rm -f /srv/http/data/tmp/{coverartfetch,prevnext} # clear running flag in case still left
 
 playerfile=/srv/http/data/system/player
 ########

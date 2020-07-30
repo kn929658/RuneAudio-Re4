@@ -39,7 +39,7 @@ cuescan() {
 		[[ -n $composer ]] && (( icomposer++ ))
 		[[ -n $date ]] && (( idate++ ))
 		[[ -n $genre ]] && (( igenre++ ))
-		isong=$(( $isong + $( grep -c '^\s\+TRACK' "$file" ) ))
+		isong=$(( isong + $( grep -c '^\s\+TRACK' "$file" ) ))
 		cue+=',["'$album'","'$albumartist'","'$artist'","'$composer'","'$date'","'$genre'","'$path'"]'
 	done
 	cuedb=$( jq . <<< "[ ${cue:1} ]" ) # remove 1st comma
@@ -66,7 +66,7 @@ EOF
 	, "genre"       : '$(( igenre + genre ))'
 	, "nas"         : '$NAS'
 	, "sd"          : '$SD'
-	, "song"        : '${stats[2]}'
+	, "song"        : '$(( isong + ${stats[2]} ))'
 	, "usb"         : '$USB'
 	, "webradio"    : '$( ls -U /srv/http/data/webradios/* 2> /dev/null | wc -l )
 	

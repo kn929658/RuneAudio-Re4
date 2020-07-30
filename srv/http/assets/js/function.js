@@ -334,12 +334,6 @@ function curl( channel, key, value ) {
 function curlPackage( pkg, active, enabled ) {
 	return 'curl -s -X POST http://127.0.0.1/pub?id=package -d \'[ "'+ pkg +'", '+ active +', '+ enabled +' ]\''
 }
-function disableCheckbox( name, enable, check ) {
-	$( 'input[name="'+ name +'"]' )
-		.prop( 'disabled', !enable )
-		.prop( 'checked', check )
-		.parent().toggleClass( 'gr', !enable );
-}
 function displayCheckbox( checkboxes ) {
 	var html = '';
 	var col,br;
@@ -358,6 +352,12 @@ function displayCheckbox( checkboxes ) {
 		html += '<label'+ col +'><input name="'+ key +'" type="checkbox" '+ ( G.display[ key ] ? 'checked' : '' ) +'>&ensp;'+ val +'</label>'+ br;
 	} );
 	return html;
+}
+function displayCheckboxSet( name, enable, check ) {
+	$( 'input[name="'+ name +'"]' )
+		.prop( 'disabled', !enable )
+		.prop( 'checked', check )
+		.parent().toggleClass( 'gr', !enable );
 }
 function displayPlayback() {
 	$( '#time-knob' ).toggleClass( 'hide', !G.display.time );
@@ -406,18 +406,15 @@ function displaySave( page, thumbbyartist ) {
 	$( '#displaysave'+ page +' input' ).each( function() {
 		G.display[ this.name ] = $( this ).prop( 'checked' );
 	} );
-	var display = G.display;
-	[ 'color', 'order', 'updating_db', 'update', 'volumenone' ].forEach( function( el ) {
-		delete display[ el ];
-	} );
 	G.local = 1;
 	setTimeout( function() { G.local = 0 }, 300 );
-	$.post( cmdphp, {
-		  cmd        : 'displayset'
-		, displayset : JSON.stringify( display )
-	}, function() {
-		if ( page === 'library' && G.display.thumbbyartist !== thumbbyartist ) location.reload();
-	} );
+	$.post(
+		  cmdphp
+		, { cmd: 'displayset', displayset : JSON.stringify( G.display ) }
+		, function() {
+			if ( page === 'library' && G.display.thumbbyartist !== thumbbyartist ) location.reload();
+		}
+	);
 }
 function displayTopBottom() {
 	if ( !$( '#bio' ).hasClass( 'hide' ) ) return
@@ -1091,7 +1088,6 @@ function renderPlayback() {
 	if ( $( '#qrwebui' ).html() ) {
 		$( '.emptyadd' ).addClass( 'hide' );
 		$( '#qrwebui' ).empty();
-//		$( '#coverTR' ).removeClass( 'blankTR' );
 		$( '#coverart' ).removeClass( 'hide' );
 	}
 	$( '.playback-controls' ).css( 'visibility', 'visible' );
@@ -1183,9 +1179,7 @@ function renderPlayback() {
 			$( '#coverart' ).prop( 'src', status.coverart );
 		} else {
 			// fix: sometime missing embedded coverart
-			G.local = 1;
 			$.post( cmdphp, { cmd: 'sh', sh: [ 'cmd-coverart.sh', status.file ] }, function( url ) {
-				G.local = 0;
 				if ( url ) {
 					G.status.coverart = url;
 					$( '#coverart' ).prop( 'src', url );
@@ -1280,27 +1274,29 @@ function renderPlayback() {
 }
 function renderPlaybackBlank() {
 	bash( "ip r | awk '/default/ {print $9}'", function( ip ) {
-		var webui = ip ? 'http://'+ ip : 'No connection - Click&ensp;<i class="fa fa-gear"></i>&ensp;to setup'
-		$( '#sampling' ).html( webui );
 		$( '#playback-controls, #infoicon i' ).addClass( 'hide' );
 		$( '#page-playback .emptyadd' ).toggleClass( 'hide', !G.status.mpd );
 		$( '#divartist, #divsong, #divalbum' ).removeClass( 'scroll-left' );
 		$( '#artist, #song, #album, #progress, #elapsed, #total' ).empty();
 		if ( G.display.time ) $( '#time' ).roundSlider( 'setValue', 0 );
 		$( '#time-bar' ).css( 'width', 0 );
-		$( '#coverart' ).addClass( 'hide' );
-		$( '#splash' ).remove();
-		var qrweb = new QRCode( {
-			  msg : ip ? webui : ''
-			, dim : 230
-			, pad : 10
-		} );
-		$( '#qrwebui' ).html( qrweb );
-		if ( !ip ) {
+		if ( ip ) {
+			$( '#sampling' ).html( 'http://'+ ip );
+			$( '#coverart' ).addClass( 'hide' );
+			var qrweb = new QRCode( {
+				  msg : 'http://'+ ip
+				, dim : 230
+				, pad : 10
+			} );
+			$( '#qrwebui' ).html( qrweb );
+		} else {
+			G.status.coverart = '';
+			$( '#sampling' ).html( 'Network not connected - Click&ensp;<i class="fa fa-gear"></i>&ensp;to setup' );
 			$( '#page-playback .emptyadd' ).html( '<i class="fa fa-gear"></i>' );
-			$( '#qrwebui svg' ).css( 'fill', '#000000' );
+			$( '#coverart' ).prop( 'src', coverrune );
 		}
-//		$( '#coverTR' ).toggleClass( 'blankTR', !G.bars );
+		$( '#splash' ).remove();
+		if ( $( '#lib-cover-list' ).html() ) new LazyLoad( { elements_selector: '.lazy' } );
 	} );
 }
 renderPlaylist = function( data ) {

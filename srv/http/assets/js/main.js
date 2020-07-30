@@ -167,18 +167,18 @@ $( '#displaylibrary' ).click( function( e ) {
 					} );
 					$( 'input[name=hidecover]' ).change( function() {
 						if ( $( this ).prop( 'checked' ) ) {
-							disableCheckbox( 'fixedcover', false, false );
+							displayCheckboxSet( 'fixedcover', false, false );
 						} else {
-							disableCheckbox( 'fixedcover', true );
+							displayCheckboxSet( 'fixedcover', true );
 						}
 					} );
 					$( 'input[name=fixedcover]' ).prop( 'disabled', G.display.hidecover );
 				} else {
 					$( 'input[name=coverart]' ).change( function() {
 						if ( $( this ).prop( 'checked' ) ) {
-							disableCheckbox( 'thumbbyartist', true );
+							displayCheckboxSet( 'thumbbyartist', true );
 						} else {
-							disableCheckbox( 'thumbbyartist', false, false );
+							displayCheckboxSet( 'thumbbyartist', false, false );
 						}
 					} );
 				}
@@ -250,15 +250,16 @@ $( '#displayplayback' ).click( function( e ) {
 			, message  : 'Show selected items:'
 			, checkbox : '<form id="displaysaveplayback">'+ displayCheckbox( chkplayback ) +'</form>'
 			, preshow  : function() {
-				if ( !G.display.bars ) disableCheckbox( 'barsalways' );  // disable by bars hide
-				if ( G.display.time ) disableCheckbox( 'progressbar' );  // disable by time
-				if ( !G.display.cover ) disableCheckbox( 'coversmall' ); // disable by cover
-				if ( G.display.volumenone ) disableCheckbox( 'volume', false, false ); // disable by mpd volume
+				if ( !G.display.bars ) displayCheckboxSet( 'barsalways' );  // disable by bars hide
+				if ( G.display.time ) displayCheckboxSet( 'progressbar' );  // disable by time
+				if ( !G.display.cover ) displayCheckboxSet( 'coversmall' ); // disable by cover
+				if ( G.display.volumenone ) displayCheckboxSet( 'volume' ); // disable by mpd volume
 				if ( !G.display.time && !G.display.volume ) {
-					disableCheckbox( 'cover' ); // disable by autohide
-					disableCheckbox( 'buttons' );
+					displayCheckboxSet( 'cover' ); // disable by autohide
+					displayCheckboxSet( 'buttons' );
 				}
-				if ( !G.status.mpd ) disableCheckbox( 'buttons' );
+				if ( !G.status.mpd ) displayCheckboxSet( 'buttons' );
+				var $bars = $( 'input[name=bars]' );
 				var $time = $( 'input[name=time]' );
 				var $cover = $( 'input[name=cover]' );
 				var $volume = $( 'input[name=volume]' );
@@ -267,34 +268,39 @@ $( '#displayplayback' ).click( function( e ) {
 					var time = $time.prop( 'checked' );
 					var volume = $volume.prop( 'checked' );
 					if ( time || volume ) {
-						disableCheckbox( 'cover', true );
-						disableCheckbox( 'progressbar', false, false );
-						disableCheckbox( 'buttons', true );
+						displayCheckboxSet( 'cover', true );
+						displayCheckboxSet( 'progressbar', false, false );
+						displayCheckboxSet( 'buttons', true );
 					} else {
-						disableCheckbox( 'cover', false, true );
-						disableCheckbox( 'progressbar', false, false );
-						disableCheckbox( 'buttons', false, false );
+						displayCheckboxSet( 'cover', false, true );
+						displayCheckboxSet( 'progressbar', false, false );
+						displayCheckboxSet( 'buttons', false, false );
 					}
 					if ( !time && $cover.prop( 'checked' ) ) {
-						disableCheckbox( 'progressbar', true, true );
+						displayCheckboxSet( 'progressbar', true, true );
 					} else {
-						disableCheckbox( 'progressbar', false, false );
+						displayCheckboxSet( 'progressbar', false, false );
+					}
+					if ( !time && ( !volume || G.display.volumenone ) ) {
+						displayCheckboxSet( 'cover', true, true );
+						displayCheckboxSet( 'progressbar', true, true );
 					}
 				} );
-				$( 'input[name=bars]' ).change( function() {
+				$bars.change( function() {
 					if ( $( this ).prop( 'checked' ) ) {
-						disableCheckbox( 'barsalways', true );
+						displayCheckboxSet( 'barsalways', true );
 					} else {
-						disableCheckbox( 'barsalways', false, false );
+						displayCheckboxSet( 'barsalways', false, false );
 					}
 				} );
 				$cover.change( function() {
 					if ( $( this ).prop( 'checked' ) ) {
-						if ( !$( 'input[name=time]' ).prop( 'checked' ) ) disableCheckbox( 'progressbar', true, true );
-						disableCheckbox( 'coversmall', true );
+						if ( !$time.prop( 'checked' ) ) displayCheckboxSet( 'progressbar', true, true );
+						displayCheckboxSet( 'coversmall', true );
 					} else {
-						disableCheckbox( 'progressbar', false, false );
-						disableCheckbox( 'coversmall', false, false );
+						displayCheckboxSet( 'progressbar', false, false );
+						displayCheckboxSet( 'coversmall', false, false );
+						if ( !$time.prop( 'checked' ) && ( !$volume.prop( 'checked' ) || G.display.volumenone ) ) displayCheckboxSet( 'time', true, true );
 					}
 				} );
 			}
@@ -336,15 +342,16 @@ $( '.settings' ).click( function( e ) {
 		} );
 		notify( 'Snapcast - Sync Streaming Client', ( G.status.snapclient ? 'Stop ...' : 'Start ...' ), 'snapcast blink', -1 );
 	} else if ( id !== 'update' ) {
-		location.href = 'index-settings.php?p='+ id
+		location.href = 'index-settings.php?p='+ id;
 	} else {
 		info( {
 			  icon    : 'refresh-library'
 			, title   : 'Update Library Database'
-			, radio   : { 'Only changed files' : 'update', 'Rebuild entire database': 'rescan' }
+			, radio   : { 'Only changed files' : 'mpcupdate', 'Rebuild entire database': 'mpcrescan' }
 			, ok      : function() {
 				G.status.updating_db = true;
-				bash( 'mpc '+ $( '#infoRadio input:checked' ).val() );
+				bash( [ $( '#infoRadio input:checked' ).val() ] );
+//				notify( 'Library Database', 'Update ...', 'library blink' );
 			}
 		} );
 	}
@@ -663,6 +670,8 @@ $( '#volup, #voldn' ).click( function() {
 	} );
 } );
 $( '#coverTL, #timeTL' ).tap( function() {
+	if ( !G.status.playlistlength ) return
+	
 	var list = [ 'bars', 'time', 'cover', 'coversmall', 'volume', 'buttons', 'progressbar' ];
 	if ( 'coverTL' in G ) {
 		list.forEach( function( el ) {
@@ -696,16 +705,16 @@ $( '#coverTL, #timeTL' ).tap( function() {
 } );
 $( '#coverT, #timeT' ).tap( function() {
 	clearTimeout( G.volumebar );
+	if ( !G.status.playlistlength ) return
+	
 	$( '#swipeL, #swipebar .fa-swipe, #swipeR' ).show();
 	G.guide = !$( this ).hasClass( 'mapshow' );
 	if ( $( this ).hasClass( 'mapshow' ) ) {
 		hideGuide();
-//		$( '#coverTR' ).toggleClass( 'blankTR', !G.bars );
 		return
 	}
 	
 	$( '.covermap, .guide' ).addClass( 'mapshow' );
-//	$( '#coverTR' ).removeClass( 'blankTR' );
 	$( '.guide' ).toggleClass( 'hide', !G.status.playlistlength && G.status.mpd );
 	$( '#guide-artist, #guide-album' ).toggleClass( 'hide', G.status.webradio || !G.status.playlistlength );
 	$( '#volume-text' ).addClass( 'hide' );
@@ -872,7 +881,9 @@ var btnctrl = {
 }
 $( '.map' ).tap( function( e ) {
 	e.preventDefault()
-	if ( [ 'coverTL', 'coverT', 'timeT' ].indexOf( this.id ) !== -1 ) return
+	if ( [ 'coverTL', 'coverT', 'timeT' ].indexOf( this.id ) !== -1
+		|| ( !G.status.playlistlength && this.id !== 'coverTR' )
+	) return
 	
 	hideGuide();
 	var cmd = btnctrl[ this.id ];

@@ -86,7 +86,6 @@ echo 1 | tee $dirsystem/{localbrowser,onboard-audio,onboard-wlan} > /dev/null
 # nowireless
 [[ $hwcode =~ ^(00|01|02|03|04|09)$ ]] && rm $dirsystem/onboard-wlan
 echo RuneAudio | tee $dirsystem/{hostname,soundprofile} > /dev/null
-echo 0 0 0 > $dirsystem/mpddb
 echo '$2a$12$rNJSBU0FOJM/jP98tA.J7uzFWAnpbXFYx5q1pmNhPnXnUu3L1Zz6W' > $dirsystem/password
 [[ -n $1 ]] && echo $1 > $dirsystem/version
 # gpio

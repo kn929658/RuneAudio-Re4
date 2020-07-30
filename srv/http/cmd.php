@@ -124,8 +124,12 @@ case 'displayget':
 	break;
 case 'displayset':
 	$data = json_decode( $_POST[ 'displayset' ] );
-	file_put_contents( $dirsystem.'display', json_encode( $data, JSON_PRETTY_PRINT ) );
+	$remove = [ 'update', 'updating_db' ];
+	foreach( $remove as $key ) unset( $data->$key );
 	pushstream( 'display', $data );
+	$remove = [ 'color', 'order', 'volumenone' ];
+	foreach( $remove as $key ) unset( $data->$key );
+	file_put_contents( $dirsystem.'display', json_encode( $data, JSON_PRETTY_PRINT ) );
 	break;
 case 'getbookmarks':
 	$files = array_slice( scandir( $dirbookmarks ), 2 );

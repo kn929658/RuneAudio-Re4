@@ -30,7 +30,7 @@ $( '#pwd' ).keypress( function( e ) {
 $color = file_exists( '/srv/http/data/system/color' );
 $submenupower = in_array( $_SERVER[ 'REMOTE_ADDR' ], [ '127.0.0.1', '::1' ] ) ? '<i class="fa fa-screenoff submenu"></i>' : '';
 // counts
-$counts = exec( '/srv/http/bash/mpd.sh count' );
+$counts = file_get_contents( '/srv/http/data/mpd/counts' );
 $counts = json_decode( $counts );
 // library home blocks
 $modes = [ 'CoverArt', 'SD', 'USB', 'NAS', 'WebRadio', 'Album', 'Artist', 'AlbumArtist', 'Composer', 'Genre', 'Date' ];
@@ -414,7 +414,7 @@ $addonsupdate = @file_get_contents( '/srv/http/data/addons/update' ) ?: false;
 			<span class="lipath"></span>
 		</div>
 	</div>
-	<div id="lib-mode-list" class="list" data-count="<?=$counts->song?>"><?=$modehtml?></div>
+	<div id="lib-mode-list" class="list" data-count="<?=$counts->title?>"><?=$modehtml?></div>
 	<ul id="lib-list" class="list"></ul>
 	<div id="lib-index" class="hide"></div>
 	<div id="lib-cover-list" class="list hide"><?=$coverartshtml?></div>

@@ -130,7 +130,7 @@ function bookmarkNew() {
 		return
 	}
 	
-	$.post( 'cmd.php', { cmd: 'coverartget', path: path, size: 200 }, function( coverart ) {
+	$.post( 'cmd.php', { cmd: 'coverartget', path: path, thumbnail: 'thumbnail' }, function( coverart ) {
 		if ( coverart ) {
 			if ( coverart.slice( -3 ) !== 'gif' ) {
 				info( {

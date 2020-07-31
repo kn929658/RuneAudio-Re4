@@ -1,8 +1,8 @@
 #!/bin/bash
 
 path="/mnt/MPD/$1"
-(( $# > 1 )) && size=$2
-# get coverfile in directory
+
+#1 - get coverfile in directory
 [[ -d $path ]] && dir=$path || dir=$( dirname "$path" )
 for name in cover folder front thumb album; do
 	for ext in jpg png gif; do
@@ -14,9 +14,9 @@ for name in cover folder front thumb album; do
 	coverfile=
 done
 
-# get embedded in file
+#2 - get embedded in file
 if [[ -n $coverfile ]]; then
-	# convert % > ^ | replace " > %20 | convert ^ > %
+	# convert % > ^ | replace " > %20 | convert ^ > % for img src="/encoded/url"
 	coverfile=$( sed 's/%/\^/g; s/"/%22/g; s/\^/%25/g' <<< $coverfile )
 else
 	if [[ -f "$path" ]]; then
@@ -31,17 +31,20 @@ else
 	fi
 	tmpfile=/srv/http/data/tmp/coverart.jpg
 	rm -f $tmpfile
+#	ffmpeg -i "$file" $tmpfile &> /dev/null
 	kid3-cli -c "select \"$file\"" -c "get picture:$tmpfile" &> /dev/null # suppress '1 space' stdout
-	[[ ! -e $tmpfile ]] && exit
+	#3 - fetch online
+	if [[ ! -e $tmpfile ]]; then
+		/srv/http/bash/cmd-coverartfetch.sh "$2" &> /dev/null &
+		exit
+	fi
 	
 	coverfile=/data/tmp/coverart
 	ext=jpg
 fi
 
-if [[ -z $size || $ext == gif ]]; then
+if [[ $2 != thumbnail || $ext == gif ]]; then # $# == 2 : thumbnail
 	echo "$coverfile.$( date +%s ).$ext"
 else # resize
-	base64file=/srv/http/data/tmp/base64
-	convert "$coverfile" -thumbnail ${size}x${size} -unsharp 0x.5 inline:$base64file
-	cat $base64file
+	convert "$coverfile.$ext" -thumbnail 200x200 -unsharp 0x.5 inline:JPG:-
 fi

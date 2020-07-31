@@ -1178,7 +1178,8 @@ function renderPlayback() {
 		if ( status.coverart ) {
 			$( '#coverart' ).prop( 'src', status.coverart );
 		} else {
-			// fix: sometime missing embedded coverart
+			$( '#coverart' ).prop( 'src', coverrune );
+/*			// fix: kid3-cli - sometime missing embedded coverart
 			$.post( cmdphp, { cmd: 'sh', sh: [ 'cmd-coverart.sh', status.file ] }, function( url ) {
 				if ( url ) {
 					G.status.coverart = url;
@@ -1187,7 +1188,7 @@ function renderPlayback() {
 					$( '#coverart' ).prop( 'src', coverrune );
 					coverartGet( status.Artist, status.Album );
 				}
-			} );
+			} );*/
 		}
 	}
 	// time

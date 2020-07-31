@@ -9,10 +9,10 @@ dirwebradios=/srv/http/data/webradios
 # convert each line to each args
 readarray -t args <<< "$1"
 
-pushstream0() {
+pushstream() {
 	curl -s -X POST http://127.0.0.1/pub?id=$1 -d "$2"
 }
-pushstream() {
+pushstreamKeyVal() {
 	curl -s -X POST http://127.0.0.1/pub?id=$1 -d '{ "'$2'": "'$3'" }'
 }
 pushstreamVol() {
@@ -86,23 +86,23 @@ count() {
 	, "webradio"    : '$( ls -U /srv/http/data/webradios/* 2> /dev/null | wc -l )
 	
 	echo {$counts} | jq . > /srv/http/data/mpd/counts
-	pushstream0 mpdupdate "{$counts}"
+	pushstream mpdupdate "{$counts}"
 }
 volumeSet() {
 	current=$1
 	target=$2
 	diff=$(( $target - $current ))
 	if (( -10 < $diff && $diff < 10 )); then
-		mpc -q volume $volume
+		mpc -q volume $target
 	else # increment
-		pushstream0 volume '{"disable":true}'
+		pushstream volume '{"disable":true}'
 		(( $diff > 0 )) && incr=5 || incr=-5
 		for i in $( seq $current $incr $target ); do
 			mpc -q volume $i
 			sleep 0.2
 		done
 		(( $i != $target )) && mpc -q volume $target
-		pushstream0 volume '{"disable":false}'
+		pushstream volume '{"disable":false}'
 	fi
 }
 
@@ -164,7 +164,7 @@ s|\(--cg60: *hsl\).*;|\1(${hsg}60%);|
  s|\(--cga: *hsl\).*;|\1(${hsg}20%);|
  s|\(--cgd: *hsl\).*;|\1(${hsg}10%);|
 " /srv/http/assets/css/colors.css
-	pushstream reload reload all
+	pushstreamKeyVal reload reload all
 	;;
 count )
 	count
@@ -177,7 +177,7 @@ filemove )
 	;;
 gpiotimerreset )
 	awk '/timer/ {print $NF}' $dirsystem/gpio.json > $dirtmp/gpiotimer
-	pushstream gpio state RESET
+	pushstreamKeyVal gpio state RESET
 	;;
 gpioset )
 	echo ${args[1]} | jq . > $dirsystem/gpio.json
@@ -304,7 +304,10 @@ mpcprevnext )
 			(( $current != 1 )) && mpc play $(( current - 1 )) || mpc play $length
 		fi
 	fi
-	[[ -z $playing ]] && rm -f $flag && mpc stop
+	[[ -z $playing ]] && mpc stop
+	status=$( /srv/http/bash/status.sh )
+	pushstream mpdplayer "$status"
+	rm -f $flag
 	;;
 mpcsimilar )
 	plL=$( mpc playlist | wc -l )
@@ -325,12 +328,12 @@ mpcsimilar )
 	echo $(( $( mpc playlist | wc -l ) - plL ))
 	;;
 mpcupdate )
-	pushstream0 mpdupdate 1
+	pushstream mpdupdate 1
 	mpc update "${args[1]}"
 	cuescan
 	;;
 mpcrescan )
-	pushstream0 mpdupdate 1
+	pushstream mpdupdate 1
 	mpc rescan
 	for type in album albumartist artist composer date genre; do
 		mpc list $type | sed '/^$/ d' > /srv/http/data/mpd/$type
@@ -364,7 +367,7 @@ playseek )
 	mpc play
 	mpc pause
 	mpc seek $seek
-	pushstream seek elapsed $seek
+	pushstreamKeyVal seek elapsed $seek
 	;;
 plrandom )
 	if [[ ${args[1]} == false ]]; then
@@ -376,14 +379,14 @@ plrandom )
 		mpc play $(( plL +1 ))
 		systemctl start libraryrandom
 	fi
-	pushstream playlist playlist playlist
+	pushstreamKeyVal playlist playlist playlist
 	;;
 plrename )
 	mv "$dirdata/playlists/${args[1]}" "$dirdata/playlists/${args[2]}"
 	;;
 plshuffle )
 	mpc shuffle
-	pushstream playlist playlist playlist
+	pushstreamKeyVal playlist playlist playlist
 	;;
 plcrop )
 	if mpc | grep -q playing; then
@@ -394,11 +397,11 @@ plcrop )
 		mpc stop
 	fi
 	systemctl -q is-active libraryrandom && mpc listall | shuf -n 2 | mpc add
-	pushstream playlist playlist playlist
+	pushstreamKeyVal playlist playlist playlist
 	;;
 plorder )
 	mpc move ${args[1]} ${args[2]}
-	pushstream playlist playlist playlist
+	pushstreamKeyVal playlist playlist playlist
 	;;
 reboot )
 	/srv/http/bash/gpiooff.py &> /dev/null
@@ -409,7 +412,7 @@ reboot )
 	[[ ${args[1]} == off ]] && shutdown -h now || shutdown -r now
 	;;
 refreshbrowser )
-	pushstream0 reload '{ "reload": 1 }'
+	pushstream reload '{ "reload": 1 }'
 	;;
 soundprofile )
 	profile=${args[1]}
@@ -454,7 +457,7 @@ volume )
 	if [[ -n $target ]]; then # set
 		pushstreamVol set $target
 		volumeSet $current $target
-		rm $filevolumemute
+		rm -f $filevolumemute
 	else
 		if (( $current > 0 )); then # mute
 			pushstreamVol mute $current true
@@ -464,13 +467,13 @@ volume )
 			target=$( cat $filevolumemute )
 			pushstreamVol unmute $target true
 			volumeSet 0 $target
-			rm $filevolumemute
+			rm -f $filevolumemute
 		fi
 	fi
 	;;
 volumeincrement )
 	target=${args[1]}
-	mpc volume $target
+	mpc -q volume $target
 	pushstreamVol set $target
 	;;
 volumenone )

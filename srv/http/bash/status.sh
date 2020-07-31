@@ -201,7 +201,7 @@ fi
 
 # coverart
 if [[ $ext != Radio ]]; then
-	coverart=$( /srv/http/bash/cmd-coverart.sh "$file0" ) # no escape needed
+	coverart=$( /srv/http/bash/cmd-coverart.sh "$file0" "$Artist"$'\n'"$Album" ) # no escape needed
 elif [[ -e $radiofile ]]; then
 	coverart=$( sed -n '3 p' $radiofile )
 fi

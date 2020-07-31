@@ -1,7 +1,5 @@
 #!/bin/bash
 
-rm -f /srv/http/data/tmp/{coverartfetch,prevnext} # clear running flag in case still left
-
 playerfile=/srv/http/data/system/player
 ########
 status=$( cat $playerfile )
@@ -277,3 +275,21 @@ fi
 status+=', "sampling" : "'$position$sampling'"'
 
 echo {$status}
+
+[[ -n $coverart ]] && exit
+
+if [[ $ext != Radio ]]; then
+	/srv/http/bash/cmd-coverartfetch.sh "$Artist"$'\n'"$Album" &> /dev/null &
+else
+	if [[ $Title =~ " - " ]]; then
+		delimiter=' - '
+	elif [[ $Title =~ ": " ]]; then
+		delimiter=': '
+	fi
+	title=$( sed 's/ $\| (.*$//' <<< "$Title" )
+	data=$( perl -E 'say for split quotemeta shift, shift' -- "$delimiter" "$title" )
+	(( $( echo "$data" | wc -l ) != 2 )) && exit
+	
+	/srv/http/bash/cmd-coverartfetch.sh "$data"$'\ntitle' &> /dev/null &
+fi
+

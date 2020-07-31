@@ -1125,18 +1125,6 @@ function renderPlayback() {
 					}, 2000 );
 				}
 			}
-			if ( status.Title ) {
-				if ( status.Title.indexOf( ': ' ) !== -1 ) {
-					var artist_title = status.Title.split( ': ' );
-				} else {
-					var artist_title = status.Title.split( ' - ' );
-				}
-				if ( artist_title.length === 2 ) {
-					var artist = artist_title[ 0 ]
-					var title = artist_title[ 1 ].replace( / $| \(.*$/, '' ) // remove trailing space and extra tag
-					coverartGet( artist, title, 'title' );
-				}
-			}
 		}
 		$( '#time' ).roundSlider( 'setValue', 0 );
 		$( '#time-bar' ).addClass( 'hide' );

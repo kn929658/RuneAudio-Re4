@@ -33,11 +33,7 @@ else
 	rm -f $tmpfile
 #	ffmpeg -i "$file" $tmpfile &> /dev/null
 	kid3-cli -c "select \"$file\"" -c "get picture:$tmpfile" &> /dev/null # suppress '1 space' stdout
-### 3 - fetch online ################################################
-	if [[ ! -e $tmpfile ]]; then
-		/srv/http/bash/cmd-coverartfetch.sh "$2" &> /dev/null &
-		exit
-	fi
+	[[ ! -e $tmpfile ]] && exit
 	
 	coverfile=/data/tmp/coverart
 	ext=jpg

@@ -393,9 +393,9 @@ function info( O ) {
 	$( '#infoOverlay' ).addClass( 'noclick' );
 	setTimeout( function() { // prevent click OK on consecutive info
 		$( '#infoOverlay' ).removeClass( 'noclick' );
-		if ( 'nofocus' in O ) return
-		
 		var $input = $( '#infotextbox input:eq( 0 )' );
+		if ( !$input.length || 'nofocus' in O ) return
+		
 		var L = $input.val().length;
 		$input.focus();
 		$input[ 0 ].setSelectionRange( L, L );

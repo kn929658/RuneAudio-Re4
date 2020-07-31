@@ -27,6 +27,7 @@ if [[ ! -e /srv/http/data/mpd/counts ]]; then
 	, "webradio"    : '$( ls -U /srv/http/data/webradios/* 2> /dev/null | wc -l )
 	
 	echo {$counts} | jq . > /srv/http/data/mpd/counts
+	chown -R mpd:audio /srv/http/data/mpd
 fi
 
 if [[ ! -e /srv/http/data/mpd/album ]]; then

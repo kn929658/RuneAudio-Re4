@@ -11,9 +11,6 @@ pushstream() {
 
 mpc idleloop | while read changed; do
 	case $changed in
-		database )
-			pushstream mpddatabase 1
-			;;
 		options )
 			pushstream mpdoptions "$( /srv/http/bash/status.sh statusonly )"
 			;;

@@ -64,8 +64,8 @@ var pushstream = new PushStream( {
 	, timeout                               : 5000
 	, reconnectOnChannelUnavailableInterval : 5000
 } );
-var streams = [ 'airplay', 'bookmark', 'coverart', 'display', 'gpio', 'mpddatabase', 'mpdoptions', 'mpdplayer', 'mpdupdate',
-	'notify', 'order', 'package', 'playlist', 'reload', 'seek', 'snapcast', 'spotify', 'volume', 'volumenone', 'webradio' ];
+var streams = [ 'airplay', 'bookmark', 'coverart', 'display', 'gpio', 'mpdoptions', 'mpdplayer', 'mpdupdate',
+	'notify', 'order', 'package', 'playlist', 'reload', 'seek', 'snapcast', 'spotify', 'volume', 'volumenone' ];
 streams.forEach( function( stream ) {
 	pushstream.addChannel( stream );
 } );
@@ -85,9 +85,7 @@ pushstream.onmessage = function( data, id, channel ) {
 		case 'bookmark':    psBookmark( data );    break;
 		case 'coverart':    psCoverart( data );    break;
 		case 'display':     psDisplay( data );     break;
-		case 'idle':        psIdle( data );        break;
 		case 'gpio':        psGPIO( data );        break;
-		case 'mpddatabase': psMpdDatabase( data ); break;
 		case 'mpdoptions':  psMpdOptions( data );  break;
 		case 'mpdplayer':   psMpdPlayer( data );   break;
 		case 'mpdupdate' :  psMpdUpdate( data );   break;
@@ -102,7 +100,6 @@ pushstream.onmessage = function( data, id, channel ) {
 		case 'spotify':     psSpotify( data );     break;
 		case 'volume':      psVolume( data );      break;
 		case 'volumenone':  psVolumeNone( data );  break;
-		case 'webradio':    psWebradio( data );    break;
 	}
 }
 function psAirplay( data ) {
@@ -212,9 +209,6 @@ function psGPIO( response ) { // on receive broadcast
 			setButtonOptions();
 		}, delay * 1000 );
 	}
-}
-function psMpdDatabase() {
-	if ( G.mode === 'webradio' ) $( '#mode-webradio' ).tap();
 }
 function psMpdOptions( data ) {
 	if ( G.local ) return

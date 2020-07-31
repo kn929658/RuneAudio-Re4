@@ -309,6 +309,14 @@ mpcprevnext )
 	pushstream mpdplayer "$status"
 	rm -f $flag
 	;;
+mpcrescan )
+	pushstream mpdupdate 1
+	mpc rescan
+	for type in album albumartist artist composer date genre; do
+		mpc list $type | sed '/^$/ d' > /srv/http/data/mpd/$type
+	done
+	cuescan
+	;;
 mpcsimilar )
 	plL=$( mpc playlist | wc -l )
 	linesL=${#args[@]}
@@ -330,14 +338,6 @@ mpcsimilar )
 mpcupdate )
 	pushstream mpdupdate 1
 	mpc update "${args[1]}"
-	cuescan
-	;;
-mpcrescan )
-	pushstream mpdupdate 1
-	mpc rescan
-	for type in album albumartist artist composer date genre; do
-		mpc list $type | sed '/^$/ d' > /srv/http/data/mpd/$type
-	done
 	cuescan
 	;;
 packageenable )

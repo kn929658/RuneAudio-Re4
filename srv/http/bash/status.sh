@@ -276,10 +276,8 @@ status+=', "sampling" : "'$position$sampling'"'
 
 echo {$status}
 
-[[ -n $coverart ]] && exit
-
 if [[ $ext != Radio ]]; then
-	/srv/http/bash/cmd-coverartfetch.sh "$Artist"$'\n'"$Album" &> /dev/null &
+	[[ -z $coverart ]] &&/srv/http/bash/cmd-coverartfetch.sh "$Artist"$'\n'"$Album" &> /dev/null &
 else
 	if [[ $Title =~ " - " ]]; then
 		delimiter=' - '

@@ -1113,16 +1113,18 @@ function renderPlayback() {
 				$( '#divcover, #coverart' ).removeClass( 'vu' );
 				$( '#coverart' ).prop( 'src', status.coverart );
 			} else {
-				if ( status.state === 'stop' || !$( '#coverart' ).prop( 'src' ) ) {
-					$( '#divcover, #coverart' )
-						.prop( 'src', status.state === 'play' ? vu : vustop )
-						.addClass( 'vu' );
+				if ( status.state === 'stop' ) {
+					$( '#divcover, #coverart' ).addClass( 'vu' );
+					$( '#coverart' ).prop( 'src', vustop );
 				} else {
+					var delay = $( '#coverart' ).prop( 'src' ) ? 2000 : 0;
 					G.coverdefault = setTimeout( function() {
-						$( '#divcover, #coverart' )
-							.prop( 'src', status.state === 'play' ? vu : vustop )
-							.addClass( 'vu' );
-					}, 2000 );
+						if ( !G.status.coverart ) {
+							$( '#divcover, #coverart' )
+								.prop( 'src', vu )
+								.addClass( 'vu' );
+						}
+					}, delay );
 				}
 			}
 		}

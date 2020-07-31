@@ -393,9 +393,13 @@ function info( O ) {
 	$( '#infoOverlay' ).addClass( 'noclick' );
 	setTimeout( function() { // prevent click OK on consecutive info
 		$( '#infoOverlay' ).removeClass( 'noclick' );
+		if ( 'nofocus' in O ) return
+		
+		var $input = $( '#infotextbox input:eq( 0 )' );
+		var L = $input.val().length;
+		$input.focus();
+		$input[ 0 ].setSelectionRange( L, L );
 	}, 300 );
-
-	if ( !( 'nofocus' in O ) ) $( '.infoinput:eq( 0 )' ).focus();
 	if ( 'boxwidth' in O ) {
 		var maxW = window.innerWidth * 0.98;
 		var infoW = width || parseInt( $( '#infoBox' ).css( 'width' ) );

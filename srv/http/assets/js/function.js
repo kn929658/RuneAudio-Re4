@@ -964,17 +964,17 @@ function renderLibrary() {
 	}
 	
 	$( '#page-library .content-top, #lib-list' ).addClass( 'hide' );
-	var titlehtml = '<span class="title">LIBRARY</span>&emsp;';
-	if ( G.display.count ) {
-		titlehtml += '<span id="li-count">'+ ( $( '#lib-mode-list' ).data( 'count' ) ).toLocaleString() +' <i class="fa fa-music gr"></i></span>';
-	}
-	$( '#lib-breadcrumbs' ).html( titlehtml );
+	
+	$( '#lib-breadcrumbs' ).html(
+		 '<span class="title">LIBRARY</span>&emsp;'
+		+'<span id="li-count">'+ $( '#lib-mode-list' ).data( 'count' ).toLocaleString() +' <i class="fa fa-music gr"></i></span>'
+	);
 	$( '#page-library .content-top, #lib-mode-list' ).removeClass( 'hide' );
 	$( '.mode:not( .mode-bookmark )' ).each( function() {
 		var name = this.id.replace( 'mode-', '' );
 		$( this ).parent().toggleClass( 'hide', !G.display[ name ] );
 	} );
-	$( '.mode grl' ).toggleClass( 'hide', !G.display.count );
+	$( '#li-count, .mode grl' ).toggleClass( 'hide', !G.display.count );
 	if ( G.display.label ) {
 		$( '#lib-mode-list a.label' ).show();
 		$( '.mode' ).removeClass( 'nolabel' );

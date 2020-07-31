@@ -494,27 +494,31 @@ webradioadd )
 	[[ -z $url ]] && echo -1 && exit
 	
 	echo $name^^Radio > $filewebradio
-	pushstream webradio webradio 1
+	count
 	;;
 webradiodelete )
 	url=${args[1]}
 	rm $dirwebradios/${url//\//|}
-	pushstream webradio webradio -1
+	count
 	;;
 webradioedit )
 	url=${args[1]}
 	newname=${args[2]}^^Radio
 	newurl=${args[3]}
 	filewebradionew=$dirwebradios/${newurl//\//|}
-	[[ -e $filewebradionew ]] && cat $filewebradionew && exit
+	[[ $url != $newurl && -e $filewebradionew ]] && cat $filewebradionew && exit
 	
 	filewebradio=$dirwebradios/${url//\//|}
-	content=$( cat $filewebradio )
-	rm $filewebradio
-	(( $( echo $content | wc -l ) > 1 )) && newname+="
-$( echo $content | sed '1 d' )"
-	echo "$newname" > $filewebradionew # name, thumbnail, coverart
-	pushstream webradio webradio 0
+	oldname=$( cat $filewebradio | head -1 )
+	if [[ $oldname != $newname && $filewebradio != $filewebradionew ]]; then
+		sed -e "1 c$newname" $filewebradio > $filewebradionew
+		rm $filewebradio
+	elif [[ $oldname != $newname ]]; then
+		sed -i "1 c$newname" $filewebradio
+	else
+		mv $filewebradio $filewebradionew
+	fi
+	count
 	;;
 	
 esac

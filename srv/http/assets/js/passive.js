@@ -245,6 +245,8 @@ function psMpdPlayer( data ) {
 	}
 }
 function psMpdUpdate( data ) {
+	if ( G.local ) return
+	
 	if ( data == 1 ) {
 		G.status.updating_db = true;
 		if ( !G.localhost ) $( '#tab-library, #button-library' ).addClass( 'blink' );
@@ -280,6 +282,11 @@ function psMpdUpdate( data ) {
 		$( '#lib-list .fa-refresh-library' )
 			.removeClass( 'fa-refresh-library blink' )
 			.addClass( 'fa-folder' );
+		if ( G.library && G.mode === 'webradio' ) {
+			data.webradio ? $( '#mode-webradio' ).click() : $( '#button-library' ).click();
+		} else if ( G.playlist && !G.savedlist ) {
+			$( '#tab-playlist' ).click();
+		}
 	}
 }
 function psNotify( data ) {
@@ -400,12 +407,6 @@ function psVolumeNone( data ) {
 			}
 		} );
 	}
-}
-function psWebradio( data ) {
-	var count = Number( $( '#mode-webradio grl' ).text() ) + Number( data.webradio );
-	$( '#mode-webradio grl' ).text( count ? ( count ).toLocaleString() : '' );
-	if ( $( '#lib-path .lipath' ).text() === 'Webradio' ) $( '#mode-webradio' ).click();
-	if ( G.playlist && !G.savedlist ) $( '#tab-playlist' ).click();
 }
 function setPlayback( data ) {
 	$.each( data, function( key, value ) {

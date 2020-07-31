@@ -594,10 +594,25 @@ function webRadioEdit() {
 			var newname = $( '#infoTextBox' ).val();
 			var newurl = $( '#infoTextBox1' ).val().toString().replace( /\/\s*$/, '' ); // omit trailling / and space
 			if ( newname !== name || newurl !== url ) {
-				bash( [ 'webradioedit', url, newname, newurl ], function() {
-					$( '#mode-webradio' ).click();
+				bash( [ 'webradioedit', url, newname, newurl ], function( data ) {
+					data ? webRadioExists( data, url ) : $( '#mode-webradio' ).click();
 				} );
 			}
+		}
+	} );
+}
+function webRadioExists( data, url ) {
+	var nameimg = data.split( "\n" );
+	var newname = nameimg[ 0 ].split( '^^' )[ 0 ];
+	info( {
+		  icon    : 'webradio'
+		, title   : 'Add WebRadio'
+		, message : ( nameimg[ 2 ] ? '<img src="'+ nameimg[ 2 ] +'">' : '<i class="fa fa-webradio bookmark"></i>' )
+				   +'<br>'+ newname
+				   +'<br><br>URL: <w>'+ url +'</w>'
+				   +'<br>Already exists.'
+		, ok      : function() {
+			webRadioNew( newname, url );
 		}
 	} );
 }
@@ -626,20 +641,7 @@ function webRadioNew( name, url ) {
 						}
 					} );
 				} else if ( data ) {
-					var nameimg = data.split( "\n" );
-					info( {
-						  icon    : 'webradio'
-						, title   : 'Add WebRadio'
-						, message : ( nameimg[ 2 ] ? '<img src="'+ nameimg[ 2 ] +'">' : '<i class="fa fa-webradio bookmark"></i>' )
-								   +'<br><w>'+ nameimg[ 0 ].split( '^^' )[ 0 ] +'</w>'
-								   +'<br>'+ url
-								   +'<br>Already exists.'
-						, ok      : function() {
-							webRadioNew( newname, url );
-						}
-					} );
-				} else {
-					$( '#mode-webradio' ).click();
+					webRadioExists( data, url );
 				}
 				bannerHide();
 			} );

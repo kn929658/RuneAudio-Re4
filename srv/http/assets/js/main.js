@@ -1002,7 +1002,7 @@ $( '.btn-cmd' ).click( function() {
 				G.prevnext = 1;
 				var prevnext = setTimeout( function() {
 					$( '#loader' ).removeClass( 'hide' );
-				}, 300 );
+				}, 600 );
 			}
 			bash( [ 'mpcprevnext', cmd, G.status.song + 1, length ], function() {
 				G.prevnext = 0;

@@ -112,6 +112,8 @@ $( '#coverart' ).on( 'error', function() {
 	if ( G.status.mpd && !G.status.webradio && G.status.coverart.slice( 0, 4 ) === 'http' ) {
 		G.coversave = 1;
 		$( '#divcover' ).append( '<div class="cover-save"><i class="fa fa-save"></i></div>' );
+	} else {
+		$( '.cover-save' ).remove();
 	}
 } );
 // COMMON /////////////////////////////////////////////////////////////////////////////////////

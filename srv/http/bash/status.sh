@@ -73,7 +73,7 @@ fi
 
 filter='Album\|Artist\|audio\|bitrate\|consume\|duration\|elapsed\|file\|Name\|playlistlength\|random\|repeat\|single\|^song:\|state\|Time\|Title\|updating_db\|volume'
 mpdStatus() {
-	mpdtelnet=$( { echo clearerror; echo status; echo $1; sleep 0.05; close; } \
+	mpdtelnet=$( { echo clearerror; echo status; echo $1; sleep 0.05; } \
 		| telnet 127.0.0.1 6600 2> /dev/null \
 		| grep "$filter" )
 }
@@ -276,9 +276,7 @@ status+=', "sampling" : "'$position$sampling'"'
 
 echo {$status}
 
-if [[ $ext != Radio ]]; then
-	[[ -z $coverart ]] &&/srv/http/bash/cmd-coverartfetch.sh "$Artist"$'\n'"$Album" &> /dev/null &
-else
+if [[ $ext == Radio && -n $Title ]]; then
 	if [[ $Title =~ " - " ]]; then
 		delimiter=' - '
 	elif [[ $Title =~ ": " ]]; then

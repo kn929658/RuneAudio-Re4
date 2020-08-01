@@ -1163,23 +1163,8 @@ function renderPlayback() {
 	}
 	if ( status.Artist !== previousartist || status.Album !== previousalbum || status.airplay ) {
 		G.coversave = 0;
-		$( '.cover-save' ).remove();
 		$( '#divcover, #coverart' ).removeClass( 'vu' );
-		if ( status.coverart ) {
-			$( '#coverart' ).prop( 'src', status.coverart );
-		} else {
-			$( '#coverart' ).prop( 'src', coverrune );
-/*			// fix: kid3-cli - sometime missing embedded coverart
-			$.post( cmdphp, { cmd: 'sh', sh: [ 'cmd-coverart.sh', status.file ] }, function( url ) {
-				if ( url ) {
-					G.status.coverart = url;
-					$( '#coverart' ).prop( 'src', url );
-				} else {
-					$( '#coverart' ).prop( 'src', coverrune );
-					coverartGet( status.Artist, status.Album );
-				}
-			} );*/
-		}
+		$( '#coverart' ).prop( 'src', status.coverart || coverrune );
 	}
 	// time
 	time = 'Time' in status ? status.Time : '';

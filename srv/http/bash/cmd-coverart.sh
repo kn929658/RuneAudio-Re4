@@ -34,5 +34,9 @@ else
 	rm -f $tmpfile
 #	ffmpeg -i "$file" $tmpfile &> /dev/null
 	kid3-cli -c "select \"$file\"" -c "get picture:$tmpfile" &> /dev/null # suppress '1 space' stdout
-	[[ -e $tmpfile ]] && echo /data/tmp/coverart.$( date +%s ).jpg
+	if [[ -e $tmpfile ]]; then
+		echo /data/tmp/coverart.$( date +%s ).jpg
+	else
+		/srv/http/bash/cmd-coverartfetch.sh "$2" &> /dev/null &
+	fi
 fi

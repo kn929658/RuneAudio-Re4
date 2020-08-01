@@ -105,7 +105,7 @@ $( '#coverart' ).on( 'error', function() {
 	$( 'html, body' ).scrollTop( 0 );
 	if ( $( '#lib-cover-list' ).html() ) new LazyLoad( { elements_selector: '.lazy' } );
 } ).on( 'load', function() {
-	var covervu = $( '#coverart' ).prop( 'src' ).slice( 0, 14 ) === '/assets/img/vu';
+	var covervu = $( '#coverart' ).prop( 'src' ).split( '/' ).pop().slice( 0, 2 ) === 'vu';
 	$( '#divcover, #coverart' ).toggleClass( 'vu', covervu );
 	if ( G.status.mpd && !G.status.webradio && G.status.coverart.slice( 0, 4 ) === 'http' ) {
 		G.coversave = 1;

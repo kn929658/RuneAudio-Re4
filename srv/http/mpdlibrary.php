@@ -102,14 +102,6 @@ case 'find':
 case 'list':
 	$lists = file( '/srv/http/data/mpd/'.$mode, FILE_IGNORE_NEW_LINES );
 	if ( !$lists ) exec( 'mpc list '.$mode.' | awk NF', $lists ); // if file missing
-	if ( file_exists( $cuefile ) ) { // cue /////////////////////////////////
-		include $cuefile;
-		$i = $modes[ $mode ];
-		foreach( $cuedb as $each ) {
-			$val = $each[ $i ];
-			if ( $val && !in_array( $val, $lists ) ) $lists[] = $val.'^^'.end( $each );
-		}
-	} // cue //////////////////////////////////////////////////////////////////
 	$array = htmlList( $mode, $lists );
 	break;
 case 'ls':
@@ -340,11 +332,12 @@ function htmlList( $mode, $lists ) { // non-file 'list' command
 		$name = $each->$mode;
 		$path = $name;
 		$datamode = $mode;
-		if ( strpos( $name, '^^' ) ) { // cue ////////////////////////////////////
+		if ( strpos( $name, '^^' ) ) { // album / cue ////////////////////////////////////
 			$data = explode( '^^', $name );
 			$name = $data[ 0 ];
 			if ( $mode === 'album' ) {
-				$path = $data[ 1 ];
+				$name.= '<gr> • </gr>'.$data[ 1 ];
+				$path = $data[ 2 ];
 				$datamode = 'file';
 			} else {
 				$path = $name;
@@ -489,12 +482,10 @@ function second2HMS( $second ) {
 function stripLeading( $string ) {
 	$names = strtoupper( strVal( $string ) ); // strVal make all as string for strtoupper
 	return preg_replace(
-		  [ '/\^\^.*$/', // cue path
-			'/^A\s+|^AN\s+|^THE\s+|[^\w\p{L}\p{N}\p{Pd} ~]/u',
+		  [ '/^A\s+|^AN\s+|^THE\s+|[^\w\p{L}\p{N}\p{Pd} ~]/u',
 			'/\s+|^_/'
 		  ]
-		, [ '',
-			'',  // strip articles | non utf-8 normal alphanumerics | tilde(blank data)
+		, [ '',  // strip articles | non utf-8 normal alphanumerics | tilde(blank data)
 			'-'  // fix: php strnatcmp ignores spaces | sort underscore to before 0
 		  ]
 		, $names

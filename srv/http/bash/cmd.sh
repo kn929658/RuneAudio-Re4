@@ -23,65 +23,74 @@ pushstreamPkg() {
 }
 
 cuescan() {
+	# pre-fetched - browse by mode
+	album=$( mpc -f '%album%^^[%albumartist%|%artist%]^^%file%' listall \
+			| awk -F'/[^/]*$' 'NF && !/^\^/ && !a[$0]++ {print $1}' )
+	for mode in albumartist artist composer date genre; do
+		printf -v $mode '%s' "$( mpc list $mode )"
+	done
 	cuedbfile=/srv/http/data/mpd/cuedb.php
 	files=$( find /mnt/MPD -type f -name *.cue )
 	[[ -z $files ]] && rm -f $cuedbfile && exit
 	
 	readarray -t files <<< "$files"
 	
-	ialbum=0
-	ialbumartist=0
-	iartist=0
-	icomposer=0
-	idate=0
-	igenre=0
-	ititle=0
+	Ialbum=0
+	Ialbumartist=0
+	Iartist=0
+	Icomposer=0
+	Idate=0
+	Igenre=0
+	Ititle=0
 		
-	for file in "${files[@]}"; do # album^^albumartisst^^artist^^path
-		lines=$( grep '^TITLE\|^PERFORMER\|^\s\+PERFORMER\|^REM GENRE\|REM DATE' "$file" )
-		album=$( grep '^TITLE' <<< "$lines" | sed 's/^TITLE "*//; s/"*.$//' )
-		albumartist=$( grep '^PERFORMER' <<< "$lines" | sed 's/^PERFORMER "*//; s/"*.$//' )
-		artist=$( grep -m1 '^\s\+PERFORMER' <<< "$lines" | sed 's/^\s\+PERFORMER "*//; s/"*.$//' )
-		composer=$( grep '^REM COMPOSER' <<< "$lines" | sed 's/^REM COMPOSER "*//; s/"*.$//' )
-		date=$( grep '^REM DATE' <<< "$lines" | sed 's/^REM DATE "*//; s/"*.$//' )
-		genre=$( grep '^REM GENRE' <<< "$lines" | sed 's/^REM GENRE "*//; s/"*.$//' )
-		path=$( dirname "$file" | sed 's|/mnt/MPD/||' )
-		[[ -n $album ]] && (( ialbum++ ))
-		[[ -n $albumartist ]] && (( ialbumartist++ ))
-		[[ -n $artist ]] && (( iartist++ ))
-		[[ -n $composer ]] && (( icomposer++ ))
-		[[ -n $date ]] && (( idate++ ))
-		[[ -n $genre ]] && (( igenre++ ))
-		ititle=$(( ititle + $( grep -c '^\s\+TRACK' "$file" ) ))
-		cue+=',["'$album'","'$albumartist'","'$artist'","'$composer'","'$date'","'$genre'","'$path'"]'
+	for file in "${files[@]}"; do # album albumartist artist composer date genre path
+		lines=$( grep '^TITLE\|^PERFORMER\|^\s\+PERFORMER\|^REM GENRE\|REM DATE\|^\s\+TRACK' "$file" )
+		Calbum=$( grep '^TITLE' <<< "$lines" | sed 's/^TITLE "*//; s/"*.$//' )
+		Calbumartist=$( grep '^PERFORMER' <<< "$lines" | sed 's/^PERFORMER "*//; s/"*.$//' )
+		Cartist=$( grep -m1 '^\s\+PERFORMER' <<< "$lines" | sed 's/^\s\+PERFORMER "*//; s/"*.$//' )
+		Ccomposer=$( grep '^REM COMPOSER' <<< "$lines" | sed 's/^REM COMPOSER "*//; s/"*.$//' )
+		Cdate=$( grep '^REM DATE' <<< "$lines" | sed 's/^REM DATE "*//; s/"*.$//' )
+		Cgenre=$( grep '^REM GENRE' <<< "$lines" | sed 's/^REM GENRE "*//; s/"*.$//' )
+		Cpath=$( dirname "$file" | sed 's|/mnt/MPD/||' )
+		[[ -n $Calbumartist ]] && (( Ialbumartist++ )) && albumartist+="$Calbumartist"$'\n'
+		[[ -n $Cartist ]]      && (( Iartist++ ))      && artist+="$Cartist"$'\n'
+		[[ -n $Ccomposer ]]    && (( Icomposer++ ))    && composer+="$Ccomposer"$'\n'
+		[[ -n $Cdate ]]        && (( Idate++ ))        && date+="$Cdate"$'\n'
+		[[ -n $Cgenre ]]       && (( Igenre++ ))       && genre+="$Cgenre"$'\n'
+		[[ -n $Calbumartist ]] && Cartist=$Cartist
+		album+="$Calbum^^$Cartist^^$Cpath"$'\n'
+		Ititle=$(( Ititle + $( grep -c '^\s\+TRACK' <<< "$lines" ) ))
+		cue+=',["'$Calbum'","'$Calbumartist'","'$Cartist'","'$Ccomposer'","'$Cdate'","'$Cgenre'","'$Cpath'"]'
 	done
 	cuedb=$( jq . <<< "[ ${cue:1} ]" ) # remove 1st comma
 	cat << EOF > $cuedbfile
 <?php
 \$cuedb = $cuedb;
 EOF
+	for mode in album artist albumartist artist composer date genre; do
+		echo "${!mode}" | sort -u | awk NF > /srv/http/data/mpd/$mode
+	done
 	count
 }
 count() {
-	# pre-fetched - browse by mode
-	for type in albumartist composer date genre; do
-		printf -v $type '%s' $( mpc list $type | awk NF | wc -l )
+	for mode in albumartist composer date genre; do
+		printf -v $mode '%s' $( mpc list $mode | awk NF | wc -l )
 	done
-	for type in NAS SD USB; do
-		printf -v $type '%s' $( mpc ls $type 2> /dev/null | wc -l )
+	for mode in NAS SD USB; do
+		printf -v $mode '%s' $( mpc ls $mode 2> /dev/null | wc -l )
 	done
 	stats=( $( mpc stats | head -3 | awk '{print $2,$4,$6}' ) )
 	counts='
-	  "album"       : '$(( ialbum + ${stats[1]} ))'
-	, "albumartist" : '$(( ialbumartist + albumartist ))'
-	, "artist"      : '$(( iartist + ${stats[0]} ))'
-	, "composer"    : '$(( icomposer + composer ))'
+	  "album"       : '$(( Ialbum + ${stats[1]} ))'
+	, "albumartist" : '$(( Ialbumartist + albumartist ))'
+	, "artist"      : '$(( Iartist + ${stats[0]} ))'
+	, "composer"    : '$(( Icomposer + composer ))'
 	, "coverart"    : '$( ls -1q /srv/http/data/coverarts | wc -l )'
-	, "date"        : '$(( idate + date ))'
-	, "genre"       : '$(( igenre + genre ))'
+	, "date"        : '$(( Idate + date ))'
+	, "genre"       : '$(( Igenre + genre ))'
 	, "nas"         : '$NAS'
 	, "sd"          : '$SD'
-	, "title"       : '$(( ititle + ${stats[2]} ))'
+	, "title"       : '$(( Ititle + ${stats[2]} ))'
 	, "usb"         : '$USB'
 	, "webradio"    : '$( ls -U /srv/http/data/webradios/* 2> /dev/null | wc -l )
 	
@@ -108,6 +117,9 @@ volumeSet() {
 
 case ${args[0]} in
 
+x )
+	cuescan
+	;;
 addonsclose )
 	script=${args[1]}
 	alias=${args[2]}
@@ -312,9 +324,6 @@ mpcprevnext )
 mpcrescan )
 	pushstream mpdupdate 1
 	mpc rescan
-	for type in album albumartist artist composer date genre; do
-		mpc list $type | sed '/^$/ d' > /srv/http/data/mpd/$type
-	done
 	cuescan
 	;;
 mpcsimilar )

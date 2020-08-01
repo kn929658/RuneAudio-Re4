@@ -9,6 +9,7 @@ pushstream() {
 	curl -s -X POST http://127.0.0.1/pub?id=$1 -d "$2"
 }
 
+flag=/srv/http/data/tmp/flag
 snapclientfile=/srv/http/data/tmp/snapclientip
 
 mpc idleloop | while read changed; do
@@ -17,7 +18,6 @@ mpc idleloop | while read changed; do
 			pushstream mpdoptions "$( /srv/http/bash/status.sh statusonly )"
 			;;
 		player )
-			flag=/srv/http/data/tmp/flag
 			if [[ ! -e $flag ]]; then # suppress on prev/next
 				status=$( /srv/http/bash/status.sh )
 				if [[ ! -e /srv/http/data/system/player-snapclient ]]; then

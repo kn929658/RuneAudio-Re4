@@ -6,7 +6,6 @@ dirmpd=/srv/http/data/mpd
 dirsystem=/srv/http/data/system
 dirtmp=/srv/http/data/tmp
 dirwebradios=/srv/http/data/webradios
-flag=/srv/http/data/tmp/flag
 
 # convert each line to each args
 readarray -t args <<< "$1"
@@ -303,27 +302,24 @@ mpcls )
 	sleep $sleep
 	mpc play $pos
 	;;
-mpcplayback )
+mpcprevnext )
 	command=${args[1]}
 	current=${args[2]}
 	length=${args[3]}
-	touch $flag # suppress mpdidle
-	if [[ -z $current ]]; then
-		mpc ${args[1]}
-	else # prev / next
-		mpc | grep -q '^\[playing\]' && playing=1
-		if [[ $( mpc | awk '/random/ {print $6}' ) == on ]]; then
-			pos=$( shuf -n 1 <( seq $length | grep -v $current ) )
-			mpc play $pos
+	flag=/srv/http/data/tmp/flag
+	touch $flag
+	mpc | grep -q '^\[playing\]' && playing=1
+	if [[ $( mpc | awk '/random/ {print $6}' ) == on ]]; then
+		pos=$( shuf -n 1 <( seq $length | grep -v $current ) )
+		mpc play $pos
+	else
+		if [[ $command == next ]]; then
+			(( $current != $length )) && mpc play $(( current + 1 )) || mpc play 1
 		else
-			if [[ $command == next ]]; then
-				(( $current != $length )) && mpc play $(( current + 1 )) || mpc play 1
-			else
-				(( $current != 1 )) && mpc play $(( current - 1 )) || mpc play $length
-			fi
+			(( $current != 1 )) && mpc play $(( current - 1 )) || mpc play $length
 		fi
-		[[ -z $playing ]] && mpc stop
 	fi
+	[[ -z $playing ]] && mpc stop
 	status=$( /srv/http/bash/status.sh )
 	pushstream mpdplayer "$status"
 	rm -f $flag
@@ -379,7 +375,6 @@ playrandom )
 	;;
 playseek )
 	seek=${args[1]}
-	touch $dirtmp/nostatus
 	mpc play
 	mpc pause
 	mpc seek $seek

@@ -52,7 +52,7 @@ case 'find':
 			exec( 'mpc find -f "'.$format.'" '.$mode[ 0 ].' "'.$string[ 0 ].'" albumartist "'.$string[ 1 ].'" 2> /dev/null'." | awk 'NF && !a[$0]++'"
 			, $lists );
 		}
-	} else if ( $mode === 'album' ) {
+/*	} else if ( $mode === 'album' ) {
 		exec( 'mpc find -f "'.$format.'" album "'.$string.'" 2> /dev/null'." | awk 'NF && !a[$0]++'"
 			, $lists );                // multiple albums with the same name
 		if ( count( $lists ) === 1 ) { // no other albums with the same name - track list
@@ -69,7 +69,7 @@ case 'find':
 				$artist = $each[ 1 ] ?: $each[ 2 ];
 				if ( $album === $string ) $lists[] = $album.'^^'.$artist.'^^'.end( $each );
 			}
-		} // cue //////////////////////////////////////////////////////////////////
+		}*/ // cue //////////////////////////////////////////////////////////////////
 	} else {
 		exec( 'mpc find -f "'.$format.'" '.$mode.' "'.$string.'" 2> /dev/null'." | awk 'NF && !a[$0]++'"
 			, $lists);

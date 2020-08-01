@@ -117,9 +117,6 @@ volumeSet() {
 
 case ${args[0]} in
 
-x )
-	cuescan
-	;;
 addonsclose )
 	script=${args[1]}
 	alias=${args[2]}
@@ -346,7 +343,8 @@ mpcsimilar )
 	;;
 mpcupdate )
 	pushstream mpdupdate 1
-	mpc update "${args[1]}"
+	mpc rescan
+#	mpc update "${args[1]}"
 	cuescan
 	;;
 packageenable )

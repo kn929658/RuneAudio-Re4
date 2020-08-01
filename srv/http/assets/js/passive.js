@@ -171,7 +171,7 @@ function psGPIO( response ) { // on receive broadcast
 						   + stopwatch +'&ensp;<white>'+ delay +'</white>'
 			, oklabel     : 'Reset'
 			, ok          : function() {
-				sh( [ 'gpiotimerreset' ] );
+				bash( [ 'gpiotimerreset' ] );
 			}
 		} );
 		timer = setInterval( function() {

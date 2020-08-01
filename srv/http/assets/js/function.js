@@ -1251,9 +1251,9 @@ function renderPlaybackBlank() {
 		$( '#artist, #song, #album, #progress, #elapsed, #total' ).empty();
 		if ( G.display.time ) $( '#time' ).roundSlider( 'setValue', 0 );
 		$( '#time-bar' ).css( 'width', 0 );
+		$( '#coverart' ).prop( 'src', coverrune );
 		if ( ip ) {
 			$( '#sampling' ).html( 'http://'+ ip );
-			$( '#coverart' ).addClass( 'hide' );
 			var qrweb = new QRCode( {
 				  msg : 'http://'+ ip
 				, dim : 230
@@ -1261,10 +1261,9 @@ function renderPlaybackBlank() {
 			} );
 			$( '#qrwebui' ).html( qrweb );
 		} else {
-			G.status.coverart = '';
+			$( '#coverart' ).removeClass( 'hide' );
 			$( '#sampling' ).html( 'Network not connected - Click&ensp;<i class="fa fa-gear"></i>&ensp;to setup' );
 			$( '#page-playback .emptyadd' ).html( '<i class="fa fa-gear"></i>' );
-			$( '#coverart' ).prop( 'src', coverrune );
 		}
 		$( '#splash' ).remove();
 		if ( $( '#lib-cover-list' ).html() ) new LazyLoad( { elements_selector: '.lazy' } );

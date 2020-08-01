@@ -100,13 +100,13 @@ $( '#coverart' ).on( 'error', function() {
 	}
 } ).one( 'load', function() {
 	$( '#splash' ).remove();
-	$( '#coverart' ).removeClass( 'hide' );
-	$( '.rs-animation .rs-transition' ).css( 'transition-property', '' ); // restore animation after load
-	$( 'html, body' ).scrollTop( 0 );
+	if ( G.status.playlistlength ) $( '#coverart' ).removeClass( 'hide' );
 	if ( $( '#lib-cover-list' ).html() ) new LazyLoad( { elements_selector: '.lazy' } );
 } ).on( 'load', function() {
 	var covervu = $( '#coverart' ).prop( 'src' ).split( '/' ).pop().slice( 0, 2 ) === 'vu';
 	$( '#divcover, #coverart' ).toggleClass( 'vu', covervu );
+	if ( !G.status.coverart ) return
+	
 	if ( G.status.mpd && !G.status.webradio && G.status.coverart.slice( 0, 4 ) === 'http' ) {
 		G.coversave = 1;
 		$( '#divcover' ).append( '<div class="cover-save"><i class="fa fa-save"></i></div>' );

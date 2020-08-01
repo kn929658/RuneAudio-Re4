@@ -6,6 +6,7 @@ dirmpd=/srv/http/data/mpd
 dirsystem=/srv/http/data/system
 dirtmp=/srv/http/data/tmp
 dirwebradios=/srv/http/data/webradios
+flag=/srv/http/data/tmp/flag
 
 # convert each line to each args
 readarray -t args <<< "$1"
@@ -108,15 +109,15 @@ volumeSet() {
 	target=$2
 	diff=$(( $target - $current ))
 	if (( -10 < $diff && $diff < 10 )); then
-		mpc -q volume $target
+		mpc volume $target
 	else # increment
 		pushstream volume '{"disable":true}'
 		(( $diff > 0 )) && incr=5 || incr=-5
 		for i in $( seq $current $incr $target ); do
-			mpc -q volume $i
+			mpc volume $i
 			sleep 0.2
 		done
-		(( $i != $target )) && mpc -q volume $target
+		(( $i != $target )) && mpc volume $target
 		pushstream volume '{"disable":false}'
 	fi
 }
@@ -303,11 +304,10 @@ mpcls )
 	mpc play $pos
 	;;
 mpcprevnext )
+	touch $flag
 	command=${args[1]}
 	current=${args[2]}
 	length=${args[3]}
-	flag=/srv/http/data/tmp/flag
-	touch $flag
 	mpc | grep -q '^\[playing\]' && playing=1
 	if [[ $( mpc | awk '/random/ {print $6}' ) == on ]]; then
 		pos=$( shuf -n 1 <( seq $length | grep -v $current ) )
@@ -374,11 +374,13 @@ playrandom )
 	mpc play $( shuf -i 0-$plL -n 1 )
 	;;
 playseek )
+	touch $flag
 	seek=${args[1]}
 	mpc play
 	mpc pause
 	mpc seek $seek
 	pushstreamKeyVal seek elapsed $seek
+	rm -f $flag
 	;;
 plrandom )
 	if [[ ${args[1]} == false ]]; then
@@ -400,6 +402,7 @@ plshuffle )
 	pushstreamKeyVal playlist playlist playlist
 	;;
 plcrop )
+	touch $flag
 	if mpc | grep -q playing; then
 		mpc crop
 	else
@@ -409,6 +412,7 @@ plcrop )
 	fi
 	systemctl -q is-active libraryrandom && mpc listall | shuf -n 2 | mpc add
 	pushstreamKeyVal playlist playlist playlist
+	rm -f $flag
 	;;
 plorder )
 	mpc move ${args[1]} ${args[2]}
@@ -484,7 +488,7 @@ volume )
 	;;
 volumeincrement )
 	target=${args[1]}
-	mpc -q volume $target
+	mpc volume $target
 	pushstreamVol set $target
 	;;
 volumenone )

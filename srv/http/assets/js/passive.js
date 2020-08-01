@@ -244,19 +244,14 @@ function psMpdUpdate( data ) {
 	if ( data == 1 ) {
 		G.status.updating_db = true;
 		if ( !G.localhost ) $( '#tab-library, #button-library' ).addClass( 'blink' );
-		if ( G.playback && !G.bars ) {
-			if ( $( '#time-knob' ).hasClass( 'hide' ) ) {
-				$( '#posupdate' ).removeClass( 'hide' );
-				$( '#iupdate' ).addClass( 'hide' );
-			} else {
-				$( '#posupdate' ).addClass( 'hide' );
-				$( '#iupdate' ).removeClass( 'hide' );
-			}
+		if ( !G.bars ) {
+			$( '#posupdate' ).toggleClass( 'hide', !G.display.time );
+			$( '#iupdate' ).toggleClass( 'hide', G.display.time );
 		}
 	} else {
 		G.status.updating_db = false;
 		if ( !G.localhost ) $( '#tab-library, #button-library, .lib-icon' ).removeClass( 'blink' );
-		$( '#posupdate, #iupdate' ).addClass( 'hide' );
+		$( '#posupdate, #i-update, #ti-update' ).addClass( 'hide' );
 		notify( 'Library Update', 'Done', 'library' );
 		if ( $( '.licover' ).length ) {
 			$( '#loader' ).removeClass( 'hide' );

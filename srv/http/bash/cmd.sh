@@ -26,7 +26,8 @@ listScan() {
 	# pre-fetched - browse by mode
 	album=$( mpc -f '%album%^^[%albumartist%|%artist%]^^%file%' listall \
 			| awk -F'/[^/]*$' 'NF && !/^\^/ && !a[$0]++ {print $1}' )
-	for mode in albumartist artist composer date genre; do
+	modes=( album artist albumartist artist composer date genre )
+	for mode in ${modes[@]:1}; do
 		printf -v $mode '%s' "$( mpc list $mode )"
 	done
 	cuedbfile=/srv/http/data/mpd/cuedb.php
@@ -71,7 +72,7 @@ listScan() {
 <?php
 \$cuedb = $cuedb;
 EOF
-	for mode in album artist albumartist artist composer date genre; do
+	for mode in ${modes[@]}; do
 		echo "${!mode}" | sort -u | awk NF > /srv/http/data/mpd/$mode
 	done
 	count

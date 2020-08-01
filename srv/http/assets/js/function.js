@@ -1450,12 +1450,14 @@ function setButtonControl() {
 }
 function setButtonOptions() {
 	var prefix = G.display.time ? 'ti' : 'i';
-	if ( !G.bars ) {
-		$( '#'+ prefix +'-update' ).toggleClass( 'hide', !G.status.updating_db );
-		$( '#'+ prefix +'-addons' ).toggleClass( 'hide', !$( '#badge' ).length );
-	}
 	if ( G.status.updating_db ) {
 		$( '#tab-library, #button-library' ).addClass( 'blink' );
+		if ( G.bars ) {
+			$( '#i-update, #ti-update' ).addClass( 'hide' );
+		} else {
+			$( '#'+ prefix +'-update' ).toggleClass( 'hide', !G.status.updating_db );
+			$( '#'+ prefix +'-addons' ).toggleClass( 'hide', !$( '#badge' ).length );
+		}
 	} else {
 		$( '#tab-library, #button-library' ).removeClass( 'blink' );
 		$( '.lib-icon.blink' )

@@ -701,6 +701,7 @@ $( '#coverTL, #timeTL' ).tap( function() {
 	renderPlayback();
 	setButtonControl();
 	displayPlayback();
+	setButtonOptions();
 	if ( 'coverTL' in G && G.display.coversmall ) $( '#timemap' ).removeClass( 'hide' );
 } );
 $( '#coverT, #timeT' ).tap( function() {

@@ -240,16 +240,6 @@ function coverartGet( artist, album, type ) {
 	);
 }
 function coverartSave() {
-	var img = new Image();
-	img.crossOrigin = 'anonymous';
-	img.src = $( '#coverart' ).prop( 'src' );
-	img.onload = function() {
-		var canvas = document.createElement( 'canvas' );
-		canvas.width = this.width;
-		canvas.height = this.height;
-		canvas.getContext( '2d' ).drawImage( this, 0, 0 );
-		base64 = canvas.toDataURL( 'image/jpeg' );
-	}
 	if ( G.playback ) {
 		var src = $( '#coverart' ).prop( 'src' );
 		var file = G.status.file;
@@ -264,6 +254,16 @@ function coverartSave() {
 		var coverfile = path +'/cover.jpg';
 		var artist = $( '.licover .liartist' ).text();
 		var album = $( '.licover .lialbum' ).text();
+	}
+	var img = new Image();
+	img.crossOrigin = 'anonymous';
+	img.src = src;
+	img.onload = function() {
+		var canvas = document.createElement( 'canvas' );
+		canvas.width = this.width;
+		canvas.height = this.height;
+		canvas.getContext( '2d' ).drawImage( this, 0, 0 );
+		base64 = canvas.toDataURL( 'image/jpeg' );
 	}
 	info( {
 		  icon    : 'coverart'

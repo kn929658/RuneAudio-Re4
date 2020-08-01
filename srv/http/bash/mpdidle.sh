@@ -9,6 +9,8 @@ pushstream() {
 	curl -s -X POST http://127.0.0.1/pub?id=$1 -d "$2"
 }
 
+snapclientfile=/srv/http/data/tmp/snapclientip
+
 mpc idleloop | while read changed; do
 	case $changed in
 		options )

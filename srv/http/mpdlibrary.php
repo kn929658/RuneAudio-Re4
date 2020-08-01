@@ -249,8 +249,20 @@ case 'webradio':
 echo json_encode( $array );
 
 //-------------------------------------------------------------------------------------
+function coverartGet( $path ) {
+	return exec( '/srv/http/bash/cmd-coverart.sh "'.escape( $path ).'"' );
+}
 function escape( $string ) {
 	return preg_replace( '/(["`])/', '\\\\\1', $string );
+}
+function HMS2second( $time ) {
+	$HMS = explode( ':', $time );
+	$count = count( $HMS );
+	switch( $count ) {
+		case 1: return $HMS[ 0 ]; break;
+		case 2: return $HMS[ 0 ] * 60 + $HMS[ 1 ]; break;
+		case 3: return $HMS[ 0 ] * 60 * 60 + $HMS[ 1 ] * 60 + $HMS[ 0 ]; break;
+	}
 }
 function htmlFind( $mode, $lists, $f ) { // non-file 'find' command
 	if ( !count( $lists ) ) exit( '-1' );
@@ -456,18 +468,6 @@ function htmlTracks( $lists, $f, $filemode = '', $string = '' ) { // track list 
 	$coverhtml.= '</div></li>';
 	
 	return [ 'html' => $coverhtml.$html ];
-}
-function coverartGet( $path ) {
-	return exec( '/srv/http/bash/cmd-coverart.sh "'.escape( $path ).'"' );
-}
-function HMS2second( $time ) {
-	$HMS = explode( ':', $time );
-	$count = count( $HMS );
-	switch( $count ) {
-		case 1: return $HMS[ 0 ]; break;
-		case 2: return $HMS[ 0 ] * 60 + $HMS[ 1 ]; break;
-		case 3: return $HMS[ 0 ] * 60 * 60 + $HMS[ 1 ] * 60 + $HMS[ 0 ]; break;
-	}
 }
 function second2HMS( $second ) {
 	$hh = floor( $second / 3600 );

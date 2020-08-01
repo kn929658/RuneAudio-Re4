@@ -17,7 +17,7 @@ mpc idleloop | while read changed; do
 			pushstream mpdoptions "$( /srv/http/bash/status.sh statusonly )"
 			;;
 		player )
-			flag=/srv/http/data/tmp/prevnext
+			flag=/srv/http/data/tmp/flag
 			if [[ ! -e $flag ]]; then # suppress on prev/next
 				status=$( /srv/http/bash/status.sh )
 				if [[ ! -e /srv/http/data/system/player-snapclient ]]; then

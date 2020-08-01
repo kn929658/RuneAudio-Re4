@@ -928,7 +928,7 @@ $( '.btn-cmd' ).click( function() {
 		
 		if ( cmd !== 'play' ) clearIntervalAll();
 		if ( cmd === 'play' ) {
-			bash( 'mpc play' );
+			bash( [ 'mpcplayback', 'play' ] );
 			$( '#song' ).removeClass( 'gr' );
 			if ( G.display.time ) {
 				$( '#elapsed' ).removeClass( 'bl' );
@@ -958,7 +958,7 @@ $( '.btn-cmd' ).click( function() {
 			$( '#song' ).removeClass( 'gr' );
 			if ( !G.status.playlistlength ) return
 			
-			bash( 'mpc stop' );
+			bash( [ 'mpcplayback', 'stop' ] );
 			$( '#pl-list .elapsed' ).empty();
 			$( '#total' ).empty();
 			if ( !G.status.webradio ) {
@@ -981,7 +981,7 @@ $( '.btn-cmd' ).click( function() {
 		} else if ( cmd === 'pause' ) {
 			if ( G.status.state === 'stop' ) return
 			
-			bash( 'mpc pause' );
+			bash( [ 'mpcplayback', 'pause' ] );
 			$( '#song' ).addClass( 'gr' );
 			if ( G.display.time && !$( '#time-knob' ).hasClass( 'hide' ) ) {
 				$( '#elapsed' ).addClass( 'bl' );
@@ -1001,7 +1001,7 @@ $( '.btn-cmd' ).click( function() {
 					$( '#loader' ).removeClass( 'hide' );
 				}, 1000 );
 			}
-			bash( [ 'mpcprevnext', cmd, G.status.song + 1, length ], function() {
+			bash( [ 'mpcplayback', cmd, G.status.song + 1, length ], function() {
 				G.prevnext = 0;
 				clearTimeout( prevnext );
 			} );

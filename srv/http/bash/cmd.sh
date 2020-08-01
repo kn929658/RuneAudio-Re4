@@ -22,7 +22,7 @@ pushstreamPkg() {
 	curl -s -X POST http://127.0.0.1/pub?id=package -d '{"pkg":"'$1'", "start":'$2',"enable":'$3' }'
 }
 
-cuescan() {
+listScan() {
 	# pre-fetched - browse by mode
 	album=$( mpc -f '%album%^^[%albumartist%|%artist%]^^%file%' listall \
 			| awk -F'/[^/]*$' 'NF && !/^\^/ && !a[$0]++ {print $1}' )
@@ -44,6 +44,7 @@ cuescan() {
 	Ititle=0
 		
 	for file in "${files[@]}"; do # album albumartist artist composer date genre path
+		path=$( dirname "$file" )
 		lines=$( grep '^TITLE\|^PERFORMER\|^\s\+PERFORMER\|^REM GENRE\|REM DATE\|^\s\+TRACK' "$file" )
 		Calbum=$( grep '^TITLE' <<< "$lines" | sed 's/^TITLE "*//; s/"*.$//' )
 		Calbumartist=$( grep '^PERFORMER' <<< "$lines" | sed 's/^PERFORMER "*//; s/"*.$//' )
@@ -51,7 +52,7 @@ cuescan() {
 		Ccomposer=$( grep '^REM COMPOSER' <<< "$lines" | sed 's/^REM COMPOSER "*//; s/"*.$//' )
 		Cdate=$( grep '^REM DATE' <<< "$lines" | sed 's/^REM DATE "*//; s/"*.$//' )
 		Cgenre=$( grep '^REM GENRE' <<< "$lines" | sed 's/^REM GENRE "*//; s/"*.$//' )
-		Cpath=$( dirname "$file" | sed 's|/mnt/MPD/||' )
+		Cpath=${path:9}
 		[[ -n $Calbumartist ]] && (( Ialbumartist++ )) && albumartist+="$Calbumartist"$'\n'
 		[[ -n $Cartist ]]      && (( Iartist++ ))      && artist+="$Cartist"$'\n'
 		[[ -n $Ccomposer ]]    && (( Icomposer++ ))    && composer+="$Ccomposer"$'\n'
@@ -61,6 +62,9 @@ cuescan() {
 		album+="$Calbum^^$Cartist^^$Cpath"$'\n'
 		Ititle=$(( Ititle + $( grep -c '^\s\+TRACK' <<< "$lines" ) ))
 		cue+=',["'$Calbum'","'$Calbumartist'","'$Cartist'","'$Ccomposer'","'$Cdate'","'$Cgenre'","'$Cpath'"]'
+		# mpdignore subdirectories
+		subdirs=$( find "$path" -mindepth 1 -maxdepth 1 -type d | sed 's|.*/||' )
+		[[ -n $subdirs ]] && echo "$subdirs" > "$path/.mpdignore"
 	done
 	cuedb=$( jq . <<< "[ ${cue:1} ]" ) # remove 1st comma
 	cat << EOF > $cuedbfile
@@ -178,8 +182,8 @@ s|\(--cg60: *hsl\).*;|\1(${hsg}60%);|
 count )
 	count
 	;;
-cuescan )
-	cuescan
+listScan )
+	listScan
 	;;
 filemove )
 	mv -f "${args[1]}" "${args[2]}"
@@ -321,7 +325,7 @@ mpcprevnext )
 mpcrescan )
 	pushstream mpdupdate 1
 	mpc rescan
-	cuescan
+	listScan
 	;;
 mpcsimilar )
 	plL=$( mpc playlist | wc -l )
@@ -344,7 +348,7 @@ mpcsimilar )
 mpcupdate )
 	pushstream mpdupdate 1
 	mpc update "${args[1]}"
-	cuescan
+	listScan
 	;;
 packageenable )
 	pkg=${args[1]}

@@ -27,7 +27,7 @@ mpc idleloop | while read changed; do
 					if [[ -s $snapclientfile ]]; then
 						mapfile -t clientip < $snapclientfile
 						for ip in "${clientip[@]}"; do
-							pushstream mpdplayer "$status"
+							curl -s -X POST "http://$ip/pub?id=mpdplayer" -d "$status"
 						done
 					else
 						rm $snapclientfile

@@ -2,6 +2,7 @@
 
 dirdata=/srv/http/data
 diraddons=/srv/http/data/addons
+dirmpd=/srv/http/data/mpd
 dirsystem=/srv/http/data/system
 dirtmp=/srv/http/data/tmp
 dirwebradios=/srv/http/data/webradios
@@ -30,7 +31,7 @@ listScan() {
 	for mode in ${modes[@]:1}; do
 		printf -v $mode '%s' "$( mpc list $mode )"
 	done
-	cuedbfile=/srv/http/data/mpd/cuedb.php
+	cuedbfile=$dirmpd/cuedb.php
 	files=$( find /mnt/MPD -type f -name *.cue )
 	[[ -z $files ]] && rm -f $cuedbfile && exit
 	
@@ -73,7 +74,7 @@ listScan() {
 \$cuedb = $cuedb;
 EOF
 	for mode in ${modes[@]}; do
-		echo "${!mode}" | sort -u | awk NF > /srv/http/data/mpd/$mode
+		echo "${!mode}" | sort -u | awk NF > $dirmpd/$mode
 	done
 	count
 }
@@ -99,7 +100,7 @@ count() {
 	, "usb"         : '$USB'
 	, "webradio"    : '$( ls -U /srv/http/data/webradios/* 2> /dev/null | wc -l )
 	
-	echo {$counts} | jq . > /srv/http/data/mpd/counts
+	echo {$counts} | jq . > $dirmpd/counts
 	pushstream mpdupdate "{$counts}"
 }
 volumeSet() {

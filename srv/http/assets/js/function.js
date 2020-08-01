@@ -1110,19 +1110,15 @@ function renderPlayback() {
 		// webradio coverart
 		if ( !status.Title || status.Title !== prevtitle ) {
 			if ( status.coverart ) {
-				$( '#divcover, #coverart' ).removeClass( 'vu' );
 				$( '#coverart' ).prop( 'src', status.coverart );
 			} else {
 				if ( status.state === 'stop' ) {
-					$( '#divcover, #coverart' ).addClass( 'vu' );
 					$( '#coverart' ).prop( 'src', vustop );
 				} else {
 					var delay = $( '#coverart' ).prop( 'src' ) ? 2000 : 0;
 					G.coverdefault = setTimeout( function() {
 						if ( !G.status.coverart ) {
-							$( '#divcover, #coverart' )
-								.prop( 'src', vu )
-								.addClass( 'vu' );
+							$( '#divcover, #coverart' ).prop( 'src', vu );
 						}
 					}, delay );
 				}
@@ -1163,7 +1159,6 @@ function renderPlayback() {
 	}
 	if ( status.Artist !== previousartist || status.Album !== previousalbum || status.airplay ) {
 		G.coversave = 0;
-		$( '#divcover, #coverart' ).removeClass( 'vu' );
 		$( '#coverart' ).prop( 'src', status.coverart || coverrune );
 	}
 	// time

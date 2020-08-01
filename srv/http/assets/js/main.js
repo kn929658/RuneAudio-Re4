@@ -94,13 +94,9 @@ for( i = 0; i < 360; i += 0.25 ) {
 $( '#coverart' ).on( 'error', function() {
 	var $this = $( this );
 	if ( G.status.webradio ) {
-		$this
-			.prop( 'src', status.state === 'play' ? vu : vustop )
-			.addClass( 'vu' );
+		$this.prop( 'src', status.state === 'play' ? vu : vustop );
 	} else {
-		$this
-			.prop( 'src', coverrune )
-			.removeClass( 'vu' );
+		$this.prop( 'src', coverrune );
 	}
 } ).one( 'load', function() {
 	$( '#splash' ).remove();
@@ -109,6 +105,8 @@ $( '#coverart' ).on( 'error', function() {
 	$( 'html, body' ).scrollTop( 0 );
 	if ( $( '#lib-cover-list' ).html() ) new LazyLoad( { elements_selector: '.lazy' } );
 } ).on( 'load', function() {
+	var covervu = $( '#coverart' ).prop( 'src' ).slice( 0, 14 ) === '/assets/img/vu';
+	$( '#divcover, #coverart' ).toggleClass( 'vu', covervu );
 	if ( G.status.mpd && !G.status.webradio && G.status.coverart.slice( 0, 4 ) === 'http' ) {
 		G.coversave = 1;
 		$( '#divcover' ).append( '<div class="cover-save"><i class="fa fa-save"></i></div>' );
@@ -978,11 +976,7 @@ $( '.btn-cmd' ).click( function() {
 			} else {
 				$( '#song' ).html( '·&ensp;·&ensp;·' );
 				$( '#elapsed, #progress' ).empty();
-				if ( $( '#coverart' ).hasClass( 'vu' ) ) {
-					$( '#coverart' )
-						.prop( 'src', vustop )
-						.addClass( 'vu' );
-				}
+				if ( $( '#coverart' ).hasClass( 'vu' ) ) $( '#coverart' ).prop( 'src', vustop );
 			}
 		} else if ( cmd === 'pause' ) {
 			if ( G.status.state === 'stop' ) return

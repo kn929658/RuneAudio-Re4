@@ -530,7 +530,6 @@ function webRadioCoverart() {
 				$( '#coverart' )
 					.prop( 'src', G.status.state === 'play' ? vu : vustop )
 					.css( { 'border-radius': '18px', opacity: '' } );
-				$( '#divcover, #coverart' ).addClass( 'vu' );
 			} else {
 				G.list.li.find( 'img' ).remove();
 				G.list.li.find( '.li1' ).before( '<i class="fa fa-webradio lib-icon" data-target="#menu-webradio"></i>' );
@@ -555,7 +554,6 @@ function webRadioCoverartSet( newimg, thumb ) {
 		$( '#coverart' )
 			.prop( 'src', newimg )
 			.css( { 'border-radius': '', opacity: '' } );
-		$( '#divcover, #coverart' ).removeClass( 'vu' );
 	} else {
 		G.list.li.find( '.lib-icon' ).remove();
 		G.list.li.find( '.liname' ).after( '<img class="radiothumb lib-icon" src="'+ thumb +'" data-target="#menu-webradio">' );

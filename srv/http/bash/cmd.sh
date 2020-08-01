@@ -343,8 +343,7 @@ mpcsimilar )
 	;;
 mpcupdate )
 	pushstream mpdupdate 1
-	mpc rescan
-#	mpc update "${args[1]}"
+	mpc update "${args[1]}"
 	cuescan
 	;;
 packageenable )

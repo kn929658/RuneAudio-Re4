@@ -4,38 +4,6 @@ alias=rre4
 
 . /srv/http/bash/addons-functions.sh
 
-if [[ ! -e /srv/http/data/mpd/counts ]]; then
-	for type in albumartist composer date genre; do
-		printf -v $type '%s' $( mpc list $type | awk NF | wc -l )
-	done
-	for type in NAS SD USB; do
-		printf -v $type '%s' $( mpc ls $type 2> /dev/null | wc -l )
-	done
-	stats=( $( mpc stats | head -3 | awk '{print $2,$4,$6}' ) )
-	counts='
-	  "album"       : '$(( ialbum + ${stats[1]} ))'
-	, "albumartist" : '$(( ialbumartist + albumartist ))'
-	, "artist"      : '$(( iartist + ${stats[0]} ))'
-	, "composer"    : '$(( icomposer + composer ))'
-	, "coverart"    : '$( ls -1q /srv/http/data/coverarts | wc -l )'
-	, "date"        : '$(( idate + date ))'
-	, "genre"       : '$(( igenre + genre ))'
-	, "nas"         : '$NAS'
-	, "sd"          : '$SD'
-	, "title"       : '$(( ititle + ${stats[2]} ))'
-	, "usb"         : '$USB'
-	, "webradio"    : '$( ls -U /srv/http/data/webradios/* 2> /dev/null | wc -l )
-	
-	echo {$counts} | jq . > /srv/http/data/mpd/counts
-	chown http:http /srv/http/data/mpd/*
-	chown mpd:audio /srv/http/data/mpd/mpd*
-fi
-
-if [[ ! -e /srv/http/data/mpd/album ]]; then
-	for type in album albumartist artist composer date genre; do
-		mpc list $type | sed '/^$/ d' > /srv/http/data/mpd/$type
-	done
-fi
 if grep -q usr/local/bin /etc/systemd/system/bootsplash.service &> /dev/null; then
 	sed -i 's|usr/local/bin|srv/http/bash|' /etc/systemd/system/bootsplash.service
 	systemctl try-restart bootsplash
@@ -104,6 +72,10 @@ if [[ ! -e /usr/bin/mpdscribble ]]; then
 fi
 
 getinstallzip
+
+/srv/http/bash/cmd.sh list
+/srv/http/bash/cmd.sh listcue
+/srv/http/bash/cmd.sh count
 
 installfinish
 

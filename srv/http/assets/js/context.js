@@ -457,7 +457,6 @@ function tagEditor() {
 				if ( diff === 0 ) return
 				
 				notify( 'Tag Editor', 'Change ...', 'tag blink', -1 );
-				//bash( tag );
 				$.post( 'cmd.php', { cmd: 'sh', sh: tag } );
 			}
 		} );

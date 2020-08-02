@@ -82,8 +82,15 @@ case 'find':
 	}
 	break;
 case 'list':
-	if ( !file_exists( '/srv/http/data/mpd/'.$mode ) ) { // temp: if file missing
-		exec( 'mpc list '.$mode.' | awk NF', $lists );
+	// temp: if file missing
+	if ( !file_exists( '/srv/http/data/mpd/'.$mode ) ) {
+		if ( $mode !== 'album' ) {
+			exec( 'mpc list '.$mode.' | awk NF', $lists );
+		} else {
+			exec( "mpc -f '%album%^^[%albumartist%|%artist%]^^%file%' listall \
+				| awk -F'/[^/]*$' 'NF && !/^\^/ && !a[$0]++ {print $1}' \
+				| sort -u", $lists );
+		}
 		$array = htmlList( $mode, $lists );
 		break;
 	}

@@ -6,6 +6,11 @@ album=${args[1]}
 cue=${args[2]}
 path="/mnt/MPD/$file"
 args=( "${args[@]:3}" )
+
+pushstream() {
+	curl -s -X POST http://127.0.0.1/pub?id=mpdupdate -d "$1"
+}
+
 if [[ $cue == false ]]; then
 	if [[ $album == false ]]; then
 		kid3-cli \
@@ -28,7 +33,11 @@ if [[ $cue == false ]]; then
 			-c "set date \"${args[5]}\"" \
 			"$path/"*.*
 	fi
+	pushstream 1
 	mpc update "$file"
+	# update pre-queried list
+	/srv/http/bash/cmd.sh list
+	/srv/http/bash/cmd.sh count
 else
 	if [[ $album == false ]]; then
 		sed -i '/^\s\+TRACK '${args[2]}'/ {
@@ -53,4 +62,7 @@ n; s/^\(\s\+PERFORMER\).*/\1 "'${args[0]}'"/
 			esac
 		done
 	fi
+	# update pre-queried list
+	/srv/http/bash/cmd.sh listcue
+	/srv/http/bash/cmd.sh count
 fi

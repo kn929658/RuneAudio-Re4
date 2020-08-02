@@ -1,10 +1,5 @@
 #!/bin/bash
 
-flag=/srv/http/data/tmp/coverartfetch
-[[ -e $flag ]] && exit
-
-touch $flag
-
 readarray -t args <<< "$1"
 
 artist=${args[0]}
@@ -26,14 +21,14 @@ data=$( curl -s -G \
 	--data-urlencode "format=json" \
 	http://ws.audioscrobbler.com/2.0/ )
 error=$( jq -r .error <<< "$data" )
-[[ $error != null ]] && rm -f $flag && exit
+[[ $error != null ]] && exit
 
 if [[ $type == 'title' ]]; then
 	album=$( jq -r .track.album <<< "$data" )
 else
 	album=$( jq -r .album <<< "$data" )
 fi
-[[ $album == null ]] && rm -f $flag && exit
+[[ $album == null ]] && exit
 
 image=$( jq -r .image <<< "$album" )
 
@@ -51,5 +46,3 @@ if [[ $url != null && -n $url ]]; then
 		echo $url
 	fi
 fi
-
-rm -f $flag

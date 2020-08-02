@@ -139,14 +139,21 @@ function bookmarkNew() {
 					, message : '<img src="'+ coverart +'">'
 							   +'<br><w>'+ path +'</w>'
 					, ok      : function() {
-						$.post( cmdphp, {
-							  cmd       : 'bookmarks'
-							, bookmarks : 1
-							, path      : path
-							, base64    : 'tmp'
-							, new       : 1
+						var $img = $( '#infoMessage img' );
+						var canvas = document.createElement( 'canvas' );
+						canvas.height = 200; // size of resized image
+						canvas.width = Math.round( $img.width() / $img.height() * canvas.height );
+						pica.resize( $img[ 0 ], canvas, picaOption ).then( function() {
+							var base64 = canvas.toDataURL( 'image/jpeg' ); // canvas -> base64
+							$.post( cmdphp, {
+								  cmd       : 'bookmarks'
+								, bookmarks : 1
+								, path      : path
+								, base64    : base64
+								, new       : 1
+							} );
+							notify( 'Bookmark Added', path, 'bookmark' );
 						} );
-						notify( 'Bookmark Added', path, 'bookmark' );
 					}
 				} );
 			} else {
@@ -450,7 +457,6 @@ function tagEditor() {
 				if ( diff === 0 ) return
 				
 				notify( 'Tag Editor', 'Change ...', 'tag blink', -1 );
-				//bash( tag );
 				$.post( 'cmd.php', { cmd: 'sh', sh: tag } );
 			}
 		} );
@@ -523,7 +529,6 @@ function webRadioCoverart() {
 				$( '#coverart' )
 					.prop( 'src', G.status.state === 'play' ? vu : vustop )
 					.css( { 'border-radius': '18px', opacity: '' } );
-				$( '#divcover, #coverart' ).addClass( 'vu' );
 			} else {
 				G.list.li.find( 'img' ).remove();
 				G.list.li.find( '.li1' ).before( '<i class="fa fa-webradio lib-icon" data-target="#menu-webradio"></i>' );
@@ -548,7 +553,6 @@ function webRadioCoverartSet( newimg, thumb ) {
 		$( '#coverart' )
 			.prop( 'src', newimg )
 			.css( { 'border-radius': '', opacity: '' } );
-		$( '#divcover, #coverart' ).removeClass( 'vu' );
 	} else {
 		G.list.li.find( '.lib-icon' ).remove();
 		G.list.li.find( '.liname' ).after( '<img class="radiothumb lib-icon" src="'+ thumb +'" data-target="#menu-webradio">' );

@@ -52,24 +52,6 @@ case 'find':
 			exec( 'mpc find -f "'.$format.'" '.$mode[ 0 ].' "'.$string[ 0 ].'" albumartist "'.$string[ 1 ].'" 2> /dev/null'." | awk 'NF && !a[$0]++'"
 			, $lists );
 		}
-	} else if ( $mode === 'album' ) {
-		exec( 'mpc find -f "'.$format.'" album "'.$string.'" 2> /dev/null'." | awk 'NF && !a[$0]++'"
-			, $lists );                // multiple albums with the same name
-		if ( count( $lists ) === 1 ) { // no other albums with the same name - track list
-			$lists = []; // must be cleared otherwise appended by exec
-			$f = $formatall; // set all fields for single matched album
-			$format = '%'.implode( '%^^%', $f ).'%';
-			exec( 'mpc find -f "'.$format.'" album "'.$string.'" 2> /dev/null'." | awk 'NF && !a[$0]++'"
-				, $lists );
-		}
-		if ( file_exists( $cuefile ) ) { // cue ///////////////////////////////////
-			include $cuefile;
-			foreach( $cuedb as $each ) {
-				$album = $each[ 0 ];
-				$artist = $each[ 1 ] ?: $each[ 2 ];
-				if ( $album === $string ) $lists[] = $album.'^^'.$artist.'^^'.end( $each );
-			}
-		} // cue //////////////////////////////////////////////////////////////////
 	} else {
 		exec( 'mpc find -f "'.$format.'" '.$mode.' "'.$string.'" 2> /dev/null'." | awk 'NF && !a[$0]++'"
 			, $lists);
@@ -100,16 +82,22 @@ case 'find':
 	}
 	break;
 case 'list':
-	$lists = file( '/srv/http/data/mpd/'.$mode, FILE_IGNORE_NEW_LINES );
-	if ( !$lists ) exec( 'mpc list '.$mode.' | awk NF', $lists ); // if file missing
-	if ( file_exists( $cuefile ) ) { // cue /////////////////////////////////
-		include $cuefile;
-		$i = $modes[ $mode ];
-		foreach( $cuedb as $each ) {
-			$val = $each[ $i ];
-			if ( $val && !in_array( $val, $lists ) ) $lists[] = $val.'^^'.end( $each );
+	// temp: if file missing
+	if ( !file_exists( '/srv/http/data/mpd/'.$mode ) ) {
+		if ( $mode !== 'album' ) {
+			exec( 'mpc list '.$mode.' | awk NF', $lists );
+		} else {
+			exec( "mpc -f '%album%^^[%albumartist%|%artist%]^^%file%' listall \
+				| awk -F'/[^/]*$' 'NF && !/^\^/ && !a[$0]++ {print $1}' \
+				| sort -u", $lists );
 		}
-	} // cue //////////////////////////////////////////////////////////////////
+		$array = htmlList( $mode, $lists );
+		break;
+	}
+	
+	$lists = file( '/srv/http/data/mpd/'.$mode, FILE_IGNORE_NEW_LINES );
+	$listsC = file( '/srv/http/data/mpd/'.$mode.'C', FILE_IGNORE_NEW_LINES );
+	$lists = array_unique( array_merge( $lists, $listsC ) );
 	$array = htmlList( $mode, $lists );
 	break;
 case 'ls':
@@ -257,8 +245,20 @@ case 'webradio':
 echo json_encode( $array );
 
 //-------------------------------------------------------------------------------------
+function coverartGet( $path ) {
+	return exec( '/srv/http/bash/cmd-coverart.sh "'.escape( $path ).'"' );
+}
 function escape( $string ) {
 	return preg_replace( '/(["`])/', '\\\\\1', $string );
+}
+function HMS2second( $time ) {
+	$HMS = explode( ':', $time );
+	$count = count( $HMS );
+	switch( $count ) {
+		case 1: return $HMS[ 0 ]; break;
+		case 2: return $HMS[ 0 ] * 60 + $HMS[ 1 ]; break;
+		case 3: return $HMS[ 0 ] * 60 * 60 + $HMS[ 1 ] * 60 + $HMS[ 0 ]; break;
+	}
 }
 function htmlFind( $mode, $lists, $f ) { // non-file 'find' command
 	if ( !count( $lists ) ) exit( '-1' );
@@ -340,11 +340,12 @@ function htmlList( $mode, $lists ) { // non-file 'list' command
 		$name = $each->$mode;
 		$path = $name;
 		$datamode = $mode;
-		if ( strpos( $name, '^^' ) ) { // cue ////////////////////////////////////
+		if ( strpos( $name, '^^' ) ) { // album / cue ////////////////////////////////////
 			$data = explode( '^^', $name );
 			$name = $data[ 0 ];
 			if ( $mode === 'album' ) {
-				$path = $data[ 1 ];
+				$name.= '<gr> • </gr>'.$data[ 1 ];
+				$path = $data[ 2 ];
 				$datamode = 'file';
 			} else {
 				$path = $name;
@@ -464,18 +465,6 @@ function htmlTracks( $lists, $f, $filemode = '', $string = '' ) { // track list 
 	
 	return [ 'html' => $coverhtml.$html ];
 }
-function coverartGet( $path ) {
-	return exec( '/srv/http/bash/cmd-coverart.sh "'.escape( $path ).'"' );
-}
-function HMS2second( $time ) {
-	$HMS = explode( ':', $time );
-	$count = count( $HMS );
-	switch( $count ) {
-		case 1: return $HMS[ 0 ]; break;
-		case 2: return $HMS[ 0 ] * 60 + $HMS[ 1 ]; break;
-		case 3: return $HMS[ 0 ] * 60 * 60 + $HMS[ 1 ] * 60 + $HMS[ 0 ]; break;
-	}
-}
 function second2HMS( $second ) {
 	$hh = floor( $second / 3600 );
 	$mm = floor( ( $second % 3600 ) / 60 );
@@ -489,12 +478,10 @@ function second2HMS( $second ) {
 function stripLeading( $string ) {
 	$names = strtoupper( strVal( $string ) ); // strVal make all as string for strtoupper
 	return preg_replace(
-		  [ '/\^\^.*$/', // cue path
-			'/^A\s+|^AN\s+|^THE\s+|[^\w\p{L}\p{N}\p{Pd} ~]/u',
+		  [ '/^A\s+|^AN\s+|^THE\s+|[^\w\p{L}\p{N}\p{Pd} ~]/u',
 			'/\s+|^_/'
 		  ]
-		, [ '',
-			'',  // strip articles | non utf-8 normal alphanumerics | tilde(blank data)
+		, [ '',  // strip articles | non utf-8 normal alphanumerics | tilde(blank data)
 			'-'  // fix: php strnatcmp ignores spaces | sort underscore to before 0
 		  ]
 		, $names

@@ -30,7 +30,7 @@ $( '#song, #guide-lyrics' ).tap( function() {
 	}
 	artist = artist.replace( /(["`])/g, '\\$1' );
 	title = title.replace( /(["`])/g, '\\$1' );
-	sh( [ 'lyrics', artist, title, 'local' ], function( data ) {
+	bash( [ 'lyrics', artist, title, 'local' ], function( data ) {
 		if ( data ) {
 			var lyrics_title = data.split( '^^' );
 			lyricsTitle = lyrics_title[ 0 ];
@@ -133,7 +133,7 @@ $( '#lyricssave' ).click( function() {
 			var newlyrics = $( '#lyricstextarea' ).val();
 			var artist = $( '#lyricsartist' ).text();
 			var title = $( '#lyricstitle' ).text();
-			sh( [ 'lyrics', artist, title, 'save', newlyrics.replace( /\n/g, '^' ) ] ); // keep lirics single line
+			bash( [ 'lyrics', artist, title, 'save', newlyrics.replace( /\n/g, '^' ) ] ); // keep lirics single line
 			lyricstop = $( '#lyricstextarea' ).scrollTop();
 			currentlyrics = newlyrics;
 			lyrics2html( newlyrics );
@@ -158,7 +158,7 @@ $( '#lyricsdelete' ).click( function() {
 		, ok      : function() {
 			var artist = $( '#lyricsartist' ).text();
 			var title = $( '#lyricstitle' ).text();
-			sh( [ 'lyrics', artist, title, 'delete' ] );
+			bash( [ 'lyrics', artist, title, 'delete' ] );
 			lyrics = '';
 			currentlyrics = '';
 			lyricsHide();
@@ -174,7 +174,7 @@ htmlEscape = function( str ) {
 		.replace( /'|"/g, '' );
 }
 getLyrics = function() {
-	sh( [ 'lyrics', lyricsArtist, lyricsTitle ], function( data ) {
+	bash( [ 'lyrics', lyricsArtist, lyricsTitle ], function( data ) {
 		if ( data ) {
 			lyrics = data;
 			lyrics2html( lyrics );

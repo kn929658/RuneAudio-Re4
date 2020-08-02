@@ -18,6 +18,7 @@ done
 if [[ -n $coverfile ]]; then
 	# convert % > ^ | replace " > %20 | convert ^ > % for img src="/encoded/url"
 	coverfile=$( sed 's/%/\^/g; s/"/%22/g; s/\^/%25/g' <<< $coverfile )
+	echo "$coverfile.$( date +%s ).$ext"
 else
 	if [[ -f "$path" ]]; then
 		file="$path"
@@ -31,20 +32,11 @@ else
 	fi
 	tmpfile=/srv/http/data/tmp/coverart.jpg
 	rm -f $tmpfile
-#	ffmpeg -i "$file" $tmpfile &> /dev/null
-	kid3-cli -c "select \"$file\"" -c "get picture:$tmpfile" &> /dev/null # suppress '1 space' stdout
-### 3 - fetch online ################################################
-	if [[ ! -e $tmpfile ]]; then
+	ffmpeg -i "$file" $tmpfile &> /dev/null
+#	kid3-cli -c "select \"$file\"" -c "get picture:$tmpfile" &> /dev/null # suppress '1 space' stdout
+	if [[ -e $tmpfile ]]; then
+		echo /data/tmp/coverart.$( date +%s ).jpg
+	else
 		/srv/http/bash/cmd-coverartfetch.sh "$2" &> /dev/null &
-		exit
 	fi
-	
-	coverfile=/data/tmp/coverart
-	ext=jpg
-fi
-
-if [[ $2 != thumbnail || $ext == gif ]]; then
-	echo "$coverfile.$( date +%s ).$ext"
-else # resize
-	convert "$coverfile.$ext" -thumbnail 200x200 -unsharp 0x.5 inline:JPG:-
 fi

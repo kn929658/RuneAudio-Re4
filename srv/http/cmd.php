@@ -75,17 +75,8 @@ case 'bookmarks':
 				.'<div class="mode mode-bookmark">'
 				.'<a class="lipath">'.$path.'</a>';
 		if ( $base64 ) {
-			if ( $base64 === 'tmp' ) {
-				rename( $dirtmp.'base64', $file );
-				$html.='<img class="bkcoverart" src="'.file_get_contents( $file ).'">';
-			} else if ( $base64 === 1 ) {
-				$cover = coverartGet( $path, 'thumbnail' );
-				file_put_contents( $file, $cover );
-				$html.='<img class="bkcoverart" src="'.$cover.'">';
-			} else {
-				file_put_contents( $file, $base64 );
-				$html.='<img class="bkcoverart" src="'.$base64.'">';
-			}
+			file_put_contents( $file, $base64 );
+			$html.='<img class="bkcoverart" src="'.$base64.'">';
 		} else if ( isset( $_POST[ 'gif' ] ) ) {
 			$giffile = $_POST[ 'gif' ];
 			gifSave(
@@ -112,7 +103,7 @@ case 'bookmarks':
 	pushstream( 'bookmark', $data );
 	break;
 case 'coverartget';
-	echo coverartGet( $_POST[ 'path' ], $_POST[ 'thumbnail' ] ?? '' );
+	echo coverartGet( $_POST[ 'path' ] );
 	break;
 case 'displayget':
 	$data = json_decode( file_get_contents( $dirsystem.'display' ) );
@@ -185,7 +176,7 @@ case 'imagefile':
 		exit;
 	} else if ( isset( $_POST[ 'bookmarkfile' ] ) ) { // # bookmark thumbnail
 		$bookmarkfile = $_POST[ 'bookmarkfile' ];
-		$thumbnail = coverartGet( $imagefile, 'thumbnail' );
+		$thumbnail = coverartGet( $imagefile );
 		file_put_contents( $bookmarkfile, $thumbnail ? $thumbnail : $_POST[ 'label' ] );
 		echo $thumbnail;
 		exit;
@@ -256,8 +247,8 @@ function cmdsh( $sh ) {
 	$script.= escape( implode( "\n", $sh ) ).'"';
 	return shell_exec( $script );
 }
-function coverartGet( $path, $thumbnail = '' ) {
-	return exec( '/srv/http/bash/cmd-coverart.sh "'.escape( $path ).'" '.$thumbnail );
+function coverartGet( $path ) {
+	return exec( '/srv/http/bash/cmd-coverart.sh "'.escape( $path ).'"' );
 }
 function escape( $string ) {
 	return preg_replace( '/(["`])/', '\\\\\1', $string );

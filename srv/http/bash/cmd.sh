@@ -2,9 +2,11 @@
 
 dirdata=/srv/http/data
 diraddons=/srv/http/data/addons
+dirmpd=/srv/http/data/mpd
 dirsystem=/srv/http/data/system
 dirtmp=/srv/http/data/tmp
 dirwebradios=/srv/http/data/webradios
+flag=/srv/http/data/tmp/flag
 
 # convert each line to each args
 readarray -t args <<< "$1"
@@ -22,86 +24,99 @@ pushstreamPkg() {
 	curl -s -X POST http://127.0.0.1/pub?id=package -d '{"pkg":"'$1'", "start":'$2',"enable":'$3' }'
 }
 
-cuescan() {
-	cuedbfile=/srv/http/data/mpd/cuedb.php
-	files=$( find /mnt/MPD -type f -name *.cue )
-	[[ -z $files ]] && rm -f $cuedbfile && exit
+count() {
+	for mode in album albumartist artist composer date genre; do
+		lines=$( cat $dirmpd/$mode )$'\n'
+		lines+=$( cat $dirmpd/${mode}C )
+		printf -v $mode '%s' $( echo "$lines" | sort -u | wc -l )
+	done
+	for mode in NAS SD USB; do
+		printf -v $mode '%s' $( mpc ls $mode 2> /dev/null | wc -l )
+	done
+	stats=( $( mpc stats | head -3 | awk '{print $2,$4,$6}' ) )
+	counts='
+	  "album"       : '$album'
+	, "albumartist" : '$albumartist'
+	, "artist"      : '$artist'
+	, "composer"    : '$composer'
+	, "coverart"    : '$( ls -1q /srv/http/data/coverarts | wc -l )'
+	, "date"        : '$date'
+	, "genre"       : '$genre'
+	, "nas"         : '$NAS'
+	, "sd"          : '$SD'
+	, "title"       : '$(( Ititle + ${stats[2]} ))'
+	, "usb"         : '$USB'
+	, "webradio"    : '$( ls -U /srv/http/data/webradios/* 2> /dev/null | wc -l )
 	
+	echo {$counts} | jq . > $dirmpd/counts
+	pushstream mpdupdate "{$counts}"
+}
+list() {
+	# pre-fetched - browse by mode
+	mpc -f '%album%^^[%albumartist%|%artist%]^^%file%' listall \
+		| awk -F'/[^/]*$' 'NF && !/^\^/ && !a[$0]++ {print $1}' \
+		| sort -u \
+		> $dirmpd/album
+	for mode in albumartist artist composer genre date; do
+		mpc list $mode | awk NF | awk '{$1=$1};1' > $dirmpd/$mode
+	done
+}
+listCue() {
+	files=$( find /mnt/MPD -type f -name *.cue )
+	[[ -z $files ]] && exit
+		
 	readarray -t files <<< "$files"
 	
-	ialbum=0
-	ialbumartist=0
-	iartist=0
-	icomposer=0
-	idate=0
-	igenre=0
-	ititle=0
+	for file in "${files[@]}"; do # album albumartist artist composer date genre path
+		lines=$( grep '^TITLE\|^PERFORMER\|^\s\+PERFORMER\|^REM GENRE\|REM DATE\|^\s\+TRACK' "$file" )
 		
-	for file in "${files[@]}"; do # album^^albumartisst^^artist^^path
-		lines=$( grep '^TITLE\|^PERFORMER\|^\s\+PERFORMER\|^REM GENRE\|REM DATE' "$file" )
 		album=$( grep '^TITLE' <<< "$lines" | sed 's/^TITLE "*//; s/"*.$//' )
 		albumartist=$( grep '^PERFORMER' <<< "$lines" | sed 's/^PERFORMER "*//; s/"*.$//' )
 		artist=$( grep -m1 '^\s\+PERFORMER' <<< "$lines" | sed 's/^\s\+PERFORMER "*//; s/"*.$//' )
 		composer=$( grep '^REM COMPOSER' <<< "$lines" | sed 's/^REM COMPOSER "*//; s/"*.$//' )
 		date=$( grep '^REM DATE' <<< "$lines" | sed 's/^REM DATE "*//; s/"*.$//' )
 		genre=$( grep '^REM GENRE' <<< "$lines" | sed 's/^REM GENRE "*//; s/"*.$//' )
-		path=$( dirname "$file" | sed 's|/mnt/MPD/||' )
-		[[ -n $album ]] && (( ialbum++ ))
-		[[ -n $albumartist ]] && (( ialbumartist++ ))
-		[[ -n $artist ]] && (( iartist++ ))
-		[[ -n $composer ]] && (( icomposer++ ))
-		[[ -n $date ]] && (( idate++ ))
-		[[ -n $genre ]] && (( igenre++ ))
-		ititle=$(( ititle + $( grep -c '^\s\+TRACK' "$file" ) ))
-		cue+=',["'$album'","'$albumartist'","'$artist'","'$composer'","'$date'","'$genre'","'$path'"]'
+		
+		path=$( dirname "$file" )
+		mpdpath=${path:9}
+		
+		[[ -n $albumartist ]] && ar=$$albumartist || ar=$artist
+		albumC+="$album^^$ar^^$mpdpath"$'\n'
+		albumartistC+="$albumartist"$'\n'
+		artistC+="$artist"$'\n'
+		composerC+="$composer"$'\n'
+		dateC+="$date"$'\n'
+		genreC+="$genre"$'\n'
+		
+		Ititle=$(( $Ititle + $( grep -c '^\s\+TRACK' <<< "$lines" ) ))
+		cue+=',["'$album'","'$albumartist'","'$artist'","'$composer'","'$date'","'$genre'","'$mpdpath'"]'
+		# mpdignore subdirectories
+		subdirs=$( find "$path" -mindepth 1 -maxdepth 1 -type d | sed 's|.*/||' )
+		[[ -n $subdirs ]] && echo "$subdirs" > "$path/.mpdignore"
 	done
 	cuedb=$( jq . <<< "[ ${cue:1} ]" ) # remove 1st comma
-	cat << EOF > $cuedbfile
+	cat << EOF > $dirmpd/cuedb.php
 <?php
 \$cuedb = $cuedb;
 EOF
-	count
-}
-count() {
-	# pre-fetched - browse by mode
-	for type in albumartist composer date genre; do
-		printf -v $type '%s' $( mpc list $type | awk NF | wc -l )
+	for modeC in albumC albumartistC artistC composerC genreC dateC; do
+		echo "${!modeC}" | awk NF | awk '{$1=$1};1' | sort -u > $dirmpd/$modeC
 	done
-	for type in NAS SD USB; do
-		printf -v $type '%s' $( mpc ls $type 2> /dev/null | wc -l )
-	done
-	stats=( $( mpc stats | head -3 | awk '{print $2,$4,$6}' ) )
-	counts='
-	  "album"       : '$(( ialbum + ${stats[1]} ))'
-	, "albumartist" : '$(( ialbumartist + albumartist ))'
-	, "artist"      : '$(( iartist + ${stats[0]} ))'
-	, "composer"    : '$(( icomposer + composer ))'
-	, "coverart"    : '$( ls -1q /srv/http/data/coverarts | wc -l )'
-	, "date"        : '$(( idate + date ))'
-	, "genre"       : '$(( igenre + genre ))'
-	, "nas"         : '$NAS'
-	, "sd"          : '$SD'
-	, "title"       : '$(( ititle + ${stats[2]} ))'
-	, "usb"         : '$USB'
-	, "webradio"    : '$( ls -U /srv/http/data/webradios/* 2> /dev/null | wc -l )
-	
-	echo {$counts} | jq . > /srv/http/data/mpd/counts
-	pushstream mpdupdate "{$counts}"
 }
 volumeSet() {
 	current=$1
 	target=$2
 	diff=$(( $target - $current ))
 	if (( -10 < $diff && $diff < 10 )); then
-		mpc -q volume $target
+		mpc volume $target
 	else # increment
 		pushstream volume '{"disable":true}'
 		(( $diff > 0 )) && incr=5 || incr=-5
 		for i in $( seq $current $incr $target ); do
-			mpc -q volume $i
+			mpc volume $i
 			sleep 0.2
 		done
-		(( $i != $target )) && mpc -q volume $target
+		(( $i != $target )) && mpc volume $target
 		pushstream volume '{"disable":false}'
 	fi
 }
@@ -169,9 +184,6 @@ s|\(--cg60: *hsl\).*;|\1(${hsg}60%);|
 count )
 	count
 	;;
-cuescan )
-	cuescan
-	;;
 filemove )
 	mv -f "${args[1]}" "${args[2]}"
 	;;
@@ -192,6 +204,12 @@ ignoredir )
 	;;
 imageresize )
 	convert "${args[1]}" -coalesce -resize 200x200 "${args[2]}"
+	;;
+list )
+	list
+	;;
+listcue )
+	listCue
 	;;
 lyrics )
 	artist=${args[1]}
@@ -288,17 +306,16 @@ mpcls )
 	mpc play $pos
 	;;
 mpcprevnext )
-	direction=${args[1]}
+	touch $flag
+	command=${args[1]}
 	current=${args[2]}
 	length=${args[3]}
 	mpc | grep -q '^\[playing\]' && playing=1
-	flag=/srv/http/data/tmp/prevnext
-	touch $flag # suppress mpdidle
 	if [[ $( mpc | awk '/random/ {print $6}' ) == on ]]; then
 		pos=$( shuf -n 1 <( seq $length | grep -v $current ) )
 		mpc play $pos
 	else
-		if [[ $direction == next ]]; then
+		if [[ $command == next ]]; then
 			(( $current != $length )) && mpc play $(( current + 1 )) || mpc play 1
 		else
 			(( $current != 1 )) && mpc play $(( current - 1 )) || mpc play $length
@@ -312,10 +329,9 @@ mpcprevnext )
 mpcrescan )
 	pushstream mpdupdate 1
 	mpc rescan
-	for type in album albumartist artist composer date genre; do
-		mpc list $type | sed '/^$/ d' > /srv/http/data/mpd/$type
-	done
-	cuescan
+	list
+	listCue
+	count
 	;;
 mpcsimilar )
 	plL=$( mpc playlist | wc -l )
@@ -338,7 +354,9 @@ mpcsimilar )
 mpcupdate )
 	pushstream mpdupdate 1
 	mpc update "${args[1]}"
-	cuescan
+	list
+	listCue
+	count
 	;;
 packageenable )
 	pkg=${args[1]}
@@ -362,12 +380,13 @@ playrandom )
 	mpc play $( shuf -i 0-$plL -n 1 )
 	;;
 playseek )
+	touch $flag
 	seek=${args[1]}
-	touch $dirtmp/nostatus
 	mpc play
 	mpc pause
 	mpc seek $seek
 	pushstreamKeyVal seek elapsed $seek
+	rm -f $flag
 	;;
 plrandom )
 	if [[ ${args[1]} == false ]]; then
@@ -389,6 +408,7 @@ plshuffle )
 	pushstreamKeyVal playlist playlist playlist
 	;;
 plcrop )
+	touch $flag
 	if mpc | grep -q playing; then
 		mpc crop
 	else
@@ -398,6 +418,7 @@ plcrop )
 	fi
 	systemctl -q is-active libraryrandom && mpc listall | shuf -n 2 | mpc add
 	pushstreamKeyVal playlist playlist playlist
+	rm -f $flag
 	;;
 plorder )
 	mpc move ${args[1]} ${args[2]}
@@ -473,7 +494,7 @@ volume )
 	;;
 volumeincrement )
 	target=${args[1]}
-	mpc -q volume $target
+	mpc volume $target
 	pushstreamVol set $target
 	;;
 volumenone )

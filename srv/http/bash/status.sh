@@ -1,7 +1,5 @@
 #!/bin/bash
 
-rm -f /srv/http/data/tmp/{coverartfetch,prevnext} # clear running flag in case still left
-
 playerfile=/srv/http/data/system/player
 ########
 status=$( cat $playerfile )
@@ -75,7 +73,7 @@ fi
 
 filter='Album\|Artist\|audio\|bitrate\|consume\|duration\|elapsed\|file\|Name\|playlistlength\|random\|repeat\|single\|^song:\|state\|Time\|Title\|updating_db\|volume'
 mpdStatus() {
-	mpdtelnet=$( { echo clearerror; echo status; echo $1; sleep 0.05; close; } \
+	mpdtelnet=$( { echo clearerror; echo status; echo $1; sleep 0.05; } \
 		| telnet 127.0.0.1 6600 2> /dev/null \
 		| grep "$filter" )
 }
@@ -199,15 +197,6 @@ if [[ $1 == statusonly
 	exit
 fi
 
-# coverart
-if [[ $ext != Radio ]]; then
-	coverart=$( /srv/http/bash/cmd-coverart.sh "$file0" "$Artist"$'\n'"$Album" ) # no escape needed
-elif [[ -e $radiofile ]]; then
-	coverart=$( sed -n '3 p' $radiofile )
-fi
-########
-status+=', "coverart" : "'$coverart'"'
-
 samplingLine() {
 	bitdepth=$1
 	samplerate=$2
@@ -276,4 +265,27 @@ fi
 ########
 status+=', "sampling" : "'$position$sampling'"'
 
+# coverart
+if [[ $ext != Radio ]]; then
+	coverart=$( /srv/http/bash/cmd-coverart.sh "$file0" "$Artist"$'\n'"$Album" ) # no escape needed
+elif [[ -e $radiofile ]]; then
+	coverart=$( sed -n '3 p' $radiofile )
+fi
+########
+status+=', "coverart" : "'$coverart'"'
+
 echo {$status}
+
+if [[ $ext == Radio && -n $Title ]]; then
+	if [[ $Title =~ " - " ]]; then
+		delimiter=' - '
+	elif [[ $Title =~ ": " ]]; then
+		delimiter=': '
+	fi
+	title=$( sed 's/ $\| (.*$//' <<< "$Title" )
+	data=$( perl -E 'say for split quotemeta shift, shift' -- "$delimiter" "$title" )
+	(( $( echo "$data" | wc -l ) != 2 )) && exit
+	
+	/srv/http/bash/cmd-coverartfetch.sh "$data"$'\ntitle' &> /dev/null &
+fi
+

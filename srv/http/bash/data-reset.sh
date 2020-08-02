@@ -3,8 +3,10 @@
 # config.txt
 hwcode=$( awk '/Revision/ {print substr($NF, 4, 2)}' /proc/cpuinfo )
 if (( $# == 0 )); then
-	[[ $hwcode == 09 || $hwcode == 0c ]] && rpi=0
-	[[ $hwcode == 11 ]] && rpi=4
+	case $hwcode in
+		09 | 0c ) rpi=0;;
+		11 )      rpi=4;;
+	esac
 	config="\
 over_voltage=2
 hdmi_drive=2

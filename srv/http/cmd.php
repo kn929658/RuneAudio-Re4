@@ -193,7 +193,7 @@ case 'imagefile':
 		}
 	} else {
 		unlink( $imagefile );
-		exec( '/srv/http/bash/cmd.sh "countcoverart\n-1"' );
+		exec( $sudo.'/srv/http/bash/cmd.sh countcoverart' );
 	}
 	if ( isset( $_POST[ 'base64' ] ) ) {
 		if ( !isset( $_FILES[ 'file' ] ) ) {

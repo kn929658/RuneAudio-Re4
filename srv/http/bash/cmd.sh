@@ -186,7 +186,7 @@ count )
 	count
 	;;
 countcoverart )
-	if [[ -z ${args[1]} ]]; then
+	if [[ -n ${args[1]} ]]; then
 		coverart=$(( $( jq .coverart $dirmpd/counts ) - 1 ))
 	else
 		coverart=$( ls -1 $dirdata/coverarts | wc -l )

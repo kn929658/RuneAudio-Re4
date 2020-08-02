@@ -35,7 +35,7 @@ if [[ $cue == false ]]; then
 	fi
 	pushstream 1
 	mpc update "$file"
-	pushstream 0
+	/srv/http/bash/cmd.sh count
 else
 	if [[ $album == false ]]; then
 		sed -i '/^\s\+TRACK '${args[2]}'/ {

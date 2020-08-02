@@ -73,9 +73,11 @@ fi
 
 getinstallzip
 
-/srv/http/bash/cmd.sh list
-/srv/http/bash/cmd.sh listcue
-/srv/http/bash/cmd.sh count
+if [[ ! -e /srv/http/data/mpd/albumC ]]; then
+	/srv/http/bash/cmd.sh list
+	/srv/http/bash/cmd.sh listcue
+	/srv/http/bash/cmd.sh count
+fi
 
 installfinish
 

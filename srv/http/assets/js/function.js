@@ -1058,7 +1058,7 @@ function renderLibraryList( data ) {
 			$( 'html, body' ).scrollTop( G.scrolltop[ libpath ] || 0 );
 			$( '#lib-list' ).removeClass( 'hide' );
 			$( '#loader' ).addClass( 'hide' );
-		}, 0 );
+		}, 300 );
 	} );
 }
 function renderPlayback() {

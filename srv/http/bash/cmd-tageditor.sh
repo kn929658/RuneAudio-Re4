@@ -35,6 +35,8 @@ if [[ $cue == false ]]; then
 	fi
 	pushstream 1
 	mpc update "$file"
+	# update pre-queried list
+	/srv/http/bash/cmd.sh list
 	/srv/http/bash/cmd.sh count
 else
 	if [[ $album == false ]]; then
@@ -60,4 +62,7 @@ n; s/^\(\s\+PERFORMER\).*/\1 "'${args[0]}'"/
 			esac
 		done
 	fi
+	# update pre-queried list
+	/srv/http/bash/cmd.sh listcue
+	/srv/http/bash/cmd.sh count
 fi

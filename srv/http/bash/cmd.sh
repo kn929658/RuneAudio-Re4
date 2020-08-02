@@ -25,21 +25,23 @@ pushstreamPkg() {
 }
 
 count() {
-	for mode in albumartist composer date genre; do
-		printf -v $mode '%s' $( mpc list $mode | awk NF | wc -l )
+	for mode in album albumartist artist composer date genre; do
+		lines=$( cat $dirmpd/$mode )$'\n'
+		lines+=$( cat $dirmpd/${mode}C )
+		printf -v $mode '%s' $( echo "$lines" | sort -u | wc -l )
 	done
 	for mode in NAS SD USB; do
 		printf -v $mode '%s' $( mpc ls $mode 2> /dev/null | wc -l )
 	done
 	stats=( $( mpc stats | head -3 | awk '{print $2,$4,$6}' ) )
 	counts='
-	  "album"       : '$(( Ialbum + ${stats[1]} ))'
-	, "albumartist" : '$(( Ialbumartist + albumartist ))'
-	, "artist"      : '$(( Iartist + ${stats[0]} ))'
-	, "composer"    : '$(( Icomposer + composer ))'
+	  "album"       : '$album'
+	, "albumartist" : '$albumartist'
+	, "artist"      : '$artist'
+	, "composer"    : '$composer'
 	, "coverart"    : '$( ls -1q /srv/http/data/coverarts | wc -l )'
-	, "date"        : '$(( Idate + date ))'
-	, "genre"       : '$(( Igenre + genre ))'
+	, "date"        : '$date'
+	, "genre"       : '$genre'
 	, "nas"         : '$NAS'
 	, "sd"          : '$SD'
 	, "title"       : '$(( Ititle + ${stats[2]} ))'
@@ -49,69 +51,57 @@ count() {
 	echo {$counts} | jq . > $dirmpd/counts
 	pushstream mpdupdate "{$counts}"
 }
-listScan() {
+list() {
 	# pre-fetched - browse by mode
-	modes=( album albumartist artist composer genre date )
-	cuedbfile=$dirmpd/cuedb.php
-	album=$( mpc -f '%album%^^[%albumartist%|%artist%]^^%file%' listall \
-			| awk -F'/[^/]*$' 'NF && !/^\^/ && !a[$0]++ {print $1}' )
+	mpc -f '%album%^^[%albumartist%|%artist%]^^%file%' listall \
+		| awk -F'/[^/]*$' 'NF && !/^\^/ && !a[$0]++ {print $1}' \
+		| sort -u \
+		> $dirmpd/album
+	for mode in albumartist artist composer genre date; do
+		mpc list $mode | awk NF | awk '{$1=$1};1' > $dirmpd/$mode
+	done
+}
+listCue() {
 	files=$( find /mnt/MPD -type f -name *.cue )
-	if [[ -n $files ]]; then
-		for mode in ${modes[@]:1}; do
-			printf -v $mode '%s' "$( mpc list $mode | awk NF | awk '{$1=$1};1' )"
-		done
-	else
-		echo "$album" > $dirmpd/album
-		for mode in ${modes[@]:1}; do
-			mpc list $mode | awk NF | awk '{$1=$1};1' > $dirmpd/$mode
-		done
-		rm -f $cuedbfile
-		count
-		exit
-	fi
-	
+	[[ -z $files ]] && exit
+		
 	readarray -t files <<< "$files"
 	
-	Ialbum=0
-	Ialbumartist=0
-	Iartist=0
-	Icomposer=0
-	Idate=0
-	Igenre=0
-	Ititle=0
-		
 	for file in "${files[@]}"; do # album albumartist artist composer date genre path
-		path=$( dirname "$file" )
 		lines=$( grep '^TITLE\|^PERFORMER\|^\s\+PERFORMER\|^REM GENRE\|REM DATE\|^\s\+TRACK' "$file" )
-		Calbum=$( grep '^TITLE' <<< "$lines" | sed 's/^TITLE "*//; s/"*.$//' )
-		Calbumartist=$( grep '^PERFORMER' <<< "$lines" | sed 's/^PERFORMER "*//; s/"*.$//' )
-		Cartist=$( grep -m1 '^\s\+PERFORMER' <<< "$lines" | sed 's/^\s\+PERFORMER "*//; s/"*.$//' )
-		Ccomposer=$( grep '^REM COMPOSER' <<< "$lines" | sed 's/^REM COMPOSER "*//; s/"*.$//' )
-		Cdate=$( grep '^REM DATE' <<< "$lines" | sed 's/^REM DATE "*//; s/"*.$//' )
-		Cgenre=$( grep '^REM GENRE' <<< "$lines" | sed 's/^REM GENRE "*//; s/"*.$//' )
-		Cpath=${path:9}
-		[[ -n $Calbumartist ]] && (( Ialbumartist++ )) && albumartist+="$Calbumartist"$'\n'
-		[[ -n $Cartist ]]      && (( Iartist++ ))      && artist+="$Cartist"$'\n'
-		[[ -n $Ccomposer ]]    && (( Icomposer++ ))    && composer+="$Ccomposer"$'\n'
-		[[ -n $Cdate ]]        && (( Idate++ ))        && date+="$Cdate"$'\n'
-		[[ -n $Cgenre ]]       && (( Igenre++ ))       && genre+="$Cgenre"$'\n'
-		[[ -n $Calbumartist ]] && Cartist=$Cartist
-		album+="$Calbum^^$Cartist^^$Cpath"$'\n'
-		Ititle=$(( Ititle + $( grep -c '^\s\+TRACK' <<< "$lines" ) ))
-		cue+=',["'$Calbum'","'$Calbumartist'","'$Cartist'","'$Ccomposer'","'$Cdate'","'$Cgenre'","'$Cpath'"]'
+		
+		album=$( grep '^TITLE' <<< "$lines" | sed 's/^TITLE "*//; s/"*.$//' )
+		albumartist=$( grep '^PERFORMER' <<< "$lines" | sed 's/^PERFORMER "*//; s/"*.$//' )
+		artist=$( grep -m1 '^\s\+PERFORMER' <<< "$lines" | sed 's/^\s\+PERFORMER "*//; s/"*.$//' )
+		composer=$( grep '^REM COMPOSER' <<< "$lines" | sed 's/^REM COMPOSER "*//; s/"*.$//' )
+		date=$( grep '^REM DATE' <<< "$lines" | sed 's/^REM DATE "*//; s/"*.$//' )
+		genre=$( grep '^REM GENRE' <<< "$lines" | sed 's/^REM GENRE "*//; s/"*.$//' )
+		
+		path=$( dirname "$file" )
+		mpdpath=${path:9}
+		
+		[[ -n $albumartist ]] && ar=$$albumartist || ar=$artist
+		albumC+="$album^^$ar^^$mpdpath"$'\n'
+		albumartistC+="$albumartist"$'\n'
+		artistC+="$artist"$'\n'
+		composerC+="$composer"$'\n'
+		dateC+="$date"$'\n'
+		genreC+="$genre"$'\n'
+		
+		Ititle=$(( $Ititle + $( grep -c '^\s\+TRACK' <<< "$lines" ) ))
+		cue+=',["'$album'","'$albumartist'","'$artist'","'$composer'","'$date'","'$genre'","'$mpdpath'"]'
 		# mpdignore subdirectories
 		subdirs=$( find "$path" -mindepth 1 -maxdepth 1 -type d | sed 's|.*/||' )
 		[[ -n $subdirs ]] && echo "$subdirs" > "$path/.mpdignore"
 	done
 	cuedb=$( jq . <<< "[ ${cue:1} ]" ) # remove 1st comma
-	cat << EOF > $cuedbfile
+	cat << EOF > $dirmpd/cuedb.php
 <?php
 \$cuedb = $cuedb;
 EOF
-	for mode in ${modes[@]}; do
-		echo "${!mode}" | sort -u | awk NF > $dirmpd/$mode
+	for modeC in albumC albumartistC artistC composerC genreC dateC; do
+		echo "${!modeC}" | awk NF | awk '{$1=$1};1' | sort -u > $dirmpd/$modeC
 	done
-	count
 }
 volumeSet() {
 	current=$1
@@ -194,9 +184,6 @@ s|\(--cg60: *hsl\).*;|\1(${hsg}60%);|
 count )
 	count
 	;;
-listScan )
-	listScan
-	;;
 filemove )
 	mv -f "${args[1]}" "${args[2]}"
 	;;
@@ -217,6 +204,12 @@ ignoredir )
 	;;
 imageresize )
 	convert "${args[1]}" -coalesce -resize 200x200 "${args[2]}"
+	;;
+list )
+	list
+	;;
+listcue )
+	listCue
 	;;
 lyrics )
 	artist=${args[1]}
@@ -336,7 +329,9 @@ mpcprevnext )
 mpcrescan )
 	pushstream mpdupdate 1
 	mpc rescan
-	listScan
+	list
+	listCue
+	count
 	;;
 mpcsimilar )
 	plL=$( mpc playlist | wc -l )
@@ -359,7 +354,9 @@ mpcsimilar )
 mpcupdate )
 	pushstream mpdupdate 1
 	mpc update "${args[1]}"
-	listScan
+	list
+	listCue
+	count
 	;;
 packageenable )
 	pkg=${args[1]}

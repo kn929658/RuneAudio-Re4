@@ -185,6 +185,11 @@ s|\(--cg60: *hsl\).*;|\1(${hsg}60%);|
 count )
 	count
 	;;
+countcoverart )
+	coverart=$(( $( jq .coverart $dirmpd/counts ) - 1 ))
+	sed -i "s/\(.*coverart.: \).*/\1$coverart,/" $dirmpd/counts
+	pushstream mpdupdate "$( cat $dirmpd/counts )"
+	;;
 filemove )
 	mv -f "${args[1]}" "${args[2]}"
 	;;

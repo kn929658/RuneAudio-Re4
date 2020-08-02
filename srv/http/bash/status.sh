@@ -197,15 +197,6 @@ if [[ $1 == statusonly
 	exit
 fi
 
-# coverart
-if [[ $ext != Radio ]]; then
-	coverart=$( /srv/http/bash/cmd-coverart.sh "$file0" "$Artist"$'\n'"$Album" ) # no escape needed
-elif [[ -e $radiofile ]]; then
-	coverart=$( sed -n '3 p' $radiofile )
-fi
-########
-status+=', "coverart" : "'$coverart'"'
-
 samplingLine() {
 	bitdepth=$1
 	samplerate=$2
@@ -273,6 +264,15 @@ else
 fi
 ########
 status+=', "sampling" : "'$position$sampling'"'
+
+# coverart
+if [[ $ext != Radio ]]; then
+	coverart=$( /srv/http/bash/cmd-coverart.sh "$file0" "$Artist"$'\n'"$Album" ) # no escape needed
+elif [[ -e $radiofile ]]; then
+	coverart=$( sed -n '3 p' $radiofile )
+fi
+########
+status+=', "coverart" : "'$coverart'"'
 
 echo {$status}
 

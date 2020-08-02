@@ -3,10 +3,9 @@
 find, list, ls, search, track, webradio
 
 Album
-	album list: mpc list album
-		album-artist list: mpc find -f %album%^^%artist% album
-			- album list: again for albums with the same name as album-artist
-			- track list: mpc find -f %*% album $album artist $artist
+	album-artist list: mpc -f '%album%^^[%albumartist%|%artist%]^^%file%' listall \
+					| awk -F'/[^/]*$' 'NF && !/^\^/ && !a[$0]++ {print $1}'
+			track list: mpc ls -f %*% $path
 Artist
 	artist list: mpc list artist
 		album list: mpc find -f %artist%^^%album% artist $artist
@@ -24,7 +23,7 @@ Genre
 		artist-album list: mpc find -f %artist%^^%album% genre $genre
 			track list: mpc find -f %*% album $album artist $artist
 File
-		directory list: mpc ls -f %file% $path
+	directory list: mpc ls -f %file% $path
 			track list: mpc ls -f %*% $path
 search
 		track list: mpc search -f %*% any $keyword

@@ -242,6 +242,7 @@ function psMpdUpdate( data ) {
 	
 	if ( data == 1 ) {
 		G.status.updating_db = true;
+		bannerHide();
 		if ( !G.localhost ) $( '#tab-library, #button-library' ).addClass( 'blink' );
 		if ( !G.bars ) {
 			$( '#posupdate' ).toggleClass( 'hide', !G.display.time );

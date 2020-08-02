@@ -44,7 +44,7 @@ count() {
 	, "genre"       : '$genre'
 	, "nas"         : '$NAS'
 	, "sd"          : '$SD'
-	, "title"       : '$(( Ititle + ${stats[2]} ))'
+	, "title"       : '$(( $( cat $dirmpd/countsC ) + ${stats[2]} ))'
 	, "usb"         : '$USB'
 	, "webradio"    : '$( ls -U /srv/http/data/webradios/* 2> /dev/null | wc -l )
 	
@@ -102,6 +102,7 @@ EOF
 	for modeC in albumC albumartistC artistC composerC genreC dateC; do
 		echo "${!modeC}" | awk NF | awk '{$1=$1};1' | sort -u > $dirmpd/$modeC
 	done
+	echo $Ititle > $dirmpd/countsC
 }
 volumeSet() {
 	current=$1
@@ -311,6 +312,7 @@ mpcprevnext )
 	current=${args[2]}
 	length=${args[3]}
 	mpc | grep -q '^\[playing\]' && playing=1
+	
 	if [[ $( mpc | awk '/random/ {print $6}' ) == on ]]; then
 		pos=$( shuf -n 1 <( seq $length | grep -v $current ) )
 		mpc play $pos

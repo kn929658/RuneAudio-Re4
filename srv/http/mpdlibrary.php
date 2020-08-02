@@ -52,24 +52,6 @@ case 'find':
 			exec( 'mpc find -f "'.$format.'" '.$mode[ 0 ].' "'.$string[ 0 ].'" albumartist "'.$string[ 1 ].'" 2> /dev/null'." | awk 'NF && !a[$0]++'"
 			, $lists );
 		}
-/*	} else if ( $mode === 'album' ) {
-		exec( 'mpc find -f "'.$format.'" album "'.$string.'" 2> /dev/null'." | awk 'NF && !a[$0]++'"
-			, $lists );                // multiple albums with the same name
-		if ( count( $lists ) === 1 ) { // no other albums with the same name - track list
-			$lists = []; // must be cleared otherwise appended by exec
-			$f = $formatall; // set all fields for single matched album
-			$format = '%'.implode( '%^^%', $f ).'%';
-			exec( 'mpc find -f "'.$format.'" album "'.$string.'" 2> /dev/null'." | awk 'NF && !a[$0]++'"
-				, $lists );
-		}
-		if ( file_exists( $cuefile ) ) { // cue ///////////////////////////////////
-			include $cuefile;
-			foreach( $cuedb as $each ) {
-				$album = $each[ 0 ];
-				$artist = $each[ 1 ] ?: $each[ 2 ];
-				if ( $album === $string ) $lists[] = $album.'^^'.$artist.'^^'.end( $each );
-			}
-		}*/ // cue //////////////////////////////////////////////////////////////////
 	} else {
 		exec( 'mpc find -f "'.$format.'" '.$mode.' "'.$string.'" 2> /dev/null'." | awk 'NF && !a[$0]++'"
 			, $lists);
@@ -100,8 +82,15 @@ case 'find':
 	}
 	break;
 case 'list':
+	if ( !file_exists( '/srv/http/data/mpd/'.$mode ) ) { // temp: if file missing
+		exec( 'mpc list '.$mode.' | awk NF', $lists );
+		$array = htmlList( $mode, $lists );
+		break;
+	}
+	
 	$lists = file( '/srv/http/data/mpd/'.$mode, FILE_IGNORE_NEW_LINES );
-	if ( !$lists ) exec( 'mpc list '.$mode.' | awk NF', $lists ); // if file missing
+	$listsC = file( '/srv/http/data/mpd/'.$mode.'C', FILE_IGNORE_NEW_LINES );
+	$lists = array_unique( array_merge( $lists, $listsC ) );
 	$array = htmlList( $mode, $lists );
 	break;
 case 'ls':

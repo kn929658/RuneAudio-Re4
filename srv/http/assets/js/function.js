@@ -1045,6 +1045,7 @@ function renderLibraryList( data ) {
 		if ( $( '.licover' ).length ) setTrackCoverart();
 		$( '#lib-list p' ).toggleClass( 'fixedcover', $( '#lib-list li:eq( 1 )' ).hasClass( 'track1' ) );
 		$( '.list p' ).toggleClass( 'bars-on', G.bars );
+		var top = G.scrolltop[ libpath ] || 0;
 		setTimeout( function() {
 			if ( 'index' in data ) {
 				$( '#lib-list' ).css( 'width', '' );
@@ -1055,10 +1056,10 @@ function renderLibraryList( data ) {
 				$( '#lib-list' ).css( 'width', '100%' );
 				$( '#lib-index' ).addClass( 'hide' );
 			}
-			$( 'html, body' ).scrollTop( G.scrolltop[ libpath ] || 0 );
+			$( 'html, body' ).scrollTop( top );
 			$( '#lib-list' ).removeClass( 'hide' );
 			$( '#loader' ).addClass( 'hide' );
-		}, 300 );
+		}, top ? 0 : 300 );
 	} );
 }
 function renderPlayback() {

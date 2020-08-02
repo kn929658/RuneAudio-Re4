@@ -75,6 +75,7 @@ getinstallzip
 
 if [[ ! -e /srv/http/data/mpd/albumC ]]; then
 	/srv/http/bash/cmd.sh list
+	echo -e "$bar Import *.cue data ..."
 	/srv/http/bash/cmd.sh listcue
 	/srv/http/bash/cmd.sh count
 fi

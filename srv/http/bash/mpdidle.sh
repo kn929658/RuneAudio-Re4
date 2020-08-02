@@ -1,8 +1,8 @@
 #!/bin/bash
 
 for pid in $( pgrep mpd ); do
-	ionice -c 0 -n 0 -p $pid
-	renice -n -19 -p $pid
+	ionice -c 0 -n 0 -p $pid &> /dev/null 
+	renice -n -19 -p $pid &> /dev/null
 done
 
 pushstream() {
@@ -19,6 +19,8 @@ mpc idleloop | while read changed; do
 			;;
 		player )
 			if [[ ! -e $flag ]]; then # suppress on prev/next
+				touch $flag
+				( sleep 0.5 && rm -f $flag ) &> /dev/null &
 				status=$( /srv/http/bash/status.sh )
 				if [[ ! -e /srv/http/data/system/player-snapclient ]]; then
 					pushstream mpdplayer "$status"

@@ -186,7 +186,11 @@ count )
 	count
 	;;
 countcoverart )
-	coverart=$(( $( jq .coverart $dirmpd/counts ) - 1 ))
+	if [[ -z ${args[1]} ]]; then
+		coverart=$(( $( jq .coverart $dirmpd/counts ) - 1 ))
+	else
+		coverart=$( ls -1 $dirdata/coverarts | wc -l )
+	fi
 	sed -i "s/\(.*coverart.: \).*/\1$coverart,/" $dirmpd/counts
 	pushstream mpdupdate "$( cat $dirmpd/counts )"
 	;;

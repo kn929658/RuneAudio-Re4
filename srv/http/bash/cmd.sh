@@ -24,17 +24,51 @@ pushstreamPkg() {
 	curl -s -X POST http://127.0.0.1/pub?id=package -d '{"pkg":"'$1'", "start":'$2',"enable":'$3' }'
 }
 
+count() {
+	for mode in albumartist composer date genre; do
+		printf -v $mode '%s' $( mpc list $mode | awk NF | wc -l )
+	done
+	for mode in NAS SD USB; do
+		printf -v $mode '%s' $( mpc ls $mode 2> /dev/null | wc -l )
+	done
+	stats=( $( mpc stats | head -3 | awk '{print $2,$4,$6}' ) )
+	counts='
+	  "album"       : '$(( Ialbum + ${stats[1]} ))'
+	, "albumartist" : '$(( Ialbumartist + albumartist ))'
+	, "artist"      : '$(( Iartist + ${stats[0]} ))'
+	, "composer"    : '$(( Icomposer + composer ))'
+	, "coverart"    : '$( ls -1q /srv/http/data/coverarts | wc -l )'
+	, "date"        : '$(( Idate + date ))'
+	, "genre"       : '$(( Igenre + genre ))'
+	, "nas"         : '$NAS'
+	, "sd"          : '$SD'
+	, "title"       : '$(( Ititle + ${stats[2]} ))'
+	, "usb"         : '$USB'
+	, "webradio"    : '$( ls -U /srv/http/data/webradios/* 2> /dev/null | wc -l )
+	
+	echo {$counts} | jq . > $dirmpd/counts
+	pushstream mpdupdate "{$counts}"
+}
 listScan() {
 	# pre-fetched - browse by mode
+	modes=( album albumartist artist composer genre date )
+	cuedbfile=$dirmpd/cuedb.php
 	album=$( mpc -f '%album%^^[%albumartist%|%artist%]^^%file%' listall \
 			| awk -F'/[^/]*$' 'NF && !/^\^/ && !a[$0]++ {print $1}' )
-	modes=( album artist albumartist artist composer date genre )
-	for mode in ${modes[@]:1}; do
-		printf -v $mode '%s' "$( mpc list $mode )"
-	done
-	cuedbfile=$dirmpd/cuedb.php
 	files=$( find /mnt/MPD -type f -name *.cue )
-	[[ -z $files ]] && rm -f $cuedbfile && exit
+	if [[ -n $files ]]; then
+		for mode in ${modes[@]:1}; do
+			printf -v $mode '%s' "$( mpc list $mode | awk NF | awk '{$1=$1};1' )"
+		done
+	else
+		echo "$album" > $dirmpd/album
+		for mode in ${modes[@]:1}; do
+			mpc list $mode | awk NF | awk '{$1=$1};1' > $dirmpd/$mode
+		done
+		rm -f $cuedbfile
+		count
+		exit
+	fi
 	
 	readarray -t files <<< "$files"
 	
@@ -78,31 +112,6 @@ EOF
 		echo "${!mode}" | sort -u | awk NF > $dirmpd/$mode
 	done
 	count
-}
-count() {
-	for mode in albumartist composer date genre; do
-		printf -v $mode '%s' $( mpc list $mode | awk NF | wc -l )
-	done
-	for mode in NAS SD USB; do
-		printf -v $mode '%s' $( mpc ls $mode 2> /dev/null | wc -l )
-	done
-	stats=( $( mpc stats | head -3 | awk '{print $2,$4,$6}' ) )
-	counts='
-	  "album"       : '$(( Ialbum + ${stats[1]} ))'
-	, "albumartist" : '$(( Ialbumartist + albumartist ))'
-	, "artist"      : '$(( Iartist + ${stats[0]} ))'
-	, "composer"    : '$(( Icomposer + composer ))'
-	, "coverart"    : '$( ls -1q /srv/http/data/coverarts | wc -l )'
-	, "date"        : '$(( Idate + date ))'
-	, "genre"       : '$(( Igenre + genre ))'
-	, "nas"         : '$NAS'
-	, "sd"          : '$SD'
-	, "title"       : '$(( Ititle + ${stats[2]} ))'
-	, "usb"         : '$USB'
-	, "webradio"    : '$( ls -U /srv/http/data/webradios/* 2> /dev/null | wc -l )
-	
-	echo {$counts} | jq . > $dirmpd/counts
-	pushstream mpdupdate "{$counts}"
 }
 volumeSet() {
 	current=$1

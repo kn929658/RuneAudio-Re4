@@ -222,7 +222,7 @@ librandom )
 		mpc play $(( plL +1 ))
 		systemctl start libraryrandom
 	fi
-	curl -s -X POST http://127.0.0.1/pub?id=playlist -d '{ "playlist": '$enable' }'
+	pushstream mpdoptions '{ "librandom": '$enable' }'
 	;;
 list )
 	list

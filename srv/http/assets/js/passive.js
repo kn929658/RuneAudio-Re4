@@ -212,6 +212,12 @@ function psGPIO( response ) { // on receive broadcast
 function psMpdOptions( data ) {
 	if ( G.local ) return
 	
+	if ( 'librandom' in data ) {
+		G.status.librandom = data.librandom;
+		$( '#button-pl-random' ).toggleClass( 'bl', G.status.librandom );
+		return
+	}
+	
 	G.status.repeat = data[ 0 ];
 	G.status.random = data[ 1 ];
 	G.status.single = data[ 2 ];
@@ -293,11 +299,7 @@ function psPackage( data ) {
 			.find( 'img' ).toggleClass( 'on', data.start );
 }
 function psPlaylist( data ) {
-	if ( data.playlist === true || data.playlist === false ) {
-		G.status.librandom = data.playlist;
-		$( '#button-pl-random' ).toggleClass( 'bl', G.status.librandom );
-		getPlaylist();
-	} else if ( data.playlist === 'playlist' ) {
+	if ( data.playlist === 'playlist' ) {
 		getPlaylist();
 	} else if ( data.playlist === 'save' ) {
 		if ( G.savedlist ) $( '#button-pl-open' ).click();

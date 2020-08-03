@@ -269,13 +269,17 @@ status+=', "sampling" : "'$position$sampling'"'
 if [[ $ext != Radio ]]; then
 	coverart=$( /srv/http/bash/cmd-coverart.sh "$file0" "$Artist"$'\n'"$Album" ) # no escape needed
 elif [[ -e $radiofile ]]; then
-	coverart=$( sed -n '3 p' $radiofile )
 	# $Title          Artist Name - Title Name or Artist Name: Title Name (extra tag)
 	# /\s*$\| (.*$//  remove trailing sapces and extra ( tag )
 	# / - \|: /\n/    split artist - title
 	# args:           "Artist Name"$'\n'"Title Name"$'\ntitle'
 	data=$( sed 's/\s*$\| (.*$//; s/ - \|: /\n/g' <<< "$Title" )
-	(( $( echo "$data" | wc -l ) == 2 )) && /srv/http/bash/cmd-coverartfetch.sh "$data"$'\ntitle' &> /dev/null &
+	readarray -t at <<< "$data"
+	coverart=$( cat "/srv/http/data/tmp/onlinecover-${at[0]}-${at[1]}" 2> /dev/null )
+	if [[ -z $coverart ]]; then
+		coverart=$( sed -n '3 p' $radiofile )
+		/srv/http/bash/cmd-coverartfetch.sh "$data"$'\ntitle' &> /dev/null &
+	fi
 fi
 ########
 status+=', "coverart" : "'$coverart'"'

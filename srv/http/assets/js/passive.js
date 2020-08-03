@@ -131,7 +131,7 @@ function psBookmark( data ) {
 }
 function psCoverart( data ) {
 	G.status.coverart = data.url;
-	$( '#coverart' ).prop( 'src', data.url );
+	if ( data.url ) $( '#coverart' ).prop( 'src', data.url );
 }
 function psDisplay( data ) {
 	if ( G.local ) return

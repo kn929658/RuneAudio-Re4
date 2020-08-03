@@ -1108,20 +1108,8 @@ function renderPlayback() {
 	if ( status.webradio ) {
 		G.coversave = 0;
 		$( '.cover-save' ).remove();
-		if ( status.coverart ) {
-			$( '#coverart' ).prop( 'src', status.coverart );
-		} else {
-			if ( status.state === 'stop' ) {
-				$( '#coverart' ).prop( 'src', vustop );
-			} else {
-				var delay = $( '#coverart' ).prop( 'src' ) ? 2000 : 0;
-				G.coverdefault = setTimeout( function() {
-					if ( !G.status.coverart ) {
-						$( '#divcover, #coverart' ).prop( 'src', vu );
-					}
-				}, delay );
-			}
-		}
+		var coverart = status.coverart || ( status.state === 'stop' ? vustop : vu );
+		$( '#coverart' ).prop( 'src', coverart );
 		$( '#time' ).roundSlider( 'setValue', 0 );
 		$( '#time-bar' ).addClass( 'hide' );
 		if ( status.state === 'play' ) {

@@ -394,6 +394,15 @@ function psVolumeNone( data ) {
 	}
 }
 function setPlayback( data ) {
+	if ( !data.coverart && G.status.coverart ) {
+		setTimeout( function() {
+			if ( G.status.coverart ) return
+			
+			var coverart = !G.status.webradio ? coverrune : ( G.status.state === 'stop' ? vustop : vu );
+			$( '#coverart' ).prop( 'src', coverart );
+		}, 2000 );
+		delete data.coverart;
+	}
 	$.each( data, function( key, value ) {
 		G.status[ key ] = value;
 	} );

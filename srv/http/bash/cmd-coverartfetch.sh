@@ -48,4 +48,6 @@ if [[ $url != null && -n $url ]]; then
 	else
 		echo $url
 	fi
+else
+	curl -s -X POST http://127.0.0.1/pub?id=coverart -d '{ "url": "" }'
 fi

@@ -475,13 +475,16 @@ function second2HMS( $second ) {
 	return $hh.$mm.$ss;
 }
 function stripLeading( $string ) {
+	// symbols order: <spcae> : | { ` _ ^ ] \ [ @ ? > = < ; 0 ! ( " # $ % & ' ) / * + , - . . }
 	$names = strtoupper( strVal( $string ) ); // strVal make all as string for strtoupper
 	return preg_replace(
-		  [ '/^A\s+|^AN\s+|^THE\s+|[^\w\p{L}\p{N}\p{Pd} ~]/u',
-			'/\s+|^_/'
+		  [ '/^A\s+|^AN\s+|^THE\s+|^[^\w\p{L}\p{N}\p{Pd} ~]/u',
+			'/\s+/',
+			'/\^\^/'
 		  ]
 		, [ '',  // strip articles | non utf-8 normal alphanumerics | tilde(blank data)
-			'-'  // fix: php strnatcmp ignores spaces | sort underscore to before 0
+			'|', // sort <space> after [ ^^ to : ] in album list
+			':'  // [ ^^ to : ] in album list
 		  ]
 		, $names
 	);

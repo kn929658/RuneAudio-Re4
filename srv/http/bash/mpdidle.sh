@@ -9,13 +9,24 @@ pushstream() {
 	curl -s -X POST http://127.0.0.1/pub?id=$1 -d "$2"
 }
 
+statusfile=/srv/http/data/tmp/status
 flag=/srv/http/data/tmp/flag
 snapclientfile=/srv/http/data/tmp/snapclientip
 
 mpc idleloop | while read changed; do
 	case $changed in
 		options )
-			pushstream mpdoptions "$( /srv/http/bash/status.sh statusonly )"
+			options=( $( mpc \
+						| awk '/^volume/ {print $4" "$6" "$8" "$10}' \
+						| sed 's/on/true/g; s/off/false/g' ) )
+			status=$( cat $statusfile )
+			status=$( jq ".repeat = ${options[0]} \
+						| .random = ${options[1]} \
+						| .single = ${options[2]} \
+						| .consume = ${options[3]}" \
+						<<< "$status" )
+			pushstream mpdoptions "$status"
+			echo "$status" > $statusfile
 			;;
 		player )
 			if [[ ! -e $flag ]]; then # suppress on prev/next

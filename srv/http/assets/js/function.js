@@ -575,7 +575,7 @@ function getPlaybackStatus() {
 	}
 	G.local = 1;
 	setTimeout( function() { G.local = 0 }, 300 );
-	bash( '/srv/http/bash/status.sh', function( status ) {
+	bash( '/srv/http/bash/status.sh get', function( status ) {
 		if ( !status ) return
 		
 		$.each( status, function( key, value ) {
@@ -1507,7 +1507,7 @@ function setPlaylistScroll() {
 		$( '#menu-plaction' ).addClass( 'hide' );
 		$( '#pl-list li' ).removeClass( 'updn' );
 		setNameWidth();
-		bash( '/srv/http/bash/status.sh statusonly', function( status ) {
+		bash( '/srv/http/bash/status.sh get', function( status ) {
 			$.each( status, function( key, value ) {
 				G.status[ key ] = value;
 			} );

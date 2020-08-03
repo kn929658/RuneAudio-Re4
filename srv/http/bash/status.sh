@@ -1,22 +1,36 @@
 #!/bin/bash
 
 playerfile=/srv/http/data/system/player
+dirtmp=/srv/http/data/tmp
+
+if (( $# > 0 )); then
+	elapsed=$( { echo status; sleep 0.01; } \
+				| telnet 127.0.0.1 6600 2> /dev/null \
+				| awk '/elapsed/ {printf "%.0f\n", $2}' )
+	if [[ -n $elapsed ]]; then
+		sed 's/}$/  ,"elapsed": '$elapsed'}/' $dirtmp/status
+	else
+		cat $dirtmp/status
+	fi
+	exit
+fi
+
 ########
 status=$( cat $playerfile )
 status+='
 	, "webradio" : false
 	, "gpio"     : '$( [[ -e /srv/http/data/system/gpio ]] && echo true || echo false )'
-	, "gpioon"   : '$( [[ -e  /srv/http/data/tmp/gpiotimer ]] && echo true || echo false )
+	, "gpioon"   : '$( [[ -e  $dirtmp/gpiotimer ]] && echo true || echo false )
 if [[ -e $playerfile-snapclient ]]; then
-	[[ ! -e /srv/http/data/tmp/snapserverpw ]] && snapserverpw=rune || snapserverpw=$( cat /srv/http/data/tmp/snapserverpw )
+	[[ ! -e $dirtmp/snapserverpw ]] && snapserverpw=rune || snapserverpw=$( cat $dirtmp/snapserverpw )
 ########
 	status+='
-		, "snapserverip" : "'$( cat /srv/http/data/tmp/snapserverip )'"
+		, "snapserverip" : "'$( cat $dirtmp/snapserverip )'"
 		, "snapserverpw" : "'$snapserverpw'"'
 	echo {$status}
 	exit
 elif [[ -e $playerfile-spotify ]]; then
-	file=/srv/http/data/tmp/spotify
+	file=$dirtmp/spotify
 	elapsed=$( cat $file-elapsed 2> /dev/null || echo 0 )
 	state=$( cat $file-state )
 	if [[ $state == play ]]; then
@@ -38,7 +52,7 @@ elif [[ -e $playerfile-spotify ]]; then
 	echo {$status}
 	exit
 elif [[ -e $playerfile-airplay ]]; then
-	path=/srv/http/data/tmp/airplay
+	path=$dirtmp/airplay
 	if [[ ! -e $path-volume ]]; then
 		card=$( grep output_device /etc/shairport-sync.conf | cut -d'"' -f2 | cut -d: -f2 )
 		mixer=$( grep mixer_control /etc/shairport-sync.conf | cut -d'"' -f2 )
@@ -57,7 +71,7 @@ elif [[ -e $playerfile-airplay ]]; then
 	volume=$( cat $path-volume 2> /dev/null )
 	[[ -z $volume ]] && volume=false
 ########
-	[[ -e /srv/http/data/tmp/airplay-coverart.jpg ]] && coverart=/data/tmp/airplay-coverart.$( date +%s ).jpg
+	[[ -e $dirtmp/airplay-coverart.jpg ]] && coverart=/data/tmp/airplay-coverart.$( date +%s ).jpg
 	status+='
 		, "coverart"       : "'$coverart'"
 		, "elapsed"        : '$elapsed'
@@ -71,7 +85,7 @@ elif [[ -e $playerfile-airplay ]]; then
 	exit
 fi
 
-filter='Album\|Artist\|audio\|bitrate\|consume\|duration\|elapsed\|file\|Name\|playlistlength\|random\|repeat\|single\|^song:\|state\|Time\|Title\|updating_db\|volume'
+filter='Album\|Artist\|audio\|bitrate\|consume\|duration\|file\|Name\|playlistlength\|random\|repeat\|single\|^song:\|state\|Time\|Title\|updating_db\|volume'
 mpdStatus() {
 	mpdtelnet=$( { echo clearerror; echo status; echo $1; sleep 0.05; } \
 		| telnet 127.0.0.1 6600 2> /dev/null \
@@ -98,7 +112,7 @@ for line in "${lines[@]}"; do
 ########
 			status+=', "'$key'" : '$tf;;
 		# number
-		duration | elapsed | playlistlength | song | Time | volume )
+		duration | playlistlength | song | Time | volume )
 			printf -v $key '%s' $val;; # value of $key as "var name" - value of $val as "var value"
 		# string - escaped name
 		Album | AlbumArtist | Artist | Name | Title )
@@ -112,7 +126,6 @@ for line in "${lines[@]}"; do
 	esac
 done
 
-[[ -z $elapsed ]] && elapsed=false || elapsed=$( printf '%.0f\n' $elapsed )
 [[ -z $playlistlength ]] && playlistlength=0
 [[ -z $song ]] && song=false
 [[ -z $Time ]] && Time=false
@@ -120,7 +133,6 @@ done
 [[ -z $volume ]] && volume=false
 ########
 status+='
-	, "elapsed"        : '$elapsed'
 	, "file"           : "'$file'"
 	, "playlistlength" : '$playlistlength'
 	, "song"           : '$song'
@@ -186,15 +198,6 @@ else
 		, "Title"  : "'$Title'"
 	'
 	systemctl stop radiowatchdog
-fi
-
-if [[ $1 == statusonly
-	|| $playlistlength == 0
-	|| ( $Artist == $1 && $Album == $2 ) # the same song
-	&& $ext != Radio
-]]; then
-	echo {$status}
-	exit
 fi
 
 samplingLine() {
@@ -270,22 +273,14 @@ if [[ $ext != Radio ]]; then
 	coverart=$( /srv/http/bash/cmd-coverart.sh "$file0" "$Artist"$'\n'"$Album" ) # no escape needed
 elif [[ -e $radiofile ]]; then
 	coverart=$( sed -n '3 p' $radiofile )
+	# $Title          Artist Name - Title Name or Artist Name: Title Name (extra tag)
+	# /\s*$\| (.*$//  remove trailing sapces and extra ( tag )
+	# / - \|: /\n/    split artist - title
+	# args:           "Artist Name"$'\n'"Title Name"$'\ntitle'
+	data=$( sed 's/\s*$\| (.*$//; s/ - \|: /\n/g' <<< "$Title" )
+	(( $( echo "$data" | wc -l ) == 2 )) && /srv/http/bash/cmd-coverartfetch.sh "$data"$'\ntitle' &> /dev/null &
 fi
 ########
 status+=', "coverart" : "'$coverart'"'
 
-echo {$status}
-
-if [[ $ext == Radio && -n $Title ]]; then
-	if [[ $Title =~ " - " ]]; then
-		delimiter=' - '
-	elif [[ $Title =~ ": " ]]; then
-		delimiter=': '
-	fi
-	title=$( sed 's/ $\| (.*$//' <<< "$Title" )
-	data=$( perl -E 'say for split quotemeta shift, shift' -- "$delimiter" "$title" )
-	(( $( echo "$data" | wc -l ) != 2 )) && exit
-	
-	/srv/http/bash/cmd-coverartfetch.sh "$data"$'\ntitle' &> /dev/null &
-fi
-
+jq . <<< "{$status}" | tee $dirtmp/status

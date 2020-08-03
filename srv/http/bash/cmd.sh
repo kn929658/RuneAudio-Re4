@@ -80,7 +80,7 @@ listCue() {
 		path=$( dirname "$file" )
 		mpdpath=${path:9}
 		
-		[[ -n $albumartist ]] && ar=$$albumartist || ar=$artist
+		[[ -n $albumartist ]] && ar=$albumartist || ar=$artist
 		albumC+="$album^^$ar^^$mpdpath"$'\n'
 		albumartistC+="$albumartist"$'\n'
 		artistC+="$artist"$'\n'
@@ -186,7 +186,7 @@ count )
 	count
 	;;
 countcoverart )
-	coverart=$( ls -1 $dirdata/coverarts | wc -l )
+	coverart=$( ls -1q $dirdata/coverarts | wc -l )
 	sed -i "s/\(.*coverart.: \).*/\1$coverart,/" $dirmpd/counts
 	pushstream mpdupdate "$( cat $dirmpd/counts )"
 	;;

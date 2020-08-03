@@ -39,15 +39,14 @@ else
 	mbid=$( jq -r .mbid <<< "$album" )
 	[[ $mbid == null ]] && url=$( curl -s -L https://coverartarchive.org/release/$mbid | jq -r .images[0].image )
 fi
-if [[ $url != null && -n $url ]]; then
-	if [[ $type != 'licover' ]]; then
-		curl -s -X POST http://127.0.0.1/pub?id=coverart -d '{ "url": "'$url'" }'
-		statusfile=/srv/http/data/tmp/status
-		status=$( jq '.coverart = "'$url'"' $statusfile )
-		echo "$status" > $statusfile
-	else
-		echo $url
-	fi
-else
-	curl -s -X POST http://127.0.0.1/pub?id=coverart -d '{ "url": "" }'
+[[ $url == null ]] && url=
+
+if [[ $type == 'licover' ]]; then
+	[[ -n $url ]] && echo $url
+	exit
 fi
+
+curl -s -X POST http://127.0.0.1/pub?id=coverart -d '{ "url": "'$url'" }'
+statusfile=/srv/http/data/tmp/status
+status=$( jq '.coverart = "'$url'"' $statusfile )
+echo "$status" > $statusfile

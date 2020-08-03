@@ -44,7 +44,7 @@ if [[ $type == 'licover' ]]; then
 	[[ -n $url ]] && echo $url
 else
 	curl -s -X POST http://127.0.0.1/pub?id=coverart -d '{ "url": "'$url'" }'
-	path=/srv/http/data/tmp/onlinecover-
-	rm -f $path*
-	echo $url > "$path$artist-$arg1"
+	path=/srv/http/data/tmp/onlinecover
+	rm -f $path-*
+	echo $url > "$path-$artist-$arg1"
 fi

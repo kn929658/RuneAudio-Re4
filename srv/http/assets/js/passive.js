@@ -215,15 +215,14 @@ function psMpdOptions( data ) {
 	if ( 'librandom' in data ) {
 		G.status.librandom = data.librandom;
 		$( '#button-pl-random' ).toggleClass( 'bl', G.status.librandom );
-		return
+	} else {
+		G.status.repeat = data[ 0 ];
+		G.status.random = data[ 1 ];
+		G.status.single = data[ 2 ];
+		G.status.consume = data[ 3 ];
+		if ( G.playback ) setButtonOptions();
+		$( '#button-pl-consume' ).toggleClass( 'bl', G.status.consume );
 	}
-	
-	G.status.repeat = data[ 0 ];
-	G.status.random = data[ 1 ];
-	G.status.single = data[ 2 ];
-	G.status.consume = data[ 3 ];
-	if ( G.playback ) setButtonOptions();
-	$( '#button-pl-consume' ).toggleClass( 'bl', G.status.consume );
 }
 function psMpdPlayer( data ) {
 	if ( G.local ) return

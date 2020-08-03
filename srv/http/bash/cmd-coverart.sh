@@ -37,6 +37,8 @@ else
 	if [[ -e $tmpfile ]]; then
 		echo /data/tmp/coverart.$( date +%s ).jpg
 	else
-		/srv/http/bash/cmd-coverartfetch.sh "$2" &> /dev/null &
+		readarray -t at <<< "$2"
+		coverart=$( cat "/srv/http/data/tmp/onlinecover-${at[0]}-${at[1]}" 2> /dev/null )
+		[[ -z $coverart ]] && /srv/http/bash/cmd-coverartfetch.sh "$2" &> /dev/null &
 	fi
 fi

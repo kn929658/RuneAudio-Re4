@@ -1,5 +1,7 @@
 #!/bin/bash
 
+/srv/http/bash/status.sh
+
 for pid in $( pgrep mpd ); do
 	ionice -c 0 -n 0 -p $pid &> /dev/null 
 	renice -n -19 -p $pid &> /dev/null

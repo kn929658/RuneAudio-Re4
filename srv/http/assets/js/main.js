@@ -1740,7 +1740,7 @@ $( '#button-pl-random' ).click( function() {
 		G.status.librandom = false;
 		$( this ).removeClass( 'bl' );
 		notify( 'Roll The Dice', 'Off ...', 'dice' );
-		bash( [ 'plrandom', false ] );
+		bash( [ 'librandom', false ] );
 	} else {
 		info( {
 			  icon    : 'dice'

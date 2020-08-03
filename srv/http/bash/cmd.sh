@@ -7,6 +7,7 @@ dirsystem=/srv/http/data/system
 dirtmp=/srv/http/data/tmp
 dirwebradios=/srv/http/data/webradios
 flag=/srv/http/data/tmp/flag
+statusfile=/srv/http/data/tmp/status
 
 # convert each line to each args
 readarray -t args <<< "$1"
@@ -211,6 +212,21 @@ ignoredir )
 imageresize )
 	convert "${args[1]}" -coalesce -resize 200x200 "${args[2]}"
 	;;
+librandom )
+	enable={args[1]}
+	if [[ $enable == false ]]; then
+		systemctl stop libraryrandom
+	else
+		mpc random 0
+		plL=$( mpc playlist | wc -l )
+		mpc listall | shuf -n 3 | mpc add
+		mpc play $(( plL +1 ))
+		systemctl start libraryrandom
+	fi
+	pushstreamKeyVal playlist playlist playlist
+	status=$( jq ".librandom = $enable" $statusfile )
+	echo "$status" > $statusfile
+	;;
 list )
 	list
 	;;
@@ -385,17 +401,10 @@ playseek )
 	pushstreamKeyVal seek elapsed $seek
 	rm -f $flag
 	;;
-plrandom )
-	if [[ ${args[1]} == false ]]; then
-		systemctl stop libraryrandom
-	else
-		mpc random 0
-		plL=$( mpc playlist | wc -l )
-		mpc listall | shuf -n 3 | mpc add
-		mpc play $(( plL +1 ))
-		systemctl start libraryrandom
-	fi
-	pushstreamKeyVal playlist playlist playlist
+plcount )
+	plL=$( ls /srv/http/data/playlists | wc -l )
+	status=$( jq ".playlists = $plL" $statusfile )
+	echo "$status" > $statusfile
 	;;
 plrename )
 	mv "$dirdata/playlists/${args[1]}" "$dirdata/playlists/${args[2]}"
@@ -488,11 +497,15 @@ volume )
 			rm -f $filevolumemute
 		fi
 	fi
+	status=$( jq ".volume = $target" $statusfile )
+	echo "$status" > $statusfile
 	;;
 volumeincrement )
 	target=${args[1]}
 	mpc volume $target
 	pushstreamVol set $target
+	status=$( jq ".volume = $target" $statusfile )
+	echo "$status" > $statusfile
 	;;
 volumenone )
 	output=$( cat "$dirsystem/${args[1]}" )

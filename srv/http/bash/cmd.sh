@@ -194,12 +194,22 @@ countcoverart )
 filemove )
 	mv -f "${args[1]}" "${args[2]}"
 	;;
-gpiotimerreset )
-	awk '/timer/ {print $NF}' $dirsystem/gpio.json > $dirtmp/gpiotimer
-	pushstreamKeyVal gpio state RESET
+gpio )
+	onoff=${args[1]}
+	[[ $onoff == true ]] && /srv/http/bash/gpioon.py || /srv/http/bash/gpiooff.py
+	/srv/http/bash/status.sh &> /dev/null
+	;;
+gpioenable )
+	enable=${args[1]}
+	[[ $enable == true ]] && touch $dirsystem/gpio || rm -f $dirsystem/gpio
+	/srv/http/bash/status.sh &> /dev/null
 	;;
 gpioset )
 	echo ${args[1]} | jq . > $dirsystem/gpio.json
+	;;
+gpiotimerreset )
+	awk '/timer/ {print $NF}' $dirsystem/gpio.json > $dirtmp/gpiotimer
+	pushstreamKeyVal gpio state RESET
 	;;
 ignoredir )
 	path=${args[1]}
@@ -224,8 +234,7 @@ librandom )
 		systemctl start libraryrandom
 	fi
 	pushstreamKeyVal playlist playlist playlist
-	status=$( jq ".librandom = $enable" $statusfile )
-	echo "$status" > $statusfile
+	/srv/http/bash/status.sh &> /dev/null
 	;;
 list )
 	list
@@ -401,11 +410,6 @@ playseek )
 	pushstreamKeyVal seek elapsed $seek
 	rm -f $flag
 	;;
-plcount )
-	plL=$( ls /srv/http/data/playlists | wc -l )
-	status=$( jq ".playlists = $plL" $statusfile )
-	echo "$status" > $statusfile
-	;;
 plrename )
 	mv "$dirdata/playlists/${args[1]}" "$dirdata/playlists/${args[2]}"
 	;;
@@ -485,27 +489,28 @@ volume )
 		pushstreamVol set $target
 		volumeSet $current $target
 		rm -f $filevolumemute
+		/srv/http/bash/status.sh &> /dev/null
 	else
 		if (( $current > 0 )); then # mute
 			pushstreamVol mute $current true
 			volumeSet $current 0 false
 			echo $current > $filevolumemute
+			status=$( jq ".volume = 0 | .volumemute = $current" $statusfile )
 		else # unmute
 			target=$( cat $filevolumemute )
 			pushstreamVol unmute $target true
 			volumeSet 0 $target
 			rm -f $filevolumemute
+			status=$( jq ".volume = $target | .volumemute = 0" $statusfile )
 		fi
+		echo "$status" > $statusfile
 	fi
-	status=$( jq ".volume = $target" $statusfile )
-	echo "$status" > $statusfile
 	;;
 volumeincrement )
 	target=${args[1]}
 	mpc volume $target
 	pushstreamVol set $target
-	status=$( jq ".volume = $target" $statusfile )
-	echo "$status" > $statusfile
+	/srv/http/bash/status.sh &> /dev/null
 	;;
 volumenone )
 	output=$( cat "$dirsystem/${args[1]}" )

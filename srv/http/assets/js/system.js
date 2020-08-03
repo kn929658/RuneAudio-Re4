@@ -425,7 +425,7 @@ $( '#gpio' ).click( function() {
 	G.gpio = $( this ).prop( 'checked' );
 	$( '#setting-gpio' ).toggleClass( 'hide', !G.gpio );
 	banner( 'GPIO Relay', G.gpio, 'gpio blink' );
-	bash( ( G.gpio ? 'touch ' : 'rm ' ) + dirsystem +'/gpio', resetLocal );
+	$.post( cmdphp, { cmd: 'sh', sh: [ 'gpioenable', G.gpio ] } );
 } );
 $( '#mpdscribble' ).click( function() {
 	var mpdscribble = $( this ).prop( 'checked' );

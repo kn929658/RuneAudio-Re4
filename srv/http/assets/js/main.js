@@ -389,7 +389,7 @@ $( '#gpio' ).click( function( e ) {
 	if ( $( e.target ).hasClass( 'submenu' ) ) {
 		location.href = 'gpiosettings.php';
 	} else {
-		bash( G.status.gpioon ? '/srv/http/bash/gpiooff.py' : '/srv/http/bash/gpioon.py' );
+		bash( [ 'gpio', G.status.gpioon ? false : true ] );
 	}
 } );
 $( '#logout' ).click( function( e ) {

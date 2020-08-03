@@ -270,22 +270,14 @@ if [[ $ext != Radio ]]; then
 	coverart=$( /srv/http/bash/cmd-coverart.sh "$file0" "$Artist"$'\n'"$Album" ) # no escape needed
 elif [[ -e $radiofile ]]; then
 	coverart=$( sed -n '3 p' $radiofile )
+	# $Title          Artist Name - Title Name or Artist Name: Title Name (extra tag)
+	# /\s*$\| (.*$//  remove trailing sapces and extra ( tag )
+	# / - \|: /\n/    split artist - title
+	# args:           "Artist Name"$'\n'"Title Name"$'\ntitle'
+	data=$( sed 's/\s*$\| (.*$//; s/ - \|: /\n/g' <<< "$Title" )
+	(( $( echo "$data" | wc -l ) == 2 )) && /srv/http/bash/cmd-coverartfetch.sh "$data"$'\ntitle' &> /dev/null &
 fi
 ########
 status+=', "coverart" : "'$coverart'"'
 
 echo {$status}
-
-if [[ $ext == Radio && -n $Title ]]; then
-	if [[ $Title =~ " - " ]]; then
-		delimiter=' - '
-	elif [[ $Title =~ ": " ]]; then
-		delimiter=': '
-	fi
-	title=$( sed 's/ $\| (.*$//' <<< "$Title" )
-	data=$( perl -E 'say for split quotemeta shift, shift' -- "$delimiter" "$title" )
-	(( $( echo "$data" | wc -l ) != 2 )) && exit
-	
-	/srv/http/bash/cmd-coverartfetch.sh "$data"$'\ntitle' &> /dev/null &
-fi
-

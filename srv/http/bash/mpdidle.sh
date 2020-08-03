@@ -15,7 +15,11 @@ snapclientfile=/srv/http/data/tmp/snapclientip
 mpc idleloop | while read changed; do
 	case $changed in
 		options )
-			pushstream mpdoptions "$( /srv/http/bash/status.sh statusonly )"
+			options=$( mpc \
+						| awk '/^volume/ {print $4" "$6" "$8" "$10}' \
+						| sed 's/on/true/g; s/off/false/g' \
+						| tr ' ' ',' )
+			pushstream mpdoptions "[$options]"
 			;;
 		player )
 			if [[ ! -e $flag ]]; then # suppress on prev/next

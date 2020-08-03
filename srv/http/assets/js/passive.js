@@ -131,7 +131,7 @@ function psBookmark( data ) {
 }
 function psCoverart( data ) {
 	G.status.coverart = data.url;
-	$( '#coverart' ).prop( 'src', data.url );
+	if ( data.url ) $( '#coverart' ).prop( 'src', data.url );
 }
 function psDisplay( data ) {
 	if ( G.local ) return
@@ -212,17 +212,12 @@ function psGPIO( response ) { // on receive broadcast
 function psMpdOptions( data ) {
 	if ( G.local ) return
 	
-	$.each( data, function( key, value ) {
-		if ( value == 1 || value === 'true' ) {
-			value = true;
-		} else if ( value == 0 || value === 'false' ) {
-			value = false;
-		}
-		G.status[ key ] = value;
-	} );
+	G.status.repeat = data[ 0 ];
+	G.status.random = data[ 1 ];
+	G.status.single = data[ 2 ];
+	G.status.consume = data[ 3 ];
 	if ( G.playback ) setButtonOptions();
 	$( '#button-pl-consume' ).toggleClass( 'bl', G.status.consume );
-	$( '#button-pl-random' ).toggleClass( 'bl', G.status.librandom );
 }
 function psMpdPlayer( data ) {
 	if ( G.local ) return
@@ -298,7 +293,11 @@ function psPackage( data ) {
 			.find( 'img' ).toggleClass( 'on', data.start );
 }
 function psPlaylist( data ) {
-	if ( data.playlist === 'playlist' ) {
+	if ( data.playlist === true || data.playlist === false ) {
+		G.status.librandom = data.playlist;
+		$( '#button-pl-random' ).toggleClass( 'bl', G.status.librandom );
+		getPlaylist();
+	} else if ( data.playlist === 'playlist' ) {
 		getPlaylist();
 	} else if ( data.playlist === 'save' ) {
 		if ( G.savedlist ) $( '#button-pl-open' ).click();
@@ -398,6 +397,15 @@ function psVolumeNone( data ) {
 	}
 }
 function setPlayback( data ) {
+	if ( !data.coverart && G.status.coverart ) {
+		setTimeout( function() {
+			if ( G.status.coverart ) return
+			
+			var coverart = !G.status.webradio ? coverrune : ( G.status.state === 'stop' ? vustop : vu );
+			$( '#coverart' ).prop( 'src', coverart );
+		}, 2000 );
+		delete data.coverart;
+	}
 	$.each( data, function( key, value ) {
 		G.status[ key ] = value;
 	} );

@@ -80,7 +80,7 @@ listCue() {
 		path=$( dirname "$file" )
 		mpdpath=${path:9}
 		
-		[[ -n $albumartist ]] && ar=$$albumartist || ar=$artist
+		[[ -n $albumartist ]] && ar=$albumartist || ar=$artist
 		albumC+="$album^^$ar^^$mpdpath"$'\n'
 		albumartistC+="$albumartist"$'\n'
 		artistC+="$artist"$'\n'
@@ -211,6 +211,19 @@ ignoredir )
 imageresize )
 	convert "${args[1]}" -coalesce -resize 200x200 "${args[2]}"
 	;;
+librandom )
+	enable=${args[1]}
+	if [[ $enable == false ]]; then
+		systemctl stop libraryrandom
+	else
+		mpc random 0
+		plL=$( mpc playlist | wc -l )
+		mpc listall | shuf -n 3 | mpc add
+		mpc play $(( plL +1 ))
+		systemctl start libraryrandom
+	fi
+	curl -s -X POST http://127.0.0.1/pub?id=playlist -d '{ "playlist": '$enable' }'
+	;;
 list )
 	list
 	;;
@@ -333,13 +346,6 @@ mpcprevnext )
 	pushstream mpdplayer "$status"
 	rm -f $flag
 	;;
-mpcrescan )
-	pushstream mpdupdate 1
-	mpc rescan
-	list
-	listCue
-	count
-	;;
 mpcsimilar )
 	plL=$( mpc playlist | wc -l )
 	linesL=${#args[@]}
@@ -360,7 +366,7 @@ mpcsimilar )
 	;;
 mpcupdate )
 	pushstream mpdupdate 1
-	mpc update "${args[1]}"
+	[[ ${#args[@]} == 1 ]] && mpc rescan || mpc update "${args[1]}"
 	list
 	listCue
 	count
@@ -379,9 +385,6 @@ packageset )
 	[[ $enable == true ]] && systemctl enable $pkg || systemctl disable $pkg
 	pushstreamPkg $pkg $start $enable
 	;;
-playpos )
-	mpc play ${args[1]}
-	;;
 playrandom )
 	plL=$( mpc playlist | wc -l )
 	mpc play $( shuf -i 0-$plL -n 1 )
@@ -394,18 +397,6 @@ playseek )
 	mpc seek $seek
 	pushstreamKeyVal seek elapsed $seek
 	rm -f $flag
-	;;
-plrandom )
-	if [[ ${args[1]} == false ]]; then
-		systemctl stop libraryrandom
-	else
-		mpc random 0
-		plL=$( mpc playlist | wc -l )
-		mpc listall | shuf -n 3 | mpc add
-		mpc play $(( plL +1 ))
-		systemctl start libraryrandom
-	fi
-	pushstreamKeyVal playlist playlist playlist
 	;;
 plrename )
 	mv "$dirdata/playlists/${args[1]}" "$dirdata/playlists/${args[2]}"

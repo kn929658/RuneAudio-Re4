@@ -100,6 +100,7 @@ $( '#coverart' ).on( 'error', function() {
 	}
 } ).one( 'load', function() {
 	$( '#splash' ).remove();
+	$( '.rs-animation .rs-transition' ).css( 'transition-property', '' ); // restore animation after load
 	if ( G.status.playlistlength ) $( '#coverart' ).removeClass( 'hide' );
 	if ( $( '#lib-cover-list' ).html() ) new LazyLoad( { elements_selector: '.lazy' } );
 } ).on( 'load', function() {
@@ -347,11 +348,10 @@ $( '.settings' ).click( function( e ) {
 		info( {
 			  icon    : 'refresh-library'
 			, title   : 'Update Library Database'
-			, radio   : { 'Only changed files' : 'mpcupdate', 'Rebuild entire database': 'mpcrescan' }
+			, radio   : { 'Only changed files' : 1, 'Rebuild entire database': 2 }
 			, ok      : function() {
 				G.status.updating_db = true;
-				bash( [ $( '#infoRadio input:checked' ).val() ] );
-//				notify( 'Library Database', 'Update ...', 'library blink' );
+				$( '#infoRadio input:checked' ).val() == 1 ? bash( [ 'mpcupdate', '' ] ) : bash( [ 'mpcupdate' ] );
 			}
 		} );
 	}
@@ -1741,7 +1741,7 @@ $( '#button-pl-random' ).click( function() {
 		G.status.librandom = false;
 		$( this ).removeClass( 'bl' );
 		notify( 'Roll The Dice', 'Off ...', 'dice' );
-		bash( [ 'plrandom', false ] );
+		bash( [ 'librandom', false ] );
 	} else {
 		info( {
 			  icon    : 'dice'
@@ -1751,7 +1751,7 @@ $( '#button-pl-random' ).click( function() {
 				G.status.librandom = true;
 				$( this ).addClass( 'bl' );
 				notify( 'Roll The Dice', 'Add+play ...', 'dice' );
-				bash( [ 'plrandom', true ] );
+				bash( [ 'librandom', true ] );
 			}
 		} );
 	}

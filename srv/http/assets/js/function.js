@@ -1070,6 +1070,7 @@ function renderPlayback() {
 	var previousartist = $( '#artist' ).text();
 	var prevtitle = $( '#song' ).text();
 	var previousalbum = $( '#album' ).text();
+	var previouscoverart = $( '#coverart' ).prop( 'src' );
 	// volume
 	if ( !G.display.volumenone ) {
 		if ( G.display.volume ) {
@@ -1110,20 +1111,8 @@ function renderPlayback() {
 		$( '.cover-save' ).remove();
 		// webradio coverart
 		if ( !status.Title || status.Title !== prevtitle ) {
-			if ( status.coverart ) {
-				$( '#coverart' ).prop( 'src', status.coverart );
-			} else {
-				if ( status.state === 'stop' ) {
-					$( '#coverart' ).prop( 'src', vustop );
-				} else {
-					var delay = $( '#coverart' ).prop( 'src' ) ? 2000 : 0;
-					G.coverdefault = setTimeout( function() {
-						if ( !G.status.coverart ) {
-							$( '#divcover, #coverart' ).prop( 'src', vu );
-						}
-					}, delay );
-				}
-			}
+			var covervu = status.state === 'stop' ? vustop : vu;
+			$( '#coverart' ).prop( 'src', status.coverart || covervu );
 		}
 		$( '#time' ).roundSlider( 'setValue', 0 );
 		$( '#time-bar' ).addClass( 'hide' );
@@ -1254,6 +1243,7 @@ function renderPlaybackBlank() {
 		$( '#time-bar' ).css( 'width', 0 );
 		$( '#coverart' ).prop( 'src', coverrune );
 		if ( ip ) {
+			$( '#coverart' ).addClass( 'hide' );
 			$( '#sampling' ).html( 'http://'+ ip );
 			var qrweb = new QRCode( {
 				  msg : 'http://'+ ip
@@ -1262,7 +1252,6 @@ function renderPlaybackBlank() {
 			} );
 			$( '#qrwebui' ).html( qrweb );
 		} else {
-			$( '#coverart' ).removeClass( 'hide' );
 			$( '#sampling' ).html( 'Network not connected - Click&ensp;<i class="fa fa-gear"></i>&ensp;to setup' );
 			$( '#page-playback .emptyadd' ).html( '<i class="fa fa-gear"></i>' );
 		}

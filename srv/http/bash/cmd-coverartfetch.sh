@@ -44,7 +44,7 @@ if [[ $url != null && -n $url ]]; then
 		curl -s -X POST http://127.0.0.1/pub?id=coverart -d '{ "url": "'$url'" }'
 		statusfile=/srv/http/data/tmp/status
 		status=$( jq '.coverart = "'$url'"' $statusfile )
-		echo "$status" $statusfile
+		echo "$status" > $statusfile
 	else
 		echo $url
 	fi

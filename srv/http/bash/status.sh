@@ -8,7 +8,7 @@ if (( $# > 0 )); then
 				| telnet 127.0.0.1 6600 2> /dev/null \
 				| awk '/elapsed/ {printf "%.0f\n", $2}' )
 	if [[ -n $elapsed ]]; then
-		sed 's/}$/  ,"elapsed": '$elapsed'}/' $dirtmp/status
+		sed '/^{/ a\  "elapsed": '$elapsed',' $dirtmp/status
 	else
 		cat $dirtmp/status
 	fi

@@ -9,7 +9,7 @@ case 'current':
 	break;
 case 'delete':
 	unlink( '/srv/http/data/playlists/'.$_POST[ 'name' ] );
-	exec( $sudo.'/srv/http/bash/cmd.sh plcount' );
+	exec( $sudo.'/srv/http/bash/status.sh &> /dev/null' );
 	break;
 case 'edit':
 	$name = $_POST[ 'name' ];
@@ -167,7 +167,7 @@ case 'save':
 	$list = json_encode( playlistInfo(), JSON_NUMERIC_CHECK | JSON_PRETTY_PRINT );
 	file_put_contents( $file, $list );
 	pushstream( 'playlist', [ 'playlist' => 'save' ] );
-	exec( $sudo.'/srv/http/bash/cmd.sh plcount' );
+	exec( $sudo.'/srv/http/bash/status.sh &> /dev/null' );
 	break;
 	
 }

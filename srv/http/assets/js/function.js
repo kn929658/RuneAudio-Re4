@@ -576,7 +576,6 @@ function getPlaybackStatus() {
 	G.local = 1;
 	setTimeout( function() { G.local = 0 }, 300 );
 	bash( '/srv/http/bash/status.sh get', function( status ) {
-		console.log(status)
 		if ( !status ) return
 		
 		$.each( status, function( key, value ) {
@@ -1109,21 +1108,18 @@ function renderPlayback() {
 	if ( status.webradio ) {
 		G.coversave = 0;
 		$( '.cover-save' ).remove();
-		// webradio coverart
-		if ( !status.Title || status.Title !== prevtitle ) {
-			if ( status.coverart ) {
-				$( '#coverart' ).prop( 'src', status.coverart );
+		if ( status.coverart ) {
+			$( '#coverart' ).prop( 'src', status.coverart );
+		} else {
+			if ( status.state === 'stop' ) {
+				$( '#coverart' ).prop( 'src', vustop );
 			} else {
-				if ( status.state === 'stop' ) {
-					$( '#coverart' ).prop( 'src', vustop );
-				} else {
-					var delay = $( '#coverart' ).prop( 'src' ) ? 2000 : 0;
-					G.coverdefault = setTimeout( function() {
-						if ( !G.status.coverart ) {
-							$( '#divcover, #coverart' ).prop( 'src', vu );
-						}
-					}, delay );
-				}
+				var delay = $( '#coverart' ).prop( 'src' ) ? 2000 : 0;
+				G.coverdefault = setTimeout( function() {
+					if ( !G.status.coverart ) {
+						$( '#divcover, #coverart' ).prop( 'src', vu );
+					}
+				}, delay );
 			}
 		}
 		$( '#time' ).roundSlider( 'setValue', 0 );

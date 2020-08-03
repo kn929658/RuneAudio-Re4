@@ -372,9 +372,6 @@ packageset )
 	[[ $enable == true ]] && systemctl enable $pkg || systemctl disable $pkg
 	pushstreamPkg $pkg $start $enable
 	;;
-playpos )
-	mpc play ${args[1]}
-	;;
 playrandom )
 	plL=$( mpc playlist | wc -l )
 	mpc play $( shuf -i 0-$plL -n 1 )

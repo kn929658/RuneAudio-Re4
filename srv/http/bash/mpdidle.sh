@@ -19,16 +19,17 @@ mpc idleloop | while read changed; do
 			options=( $( mpc \
 						| awk '/^volume/ {print $4" "$6" "$8" "$10}' \
 						| sed 's/on/true/g; s/off/false/g' ) )
+			pushstream mpdoptions "[$( echo ${options[@]} | tr ' ' ',' )]"
 			status=$( cat $statusfile )
 			status=$( jq ".repeat = ${options[0]} \
 						| .random = ${options[1]} \
 						| .single = ${options[2]} \
 						| .consume = ${options[3]}" \
 						<<< "$status" )
-			pushstream mpdoptions "$status"
 			echo "$status" > $statusfile
 			;;
 		player )
+#			( sleep 3 && rm -f $flag ) &> /dev/null &
 			if [[ ! -e $flag ]]; then # suppress on prev/next
 				touch $flag
 				( sleep 0.5 && rm -f $flag ) &> /dev/null &

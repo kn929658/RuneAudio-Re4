@@ -576,6 +576,7 @@ function getPlaybackStatus() {
 	G.local = 1;
 	setTimeout( function() { G.local = 0 }, 300 );
 	bash( '/srv/http/bash/status.sh get', function( status ) {
+		console.log(status)
 		if ( !status ) return
 		
 		$.each( status, function( key, value ) {

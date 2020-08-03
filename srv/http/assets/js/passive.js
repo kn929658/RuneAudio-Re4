@@ -212,14 +212,10 @@ function psGPIO( response ) { // on receive broadcast
 function psMpdOptions( data ) {
 	if ( G.local ) return
 	
-	$.each( data, function( key, value ) {
-		if ( value == 1 || value === 'true' ) {
-			value = true;
-		} else if ( value == 0 || value === 'false' ) {
-			value = false;
-		}
-		G.status[ key ] = value;
-	} );
+	G.status.repeat = data[ 0 ];
+	G.status.random = data[ 1 ];
+	G.status.single = data[ 2 ];
+	G.status.consume = data[ 3 ];
 	if ( G.playback ) setButtonOptions();
 	$( '#button-pl-consume' ).toggleClass( 'bl', G.status.consume );
 	$( '#button-pl-random' ).toggleClass( 'bl', G.status.librandom );

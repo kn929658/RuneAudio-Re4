@@ -101,6 +101,7 @@ $( '#coverart' ).on( 'error', function() {
 } ).one( 'load', function() {
 	$( '#splash' ).remove();
 	if ( G.status.playlistlength ) $( '#coverart' ).removeClass( 'hide' );
+	$( '.rs-animation .rs-transition' ).css( 'transition-property', '' ); // restore animation after load
 	if ( $( '#lib-cover-list' ).html() ) new LazyLoad( { elements_selector: '.lazy' } );
 } ).on( 'load', function() {
 	var covervu = $( '#coverart' ).prop( 'src' ).split( '/' ).pop().slice( 0, 2 ) === 'vu';

@@ -61,8 +61,8 @@ n; s/^\(\s\+PERFORMER\).*/\1 "'${args[0]}'"/
 				genre )       sed -i "1 i\REM GENRE \"$val\"" "$path";;
 			esac
 		done
+		# update pre-queried list
+		/srv/http/bash/cmd.sh listcue
+		/srv/http/bash/cmd.sh count
 	fi
-	# update pre-queried list
-	/srv/http/bash/cmd.sh listcue
-	/srv/http/bash/cmd.sh count
 fi

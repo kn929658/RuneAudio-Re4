@@ -333,13 +333,6 @@ mpcprevnext )
 	pushstream mpdplayer "$status"
 	rm -f $flag
 	;;
-mpcrescan )
-	pushstream mpdupdate 1
-	mpc rescan
-	list
-	listCue
-	count
-	;;
 mpcsimilar )
 	plL=$( mpc playlist | wc -l )
 	linesL=${#args[@]}
@@ -360,7 +353,7 @@ mpcsimilar )
 	;;
 mpcupdate )
 	pushstream mpdupdate 1
-	mpc update "${args[1]}"
+	[[ ${#args[@]} == 1 ]] && mpc rescan || mpc update "${args[1]}"
 	list
 	listCue
 	count

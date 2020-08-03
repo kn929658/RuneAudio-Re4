@@ -60,7 +60,7 @@ if [[ -n "$mountpoints" ]]; then
 	done
 fi
 
-[[ ! -e /srv/http/data/mpd/mpd.db ]] && /srv/http/bash/cmd.sh mpcrescan
+[[ ! -e /srv/http/data/mpd/mpd.db ]] && /srv/http/bash/cmd.sh mpcupdate
 
 [[ -e $dirsystem/autoplay ]] && mpc -q play
 

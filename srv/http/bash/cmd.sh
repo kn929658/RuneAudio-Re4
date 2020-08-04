@@ -50,6 +50,7 @@ count() {
 	
 	echo {$counts} | jq . > $dirmpd/counts
 	pushstream mpdupdate "{$counts}"
+	chown http:http $dirmpd/counts
 }
 list() {
 	# pre-fetched - browse by mode
@@ -60,6 +61,8 @@ list() {
 	for mode in albumartist artist composer genre date; do
 		mpc list $mode | awk NF | awk '{$1=$1};1' > $dirmpd/$mode
 	done
+	chown http:http $dirmpd/*
+	chown mpd:audio $dirmpd/mpd*
 }
 listCue() {
 	files=$( find /mnt/MPD -type f -name *.cue )
@@ -103,6 +106,8 @@ EOF
 		echo "${!modeC}" | awk NF | awk '{$1=$1};1' | sort -u > $dirmpd/$modeC
 	done
 	echo $Ititle > $dirmpd/countsC
+	chown http:http $dirmpd/*
+	chown mpd:audio $dirmpd/mpd*
 }
 volumeSet() {
 	current=$1

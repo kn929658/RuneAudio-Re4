@@ -122,6 +122,8 @@ mkdir -p /mnt/MPD/{NAS,SD,USB}
 
 # set permissions and ownership
 chown -R http:http /srv/http
-chown -R mpd:audio /srv/http/data/mpd /mnt/MPD
-chmod 755 /srv/http/* /srv/http/bash/* /srv/http/settings/* /usr/local/bin/*
+chown -R mpd:audio $dirdata/mpd /mnt/MPD
+chown http:http $dirdata/mpd/* &> /dev/null
+chown mpd:audio $dirdata/mpd/mpd* &> /dev/null
+chmod 755 /srv/http/* /srv/http/bash/* /srv/http/settings/*
 chmod 777 /srv/http/data/tmp

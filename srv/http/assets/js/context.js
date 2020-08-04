@@ -479,7 +479,7 @@ function webRadioCoverart() {
 	}
 	var infojson = {
 		  icon        : 'coverart'
-		, title       : 'Change WebRadio CoverArt'
+		, title       : 'WebRadio CoverArt'
 		, fileoklabel : '<i class="fa fa-flash"></i>Replace'
 		, filetype    : 'image/*'
 		, ok          : function() {
@@ -524,6 +524,7 @@ function webRadioCoverart() {
 	) {
 		infojson.buttonlabel = '<i class="fa fa-webradio"></i>Reset';
 		infojson.buttonwidth = 1;
+		infojson.buttoncolor = '#de810e';
 		infojson.button      = function() {
 			bash( "sed -i '2,$ d' '/srv/http/data/webradios/"+ urlname +"'" );
 			if ( G.playback ) {

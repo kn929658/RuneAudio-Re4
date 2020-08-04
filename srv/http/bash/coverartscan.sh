@@ -9,7 +9,6 @@ path="/mnt/MPD/${args[0]}"
 updatedb=${args[1]}
 replaceexist=${args[2]}
 remove=${args[3]}
-copyembedded=${args[4]}
 
 . /srv/http/bash/addons-functions.sh
 
@@ -119,34 +118,6 @@ createThumbnail() {
 			(( exist++ ))
 			echo -e "$padW #$exist Skip - Thumbnail exists:"
 			echo "  $( basename "$thumbfile" )"
-			if [[ $copyembedded == true ]]; then # copy embedded
-				findCoverFile
-				[[ $found == 1 ]] && return
-				
-				if [[ -w "$dir" ]]; then
-					mpcls=$( mpc ls "$mpdpath" )
-					[[ -z $mpcls ]] && continue
-					readarray -t lists <<<"$mpcls"
-					for list in "${lists[@]}"; do # if path contains mpd file and not *.wav
-						file="/mnt/MPD/$list"
-						[[ -d "$file" || ${file/*.} == wav ]] && continue
-						
-						coverfile="$dir/cover.jpg"
-						kid3-cli -c "select \"$file\"" -c "get picture:\"$coverfile\""
-						if [[ -e $coverfile ]]; then
-							(( copy++ ))
-							echo "  Source: Embedded coverart"
-							echo -e "$padM #$copy - Copy to external file."
-							break
-						fi
-						
-					done
-				else
-					(( permission++ ))
-					echo -e "$padR Copy denied - No write permission."
-					echo -e "$permission\n" >> $permissionlog
-				fi
-			fi
 			return
 		fi
 	fi
@@ -197,17 +168,7 @@ createThumbnail() {
 			else
 				echo "  Source: Embedded coverart"
 				convert "$coverfile" -thumbnail 200x200 -unsharp 0x.5 "$thumbfile"
-				if [[ $copyembedded == true ]]; then
-					if [[ -w "$dir" ]]; then
-						mv $coverfile "$dir"
-						(( copy++ ))
-						echo -e "$padM #$copy - Copy to external file."
-					else
-						echo -e "$padR Copy denied - No write permission."
-					fi
-				else
-					rm "$coverfile"
-				fi
+				rm "$coverfile"
 				if [[ $? == 0 ]]; then
 					if [[ $replaceexist == true ]]; then
 						(( replace++ ))
@@ -232,7 +193,6 @@ replace=0
 exist=0
 thumb=0
 dummy=0
-copy=0
 padGr=$( tcolor '.' 8 8 )
 padW=$( tcolor '.' 7 7 )
 padC=$( tcolor '.' 6 6 )
@@ -292,7 +252,6 @@ echo -e               "\n\n$padC New thumbnails       : $( tcolor $( numfmt --g 
 (( $replace )) && echo -e "$padG Replaced thumbnails  : $( tcolor $( numfmt --g $replace ) )"
 (( $exist )) && echo -e   "$padW Existings thumbnails : $( numfmt --g $exist )"
 (( $dummy )) && echo -e  "$padGr Dummy thumbnails     : $( tcolor $( numfmt --g $dummy ) )"
-(( $copy )) && echo -e    "$padM Copy embedded        : $( tcolor $( numfmt --g $copy ) )"
 if (( $nonutf8 )); then
 	echo -e               "$padR Non UTF-8 path       : $( tcolor $( numfmt --g $nonutf8 ) )  (See list in $( tcolor "$nonutf8log" ))"
 else

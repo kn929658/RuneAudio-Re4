@@ -1423,7 +1423,7 @@ $( '#mode-coverart' ).click( function() { // fix - 'tap' also fire .coverart cli
 	if ( G.status.updating_db ) {
 		info( {
 			  icon    : 'coverart'
-			, title   : 'CoverArt Thumbnails Update'
+			, title   : 'CoverArt Thumbnails'
 			, message : 'Library update is in progress ...'
 					   +'<br>Please wait until finished.'
 		} );

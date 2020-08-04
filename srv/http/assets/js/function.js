@@ -667,13 +667,11 @@ function infoCoverartScan( path ) {
 			  'Update Library database'         : 1
 			, 'Replace existings'               : 1
 			, 'Rebuild entire thumbnails'       : 1
-			, 'Copy embedded to external files' : 1
 		}
 		, footer   : '<px30/>(Copy: write permission needed)'
 		, preshow  : function() {
 			if ( time ) $( '#infoCheckBox label:eq( 1 ), #infoCheckBox label:eq( 2 )' ).hide().prev().hide();
 			if ( G.librarylist ) $( '#infoCheckBox label:eq( 2 )' ).hide().prev().hide();
-			$( '#infoCheckBox input:eq( 3 )' ).prop( 'checked', 1 );
 		}
 		, ok       : function() {
 			var opt = [ 'cove', 'Update', 'master', path ];

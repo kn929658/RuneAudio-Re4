@@ -516,6 +516,7 @@ webradioadd )
 	[[ -z $url ]] && echo -1 && exit
 	
 	echo $name^^Radio > $filewebradio
+	chown http:http $filewebradio
 	count
 	;;
 webradiodelete )

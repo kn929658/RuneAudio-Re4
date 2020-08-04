@@ -471,9 +471,11 @@ function webRadioCoverart() {
 	if ( G.library ) {
 		var name = G.list.name;
 		var urlname = G.list.path.toString().replace( /\//g, '|' );
+		var sampling = 'Radio';
 	} else {
 		var name = G.status.Name;
 		var urlname = G.status.file.replace( /\//g, '|' );
+		var sampling = $( '#sampling' ).text();
 	}
 	var infojson = {
 		  icon        : 'coverart'
@@ -493,7 +495,7 @@ function webRadioCoverart() {
 					$.post( cmdphp, {
 						  cmd            : 'imagefile'
 						, imagefile      : urlname
-						, base64webradio : name +'^^'+ $( '#sampling' ).text() + "\n"+ thumb +"\n"+ newimg
+						, base64webradio : name +'^^'+ sampling + "\n"+ thumb +"\n"+ newimg
 					}, function() {
 						webRadioCoverartSet( newimg, thumb );
 					} );

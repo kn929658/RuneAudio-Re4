@@ -27,10 +27,7 @@ fi
 # data - settings directories
 dirdata=/srv/http/data
 dirsystem=$dirdata/system
-mkdir -p "$dirdata"
-for dir in addons bookmarks coverarts lyrics mpd playlists system tmp webradios; do
-	mkdir -p "$dirdata/$dir"
-done
+mkdir -p $dirdata/{addons,bookmarks,coverarts,embedded,lyrics,mpd,playlists,system,tmp,webradios}
 # display
 echo '{
 	"album": true,
@@ -84,9 +81,10 @@ timedatectl set-timezone UTC
 # on-board audio
 echo 'bcm2835 Headphones' > $dirsystem/audio-aplayname
 echo 'On-board - Headphone' > $dirsystem/audio-output
-echo 1 | tee $dirsystem/{localbrowser,onboard-audio,onboard-wlan} > /dev/null
+touch $dirsystem/{localbrowser,onboard-audio,onboard-wlan}
 # nowireless
 [[ $hwcode =~ ^(00|01|02|03|04|09)$ ]] && rm $dirsystem/onboard-wlan
+[[ $hwcode =~ ^(00|01|02|03|09|0c)$ ]] && rm $dirsystem/localbrowser
 echo RuneAudio | tee $dirsystem/{hostname,soundprofile} > /dev/null
 echo '$2a$12$rNJSBU0FOJM/jP98tA.J7uzFWAnpbXFYx5q1pmNhPnXnUu3L1Zz6W' > $dirsystem/password
 [[ -n $1 ]] && echo $1 > $dirsystem/version
@@ -125,6 +123,8 @@ mkdir -p /mnt/MPD/{NAS,SD,USB}
 
 # set permissions and ownership
 chown -R http:http /srv/http
-chown -R mpd:audio /srv/http/data/mpd /mnt/MPD
-chmod 755 /srv/http/* /srv/http/bash/* /srv/http/settings/* /usr/local/bin/*
+chown -R mpd:audio $dirdata/mpd /mnt/MPD
+chown http:http $dirdata/mpd/* &> /dev/null
+chown mpd:audio $dirdata/mpd/mpd* &> /dev/null
+chmod 755 /srv/http/* /srv/http/bash/* /srv/http/settings/*
 chmod 777 /srv/http/data/tmp

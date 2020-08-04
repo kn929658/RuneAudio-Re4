@@ -4,6 +4,9 @@ alias=rre4
 
 . /srv/http/bash/addons-functions.sh
 
+mkdir -p /srv/http/data/embedded
+chown http:http /srv/http/data/embedded
+
 if grep -q usr/local/bin /etc/systemd/system/bootsplash.service &> /dev/null; then
 	sed -i 's|usr/local/bin|srv/http/bash|' /etc/systemd/system/bootsplash.service
 	systemctl try-restart bootsplash

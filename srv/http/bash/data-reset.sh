@@ -27,10 +27,7 @@ fi
 # data - settings directories
 dirdata=/srv/http/data
 dirsystem=$dirdata/system
-mkdir -p "$dirdata"
-for dir in addons bookmarks coverarts lyrics mpd playlists system tmp webradios; do
-	mkdir -p "$dirdata/$dir"
-done
+mkdir -p $dirdata/{addons,bookmarks,coverarts,embedded,lyrics,mpd,playlists,system,tmp,webradios}
 # display
 echo '{
 	"album": true,

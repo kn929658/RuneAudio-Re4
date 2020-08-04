@@ -270,8 +270,8 @@ elif [[ -e $radiofile ]]; then
 	# / - \|: /\n/    split artist - title
 	# args:           "Artist Name"$'\n'"Title Name"$'\ntitle'
 	data=$( sed 's/\s*$\| (.*$//; s/ - \|: /\n/g' <<< "$Title" )
-	readarray -t at <<< "$data"
-	coverart=$( cat "/srv/http/data/tmp/onlinecover-${at[0]}-${at[1]}" 2> /dev/null )
+	name=$( echo $data | tr -d ' "`'"'" )
+	coverart=$( cat /srv/http/data/tmp/online-$name 2> /dev/null )
 	if [[ -z $coverart ]]; then
 		coverart=$( sed -n '3 p' $radiofile )
 		/srv/http/bash/cmd-coverartfetch.sh "$data"$'\ntitle' &> /dev/null &

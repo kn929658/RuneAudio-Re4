@@ -522,7 +522,7 @@ function webRadioCoverart() {
 	if ( ( G.playback && !$( '#coverart' ).hasClass( 'vu' ) )
 		|| ( G.library && !G.list.li.find( '.lib-icon' ).hasClass( 'fa' ) )
 	) {
-		infojson.buttonlabel = '<i class="fa fa-webradio"></i>Reset';
+		infojson.buttonlabel = '<i class="fa fa-webradio"></i>Default';
 		infojson.buttonwidth = 1;
 		infojson.buttoncolor = '#de810e';
 		infojson.button      = function() {

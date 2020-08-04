@@ -81,9 +81,10 @@ timedatectl set-timezone UTC
 # on-board audio
 echo 'bcm2835 Headphones' > $dirsystem/audio-aplayname
 echo 'On-board - Headphone' > $dirsystem/audio-output
-echo 1 | tee $dirsystem/{localbrowser,onboard-audio,onboard-wlan} > /dev/null
+touch $dirsystem/{localbrowser,onboard-audio,onboard-wlan}
 # nowireless
 [[ $hwcode =~ ^(00|01|02|03|04|09)$ ]] && rm $dirsystem/onboard-wlan
+[[ $hwcode =~ ^(00|01|02|03|09|0c)$ ]] && rm $dirsystem/localbrowser
 echo RuneAudio | tee $dirsystem/{hostname,soundprofile} > /dev/null
 echo '$2a$12$rNJSBU0FOJM/jP98tA.J7uzFWAnpbXFYx5q1pmNhPnXnUu3L1Zz6W' > $dirsystem/password
 [[ -n $1 ]] && echo $1 > $dirsystem/version

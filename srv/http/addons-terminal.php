@@ -28,7 +28,7 @@ $opttxt = '';
 foreach( $sh as $arg ) {
 	$opttxt.= strpos( $arg, ' ' ) ? '"'.$arg.'" ' : $arg.' ';
 }
-$postinfo = $type." done.<br>See Progess terminal for result.";
+$postinfo = $type." done.<br>See Progress terminal for result.";
 $postinfo.= isset( $addon[ 'postinfo' ] ) ? '<br><br>'.$addon[ 'postinfo' ] : '';
 $installurl = $addon[ 'installurl' ];
 $installfile = basename( $installurl );

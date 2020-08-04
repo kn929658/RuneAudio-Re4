@@ -42,7 +42,11 @@ else
 	if [[ -e $tmpfile ]]; then
 		echo $coverfile
 	else
-		coverart=$( cat /srv/http/data/tmp/online-$name 2> /dev/null )
-		[[ -z $coverart ]] && /srv/http/bash/cmd-coverartfetch.sh "$2" &> /dev/null &
+		file=/srv/http/data/tmp/online-$name
+		if [[ -e $file ]]; then
+			coverart=$( cat $file )
+		else
+			/srv/http/bash/cmd-coverartfetch.sh "$2" &> /dev/null &
+		fi
 	fi
 fi

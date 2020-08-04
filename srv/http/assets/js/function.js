@@ -575,7 +575,7 @@ function getPlaybackStatus() {
 	}
 	G.local = 1;
 	setTimeout( function() { G.local = 0 }, 300 );
-	bash( '/srv/http/bash/status.sh', function( status ) {
+	bash( '/srv/http/bash/status.sh get', function( status ) {
 		if ( !status ) return
 		
 		$.each( status, function( key, value ) {
@@ -1109,8 +1109,12 @@ function renderPlayback() {
 		$( '.cover-save' ).remove();
 		// webradio coverart
 		if ( !status.Title || status.Title !== prevtitle ) {
-			var covervu = status.state === 'stop' ? vustop : vu;
-			$( '#coverart' ).prop( 'src', status.coverart || covervu );
+			if ( status.coverart ) {
+				var coverart = status.coverart;
+			} else {
+				var coverart = status.coverartradio || ( status.state === 'stop' ? vustop : vu );
+			}
+			$( '#coverart' ).prop( 'src', coverart );
 		}
 		$( '#time' ).roundSlider( 'setValue', 0 );
 		$( '#time-bar' ).addClass( 'hide' );

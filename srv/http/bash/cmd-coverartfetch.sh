@@ -47,7 +47,5 @@ if [[ $type == 'licover' ]]; then
 	echo $url
 else
 	curl -s -X POST http://127.0.0.1/pub?id=coverart -d '{ "url": "'$url'" }'
-	prefix=/srv/http/data/tmp/online
-	name=$( echo $artist$arg1 | tr -d ' "`'"'" )
-	echo $url > /srv/http/data/tmp/online-$name
+	echo $url > /srv/http/data/tmp/online-$( echo $artist$arg1 | tr -d ' "`'"'" )
 fi

@@ -4,15 +4,15 @@ playerfile=/srv/http/data/system/player
 ########
 status=$( cat $playerfile )
 status+='
-	, "webradio" : false
-	, "gpio"     : '$( [[ -e /srv/http/data/system/gpio ]] && echo true || echo false )'
-	, "gpioon"   : '$( [[ -e  /srv/http/data/tmp/gpiotimer ]] && echo true || echo false )
+, "webradio" : false
+, "gpio"     : '$( [[ -e /srv/http/data/system/gpio ]] && echo true || echo false )'
+, "gpioon"   : '$( [[ -e  /srv/http/data/tmp/gpiotimer ]] && echo true || echo false )
 if [[ -e $playerfile-snapclient ]]; then
 	[[ ! -e /srv/http/data/tmp/snapserverpw ]] && snapserverpw=rune || snapserverpw=$( cat /srv/http/data/tmp/snapserverpw )
 ########
 	status+='
-		, "snapserverip" : "'$( cat /srv/http/data/tmp/snapserverip )'"
-		, "snapserverpw" : "'$snapserverpw'"'
+, "snapserverip" : "'$( cat /srv/http/data/tmp/snapserverip )'"
+, "snapserverpw" : "'$snapserverpw'"'
 	echo {$status}
 	exit
 elif [[ -e $playerfile-spotify ]]; then
@@ -32,9 +32,9 @@ elif [[ -e $playerfile-spotify ]]; then
 ########
 	status+=$( cat $file )
 	status+='
-		, "elapsed" : '$(( ( elapsed + 500 ) / 1000 ))'
-		, "state"   : "'$state'"
-		, "volume"  : '$( mpc volume | cut -d: -f2 | tr -d ' %' )
+, "elapsed" : '$(( ( elapsed + 500 ) / 1000 ))'
+, "state"   : "'$state'"
+, "volume"  : '$( mpc volume | cut -d: -f2 | tr -d ' %' )
 	echo {$status}
 	exit
 elif [[ -e $playerfile-airplay ]]; then
@@ -59,14 +59,14 @@ elif [[ -e $playerfile-airplay ]]; then
 ########
 	[[ -e /srv/http/data/tmp/airplay-coverart.jpg ]] && coverart=/data/tmp/airplay-coverart.$( date +%s ).jpg
 	status+='
-		, "coverart"       : "'$coverart'"
-		, "elapsed"        : '$elapsed'
-		, "playlistlength" : 1
-		, "sampling"       : "16 bit 44.1 kHz 1.41 Mbit/s • AirPlay"
-		, "state"          : "play"
-		, "Time"           : '$Time'
-		, "volume"         : '$volume'
-		, "volumemute"     : 0'
+, "coverart"       : "'$coverart'"
+, "elapsed"        : '$elapsed'
+, "playlistlength" : 1
+, "sampling"       : "16 bit 44.1 kHz 1.41 Mbit/s • AirPlay"
+, "state"          : "play"
+, "Time"           : '$Time'
+, "volume"         : '$volume'
+, "volumemute"     : 0'
 	echo {$status}
 	exit
 fi
@@ -96,7 +96,9 @@ for line in "${lines[@]}"; do
 		consume | random | repeat | single )
 			[[ $val == 1 ]] && tf=true || tf=false
 ########
-			status+=', "'$key'" : '$tf;;
+			status+='
+, "'$key'" : '$tf
+			;;
 		# number
 		duration | elapsed | playlistlength | song | Time | volume )
 			printf -v $key '%s' $val;; # value of $key as "var name" - value of $val as "var value"
@@ -120,16 +122,16 @@ done
 [[ -z $volume ]] && volume=false
 ########
 status+='
-	, "elapsed"        : '$elapsed'
-	, "file"           : "'$file'"
-	, "playlistlength" : '$playlistlength'
-	, "song"           : '$song'
-	, "state"          : "'$state'"
-	, "updating_db"    : '$updating_db'
-	, "volume"         : '$volume'
-	, "volumemute"     : '$( cat /srv/http/data/system/volumemute 2> /dev/null || echo 0 )'
-	, "librandom"      : '$( systemctl -q is-active libraryrandom && echo true || echo false )'
-	, "playlists"      : '$( ls /srv/http/data/playlists | wc -l )
+, "elapsed"        : '$elapsed'
+, "file"           : "'$file'"
+, "playlistlength" : '$playlistlength'
+, "song"           : '$song'
+, "state"          : "'$state'"
+, "updating_db"    : '$updating_db'
+, "volume"         : '$volume'
+, "volumemute"     : '$( cat /srv/http/data/system/volumemute 2> /dev/null || echo 0 )'
+, "librandom"      : '$( systemctl -q is-active libraryrandom && echo true || echo false )'
+, "playlists"      : '$( ls /srv/http/data/playlists | wc -l )
 
 if [[ -z $playlistlength ]]; then
 	echo {$status}
@@ -143,11 +145,10 @@ if [[ ${file:0:4} == http ]]; then
 		ext=UPnP
 ########
 		status+='
-			, "Album"  : "'$Album'"
-			, "Artist" : "'$Artist'"
-			, "Time"   : "'$( printf '%.0f\n' $duration )'"
-			, "Title"  : "'$Title'"
-		'
+, "Album"  : "'$Album'"
+, "Artist" : "'$Artist'"
+, "Time"   : "'$( printf '%.0f\n' $duration )'"
+, "Title"  : "'$Title'"'
 	else
 		ext=Radio
 		# before webradios play: no 'Name:' - use station name from file instead
@@ -161,12 +162,12 @@ if [[ ${file:0:4} == http ]]; then
 		fi
 ########
 		status+='
-			, "Album"    : "'$file'"
-			, "Artist"   : "'$Artist'"
-			, "Name"     : "'$stationname'"
-			, "Time"     : false
-			, "Title"    : "'$Title'"
-			, "webradio" : 'true
+, "Album"    : "'$file'"
+, "Artist"   : "'$Artist'"
+, "Name"     : "'$stationname'"
+, "Time"     : false
+, "Title"    : "'$Title'"
+, "webradio" : 'true
 		systemctl start radiowatchdog
 	fi
 else
@@ -180,11 +181,10 @@ else
 	[[ -z $Title ]] && filename=${file/*\/} && Title=${filename%.*}
 ########
 	status+='
-		, "Album"  : "'$Album'"
-		, "Artist" : "'$Artist'"
-		, "Time"   : '$Time'
-		, "Title"  : "'$Title'"
-	'
+, "Album"  : "'$Album'"
+, "Artist" : "'$Artist'"
+, "Time"   : '$Time'
+, "Title"  : "'$Title'"'
 	systemctl stop radiowatchdog
 fi
 
@@ -259,25 +259,32 @@ else
 	fi
 fi
 ########
-status+=', "sampling" : "'$position$sampling'"'
+status+='
+, "sampling" : "'$position$sampling'"'
 
 # coverart
 if [[ $ext != Radio ]]; then
 	coverart=$( /srv/http/bash/cmd-coverart.sh "$file0" "$Artist"$'\n'"$Album" ) # no escape needed
-elif [[ -e $radiofile ]]; then
+else
+########
+	# not for mpdidle - too large for pushstream
+	[[ $1 == get ]] && status+='
+, "coverartradio" : "'$( sed -n '3 p' $radiofile )'"'
+	
 	# $Title          Artist Name - Title Name or Artist Name: Title Name (extra tag)
 	# /\s*$\| (.*$//  remove trailing sapces and extra ( tag )
 	# / - \|: /\n/    split artist - title
 	# args:           "Artist Name"$'\n'"Title Name"$'\ntitle'
 	data=$( sed 's/\s*$\| (.*$//; s/ - \|: /\n/g' <<< "$Title" )
-	name=$( echo $data | tr -d ' "`'"'" )
-	coverart=$( cat /srv/http/data/tmp/online-$name 2> /dev/null )
-	if [[ -z $coverart ]]; then
-		coverart=$( sed -n '3 p' $radiofile )
+	file=/srv/http/data/tmp/online-$( echo $data | tr -d ' "`'"'" )
+	if [[ -e $file ]]; then
+		coverart=$( cat $file )
+	else
 		/srv/http/bash/cmd-coverartfetch.sh "$data"$'\ntitle' &> /dev/null &
 	fi
 fi
 ########
-status+=', "coverart" : "'$coverart'"'
+status+='
+, "coverart" : "'$coverart'"'
 
 echo {$status}

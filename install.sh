@@ -8,13 +8,14 @@ installstart "$1"
 
 getinstallzip
 
-/srv/http/bash/cmd.sh list
+if ! mpc | grep -q  ^Updating && [[ -e /srv/http/data/mpd/mpd.db ]] ; then
+	/srv/http/bash/cmd.sh list
 
-echo -e "$bar Import *.cue data ..."
+	echo -e "$bar Import *.cue data ..."
 
-/srv/http/bash/cmd.sh listcue
-/srv/http/bash/cmd.sh count
-
+	/srv/http/bash/cmd.sh listcue
+	/srv/http/bash/cmd.sh count
+fi
 mkdir -p /srv/http/data/embedded
 chown http:http /srv/http/data/embedded /srv/http/data/webradios/*
 

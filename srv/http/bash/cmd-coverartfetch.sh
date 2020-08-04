@@ -40,12 +40,14 @@ else
 	[[ $mbid == null ]] && url=$( curl -s -L https://coverartarchive.org/release/$mbid | jq -r .images[0].image )
 fi
 [[ $url == null ]] && url=
+rm -f /srv/http/data/tmp/online-*
+[[ -z $url ]] && exit
+
 if [[ $type == 'licover' ]]; then
-	[[ -n $url ]] && echo $url
+	echo $url
 else
 	curl -s -X POST http://127.0.0.1/pub?id=coverart -d '{ "url": "'$url'" }'
 	prefix=/srv/http/data/tmp/online
 	name=$( echo $artist$arg1 | tr -d ' "`'"'" )
-	rm -f $prefix-*
-	echo $url > "$prefix-$name"
+	echo $url > /srv/http/data/tmp/online-$name
 fi

@@ -30,6 +30,7 @@ $( '#pwd' ).keypress( function( e ) {
 $color = file_exists( '/srv/http/data/system/color' );
 $submenupower = in_array( $_SERVER[ 'REMOTE_ADDR' ], [ '127.0.0.1', '::1' ] ) ? '<i class="fa fa-screenoff submenu"></i>' : '';
 // counts
+if ( !file_exists( '/srv/http/data/mpd/counts' ) ) exec( '/srv/http/bash/cmd.sh count' );
 $counts = file_get_contents( '/srv/http/data/mpd/counts' );
 $counts = json_decode( $counts );
 // library home blocks

@@ -401,7 +401,7 @@ function setPlayback( data ) {
 	if ( G.status.webradio && !data.coverart && G.status.coverart && G.status.state !== 'stop' ) {
 		setTimeout( function() {
 			if ( !G.status.coverart ) {
-				var coverart = status.coverartradio || ( status.state === 'stop' ? vustop : vu );
+				var coverart = G.status.coverartradio || ( G.status.state === 'stop' ? vustop : vu );
 				$( '#coverart' ).prop( 'src', coverart );
 			}
 		}, 2000 );

@@ -188,11 +188,7 @@ else
 	systemctl stop radiowatchdog
 fi
 
-if [[ $1 == statusonly
-	|| $playlistlength == 0
-	|| ( $Artist == $1 && $Album == $2 ) # the same song
-	&& $ext != Radio
-]]; then
+if [[ $1 == statusonly && $ext != Radio ]]; then
 	echo {$status}
 	exit
 fi

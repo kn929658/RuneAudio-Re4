@@ -1,5 +1,6 @@
 #!/bin/bash
 
+mpdpath=$1
 path="/mnt/MPD/$1"
 
 ### 1 - get coverfile in directory ##################################
@@ -20,18 +21,25 @@ if [[ -n $coverfile ]]; then
 	coverfile=$( sed 's/%/\^/g; s/"/%22/g; s/\^/%25/g' <<< $coverfile )
 	echo "$coverfile.$( date +%s ).$ext"
 else
+	tmpprefix=/srv/http/data/tmp/embeddedcover
+	tmpfile=$tmpprefix-${mpdpath//\//|}.jpg
+	if [[ -e $tmpfile ]]; then
+		echo $tmpprefix-${mpdpath//\//|}.$( date +%s ).jpg
+		exit
+		
+	else
+		rm -f $tmpprefix-*
+	fi
 	if [[ -f "$path" ]]; then
 		file="$path"
 	else
-		files=$( mpc ls "${path:9}" )
+		files=$( mpc ls "$mpdpath" )
 		readarray -t files <<<"$files"
 		for file in "${files[@]}"; do
 			file="/mnt/MPD/$file"
 			[[ -f "$file" ]] && break
 		done
 	fi
-	tmpfile=/srv/http/data/tmp/coverart.jpg
-	rm -f $tmpfile
 	ffmpeg -i "$file" $tmpfile &> /dev/null
 #	kid3-cli -c "select \"$file\"" -c "get picture:$tmpfile" &> /dev/null # suppress '1 space' stdout
 	if [[ -e $tmpfile ]]; then

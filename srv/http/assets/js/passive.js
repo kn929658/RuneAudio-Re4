@@ -398,12 +398,12 @@ function psVolumeNone( data ) {
 	}
 }
 function setPlayback( data ) {
-	if ( !data.coverart && G.status.coverart ) {
+	if ( G.status.webradio && !data.coverart && G.status.coverart && G.status.state !== 'stop' ) {
 		setTimeout( function() {
-			if ( G.status.coverart ) return
-			
-			var coverart = !G.status.webradio ? coverrune : ( G.status.state === 'stop' ? vustop : vu );
-			$( '#coverart' ).prop( 'src', coverart );
+			if ( !G.status.coverart ) {
+				var coverart = G.status.state === 'stop' ? vustop : vu;
+				$( '#coverart' ).prop( 'src', coverart );
+			}
 		}, 2000 );
 		delete data.coverart;
 	}

@@ -24,21 +24,22 @@ mpc idleloop | while read changed; do
 		player )
 			if [[ ! -e $flag ]]; then # suppress on prev/next
 				touch $flag
-				( sleep 0.5 && rm -f $flag ) &> /dev/null &
-				status=$( /srv/http/bash/status.sh )
-				if [[ ! -e /srv/http/data/system/player-snapclient ]]; then
-					pushstream mpdplayer "$status"
-				else
-					sed -i '/^$/d' $snapclientfile # remove blank lines
-					if [[ -s $snapclientfile ]]; then
-						mapfile -t clientip < $snapclientfile
-						for ip in "${clientip[@]}"; do
-							curl -s -X POST "http://$ip/pub?id=mpdplayer" -d "$status"
-						done
+				( sleep 0.05 && rm -f $flag # debounce multiple player event
+					status=$( /srv/http/bash/status.sh )
+					if [[ ! -e /srv/http/data/system/player-snapclient ]]; then
+						pushstream mpdplayer "$status"
 					else
-						rm $snapclientfile
+						sed -i '/^$/d' $snapclientfile # remove blank lines
+						if [[ -s $snapclientfile ]]; then
+							mapfile -t clientip < $snapclientfile
+							for ip in "${clientip[@]}"; do
+								curl -s -X POST "http://$ip/pub?id=mpdplayer" -d "$status"
+							done
+						else
+							rm $snapclientfile
+						fi
 					fi
-				fi
+				) &
 			fi
 			;;
 		playlistplayer )

@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # config.txt
-hwcode=$( awk '/Revision/ {print substr($NF, 4, 2)}' /proc/cpuinfo )
+code=$( awk '/Revision/ {print $NF}' /proc/cpuinfo )
+hwcode=${code: -3:2}
 if (( $# == 0 )); then
 	case $hwcode in
 		09 | 0c ) rpi=0;;

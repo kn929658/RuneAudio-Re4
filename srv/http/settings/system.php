@@ -270,7 +270,8 @@ $code = '<i class="fa fa-code"></i>';
 		<span class="help-block hide">Should be disabled if use other devices as audio output.</span>
 	</div>
 </div>
-	<?php $hwcode = exec( '/usr/bin/sudo /usr/bin/awk \'/Revision/ {print substr($NF, 4, 2)}\' /proc/cpuinfo' );
+	<?php $code = exec( "/usr/bin/sudo awk '/Revision/ {print \$NF}' /proc/cpuinfo" );
+		$hwcode = substr( $code, -3, 2 );
 		if ( in_array( $hwcode, [ '0c', '08', '0e', '0d', '11' ] ) ) { # rpi with wireless
 			if ( file_exists( '/usr/bin/bluetoothctl' ) ) { ?>
 <div class="col-l">Bluetooth</div>

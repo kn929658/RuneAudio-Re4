@@ -51,7 +51,7 @@ soc="$soc$bullet$cores $cpuname @ "
 (( $cpuspeed < 1000 )) && soc+="${cpuspeed}MHz" || soc+="$( awk "BEGIN { printf \"%.1f\n\", $cpuspeed / 1000 }" )GHz"
 soc+=$bullet
 hwcode=$( awk '/Revision/ {print $NF}' <<< "$cpuinfo" )
-case ${hwcode::1} in
+case ${hwcode: -6:1} in
 	9 ) soc+='512KB';;
 	a ) soc+='1GB';;
 	b ) soc+='2GB';;
@@ -118,7 +118,7 @@ data+='
 	, "samba"           : '$( systemctl -q is-active smb && echo true || echo false )'
 	, "writesd"         : '$( grep -A1 /mnt/MPD/SD /etc/samba/smb.conf | grep -q 'read only = no' && echo true || echo false )'
 	, "writeusb"        : '$( grep -A1 /mnt/MPD/USB /etc/samba/smb.conf | grep -q 'read only = no' && echo true || echo false )
-[[ ${hwcode:3:2} =~ ^(08|0c|0d|0e|11)$ ]] && data+='
+[[ ${hwcode: -3:2} =~ ^(08|0c|0d|0e|11)$ ]] && data+='
 	, "wlan"            : '$( lsmod | grep -q '^brcmfmac ' && echo true || echo false )
 xinitrc=/etc/X11/xinit/xinitrc
 if [[ -e $xinitrc ]]; then

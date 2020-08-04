@@ -8,7 +8,8 @@ dirsystem=/srv/http/data/system
 [[ -z $profile || $profile == getvalue ]] && profile=$( cat $dirsystem/soundprofile )
 [[ -n $val ]] && echo $val > $dirsystem/soundprofile-custom
 
-hwcode=$( awk '/Revision/ {print substr($NF, 4, 2)}' /proc/cpuinfo )
+code=$( awk '/Revision/ {print $NF}' /proc/cpuinfo )
+hwcode=${code: -3:2}
 if [[ $hwcode =~ ^(04|08|0d|0e|11)$ ]]; then # not RPi 1
 	lat=( 4500000 3500075 1000000 2000000 3700000 1500000 145655 6000000 )
 else
